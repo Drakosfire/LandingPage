@@ -1,0 +1,40 @@
+.app-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    margin-top: 80px;
+}
+
+.app-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: #000;
+    font-weight: 500;
+    padding: 20px;
+    background-color: #d4b8a7;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    min-width: 200px;
+    min-height: 100px;
+}
+
+.app-card:hover {
+    background-color: #c0a090;
+    transform: translateY(-2px);
+}
+
+.app-logo {
+    height: 200px;
+    width: auto;
+    margin-bottom: 10px;
+}
+
+.app-name {
+    font-size: 18px;
+    text-align: center;
+}
