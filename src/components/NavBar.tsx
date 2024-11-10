@@ -2,6 +2,7 @@
 import React from 'react';
 import './NavBar.css'; // Assuming styles specific to NavBar are here
 import { DUNGEONMIND_API_URL } from '../config';
+import { Link } from 'react-router-dom'; // Import Link from react-router-dom
 
 const NavBar: React.FC = () => {
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -42,6 +43,14 @@ const NavBar: React.FC = () => {
                             alt="Contact Me"
                         />
                     </a>
+                </li>
+                <li>
+                    <Link to="/blog" className="logo-link">
+                        <img
+                            src={`${process.env.PUBLIC_URL}/images/BlogButton.png`}
+                            alt="Blog"
+                        />
+                    </Link>
                 </li>
                 <li>
                     <a href={`${DUNGEONMIND_API_URL}/auth/login`} className="login-btn">Login</a>
