@@ -71,16 +71,17 @@ Here’s what’s live and what’s coming soon:
 - **Card Generator and Statblock Generator**: These tools will simplify creating TTRPG assets, from item cards to detailed monster stats.  
 - **One-Shot Story Generator** *(coming soon)*: A start-to-finish adventure generator that creates image assets, NPC and monster stat blocks, stores, and custom loot in a publish-ready format—all from minimal text input.  
 
-![Custom item and card back I created—later I’ll write about how I manufacture these into physical cards.](https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/33fb476f-643d-4850-9830-6bc7a5695700/public)
-*Custom item and card back I created—later I’ll write about how I manufacture these into physical cards.*
-  \n  &nbsp;
+![Custom item and card back I created—later I’ll write about how I manufacture these into physical cards.](https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/33fb476f-643d-4850-9830-6bc7a5695700/blogpost)
+\n  &nbsp;
+
+*Custom item and card back I created—later I’ll write about how I manufacture these into physical cards.*  \n  &nbsp;
 
 ### **We’re Going on an Adventure!**
   \n  &nbsp;
 
 ---
 
-Come along with me; I’m only just getting started. There’s so much more to learn, stories to tell, and projects to share. This space is for storytellers, technologists, futurists—and, I hope, *you*.  
+I’m only just getting started. There’s so much more to learn, stories to tell, and projects to share. This space is for storytellers, technologists, futurists—and, I hope, *you*.  
   \n  &nbsp;
 
 ### **What’s Next?**
