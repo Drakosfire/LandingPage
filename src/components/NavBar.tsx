@@ -13,7 +13,7 @@ const NavBar: React.FC = () => {
         <nav>
             <ul>
                 <li>
-                    <a href="#about-dungeonmind" className="logo-link">
+                    <a href="/#about-dungeonmind" className="logo-link">
                         <img
                             src={`${process.env.PUBLIC_URL}/images/DungeonMindLogo2.png`}
                             alt="DungeonMind Logo"
@@ -21,7 +21,7 @@ const NavBar: React.FC = () => {
                     </a>
                 </li>
                 <li>
-                    <a href="#app-links" className="logo-link">
+                    <a href="/#app-links" className="logo-link">
                         <img
                             src={`${process.env.PUBLIC_URL}/images/WorldBuildingAppsButton3.png`}
                             alt="World Building Apps"
@@ -29,7 +29,7 @@ const NavBar: React.FC = () => {
                     </a>
                 </li>
                 <li>
-                    <a href="#about-me" className="logo-link">
+                    <a href="/#about-me" className="logo-link">
                         <img
                             src={`${process.env.PUBLIC_URL}/images/AboutMeButtonv2.png`}
                             alt="About Me"
@@ -37,7 +37,7 @@ const NavBar: React.FC = () => {
                     </a>
                 </li>
                 <li>
-                    <a href="#contact" className="logo-link">
+                    <a href="/#contact" className="logo-link">
                         <img
                             src={`${process.env.PUBLIC_URL}/images/ContactMeButton.png`}
                             alt="Contact Me"
