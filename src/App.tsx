@@ -14,6 +14,7 @@ import './App.css';
 
 const App: React.FC = () => {
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
+  console.log(DUNGEONMIND_API_URL);
 
   useEffect(() => {
     const fetchHealthStatus = async () => {
