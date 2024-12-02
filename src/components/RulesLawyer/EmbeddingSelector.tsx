@@ -4,11 +4,6 @@ import './EmbeddingSelector.css';
 import { DUNGEONMIND_API_URL } from '../../config';
 
 const EmbeddingSelector: React.FC = () => {
-    // Header that says "Select an Embedding"
-    const header = document.querySelector('.chat-header');
-    if (header) {
-        header.textContent = 'Select a Rule set to chat with, then click the load button';
-    }
 
     const { setCurrentEmbedding } = useChatContext();
     const [selectedEmbedding, setSelectedEmbedding] = useState('DnD_PHB_55');
@@ -52,7 +47,7 @@ const EmbeddingSelector: React.FC = () => {
 
     return (
         <div className="embedding-selector-container">
-            <h5 className="embedding-selector-header">Select a Rule set to chat with</h5>
+            <h5 className="embedding-selector-header">Select a Rule set to chat with, then load it</h5>
             <div className="selector-wrapper">
                 <select
                     value={selectedEmbedding}

@@ -18,7 +18,7 @@ const AppLinks: React.FC = () => {
             </a>
             <Link to="/ruleslawyer" className="app-card">
                 <img
-                    src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/7f63ae8a-2427-4d98-f5e4-dd66be493d00/public"
+                    src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/0ed83976-6007-4b56-7943-1c08d3117e00/public"
                     alt="Rules Lawyer"
                     className="app-logo"
                 />
