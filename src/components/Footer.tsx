@@ -1,12 +1,11 @@
 // src/components/Footer.tsx
 import React from 'react';
-// import './Footer.css';
 
 const Footer: React.FC = () => {
     return (
-        <footer id="contact">
+        <footer id="contact" style={{ position: 'fixed', bottom: 0, width: '100%' }}>
             <p>&copy; 2024 DungeonMind. All rights reserved.</p>
-            <p>Email: alan.meigs@gmail.com</p>
+            <p>Email: dungeon.mind.am@gmail.com</p>
         </footer>
     );
 };
