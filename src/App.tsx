@@ -9,6 +9,7 @@ import AboutDungeonMind from './components/AboutDungeonMind';
 import Footer from './components/Footer';
 import BlogList from './Blog/BlogList';
 import BlogPost from './Blog/BlogPost';
+import RulesLawyer from './components/RulesLawyer';
 import './App.css';
 
 const App: React.FC = () => {
@@ -50,6 +51,7 @@ const App: React.FC = () => {
             } />
             <Route path="/blog" element={<BlogList />} />
             <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/ruleslawyer" element={<RulesLawyer />} />
           </Routes>
           <Footer />
         </div>

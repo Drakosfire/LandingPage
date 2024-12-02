@@ -23,6 +23,11 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
   <title>DungeonMind</title>
+  <script>
+    if (!window.DUNGEONMIND_API_URL) {
+      window.DUNGEONMIND_API_URL = "https://dev.dungeonmind.net";
+    }
+  </script>
 </head>
 
 <body>
@@ -38,9 +43,5 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
 </body>
-<script>
-  window.DUNGEONMIND_API_URL = "DUNGEONMIND_API_URL_PLACEHOLDER";
-  console.log("window.DUNGEONMIND_API_URL", window.DUNGEONMIND_API_URL);
-</script>
 
 </html>

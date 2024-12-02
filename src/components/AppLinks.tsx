@@ -2,6 +2,7 @@
 import React from 'react';
 import './AppLinks.css'; // We'll create this file next
 import { DUNGEONMIND_API_URL } from '../config';
+import { Link } from 'react-router-dom';
 
 // environment variable to store the route
 const route = `${DUNGEONMIND_API_URL}/storegenerator`;
@@ -15,13 +16,13 @@ const AppLinks: React.FC = () => {
                     className="app-logo"
                 />
             </a>
-            <a href="/ruleslawyer" className="app-card" target="_blank" rel="noopener noreferrer">
+            <Link to="/ruleslawyer" className="app-card">
                 <img
                     src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/7f63ae8a-2427-4d98-f5e4-dd66be493d00/public"
                     alt="Rules Lawyer"
                     className="app-logo"
                 />
-            </a>
+            </Link>
             <a href="/statblockgenerator" className="app-card" target="_blank" rel="noopener noreferrer">
                 <img
                     src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/99334c98-8fef-4c5c-bb18-1deaedb6da00/public"
