@@ -52,6 +52,8 @@ const ChatInterface: React.FC = () => {
     };
 
     return (
+        // Heading that declares what embedding is loaded
+
         <div className="chat-container">
             <div className="chat-messages">
                 {chatHistory.map((msg, index) => {
@@ -59,7 +61,7 @@ const ChatInterface: React.FC = () => {
                         <div key={index} className={`message ${msg.role}`}>
                             {msg.role === 'assistant' && (
                                 <div className="message-header">
-                                    {embeddingDisplayNames[currentEmbedding] || 'AI Assistant'}
+                                    {'Rules Lawyer'}
                                 </div>
                             )}
                             <p>{msg.content}</p>
