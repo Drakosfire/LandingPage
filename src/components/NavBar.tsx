@@ -13,7 +13,7 @@ const NavBar: React.FC = () => {
         <nav>
             <ul>
                 <li>
-                    <a href="/#about-dungeonmind" className="logo-link">
+                    <a href="/" className="logo-link">
                         <img
                             src={`${process.env.PUBLIC_URL}/images/DungeonMindLogo2.png`}
                             alt="DungeonMind Logo"
@@ -53,7 +53,7 @@ const NavBar: React.FC = () => {
                     </Link>
                 </li>
                 <li>
-                    <a href={`${DUNGEONMIND_API_URL}/auth/login`} className="login-btn">Login</a>
+                    <a href={`${DUNGEONMIND_API_URL}/api/auth/login`} className="login-btn">Login</a>
                 </li>
             </ul>
         </nav>
