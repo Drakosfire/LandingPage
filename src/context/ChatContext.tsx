@@ -23,7 +23,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setChatHistory(prev => [...prev, { role: 'user', content: message }]);
 
         try {
-            const response = await fetch(`${DUNGEONMIND_API_URL}/ruleslawyer/query`, {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/query`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

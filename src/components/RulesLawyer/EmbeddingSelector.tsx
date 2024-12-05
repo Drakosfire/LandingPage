@@ -20,7 +20,7 @@ const EmbeddingSelector: React.FC = () => {
         setIsLoading(true);
         console.log('Loading embedding:', selectedEmbedding);
         try {
-            const response = await fetch(`${DUNGEONMIND_API_URL}/ruleslawyer/loadembeddings`, {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/loadembeddings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -71,6 +71,7 @@ const EmbeddingSelector: React.FC = () => {
                     {isLoading ? 'Loading...' : ''}
                 </button>
             </div>
+            <h5 className="embedding-selector-header"> Current Embedding: {selectedEmbedding} </h5>
         </div>
     );
 };
