@@ -25,7 +25,8 @@
     "start": "react-scripts start --verbose",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:dev": "export NODE_ENV=development && export REACT_APP_DUNGEONMIND_API_URL=https://dev.dungeonmind.net && react-scripts build"
   },
   "eslintConfig": {
     "extends": [
