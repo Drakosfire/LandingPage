@@ -14,11 +14,20 @@ const EmbeddingSelector: React.FC = () => {
         { id: 'DnD_PHB_55', name: 'PHB 2024' },
         { id: 'swon', name: 'Stars Without Number' },
         { id: 'swcr', name: "Swords & Wizardry" },
+        { id: 'PathGM', name: "Pathfinder GMG" },
     ];
+
+    // This is only used for display purposes
+    const embeddingDisplayNames: { [key: string]: string } = {
+        'DnD_PHB_55': 'DnD 2024 PHB Lawyer',
+        'swon': 'Stars Without Number Lawyer',
+        'swcr': "Swords & Wizardry Complete Revised Lawyer",
+        'PathGM': "Pathfinder GMG Lawyer"
+    };
 
     const handleLoadEmbedding = async () => {
         setIsLoading(true);
-        console.log('Loading embedding:', selectedEmbedding);
+        console.log('Loading embedding:', embeddingDisplayNames[selectedEmbedding]);
         try {
             const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/loadembeddings`, {
                 method: 'POST',
@@ -71,7 +80,8 @@ const EmbeddingSelector: React.FC = () => {
                     {isLoading ? 'Loading...' : ''}
                 </button>
             </div>
-            <h5 className="embedding-selector-header"> Current Embedding: {selectedEmbedding} </h5>
+            {/* TODO: Uncomment this when we have a way to ping the backend and get the current embedding */}
+            {/* <h5 className="embedding-selector-header"> Current Embedding: {embeddingDisplayNames[selectedEmbedding]} </h5> */}
         </div>
     );
 };

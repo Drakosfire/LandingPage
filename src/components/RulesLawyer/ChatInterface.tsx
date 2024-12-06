@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import './ChatInterface.css';
-import LoadingDots from './LoadingDots';
-
-// This is only used for display purposes
-const embeddingDisplayNames: { [key: string]: string } = {
-    'DnD_PHB_55': 'DnD 2024 PHB Lawyer',
-    'swon': 'Stars Without Number Lawyer',
-    'swcr': "Swords & Wizardry Complete Revised Lawyer"
-};
 
 const ChatInterface: React.FC = () => {
     const [message, setMessage] = useState('');
@@ -82,7 +74,7 @@ const ChatInterface: React.FC = () => {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder={
                         embeddingLoaded
-                            ? `Ask the ${embeddingDisplayNames[currentEmbedding] || 'AI Assistant'} a question...`
+                            ? `Ask the ${'Rules Lawyer'} a question...`
                             : 'Select a ruleset to query...'
                     }
                 />
