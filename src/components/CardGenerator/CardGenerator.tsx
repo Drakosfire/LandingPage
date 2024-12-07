@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import { ItemDetails, TemplateImage, GeneratedImage } from '../../types/card.types';
+import { ItemDetailsType, TemplateImage, GeneratedImage } from '../../types/card.types';
+import ItemDetails from './ItemGenerationSection/ItemDetails';
 import BorderGallery from './CardTemplateSection/BorderGallery';
 import SeedImageGallery from './CardTemplateSection/SeedImageGallery';
 import TemplatePreview from './CardTemplateSection/TemplatePreview';
@@ -14,7 +15,7 @@ export default function CardGenerator() {
     const [selectedBorder, setSelectedBorder] = useState<string>('');
     const [selectedSeedImage, setSelectedSeedImage] = useState<string>('');
     const [generatedTemplate, setGeneratedTemplate] = useState<string>('');
-    const [itemDetails, setItemDetails] = useState<ItemDetails | null>(null);
+    const [itemDetails, setItemDetails] = useState<ItemDetailsType | null>(null);
     const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
     const [selectedFinalImage, setSelectedFinalImage] = useState<string>('');
 
