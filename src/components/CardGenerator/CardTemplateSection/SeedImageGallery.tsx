@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { SeedImageGalleryProps } from '../../../types/card.types';
 import styles from '../../../styles/SeedImageGallery.module.css';
 import { seedImages } from '../../../config/seedImages';
+import { DUNGEONMIND_API_URL } from '../../../config';
+
 const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
     const [selectedImage, setSelectedImage] = useState<string>('');
     const [isDragging, setIsDragging] = useState(false);
@@ -29,9 +31,9 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
 
             try {
                 const formData = new FormData();
-                formData.append('image', file);
+                formData.append('file', file);
 
-                const response = await fetch('/api/upload', {
+                const response = await fetch(`${DUNGEONMIND_API_URL}/api/cardgenerator/upload-image`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -39,10 +41,12 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
                 if (!response.ok) {
                     throw new Error('Failed to upload image');
                 }
-
-                const { imageUrl } = await response.json();
-                setSelectedImage(imageUrl);
-                onSelect(imageUrl);
+                console.log("response:", response)
+                const { url } = await response.json();
+                // This will need to be reworked to be state based, maybe a cookie or something
+                seedImages.push({ id: url, url: url, alt: 'Uploaded Image' });
+                setSelectedImage(url);
+                onSelect(url);
             } catch (error) {
                 alert('Error uploading image: ' + (error as Error).message);
             }
