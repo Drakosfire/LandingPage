@@ -45,3 +45,9 @@ export interface CardPreviewProps {
     image: string;
     details: ItemDetailsType | null;
 }
+
+export interface BorderGalleryProps {
+    onSelect: (borderUrl: string) => void;
+    isLoading?: boolean;
+    error?: string;
+}

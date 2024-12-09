@@ -5,3 +5,35 @@
 .section {
     margin-bottom: 20px;
 }
+
+.uploadZone {
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.uploadZone.dragging {
+    border-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.fileInput {
+    display: none;
+}
+
+.uploadButton {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.uploadButton:hover {
+    background-color: #0056b3;
+}
