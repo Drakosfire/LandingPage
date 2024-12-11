@@ -112,7 +112,7 @@ Let’s build something amazing together.
   
   ### **What is a Rules Lawyer?**
   
-  It’s a good question, what is a Rules Lawyer, why would you want one? I’m betting I can show you that you didn’t know how much a Rules Lawyer could help you. A “Rules Lawyer” is a sometimes derogatory, sometimes complementary, and in my opinion always useful person to have around. In the Table Top Roleplaying Game community, these are folk who actually read the rules! They loved reading the dense textbook like tomes that are many game rules, and serve as the adjudicator of wonderful and ridiculous ideas. This problem I am solving is what if you don’t have a rules lawyer? 
+  What is a Rules Lawyer and why would you want one to build one? A “Rules Lawyer” is a sometimes derogatory, sometimes complementary, and in my opinion always useful person to have around. In the Table Top Roleplaying Game community, these are folk who actually read the rules! They loved reading the dense textbook like tomes that are many game rules, and serve as the adjudicator of wonderful and ridiculous ideas. This problem I am solving is what if you don’t have a rules lawyer? 
   
   What if you want to play the game instead of cramming like you skipped every class before an exam? What if you don’t want to read, reread, notate, and keep a diary of all the rules of the game? Well go ask the Rules Lawyer. This is a tool with multiple different rule sets that have been parsed, chunked, had meta data appended, and are ready to be queried. This is what is known as “Retrieval Augmented Generation” or in other words, you can chat with your rule set, and I’m going to provide you with an accurate answer to your rule question and a page to reference.
    
