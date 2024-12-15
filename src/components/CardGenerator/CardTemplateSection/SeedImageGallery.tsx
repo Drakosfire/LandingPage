@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { SeedImageGalleryProps } from '../../../types/card.types';
+import { SeedImageGalleryProps, SelectedImage } from '../../../types/card.types';
 import styles from '../../../styles/SeedImageGallery.module.css';
 import { seedImages } from '../../../config/seedImages';
 import { DUNGEONMIND_API_URL } from '../../../config';
@@ -76,9 +76,11 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
         }
     }, [handleImageUpload]);
 
-    const handleImageSelect = (image: SeedImage) => {
+    const handleImageSelect = (image: SelectedImage) => {
         setSelectedImage(image.id);
         onSelect(image.url);
+        console.log("image:", image.id)
+
     };
 
     return (

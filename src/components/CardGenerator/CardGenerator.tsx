@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { ItemDetailsType, TemplateImage, GeneratedImage } from '../../types/card.types';
+import { ItemDetailsType, Template, GeneratedImage, createTemplate } from '../../types/card.types';
 import ItemDetails from './ItemGenerationSection/ItemDetails';
 import BorderGallery from './CardTemplateSection/BorderGallery';
 import SeedImageGallery from './CardTemplateSection/SeedImageGallery';
@@ -14,10 +13,13 @@ import styles from '../../styles/CardGenerator.module.css';
 export default function CardGenerator() {
     const [selectedBorder, setSelectedBorder] = useState<string>('');
     const [selectedSeedImage, setSelectedSeedImage] = useState<string>('');
-    const [generatedTemplate, setGeneratedTemplate] = useState<string>('');
     const [itemDetails, setItemDetails] = useState<ItemDetailsType | null>(null);
     const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
     const [selectedFinalImage, setSelectedFinalImage] = useState<string>('');
+    const [templateBlob, setTemplateBlob] = useState<Blob | null>(null);
+
+    // Use the factory function to create the template
+    const template = createTemplate(selectedBorder, selectedSeedImage);
 
     const handleBorderSelect = (border: string) => {
         setSelectedBorder(border);
@@ -27,14 +29,14 @@ export default function CardGenerator() {
         setSelectedSeedImage(image);
     };
 
-    const handleGenerateTemplate = async () => {
-        // TODO: API call to generate template
-        // This will be connected to your backend later
+    const handleGenerateTemplate = (blob: Blob, url: string) => {
+        setTemplateBlob(blob);
     };
 
-    const handleGenerateItemDetails = async (prompt: string) => {
+    const handleGenerateItemDetails = async (data: any) => {
         // TODO: API call to generate item details
-        // This will be connected to your LLM backend later
+        // For now, just set the data directly
+        setItemDetails(data);
     };
 
     const handleGenerateImages = async () => {
@@ -47,29 +49,39 @@ export default function CardGenerator() {
             <Instructions />
 
             <section className={styles.section}>
-                <h2>First: Build a Card Template</h2>
-                <div className={styles.templateSection}>
-                    <BorderGallery onSelect={handleBorderSelect} />
-                    <SeedImageGallery onSelect={handleSeedImageSelect} />
-                    <TemplatePreview
-                        template={generatedTemplate}
-                        onGenerate={handleGenerateTemplate}
-                    />
-                </div>
-            </section>
-
-            <section className={styles.section}>
-                <h2>Second: Generate Item Text</h2>
+                <h2>First: Generate Item Text</h2>
                 <ItemForm onGenerate={handleGenerateItemDetails} />
                 {itemDetails && <ItemDetails details={itemDetails} />}
             </section>
 
             <section className={styles.section}>
+                <h2>Second: Build a Card Template</h2>
+                <div className={styles.templateSection}>
+                    <div className={styles.galleryColumn}>
+                        <div className={styles.borderGallery}>
+                            <BorderGallery onSelect={handleBorderSelect} />
+                        </div>
+                        <div className={styles.seedImageGallery}>
+                            <SeedImageGallery onSelect={handleSeedImageSelect} />
+                        </div>
+                    </div>
+                    <div className={styles.previewColumn}>
+                        <div className={styles.templatePreview}>
+                            <TemplatePreview
+                                template={template}
+                                onGenerate={handleGenerateTemplate}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className={styles.section}>
                 <h2>Third: Generate Cards</h2>
                 <ImageGallery
-                    images={generatedImages}
+                    template={templateBlob}
+                    sdPrompt={itemDetails?.[Object.keys(itemDetails)[0]]['SD Prompt'] || ''}
                     onSelect={setSelectedFinalImage}
-                    onGenerate={handleGenerateImages}
                 />
             </section>
 

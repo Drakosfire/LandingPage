@@ -11,6 +11,7 @@ import BlogList from './Blog/BlogList';
 import BlogPost from './Blog/BlogPost';
 import RulesLawyer from './components/RulesLawyer';
 import './App.css';
+import CardGenerator from './components/CardGenerator/CardGenerator';
 
 const App: React.FC = () => {
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
@@ -53,6 +54,7 @@ const App: React.FC = () => {
             <Route path="/blog" element={<BlogList />} />
             <Route path="/blog/:id" element={<BlogPost />} />
             <Route path="/ruleslawyer" element={<RulesLawyer />} />
+            <Route path="/cardgenerator" element={<CardGenerator />} />
           </Routes>
           <Footer />
         </div>

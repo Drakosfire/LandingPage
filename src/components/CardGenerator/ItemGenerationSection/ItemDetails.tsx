@@ -1,3 +1,4 @@
+import React from 'react';
 import { ItemDetailsType } from '../../../types/card.types';
 
 interface ItemDetailsProps {
@@ -5,17 +6,22 @@ interface ItemDetailsProps {
 }
 
 const ItemDetails: React.FC<ItemDetailsProps> = ({ details }) => {
+    // Get the first (and only) key from the details object
+    const itemKey = Object.keys(details)[0];
+    const item = details[itemKey];
+
     return (
         <div>
-            <h3>{details.name}</h3>
-            <p>Type: {details.type}</p>
-            <p>Rarity: {details.rarity}</p>
-            <p>Value: {details.value}</p>
-            <p>Properties: {details.properties}</p>
-            {details.damage && <p>Damage: {details.damage}</p>}
-            <p>Weight: {details.weight}</p>
-            <p>Description: {details.description}</p>
-            <p>Quote: {details.quote}</p>
+            <h3>{item.Name}</h3>
+            <p>Type: {item.Type}</p>
+            <p>Rarity: {item.Rarity}</p>
+            <p>Value: {item.Value}</p>
+            <p>Properties: {item.Properties.join(', ')}</p>
+            <p>Damage: {item.Damage[0]} {item.Damage[1]}</p>
+            <p>Weight: {item.Weight}</p>
+            <p>Description: {item.Description}</p>
+            <p>Quote: {item.Quote}</p>
+            <p>SD Prompt: {item['SD Prompt']}</p>
         </div>
     );
 };

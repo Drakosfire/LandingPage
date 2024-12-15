@@ -1,14 +1,18 @@
+export interface ItemDetails {
+    Name: string;
+    Type: string;
+    Rarity: string;
+    Value: string;
+    Properties: string[];
+    Damage: [string, string];
+    Weight: string;
+    Description: string;
+    Quote: string;
+    'SD Prompt': string;
+}
+
 export interface ItemDetailsType {
-    name: string;
-    type: string;
-    rarity: string;
-    value: string;
-    properties: string;
-    damage?: string;
-    weight: string;
-    description: string;
-    quote: string;
-    sdPrompt: string;
+    [key: string]: ItemDetails;
 }
 
 export interface TemplateImage {
@@ -21,18 +25,25 @@ export interface GeneratedImage {
     id: string;
 }
 
+
+export interface SelectedImage {
+    url: string;
+    id: string;
+    alt: string;
+}
+
 // Component Props interfaces
 export interface SeedImageGalleryProps {
     onSelect: (image: string) => void;
 }
 
 export interface TemplatePreviewProps {
-    template: string;
-    onGenerate: () => Promise<void>;
+    template: Template;
+    onGenerate: () => void;
 }
 
 export interface ItemFormProps {
-    onGenerate: (prompt: string) => Promise<void>;
+    onGenerate: (data: any) => void;
 }
 
 export interface ImageGalleryProps {
@@ -51,3 +62,15 @@ export interface BorderGalleryProps {
     isLoading?: boolean;
     error?: string;
 }
+
+export interface Template {
+    border: string;
+    seedImage: string;
+    imageUrl?: string;
+}
+
+// Template factory function
+export const createTemplate = (border: string, seedImage: string): Template => ({
+    border,
+    seedImage,
+});

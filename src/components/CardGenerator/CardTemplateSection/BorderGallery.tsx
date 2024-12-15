@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import styles from '../../../styles/BorderGallery.module.css';
 import { borderTemplates } from '../../../config/borderTemplate';
+import { SelectedImage } from '../../../types/card.types';
 
 // Define the props interface
 interface BorderGalleryProps {
     onSelect: (border: string) => void;
-}
-
-// Define the border template interface
-interface BorderTemplate {
-    url: string;
-    id: string;
-    alt: string;
 }
 
 const BorderGallery: React.FC<BorderGalleryProps> = ({ onSelect }) => {
@@ -20,9 +14,10 @@ const BorderGallery: React.FC<BorderGalleryProps> = ({ onSelect }) => {
 
     // Border templates array (move to a separate config file in production)
 
-    const handleBorderSelect = (border: BorderTemplate) => {
+    const handleBorderSelect = (border: SelectedImage) => {
         setSelectedBorderId(border.id);
         onSelect(border.url);
+        console.log("border:", border.id)
     };
 
     return (
