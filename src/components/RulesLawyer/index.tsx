@@ -9,10 +9,10 @@ const RulesLawyer: React.FC = () => {
         <ChatProvider>
             <div className="rules-lawyer-container">
                 <h1>Game Rules Lawyer</h1>
+                <ChatInterface />
                 <div className="controls">
                     <EmbeddingSelector />
                 </div>
-                <ChatInterface />
             </div>
         </ChatProvider>
     );

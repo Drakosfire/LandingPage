@@ -1,10 +1,18 @@
+.app-container {
+    padding: 20px;
+    margin-top: 80px;
+}
+
+.app-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
 .app-links {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 20px;
-    padding: 20px;
-    margin-top: 80px;
 }
 
 .app-card {
