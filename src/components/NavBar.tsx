@@ -53,7 +53,7 @@ const NavBar: React.FC = () => {
                     </Link>
                 </li>
                 <li>
-                    <Link to={`${DUNGEONMIND_API_URL}/api/auth/login`} className="logo-link">
+                    <Link to={`https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/21d0282a-9061-4216-447b-27451c98e700/public`} className="logo-link">
                         <img
                             src={`${process.env.PUBLIC_URL}/images/Login.png`}
                             alt="Login"
