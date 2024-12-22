@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ItemFormProps } from '../../../types/card.types';
+import { DUNGEONMIND_API_URL } from '../../../config';
 
-const ItemForm: React.FC<ItemFormProps> = ({ onGenerate }) => {
+const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
     const [userIdea, setUserIdea] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         type: '',
         rarity: '',
         value: '',
-        properties: '',
+        properties: [] as string[],
         damageFormula: '',
         damageType: '',
         weight: '',
@@ -16,13 +17,44 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate }) => {
         quote: '',
         sdPrompt: ''
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
+    // Set initial data only once when component mounts or when initialData changes
+    useEffect(() => {
+        if (initialData) {
+            const newFormData = {
+                name: initialData.name,
+                type: initialData.type,
+                rarity: initialData.rarity,
+                value: initialData.value,
+                properties: initialData.properties,
+                damageFormula: initialData.damageFormula,
+                damageType: initialData.damageType,
+                weight: initialData.weight,
+                description: initialData.description,
+                quote: initialData.quote,
+                sdPrompt: initialData.sdPrompt
+            };
+            setFormData(newFormData);
+        }
+    }, [initialData]);
+
+    // Handle form field changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
+        const newFormData = {
+            ...formData,
             [name]: value
-        }));
+        };
+        setFormData(newFormData);
+
+        // Debounce the onGenerate call to prevent too many updates
+        const timeoutId = setTimeout(() => {
+            onGenerate(newFormData);
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
     };
 
     const handleIdeaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -30,32 +62,55 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate }) => {
     };
 
     const handleIdeaSubmit = async () => {
-        // TODO: Add API call to process the user's idea
-        // This will later connect to your backend/LLM
-        console.log("Processing idea:", userIdea);
-        // For now, we'll just show an alert
-        alert("This will eventually call the API to process your idea!");
-    };
+        setIsLoading(true);
+        setError(null);
+        // Check for empty userIdea 
+        if (!userIdea.trim()) {
+            setError('Please enter a valid idea');
+            setIsLoading(false);
+            return;
+        }
+        // Log what is being sent
+        console.log(`Sending request to ${DUNGEONMIND_API_URL}/api/cardgenerator/generate-item-dict with body: ${JSON.stringify({ userIdea })}`);
+        try {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/cardgenerator/generate-item-dict`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userIdea })
+            });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+            const data = await response.json();
 
-        const formattedData = {
-            [formData.name]: {
-                Name: formData.name,
-                Type: formData.type,
-                Rarity: formData.rarity,
-                Value: formData.value,
-                Properties: formData.properties.split(',').map(p => p.trim()),
-                Damage: [formData.damageFormula, formData.damageType],
-                Weight: formData.weight,
-                Description: formData.description,
-                Quote: formData.quote,
-                'SD Prompt': formData.sdPrompt
-            }
-        };
+            // Assuming the API returns an object with the first (and only) key being the item name
+            const itemKey = Object.keys(data)[0];
+            const item = data[itemKey];
 
-        onGenerate(formattedData);
+            // Update the form with the received data
+            const newFormData = {
+                name: item.Name || '',
+                type: item.Type || '',
+                rarity: item.Rarity || '',
+                value: item.Value || '',
+                properties: item.Properties || '',
+                damageFormula: item['Damage Formula'] || '',
+                damageType: item['Damage Type'] || '',
+                weight: item.Weight || '',
+                description: item.Description || '',
+                quote: item.Quote || '',
+                sdPrompt: item['SD Prompt'] || ''
+            };
+
+            setFormData(newFormData);
+            onGenerate(newFormData);
+
+        } catch (error) {
+            setError('Failed to process item. Please try again.');
+            console.error('Error processing item:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -73,15 +128,17 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate }) => {
                     <button
                         type="button"
                         onClick={handleIdeaSubmit}
-                        className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+                        disabled={isLoading}
+                        className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 disabled:bg-gray-400"
                     >
-                        Process Idea
+                        {isLoading ? 'Processing...' : 'Process Idea'}
                     </button>
+                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                 </div>
             </div>
 
             {/* Form Section */}
-            <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg">
+            <div className="space-y-4 p-4 border rounded-lg">
                 <h3 className="text-lg font-medium mb-2">Item Details</h3>
                 <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -130,12 +187,12 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate }) => {
 
                     <div>
                         <label className="block text-sm font-medium mb-1">Properties (comma-separated):</label>
-                        <input
-                            type="text"
+                        <textarea
                             name="properties"
                             value={formData.properties}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
+                            rows={3}
                         />
                     </div>
 
@@ -207,14 +264,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate }) => {
                         />
                     </div>
                 </div>
-
-                <button
-                    type="submit"
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                >
-                    Generate
-                </button>
-            </form>
+            </div>
         </div>
     );
 };
