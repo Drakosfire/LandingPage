@@ -1,5 +1,5 @@
 // TODO: Add styles, make sure types is sorted out. This needs testing to see if temporary url is working.
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import styles from '../../../styles/TemplatePreview.styles';
 
 interface TemplatePreviewProps {
@@ -22,11 +22,10 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onGenerate 
     const SEED_WIDTH = 657;
     const SEED_HEIGHT = 422;
 
-    useEffect(() => {
-        if (!template.border || !template.seedImage) return;
-
+    // Separate the canvas drawing logic
+    const drawTemplate = useCallback(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas || !template.border || !template.seedImage) return;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
@@ -38,53 +37,44 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onGenerate 
         const borderImg = new Image();
         const seedImg = new Image();
 
-        // Set crossOrigin for both images
         borderImg.crossOrigin = "anonymous";
         seedImg.crossOrigin = "anonymous";
 
-        borderImg.onload = () => {
-            seedImg.onload = () => {
-                // Draw seed image first (bottom layer)
-                ctx.drawImage(
-                    seedImg,
-                    SEED_X,
-                    SEED_Y,
-                    SEED_WIDTH,
-                    SEED_HEIGHT
-                );
-                // Draw border over it (top layer)
-                ctx.drawImage(borderImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-                // Create preview URL
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        if (previewUrl) {
-                            URL.revokeObjectURL(previewUrl);
-                        }
-                        const newUrl = URL.createObjectURL(blob);
-                        setPreviewUrl(newUrl);
-                    }
-                }, 'image/png');
+        return new Promise<void>((resolve) => {
+            borderImg.onload = () => {
+                seedImg.onload = () => {
+                    ctx.drawImage(seedImg, SEED_X, SEED_Y, SEED_WIDTH, SEED_HEIGHT);
+                    ctx.drawImage(borderImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                    resolve();
+                };
+                seedImg.src = template.seedImage;
             };
-            seedImg.src = template.seedImage;  // Start loading seed image after border loads
-        };
-
-        borderImg.src = template.border;  // Start loading border first
-
-        return () => {
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-            }
-        };
+            borderImg.src = template.border;
+        });
     }, [template]);
 
-    const handleGenerateClick = async () => {
+    // Update preview whenever template changes
+    useEffect(() => {
+        drawTemplate();
+    }, [drawTemplate]);
+
+    // Handle template selection
+    const handleSelectTemplate = async () => {
+        console.log('TemplatePreview: Selecting template');
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        await drawTemplate(); // Ensure the canvas is up to date
+
         canvas.toBlob((blob) => {
-            if (blob && previewUrl) {
-                onGenerate(blob, previewUrl);
+            if (blob) {
+                if (previewUrl) {
+                    URL.revokeObjectURL(previewUrl);
+                }
+                const newUrl = URL.createObjectURL(blob);
+                setPreviewUrl(newUrl);
+                onGenerate(blob, newUrl);
+                console.log('TemplatePreview: Generated new blob:', { size: blob.size });
             }
         }, 'image/png');
     };
@@ -98,11 +88,11 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onGenerate 
                 style={styles.previewCanvas}
             />
             <button
-                onClick={handleGenerateClick}
-                disabled={!previewUrl}
-                style={styles.generateButton}
+                onClick={handleSelectTemplate}
+                disabled={!template.border || !template.seedImage}
+                style={styles.selectButton}
             >
-                Generate Template
+                Save Template
             </button>
         </div>
     );
