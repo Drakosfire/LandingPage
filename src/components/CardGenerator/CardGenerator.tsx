@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { ItemDetailsType, Template, GeneratedImage, createTemplate } from '../../types/card.types';
-import ItemDetails from './ItemGenerationSection/ItemDetails';
+import React, { useState } from 'react';
+import { ItemDetails, GeneratedImage, createTemplate } from '../../types/card.types';
 import BorderGallery from './CardTemplateSection/BorderGallery';
 import SeedImageGallery from './CardTemplateSection/SeedImageGallery';
 import TemplatePreview from './CardTemplateSection/TemplatePreview';
@@ -10,10 +9,23 @@ import CardPreview from './FinalCardSection/CardPreview';
 import Instructions from '../Layout/Instructions';
 import styles from '../../styles/CardGenerator.module.css';
 
+
 export default function CardGenerator() {
     const [selectedBorder, setSelectedBorder] = useState<string>('');
     const [selectedSeedImage, setSelectedSeedImage] = useState<string>('');
-    const [itemDetails, setItemDetails] = useState<ItemDetailsType | null>(null);
+    const [itemDetails, setItemDetails] = useState<ItemDetails>({
+        name: '',
+        type: '',
+        rarity: '',
+        value: '',
+        properties: [],
+        damageFormula: '',
+        damageType: '',
+        weight: '',
+        description: '',
+        quote: '',
+        sdPrompt: ''
+    });
     const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
     const [selectedFinalImage, setSelectedFinalImage] = useState<string>('');
     const [templateBlob, setTemplateBlob] = useState<Blob | null>(null);
@@ -33,15 +45,18 @@ export default function CardGenerator() {
         setTemplateBlob(blob);
     };
 
-    const handleGenerateItemDetails = async (data: any) => {
-        // TODO: API call to generate item details
-        // For now, just set the data directly
-        setItemDetails(data);
+    const handleItemDetailsChange = (data: any) => {
+        // Log the new data being merged
+        setItemDetails(prev => {
+            const updated = { ...prev, ...data };
+            // console.log('Updated State:', updated); // Log the updated state within the setter
+            return updated;
+        });
     };
 
-    const handleGenerateImages = async () => {
-        // TODO: API call to generate images
-        // This will be connected to your image generation backend later
+    const handleImageSelect = (imageUrl: string) => {
+        // Handle selected image storing in state
+        setSelectedFinalImage(imageUrl);
     };
 
     return (
@@ -50,8 +65,10 @@ export default function CardGenerator() {
 
             <section className={styles.section}>
                 <h2>First: Generate Item Text</h2>
-                <ItemForm onGenerate={handleGenerateItemDetails} />
-                {itemDetails && <ItemDetails details={itemDetails} />}
+                <ItemForm
+                    onGenerate={handleItemDetailsChange}
+                    initialData={itemDetails}
+                />
             </section>
 
             <section className={styles.section}>
@@ -80,13 +97,13 @@ export default function CardGenerator() {
                 <h2>Third: Generate Cards</h2>
                 <ImageGallery
                     template={templateBlob}
-                    sdPrompt={itemDetails?.[Object.keys(itemDetails)[0]]['SD Prompt'] || ''}
-                    onSelect={setSelectedFinalImage}
+                    sdPrompt={itemDetails.sdPrompt}
+                    onSelect={handleImageSelect}
                 />
             </section>
 
             <section className={styles.section}>
-                <h2>Fourth: Final Card</h2>
+                <h2>Fourth: Render Text on Card</h2>
                 {selectedFinalImage && (
                     <CardPreview
                         image={selectedFinalImage}
