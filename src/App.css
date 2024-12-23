@@ -6,10 +6,20 @@
   --text-color: #22223b;
 }
 
+/* Reset base defaults for all elements */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* For screens ≥ 768px: nav is fixed on the left at 80px wide */
+@media (min-width: 768px) {
+  .main-content {
+    margin-left: 80px;
+    /* or padding-left: 80px; 
+       whichever fits your design better */
+  }
 }
 
 body {
@@ -20,7 +30,7 @@ body {
 }
 
 .container {
-  width: 90%;
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
 }
