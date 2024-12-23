@@ -61,10 +61,7 @@ export default function CardGenerator() {
 
     return (
         <div className={styles.container}>
-            <Instructions />
-
             <section className={styles.section}>
-                <h2>First: Generate Item Text</h2>
                 <ItemForm
                     onGenerate={handleItemDetailsChange}
                     initialData={itemDetails}
@@ -72,12 +69,18 @@ export default function CardGenerator() {
             </section>
 
             <section className={styles.section}>
-                <h2>Second: Build a Card Template</h2>
                 <div className={styles.templateSection}>
                     <div className={styles.galleryColumn}>
                         <div className={styles.borderGallery}>
                             <BorderGallery onSelect={handleBorderSelect} />
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className={styles.section}>
+                <div className={styles.templateSection}>
+                    <div className={styles.galleryColumn}>
                         <div className={styles.seedImageGallery}>
                             <SeedImageGallery onSelect={handleSeedImageSelect} />
                         </div>
@@ -94,7 +97,6 @@ export default function CardGenerator() {
             </section>
 
             <section className={styles.section}>
-                <h2>Third: Generate Cards</h2>
                 <ImageGallery
                     template={templateBlob}
                     sdPrompt={itemDetails.sdPrompt}
@@ -103,7 +105,6 @@ export default function CardGenerator() {
             </section>
 
             <section className={styles.section}>
-                <h2>Fourth: Render Text on Card</h2>
                 {selectedFinalImage && (
                     <CardPreview
                         image={selectedFinalImage}
