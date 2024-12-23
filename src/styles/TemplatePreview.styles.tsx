@@ -7,6 +7,10 @@ interface Styles {
         '&:hover:not(:disabled)': CSSProperties;
         '&:disabled': CSSProperties;
     };
+    selectButton: CSSProperties & {
+        '&:hover:not(:disabled)': CSSProperties;
+        '&:disabled': CSSProperties;
+    };
 }
 
 const styles: Styles = {
@@ -27,6 +31,24 @@ const styles: Styles = {
     },
 
     generateButton: {
+        padding: '0.75rem 1.5rem',
+        backgroundColor: '#4a90e2',
+        color: 'white',
+        border: 'none',
+        borderRadius: '0.375rem',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        '&:hover:not(:disabled)': {
+            backgroundColor: '#357abd',
+        },
+        '&:disabled': {
+            backgroundColor: '#ccc',
+            cursor: 'not-allowed',
+        },
+    },
+
+    selectButton: {
         padding: '0.75rem 1.5rem',
         backgroundColor: '#4a90e2',
         color: 'white',
