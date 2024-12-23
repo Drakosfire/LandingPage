@@ -1,18 +1,15 @@
 export interface ItemDetails {
-    Name: string;
-    Type: string;
-    Rarity: string;
-    Value: string;
-    Properties: string[];
-    Damage: [string, string];
-    Weight: string;
-    Description: string;
-    Quote: string;
-    'SD Prompt': string;
-}
-
-export interface ItemDetailsType {
-    [key: string]: ItemDetails;
+    name: string;
+    type: string;
+    rarity: string;
+    value: string;
+    properties: string[];
+    damageFormula: string;
+    damageType: string;
+    weight: string;
+    description: string;
+    quote: string;
+    sdPrompt: string;
 }
 
 export interface TemplateImage {
@@ -44,6 +41,8 @@ export interface TemplatePreviewProps {
 
 export interface ItemFormProps {
     onGenerate: (data: any) => void;
+    onSdPromptChange?: (sdPrompt: string) => void;
+    initialData?: ItemDetails;
 }
 
 export interface ImageGalleryProps {
@@ -54,7 +53,7 @@ export interface ImageGalleryProps {
 
 export interface CardPreviewProps {
     image: string;
-    details: ItemDetailsType | null;
+    details: ItemDetails | null;
 }
 
 export interface BorderGalleryProps {
