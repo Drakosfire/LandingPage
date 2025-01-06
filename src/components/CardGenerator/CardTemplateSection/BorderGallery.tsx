@@ -22,7 +22,7 @@ const BorderGallery: React.FC<BorderGalleryProps> = ({ onSelect }) => {
 
     return (
         <div className={styles.borderGalleryContainer}>
-            <h3>Card Template Gallery</h3>
+            <h3>Step 2: Select a Card Template</h3>
             <div className={styles.galleryGrid}>
                 {borderTemplates.map((border) => (
                     <div
