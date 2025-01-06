@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CardPreviewProps } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
-import styles from '../../../styles/CardPreview.module.css';
+import styles from '../../../styles/CardWithTextGallery.module.css';
 const CardPreview: React.FC<CardPreviewProps> = ({ image, details }) => {
     const [finalImage, setFinalImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);

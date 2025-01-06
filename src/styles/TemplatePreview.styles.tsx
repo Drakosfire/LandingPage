@@ -23,7 +23,7 @@ const styles: Styles = {
     },
 
     previewCanvas: {
-        maxWidth: '100%',
+        maxWidth: '80%',
         height: 'auto',
         border: '1px solid #ccc',
         borderRadius: '0.5rem',

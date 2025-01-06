@@ -80,20 +80,22 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onGenerate 
     };
 
     return (
+
         <div style={styles.previewContainer}>
+            <button
+                onClick={handleSelectTemplate}
+                disabled={!template.border || !template.seedImage}
+                style={styles.selectButton}
+            >
+                Step 4: Preview and Save Template
+            </button>
             <canvas
                 ref={canvasRef}
                 width={CANVAS_WIDTH}
                 height={CANVAS_HEIGHT}
                 style={styles.previewCanvas}
             />
-            <button
-                onClick={handleSelectTemplate}
-                disabled={!template.border || !template.seedImage}
-                style={styles.selectButton}
-            >
-                Save Template
-            </button>
+
         </div>
     );
 };

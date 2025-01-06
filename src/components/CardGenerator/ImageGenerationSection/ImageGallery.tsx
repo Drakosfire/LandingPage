@@ -87,7 +87,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSelec
                     disabled={isLoading || !template}
                     className={`${styles.generateButton} ${isLoading ? styles.loading : ''}`}
                 >
-                    {isLoading ? 'Generating...' : 'Generate Card Images'}
+                    {isLoading ? 'Generating...' : 'Step 5: Generate Card Images'}
                 </button>
             </div>
 

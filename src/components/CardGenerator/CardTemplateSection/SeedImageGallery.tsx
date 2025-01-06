@@ -85,7 +85,7 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
 
     return (
         <div className={styles.galleryContainer}>
-            <h3>Seed Image Gallery</h3>
+            <h3>Step 3: Select a Seed Image</h3>
             <div className={styles.galleryGrid}>
                 {seedImages.map((image) => (
                     <div key={image.id}
@@ -96,8 +96,8 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
                     </div>
                 ))}
             </div>
-
-            <div
+            {/* Future upload zone */}
+            {/* <div
                 className={`${styles.uploadZone} ${isDragging ? styles.dragging : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -117,7 +117,7 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
                 <label htmlFor="fileInput" className={styles.uploadButton}>
                     Choose File
                 </label>
-            </div>
+            </div> */}
         </div>
     );
 };
