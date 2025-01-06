@@ -1,0 +1,66 @@
+:root {
+  --primary-color: #4a4e69;
+  --secondary-color: #9a8c98;
+  --accent-color: #c9ada7;
+  --background-color: #f2e9e4;
+  --text-color: #22223b;
+}
+
+/* Reset base defaults */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+/* Only reset child elements when needed */
+body * {
+  box-sizing: inherit;
+}
+
+/* App-wide container styling */
+.main-content {
+  /* width: 100%; */
+  margin: 0 auto;
+  padding: 0;
+  /* Remove conflicting left padding */
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    margin-left: 80px;
+    /* Ensure this doesn't affect Mantine components */
+  }
+}
+
+/* Namespace-specific styles */
+.app-container {
+  /* width: 100%; */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Section-specific styling */
+section {
+  padding: 3rem 0;
+  /* Reduced padding for better responsiveness */
+}
+
+section h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Footer Styling */
+footer {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  text-align: center;
+  padding: 2rem 0;
+}
