@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
+import "@mantine/core/styles.css";
+import { MantineProvider } from "@mantine/core";
+import { Container, Grid, Stack } from '@mantine/core';
+
 import { ItemDetails, GeneratedImage, createTemplate } from '../../types/card.types';
+
+import ItemForm from './TextGenerationSection/ItemForm';
 import BorderGallery from './CardTemplateSection/BorderGallery';
 import SeedImageGallery from './CardTemplateSection/SeedImageGallery';
-import TemplatePreview from './CardTemplateSection/TemplatePreview';
-import ItemForm from './ItemGenerationSection/ItemForm';
 import ImageGallery from './ImageGenerationSection/ImageGallery';
-import CardPreview from './FinalCardSection/CardPreview';
-import Instructions from '../Layout/Instructions';
-import styles from '../../styles/CardGenerator.module.css';
+import TemplatePreview from './CardTemplateSection/TemplatePreview';
+import CardPreview from './CardWithText/CardWithTextGallery';
+import CardWithTextGallery from './CardWithText/CardWithTextGallery';
+
+
 
 
 export default function CardGenerator() {
@@ -26,92 +32,65 @@ export default function CardGenerator() {
         quote: '',
         sdPrompt: ''
     });
-    const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+    const handleItemDetailsChange = (data: any) => {
+        setItemDetails(prev => ({ ...prev, ...data }));
+    };
     const [selectedFinalImage, setSelectedFinalImage] = useState<string>('');
     const [templateBlob, setTemplateBlob] = useState<Blob | null>(null);
+    const handleBorderSelect = (border: string) => setSelectedBorder(border);
+    const handleSeedImageSelect = (image: string) => setSelectedSeedImage(image);
+    const handleGenerateTemplate = (blob: Blob, url: string) => setTemplateBlob(blob);
+    const handleImageSelect = (imageUrl: string) => setSelectedFinalImage(imageUrl);
 
-    // Use the factory function to create the template
     const template = createTemplate(selectedBorder, selectedSeedImage);
 
-    const handleBorderSelect = (border: string) => {
-        setSelectedBorder(border);
-    };
-
-    const handleSeedImageSelect = (image: string) => {
-        setSelectedSeedImage(image);
-    };
-
-    const handleGenerateTemplate = (blob: Blob, url: string) => {
-        setTemplateBlob(blob);
-    };
-
-    const handleItemDetailsChange = (data: any) => {
-        // Log the new data being merged
-        setItemDetails(prev => {
-            const updated = { ...prev, ...data };
-            // console.log('Updated State:', updated); // Log the updated state within the setter
-            return updated;
-        });
-    };
-
-    const handleImageSelect = (imageUrl: string) => {
-        // Handle selected image storing in state
-        setSelectedFinalImage(imageUrl);
-    };
-
     return (
-        <div className={styles.container}>
-            <section className={styles.section}>
-                <ItemForm
-                    onGenerate={handleItemDetailsChange}
-                    initialData={itemDetails}
-                />
-            </section>
+        <MantineProvider>
+            <Container className="card-generator-container" size="100%" px="xs">
+                <Grid grow gutter="sm">
+                    <Grid>
+                        <Grid.Col span={{ base: 12, md: 9 }}>
+                            <Stack>
+                                <BorderGallery onSelect={handleBorderSelect} />
+                                <SeedImageGallery onSelect={handleSeedImageSelect} />
+                            </Stack>
+                        </Grid.Col>
 
-            <section className={styles.section}>
-                <div className={styles.templateSection}>
-                    <div className={styles.galleryColumn}>
-                        <div className={styles.borderGallery}>
-                            <BorderGallery onSelect={handleBorderSelect} />
-                        </div>
-                    </div>
-                </div>
-            </section>
+                        <Grid.Col span={{ base: 12, md: 3 }}>
+                            <div className="template-preview-wrapper">
+                                <TemplatePreview
+                                    template={template}
+                                    onGenerate={handleGenerateTemplate}
+                                />
+                            </div>
+                        </Grid.Col>
+                    </Grid>
 
-            <section className={styles.section}>
-                <div className={styles.templateSection}>
-                    <div className={styles.galleryColumn}>
-                        <div className={styles.seedImageGallery}>
-                            <SeedImageGallery onSelect={handleSeedImageSelect} />
-                        </div>
-                    </div>
-                    <div className={styles.previewColumn}>
-                        <div className={styles.templatePreview}>
-                            <TemplatePreview
-                                template={template}
-                                onGenerate={handleGenerateTemplate}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </section>
+                    <Grid.Col span={{ base: 12, sm: 2 }}>
+                        <ItemForm
+                            onGenerate={handleItemDetailsChange}
+                            initialData={itemDetails}
+                        />
+                    </Grid.Col>
 
-            <section className={styles.section}>
-                <ImageGallery
-                    template={templateBlob}
-                    sdPrompt={itemDetails.sdPrompt}
-                    onSelect={handleImageSelect}
-                />
-            </section>
-
-            <section className={styles.section}>
-                {selectedFinalImage && (
-                    <CardPreview
-                        image={selectedFinalImage}
-                        details={itemDetails}
+                    <ImageGallery
+                        template={templateBlob}
+                        sdPrompt={itemDetails.sdPrompt}
+                        onSelect={handleImageSelect}
                     />
-                )}
-            </section>
-        </div>
+
+                    {/* Card Preview - full width on mobile */}
+                    <Grid.Col span={{ base: 12, sm: 2 }} className="card-generator-section">
+                        {selectedFinalImage && (
+                            <CardWithTextGallery
+                                image={selectedFinalImage}
+                                details={itemDetails}
+                            />
+                        )}
+                    </Grid.Col>
+                </Grid>
+            </Container>
+        </MantineProvider>
     );
 }
+
