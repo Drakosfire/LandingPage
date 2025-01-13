@@ -9,6 +9,18 @@ const ChatInterface: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    // Add example prompts
+    const examplePrompts = [
+        "What level can a wizard learn fireball?",
+        "What roll would a bard use to seduce a dragon?",
+        "What do I roll to run away from an angry dragon?"
+    ];
+
+    // Add handler for prompt clicks
+    const handlePromptClick = (prompt: string) => {
+        setMessage(prompt);
+    };
+
     useEffect(() => {
         console.log('Chat history updated:', chatHistory);
     }, [chatHistory]);
@@ -47,6 +59,7 @@ const ChatInterface: React.FC = () => {
         // Heading that declares what embedding is loaded
 
         <div className="chat-container">
+
             <div className="chat-messages">
                 {chatHistory.map((msg, index) => {
                     return (
@@ -67,11 +80,25 @@ const ChatInterface: React.FC = () => {
                     <img src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/caa1004e-9a74-4e4b-ac83-c821abca0900/blogpost" alt="Loading animation" height="150" width="150" />
                 </div>
             )}
+            <h2>Ask a question...</h2>
+            <div className="prompt-bubbles">
+                {examplePrompts.map((prompt, index) => (
+                    <button
+                        key={index}
+                        className="prompt-bubble"
+                        onClick={() => handlePromptClick(prompt)}
+                    >
+                        {prompt}
+                    </button>
+                ))}
+            </div>
             <form onSubmit={handleSubmit} className="chat-input">
                 <input
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
+                    // Define the height as two lines
+                    style={{ height: '4em' }}
                     placeholder={
                         embeddingLoaded
                             ? `Ask the ${'Rules Lawyer'} a question...`
@@ -80,6 +107,7 @@ const ChatInterface: React.FC = () => {
                 />
                 <button type="submit">Send</button>
             </form>
+
         </div>
     );
 };

@@ -40,34 +40,28 @@ nav {
     position: fixed;
     bottom: 0;
     left: 0;
-    right: 0;
-    height: 60px;
-    background-color: #4a4e69;
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+    height: 100vh;
+    background-color: #010101;
     z-index: 1000;
-    margin: 0;
-    padding: 0;
-
-    /* Flex layout for mobile nav items */
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
 }
 
 nav ul {
-    list-style: none;
     margin: 0;
-    padding: 0;
-
-    /* Mobile: row layout */
+    padding: 0 0 0 0;
+    list-style: none;
+    width: 50px;
     display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
+    flex-direction: column;
     align-items: center;
+    gap: 20px;
 }
 
 nav ul li {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     margin: 0;
 }
 
@@ -75,80 +69,26 @@ nav ul li a {
     display: block;
     width: 100%;
     height: 100%;
-    text-decoration: none;
 }
 
-/* Smaller icon sizes on mobile */
 nav ul li a.logo-link img {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     display: block;
 }
 
-/* Mobile version of login button inside nav */
 nav ul li a.login-btn {
     background-color: #d4b8a7;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 14px;
     color: #fff;
     text-align: center;
-    line-height: 40px;
+    line-height: 60px;
+    text-decoration: none;
 }
 
-/* Hover scale effect for all nav links on mobile */
 nav ul li a:hover {
     background-color: #d4b8a7;
     border-radius: 8px;
     transform: scale(1.05);
-}
-
-/* ------------------------------------------
-   Larger Screens: @media (min-width: 768px)
-   ------------------------------------------ */
-
-@media screen and (min-width: 768px) {
-    nav {
-        display: flex;
-        /* still using flex on nav */
-        justify-content: flex-start;
-        /* push the UL to the top (main axis = column) */
-        align-items: flex-start;
-        /* align UL at the left edge if needed */
-        flex-direction: column;
-        /* if you want the nav items in a column */
-        position: fixed;
-        top: 0;
-        width: 80px;
-        height: 100vh;
-    }
-
-    nav ul {
-        /* Switch to column layout for bigger screens */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 20px;
-        width: 50px;
-        margin: 0;
-        padding: 10px 0px 0px 25px;
-    }
-
-    nav ul li {
-        width: 60px;
-        height: 60px;
-        align-items: center;
-    }
-
-    /* Larger icon sizes */
-    nav ul li a.logo-link img {
-        width: 60px;
-        height: 60px;
-    }
-
-    /* Desktop login button style */
-    nav ul li a.login-btn {
-        font-size: 14px;
-        line-height: 60px;
-    }
 }
