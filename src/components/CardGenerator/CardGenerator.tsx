@@ -72,29 +72,32 @@ export default function CardGenerator() {
                         </Grid.Col>
                     </Grid>
 
-                    <Grid.Col span={{ base: 12, sm: 2 }}>
+                    <Grid.Col span={{ base: 4, sm: 12 }}>
                         <ItemForm
                             onGenerate={handleItemDetailsChange}
                             initialData={itemDetails}
                         />
                     </Grid.Col>
 
-                    <ImageGallery
-                        template={templateBlob}
-                        sdPrompt={itemDetails.sdPrompt}
-                        onSdPromptChange={handleSdPromptChange}
-                        onSelect={handleImageSelect}
-                    />
-
-                    {/* Card Preview - full width on mobile */}
-                    <Grid.Col span={{ base: 12, sm: 12 }} className="card-generator-section">
-                        {selectedFinalImage && (
-                            <CardWithTextGallery
-                                image={selectedFinalImage}
-                                details={itemDetails}
+                    <Grid>
+                        <Grid.Col span={{ base: 12, sm: 6 }} className="card-generator-section">
+                            <ImageGallery
+                                template={templateBlob}
+                                sdPrompt={itemDetails.sdPrompt}
+                                onSdPromptChange={handleSdPromptChange}
+                                onSelect={handleImageSelect}
                             />
-                        )}
-                    </Grid.Col>
+                        </Grid.Col>
+
+                        <Grid.Col span={{ base: 12, sm: 6 }} className="card-generator-section">
+                            {selectedFinalImage && (
+                                <CardWithTextGallery
+                                    image={selectedFinalImage}
+                                    details={itemDetails}
+                                />
+                            )}
+                        </Grid.Col>
+                    </Grid>
                 </Grid>
             </Container>
         </MantineProvider>
