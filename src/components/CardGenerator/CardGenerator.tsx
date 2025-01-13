@@ -42,6 +42,10 @@ export default function CardGenerator() {
     const handleGenerateTemplate = (blob: Blob, url: string) => setTemplateBlob(blob);
     const handleImageSelect = (imageUrl: string) => setSelectedFinalImage(imageUrl);
 
+    const handleSdPromptChange = (newPrompt: string) => {
+        setItemDetails(prev => ({ ...prev, sdPrompt: newPrompt }));
+    };
+
     const template = createTemplate(selectedBorder, selectedSeedImage);
 
     return (
@@ -76,6 +80,7 @@ export default function CardGenerator() {
                     <ImageGallery
                         template={templateBlob}
                         sdPrompt={itemDetails.sdPrompt}
+                        onSdPromptChange={handleSdPromptChange}
                         onSelect={handleImageSelect}
                     />
 

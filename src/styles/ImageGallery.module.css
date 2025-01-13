@@ -77,3 +77,20 @@
         grid-template-columns: 1fr;
     }
 }
+
+.promptDisplay {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.promptDisplay h4 {
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.promptDisplay p {
+    margin: 0;
+    word-break: break-word;
+}

@@ -10,7 +10,7 @@ import Footer from './components/Footer';
 import BlogList from './Blog/BlogList';
 import BlogPost from './Blog/BlogPost';
 import RulesLawyer from './components/RulesLawyer';
-import './App.css';
+import './styles/App.css';
 import CardGenerator from './components/CardGenerator/CardGenerator';
 
 const App: React.FC = () => {

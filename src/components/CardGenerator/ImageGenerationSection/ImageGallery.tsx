@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import styles from '../../../styles/ImageGallery.module.css';
 import { DUNGEONMIND_API_URL } from '../../../config';
-
+import { Select, TextInput, Textarea } from '@mantine/core';
+import classes from '../../../styles/TextInput.module.css';
 interface ImageGalleryProps {
     template: Blob | null;
     sdPrompt: string;
+    onSdPromptChange: (newPrompt: string) => void;
     onSelect: (imageUrl: string) => void;
 }
 
@@ -15,7 +17,9 @@ interface GeneratedImage {
     content_type: string;
 }
 
-const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSelect }) => {
+
+
+const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPromptChange, onSelect }) => {
     const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -82,6 +86,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSelec
     return (
         <div className={styles.container}>
             <div className={styles.controls}>
+                <TextInput
+                    placeholder="Enter image generation prompt"
+                    value={sdPrompt}
+                    onChange={(event) => onSdPromptChange(event.currentTarget.value)}
+                    classNames={classes}
+                />
+
                 <button
                     onClick={handleGenerateImages}
                     disabled={isLoading || !template}
