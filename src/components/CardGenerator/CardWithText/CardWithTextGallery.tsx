@@ -8,6 +8,12 @@ const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => 
     const [isLoading, setIsLoading] = useState(false);
     const [renderedCards, setRenderedCards] = useState<Array<{ url: string, name: string }>>([]);
 
+    useEffect(() => {
+        if (image && details) {
+            handleRenderText();
+        }
+    }, [image, details]);
+
     const handleRenderText = async () => {
         if (!image || !details) return;
 
@@ -52,10 +58,7 @@ const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => 
 
             const data = await response.json();
             setFinalImage(data.url);
-            setRenderedCards(prev => [...prev, {
-                url: data.url,
-                name: details.name || 'card'
-            }]);
+            setRenderedCards(prev => [{ url: data.url, name: details.name || 'card' }, ...prev]);
         } catch (err) {
             console.error('Error rendering card:', err);
             setError('Failed to render card. Please try again.');
@@ -66,39 +69,24 @@ const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => 
 
     return (
         <div className={styles.cardWithTextGalleryContainer}>
-            {/* Original image and render button */}
-            <div className="mb-8 border-b pb-8">
-                <img
-                    src={image}
-                    alt="Card Preview"
-                    className={styles.cardWithTextGalleryImage}
-                />
+            {isLoading && (
+                <div className="text-center p-4">
+                    Rendering card text...
+                </div>
+            )}
 
-                <button
-                    onClick={handleRenderText}
-                    disabled={isLoading}
-                    className="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 disabled:bg-gray-400"
-                >
-                    {isLoading ? 'Rendering...' : 'Add Text to Card'}
-                </button>
-
-                {error && (
-                    <div className="text-red-500 text-center p-4">
-                        {error}
-                    </div>
-                )}
-            </div>
+            {error && (
+                <div className="text-red-500 text-center p-4">
+                    {error}
+                </div>
+            )}
 
             {/* Gallery of rendered cards */}
             <div className={styles.gallery}>
                 {renderedCards.map((card, index) => (
                     <div
                         key={index}
-                        className={styles.cardWithTextGalleryContainer}
-                        onClick={() => {
-                            console.log('ImageGallery: Selected image:', card.url);
-                            // onSelect(card.url);
-                        }}
+                        className={styles.cardWithTextGalleryImage}
                     >
                         <img
                             src={card.url}
