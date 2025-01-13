@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CardPreviewProps } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import styles from '../../../styles/CardWithTextGallery.module.css';
-const CardPreview: React.FC<CardPreviewProps> = ({ image, details }) => {
+const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => {
     const [finalImage, setFinalImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -65,13 +65,13 @@ const CardPreview: React.FC<CardPreviewProps> = ({ image, details }) => {
     };
 
     return (
-        <div className="relative w-full max-w-md mx-auto">
+        <div className={styles.cardWithTextGalleryContainer}>
             {/* Original image and render button */}
             <div className="mb-8 border-b pb-8">
                 <img
                     src={image}
                     alt="Card Preview"
-                    className="w-full h-auto rounded-lg shadow-lg"
+                    className={styles.cardWithTextGalleryImage}
                 />
 
                 <button
@@ -94,7 +94,7 @@ const CardPreview: React.FC<CardPreviewProps> = ({ image, details }) => {
                 {renderedCards.map((card, index) => (
                     <div
                         key={index}
-                        className={styles.imageContainer}
+                        className={styles.cardWithTextGalleryContainer}
                         onClick={() => {
                             console.log('ImageGallery: Selected image:', card.url);
                             // onSelect(card.url);
@@ -103,7 +103,7 @@ const CardPreview: React.FC<CardPreviewProps> = ({ image, details }) => {
                         <img
                             src={card.url}
                             alt={`Generated card ${index + 1}`}
-                            className={styles.image}
+                            className={styles.cardWithTextGalleryImage}
                         />
                     </div>
                 ))}
@@ -112,4 +112,4 @@ const CardPreview: React.FC<CardPreviewProps> = ({ image, details }) => {
     );
 };
 
-export default CardPreview;
+export default CardWithTextGallery;

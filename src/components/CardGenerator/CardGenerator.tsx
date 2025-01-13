@@ -10,7 +10,6 @@ import BorderGallery from './CardTemplateSection/BorderGallery';
 import SeedImageGallery from './CardTemplateSection/SeedImageGallery';
 import ImageGallery from './ImageGenerationSection/ImageGallery';
 import TemplatePreview from './CardTemplateSection/TemplatePreview';
-import CardPreview from './CardWithText/CardWithTextGallery';
 import CardWithTextGallery from './CardWithText/CardWithTextGallery';
 
 
@@ -40,7 +39,10 @@ export default function CardGenerator() {
     const handleBorderSelect = (border: string) => setSelectedBorder(border);
     const handleSeedImageSelect = (image: string) => setSelectedSeedImage(image);
     const handleGenerateTemplate = (blob: Blob, url: string) => setTemplateBlob(blob);
-    const handleImageSelect = (imageUrl: string) => setSelectedFinalImage(imageUrl);
+    const handleImageSelect = (imageUrl: string) => {
+        console.log('Setting selected final image:', imageUrl);
+        setSelectedFinalImage(imageUrl);
+    };
 
     const handleSdPromptChange = (newPrompt: string) => {
         setItemDetails(prev => ({ ...prev, sdPrompt: newPrompt }));
@@ -85,7 +87,7 @@ export default function CardGenerator() {
                     />
 
                     {/* Card Preview - full width on mobile */}
-                    <Grid.Col span={{ base: 12, sm: 2 }} className="card-generator-section">
+                    <Grid.Col span={{ base: 12, sm: 12 }} className="card-generator-section">
                         {selectedFinalImage && (
                             <CardWithTextGallery
                                 image={selectedFinalImage}
