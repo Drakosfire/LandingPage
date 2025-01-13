@@ -21,6 +21,7 @@ body {
 /* Only reset child elements when needed */
 body * {
   box-sizing: inherit;
+  margin: 0;
 }
 
 /* App-wide container styling */
@@ -55,12 +56,4 @@ section h2 {
   text-align: center;
   font-size: 2rem;
   margin-bottom: 2rem;
-}
-
-/* Footer Styling */
-footer {
-  background-color: var(--primary-color);
-  color: var(--background-color);
-  text-align: center;
-  padding: 2rem 0;
 }
