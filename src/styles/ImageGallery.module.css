@@ -1,12 +1,48 @@
-.container {
-    padding: 1rem;
+.imageGalleryContainer {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border: 2px solid #4a90e2;
+    border-radius: 0.5rem;
+    overflow: hidden;
 }
 
-.controls {
+.imageWrapper {
+    width: 100%;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.imageGalleryImage {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: contain;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    transition: transform 0.2s;
+}
+
+.imageWrapper:hover .imageGalleryImage {
+    transform: scale(1.05);
+}
+
+@media (min-width: 768px) {
+    .imageGallery {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .imageGallery {
+        grid-template-columns: 1fr;
+    }
+}
+
+.imageGalleryControls {
     margin-bottom: 1rem;
 }
 
-.generateButton {
+.imageGalleryGenerateButton {
     padding: 0.75rem 1.5rem;
     background-color: #4a90e2;
     color: white;
@@ -17,65 +53,26 @@
     transition: background-color 0.2s;
 }
 
-.generateButton:hover:not(:disabled) {
+.imageGalleryGenerateButton:hover:not(:disabled) {
     background-color: #357abd;
 }
 
-.generateButton:disabled {
+.imageGalleryGenerateButton:disabled {
     background-color: #ccc;
     cursor: not-allowed;
 }
 
-.generateButton.loading {
+.imageGalleryGenerateButton.loading {
     opacity: 0.7;
     cursor: wait;
 }
 
-.error {
+.imageGalleryError {
     color: #dc2626;
     padding: 0.75rem;
     margin-bottom: 1rem;
     background-color: #fee2e2;
     border-radius: 0.375rem;
-}
-
-.gallery {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    height: 50%;
-    width: 100%;
-    margin-top: 1rem;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    border: 2px solid #4a90e2;
-
-}
-
-.imageContainer {
-    position: relative;
-    cursor: pointer;
-    border: 2px solid #4a90e2;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    transition: border-color 0.2s;
-}
-
-.imageContainer:hover {
-    border-color: #4a90e2;
-}
-
-.image {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-}
-
-@media (max-width: 400px) {
-    .gallery {
-        grid-template-columns: 1fr;
-    }
 }
 
 .promptDisplay {
@@ -93,4 +90,11 @@
 .promptDisplay p {
     margin: 0;
     word-break: break-word;
+}
+
+.imageGallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1rem;
 }
