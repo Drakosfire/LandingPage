@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../../../styles/ImageGallery.module.css';
 import { DUNGEONMIND_API_URL } from '../../../config';
-import { Select, TextInput, Textarea } from '@mantine/core';
+import { Select, TextInput, Textarea, Grid } from '@mantine/core';
 import classes from '../../../styles/TextInput.module.css';
 interface ImageGalleryProps {
     template: Blob | null;
@@ -77,6 +77,11 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
         }
     };
 
+    const handleImageSelect = async (image: GeneratedImage) => {
+        console.log('ImageGallery: Selected image:', image);
+        onSelect(image.url);
+    };
+
     console.log('ImageGallery: Rendering with state:', {
         hasGeneratedImages: generatedImages.length > 0,
         isLoading,
@@ -84,8 +89,8 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
     });
 
     return (
-        <div className={styles.container}>
-            <div className={styles.controls}>
+        <div className={styles.imageGalleryContainer}>
+            <div className={styles.imageGalleryControls}>
                 <TextInput
                     placeholder="Enter image generation prompt"
                     value={sdPrompt}
@@ -96,36 +101,34 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
                 <button
                     onClick={handleGenerateImages}
                     disabled={isLoading || !template}
-                    className={`${styles.generateButton} ${isLoading ? styles.loading : ''}`}
+                    className={`${styles.imageGalleryGenerateButton} ${isLoading ? styles.loading : ''}`}
                 >
                     {isLoading ? 'Generating...' : 'Step 5: Generate Card Images'}
                 </button>
             </div>
 
             {error && (
-                <div className={styles.error}>
+                <div className={styles.imageGalleryError}>
                     {error}
                 </div>
             )}
 
-            <div className={styles.gallery}>
+            <Grid className={styles.imageGallery}>
                 {generatedImages.map((image, index) => (
-                    <div
-                        key={index}
-                        className={styles.imageContainer}
-                        onClick={() => {
-                            console.log('ImageGallery: Selected image:', image);
-                            onSelect(image.url);
-                        }}
-                    >
-                        <img
-                            src={image.url}
-                            alt={`Generated card ${index + 1}`}
-                            className={styles.image}
-                        />
-                    </div>
+                    <Grid.Col span={6} key={index}>
+                        <div
+                            className={styles.imageWrapper}
+                            onClick={() => handleImageSelect(image)}
+                        >
+                            <img
+                                src={image.url}
+                                alt={`Generated card ${index + 1}`}
+                                className={styles.imageGalleryImage}
+                            />
+                        </div>
+                    </Grid.Col>
                 ))}
-            </div>
+            </Grid>
         </div>
     );
 };
