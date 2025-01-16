@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from '../../../styles/ImageGallery.module.css';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { Select, TextInput, Textarea, Grid } from '@mantine/core';
-import classes from '../../../styles/TextInput.module.css';
+import classes from '../../../styles/ItemForm.module.css';
 interface ImageGalleryProps {
     template: Blob | null;
     sdPrompt: string;
