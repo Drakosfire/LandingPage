@@ -72,14 +72,15 @@ export default function CardGenerator() {
                         </Grid.Col>
                     </Grid>
 
-                    <Grid.Col span={{ base: 4, sm: 12 }}>
-                        <ItemForm
-                            onGenerate={handleItemDetailsChange}
-                            initialData={itemDetails}
-                        />
-                    </Grid.Col>
+
 
                     <Grid>
+                        <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <ItemForm
+                                onGenerate={handleItemDetailsChange}
+                                initialData={itemDetails}
+                            />
+                        </Grid.Col>
                         <Grid.Col span={{ base: 12, sm: 6 }} className="card-generator-section">
                             <ImageGallery
                                 template={templateBlob}
