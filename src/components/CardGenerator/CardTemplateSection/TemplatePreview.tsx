@@ -22,6 +22,9 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onGenerate 
     const SEED_WIDTH = 657;
     const SEED_HEIGHT = 422;
 
+    // Add this ref to track the previous template
+    const prevTemplateRef = useRef<typeof template>();
+
     // Separate the canvas drawing logic
     const drawTemplate = useCallback(() => {
         const canvas = canvasRef.current;
@@ -45,50 +48,44 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onGenerate 
                 seedImg.onload = () => {
                     ctx.drawImage(seedImg, SEED_X, SEED_Y, SEED_WIDTH, SEED_HEIGHT);
                     ctx.drawImage(borderImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+                    // Generate if template has changed
+                    if (prevTemplateRef.current?.border !== template.border ||
+                        prevTemplateRef.current?.seedImage !== template.seedImage) {
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                if (previewUrl) {
+                                    URL.revokeObjectURL(previewUrl);
+                                }
+                                const newUrl = URL.createObjectURL(blob);
+                                setPreviewUrl(newUrl);
+                                onGenerate(blob, newUrl);
+                            }
+                        }, 'image/png');
+                    }
+                    prevTemplateRef.current = template;
                     resolve();
                 };
                 seedImg.src = template.seedImage;
             };
             borderImg.src = template.border;
         });
-    }, [template]);
+    }, [template, previewUrl, onGenerate]);
 
-    // Update preview whenever template changes
     useEffect(() => {
         drawTemplate();
     }, [drawTemplate]);
 
-    // Handle template selection
-    const handleSelectTemplate = async () => {
-        console.log('TemplatePreview: Selecting template');
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        await drawTemplate(); // Ensure the canvas is up to date
-
-        canvas.toBlob((blob) => {
-            if (blob) {
-                if (previewUrl) {
-                    URL.revokeObjectURL(previewUrl);
-                }
-                const newUrl = URL.createObjectURL(blob);
-                setPreviewUrl(newUrl);
-                onGenerate(blob, newUrl);
-                console.log('TemplatePreview: Generated new blob:', { size: blob.size });
-            }
-        }, 'image/png');
-    };
-
     return (
 
         <div style={styles.previewContainer}>
-            <button
+            {/* <button
                 onClick={handleSelectTemplate}
                 disabled={!template.border || !template.seedImage}
                 style={styles.selectButton}
             >
                 Step 4: Preview and Save Template
-            </button>
+            </button> */}
             <canvas
                 ref={canvasRef}
                 width={CANVAS_WIDTH}
