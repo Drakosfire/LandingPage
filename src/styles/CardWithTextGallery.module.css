@@ -5,26 +5,44 @@
     border-radius: 0.5rem;
     overflow: hidden;
     width: 100%;
-}
-
-.gallery {
+    min-width: 300px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     padding: 1rem;
+    min-height: 400px;
+    min-width: 300px;
 }
 
 .cardWithTextGalleryImage {
     width: 100%;
-    height: auto;
+    height: 100%;
     aspect-ratio: 1;
     object-fit: contain;
     border: 1px solid #e5e7eb;
     border-radius: 0.375rem;
 }
 
+.cardWithTextGalleryImage:hover {
+    border: 2px solid #4a90e2;
+
+}
+
 @media (max-width: 768px) {
     .gallery {
         grid-template-columns: 1fr;
     }
+}
+
+.emptyGalleryPlaceholder {
+    grid-column: 1 / -1;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-style: italic;
+    border: 2px solid #4a90e2;
+    border-radius: 0.5rem;
+    margin: 1rem;
 }

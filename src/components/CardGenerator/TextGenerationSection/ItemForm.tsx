@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ItemFormProps } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { Select, TextInput, Textarea } from '@mantine/core';
-import classes from '../../../styles/TextInput.module.css';
+import classes from '../../../styles/ItemForm.module.css';
 
 const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
     const [userIdea, setUserIdea] = useState('');
@@ -110,13 +110,17 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
         <>
             <div className="space-y-6">
                 {/* Idea Input Section */}
-                <h3>Step 1: Describe your item to generate details</h3>
+                <h3>Step 2: Generate item text</h3>
                 <h4> -Or- Write your own</h4>
                 <Textarea
                     placeholder="Describe your item"
                     value={userIdea}
                     onChange={handleIdeaChange}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                 />
 
                 <button
@@ -134,49 +138,77 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
                     placeholder="Name"
                     value={formData.name}
                     onChange={(event) => handleChange('name', event.currentTarget.value)}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                 />
 
                 <TextInput
                     placeholder="Value"
                     value={formData.value}
                     onChange={(event) => handleChange('value', event.currentTarget.value)}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                 />
 
                 <TextInput
                     placeholder="Rarity"
                     value={formData.rarity}
                     onChange={(event) => handleChange('rarity', event.currentTarget.value)}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                 />
 
                 <TextInput
                     placeholder="Damage Type"
                     value={formData.damageType}
                     onChange={(event) => handleChange('damageType', event.currentTarget.value)}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                 />
 
                 <TextInput
                     placeholder="Damage Formula"
                     value={formData.damageFormula}
                     onChange={(event) => handleChange('damageFormula', event.currentTarget.value)}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                 />
 
                 <TextInput
                     placeholder="Weight"
                     value={formData.weight}
                     onChange={(event) => handleChange('weight', event.currentTarget.value)}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                 />
 
                 <Textarea
                     placeholder="Description"
                     value={formData.description}
                     onChange={(event) => handleChange('description', event.currentTarget.value)}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                     minRows={3}
                 />
 
@@ -184,7 +216,11 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
                     placeholder="Quote"
                     value={formData.quote}
                     onChange={(event) => handleChange('quote', event.currentTarget.value)}
-                    classNames={classes}
+                    classNames={{
+                        root: classes.root,
+                        input: classes.input,
+                        label: classes.label
+                    }}
                     minRows={2}
                 />
 
