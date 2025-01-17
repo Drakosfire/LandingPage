@@ -53,8 +53,17 @@ export default function CardGenerator() {
     return (
         <MantineProvider>
             <Container className="card-generator-container" size="100%" px="xs">
-                <Grid grow gutter="sm">
-                    <Grid>
+                <Grid>
+
+                    <Grid
+                        gutter="sm"
+                        style={{
+                            border: '2px solid var(--primary-color)',
+                            backgroundColor: 'var(--background-color)',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            padding: '1rem',
+                            width: '100%'
+                        }}>
                         <Grid.Col span={{ base: 12, md: 9 }}>
                             <Stack>
                                 <BorderGallery onSelect={handleBorderSelect} />
@@ -74,14 +83,25 @@ export default function CardGenerator() {
 
 
 
-                    <Grid>
-                        <Grid.Col span={{ base: 12, sm: 6 }}>
+
+                    <Grid
+
+                        gutter="sm"
+                        style={{
+                            border: '2px solid var(--primary-color)',
+                            backgroundColor: 'var(--background-color)',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            padding: '1rem',
+                            marginBottom: '1rem',
+                            width: '100%'
+                        }}>
+                        <Grid.Col span={{ base: 12, md: 4 }}>
                             <ItemForm
                                 onGenerate={handleItemDetailsChange}
                                 initialData={itemDetails}
                             />
                         </Grid.Col>
-                        <Grid.Col span={{ base: 12, sm: 6 }} className="card-generator-section">
+                        <Grid.Col span={{ base: 12, md: 3 }} className="card-generator-section">
                             <ImageGallery
                                 template={templateBlob}
                                 sdPrompt={itemDetails.sdPrompt}
@@ -89,8 +109,9 @@ export default function CardGenerator() {
                                 onSelect={handleImageSelect}
                             />
                         </Grid.Col>
-
-                        <Grid.Col span={{ base: 12, sm: 6 }} className="card-generator-section">
+                        <Grid.Col span={{ base: 12, md: 4 }}
+                            className="card-generator-section"
+                            style={{ width: '100%' }}>
                             {selectedFinalImage && (
                                 <CardWithTextGallery
                                     image={selectedFinalImage}
@@ -101,7 +122,7 @@ export default function CardGenerator() {
                     </Grid>
                 </Grid>
             </Container>
-        </MantineProvider>
+        </MantineProvider >
     );
 }
 
