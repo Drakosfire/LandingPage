@@ -89,46 +89,51 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
     });
 
     return (
-        <div className={styles.imageGalleryContainer}>
-            <div className={styles.imageGalleryControls}>
-                <TextInput
-                    placeholder="Enter image generation prompt"
-                    value={sdPrompt}
-                    onChange={(event) => onSdPromptChange(event.currentTarget.value)}
-                    classNames={classes}
-                />
+        <div>
+            <h3>Step 3: Generate Card Images</h3>
+            <div className={styles.imageGalleryContainer}>
 
-                <button
-                    onClick={handleGenerateImages}
-                    disabled={isLoading || !template}
-                    className={`${styles.imageGalleryGenerateButton} ${isLoading ? styles.loading : ''}`}
-                >
-                    {isLoading ? 'Generating...' : 'Step 5: Generate Card Images'}
-                </button>
-            </div>
+                <div className={styles.imageGalleryControls}>
+                    <TextInput
+                        placeholder="Enter image generation prompt"
+                        value={sdPrompt}
+                        onChange={(event) => onSdPromptChange(event.currentTarget.value)}
+                        classNames={classes}
 
-            {error && (
-                <div className={styles.imageGalleryError}>
-                    {error}
+                    />
+
+                    <button
+                        onClick={handleGenerateImages}
+                        disabled={isLoading || !template}
+                        className={`${styles.imageGalleryGenerateButton} ${isLoading ? styles.loading : ''}`}
+                    >
+                        {isLoading ? 'Generating...' : 'Step 5: Generate Card Images'}
+                    </button>
                 </div>
-            )}
 
-            <Grid className={styles.imageGallery}>
-                {generatedImages.map((image, index) => (
-                    <Grid.Col span={6} key={index}>
-                        <div
-                            className={styles.imageWrapper}
-                            onClick={() => handleImageSelect(image)}
-                        >
-                            <img
-                                src={image.url}
-                                alt={`Generated card ${index + 1}`}
+                {error && (
+                    <div className={styles.imageGalleryError}>
+                        {error}
+                    </div>
+                )}
+
+                <Grid className={styles.imageGallery}>
+                    {generatedImages.map((image, index) => (
+                        <Grid.Col span={6} key={index}>
+                            <div
                                 className={styles.imageGalleryImage}
-                            />
-                        </div>
-                    </Grid.Col>
-                ))}
-            </Grid>
+                                onClick={() => handleImageSelect(image)}
+                            >
+                                <img
+                                    src={image.url}
+                                    alt={`Generated card ${index + 1}`}
+                                    className={styles.imageGalleryImage}
+                                />
+                            </div>
+                        </Grid.Col>
+                    ))}
+                </Grid>
+            </div>
         </div>
     );
 };

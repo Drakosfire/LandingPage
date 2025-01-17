@@ -1,20 +1,9 @@
 .imageGalleryContainer {
-    margin-top: 2rem;
+    margin-top: 1rem;
     padding: 0.5rem;
-    border: 2px solid #4a90e2;
     border-radius: 0.5rem;
     overflow: hidden;
-    min-width: 333px;
-}
-
-.imageWrapper {
-    width: 100%;
-    padding: 0.5rem;
-    cursor: pointer;
-    min-height: 200px;
-    min-width: 333px;
-    display: flex;
-    align-items: center;
+    min-width: 200px;
 }
 
 .imageGalleryImage {
@@ -22,14 +11,14 @@
     height: auto;
     aspect-ratio: 1;
     object-fit: contain;
-    border: 1px solid #e5e7eb;
     border-radius: 0.375rem;
     transition: transform 0.2s;
-    min-height: 180px;
+    min-height: 100px;
 }
 
-.imageWrapper:hover .imageGalleryImage {
+.imageGalleryImage:hover {
     transform: scale(1.05);
+    border: 2px solid #4a90e2;
 }
 
 @media (min-width: 768px) {
@@ -84,7 +73,7 @@
 .promptDisplay {
     margin-bottom: 1rem;
     padding: 1rem;
-    background-color: #f5f5f5;
+    background-color: #393c41;
     border-radius: 4px;
 }
 
@@ -96,15 +85,4 @@
 .promptDisplay p {
     margin: 0;
     word-break: break-word;
-}
-
-.imageGallery {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    padding: 1rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    min-height: 400px;
-    min-width: 800px;
 }

@@ -21,23 +21,25 @@ const BorderGallery: React.FC<BorderGalleryProps> = ({ onSelect }) => {
     };
 
     return (
-        <div className={styles.borderGalleryContainer}>
-            <h3>Step 2: Select a Card Template</h3>
-            <div className={styles.galleryGrid}>
-                {borderTemplates.map((border) => (
-                    <div
-                        key={border.id}
-                        className={`${styles.borderItem} ${selectedBorderId === border.id ? styles.selected : ''
-                            }`}
-                        onClick={() => handleBorderSelect(border)}
-                    >
-                        <img
-                            src={border.url}
-                            alt={border.alt}
-                            loading="lazy"
-                        />
-                    </div>
-                ))}
+        <div><h3>Step 1: Pick a border and a seed image</h3>
+            <div className={styles.borderGalleryContainer}>
+
+                <div className={styles.galleryGrid}>
+                    {borderTemplates.map((border) => (
+                        <div
+                            key={border.id}
+                            className={`${styles.borderItem} ${selectedBorderId === border.id ? styles.selected : ''
+                                }`}
+                            onClick={() => handleBorderSelect(border)}
+                        >
+                            <img
+                                src={border.url}
+                                alt={border.alt}
+                                loading="lazy"
+                            />
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

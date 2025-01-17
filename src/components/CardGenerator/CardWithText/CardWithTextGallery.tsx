@@ -2,11 +2,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CardPreviewProps } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import styles from '../../../styles/CardWithTextGallery.module.css';
+import { Tabs } from '@mantine/core';
+
 const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => {
     const [finalImage, setFinalImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [renderedCards, setRenderedCards] = useState<Array<{ url: string, name: string }>>([]);
+
+    // Add example cards
+    const exampleCards = [
+        { url: '/example-cards/card1.jpg', name: 'Example Card 1' },
+        { url: '/example-cards/card2.jpg', name: 'Example Card 2' },
+        // Add more example cards as needed
+    ];
 
     useEffect(() => {
         if (image && details) {
@@ -81,21 +90,52 @@ const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => 
                 </div>
             )}
 
-            {/* Gallery of rendered cards */}
-            <div className={styles.gallery}>
-                {renderedCards.map((card, index) => (
-                    <div
-                        key={index}
-                        className={styles.cardWithTextGalleryImage}
-                    >
-                        <img
-                            src={card.url}
-                            alt={`Generated card ${index + 1}`}
-                            className={styles.cardWithTextGalleryImage}
-                        />
+            <Tabs defaultValue="gallery">
+                <Tabs.List>
+                    <Tabs.Tab value="gallery">Your Cards</Tabs.Tab>
+                    <Tabs.Tab value="examples">Examples</Tabs.Tab>
+                </Tabs.List>
+
+                <Tabs.Panel value="gallery">
+                    <div className={styles.cardWithTextGalleryContainer}>
+                        {renderedCards.length > 0 ? (
+                            renderedCards.map((card, index) => (
+                                <div
+                                    key={index}
+                                    className={styles.cardWithTextGalleryImage}
+                                >
+                                    <img
+                                        src={card.url}
+                                        alt={`Generated card ${index + 1}`}
+                                        className={styles.cardWithTextGalleryImage}
+                                    />
+                                </div>
+                            ))
+                        ) : (
+                            <div className={styles.emptyGalleryPlaceholder}>
+                                No cards generated yet. Try creating one!
+                            </div>
+                        )}
                     </div>
-                ))}
-            </div>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="examples">
+                    <div className={styles.cardWithTextGalleryContainer}>
+                        {exampleCards.map((card, index) => (
+                            <div
+                                key={index}
+                                className={styles.cardWithTextGalleryImage}
+                            >
+                                <img
+                                    src={card.url}
+                                    alt={`Example card ${index + 1}`}
+                                    className={styles.cardWithTextGalleryImage}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </Tabs.Panel>
+            </Tabs>
         </div>
     );
 };

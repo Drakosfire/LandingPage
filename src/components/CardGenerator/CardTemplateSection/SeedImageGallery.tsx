@@ -84,8 +84,7 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
     };
 
     return (
-        <div className={styles.galleryContainer}>
-            <h3>Step 3: Select a Seed Image</h3>
+        <div className={styles.imageGalleryContainer}>
             <div className={styles.galleryGrid}>
                 {seedImages.map((image) => (
                     <div key={image.id}
@@ -122,4 +121,4 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
     );
 };
 
-export default SeedImageGallery;
+export default SeedImageGallery

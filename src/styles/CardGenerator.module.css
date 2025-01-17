@@ -57,3 +57,11 @@
 .card-generator-upload-button:hover {
     background-color: #0056b3;
 }
+
+.step-1-grid {
+    border: 2px solid var(--primary-color);
+    background-color: var(--background-color);
+    /* Maybe a subtle box-shadow for polish */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+}
