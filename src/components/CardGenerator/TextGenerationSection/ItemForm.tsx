@@ -86,7 +86,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
                 type: item.Type || '',
                 rarity: item.Rarity || '',
                 value: item.Value || '',
-                properties: item.Properties || '',
+                properties: Array.isArray(item.Properties) ? item.Properties : [],
                 damageFormula: item['Damage Formula'] || '',
                 damageType: item['Damage Type'] || '',
                 weight: item.Weight || '',
@@ -104,6 +104,38 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    // Add a function to handle property changes
+    const handlePropertyChange = (index: number, value: string) => {
+        setFormData((prev) => {
+            const updatedProperties = [...prev.properties];
+            updatedProperties[index] = value;
+            return {
+                ...prev,
+                properties: updatedProperties
+            };
+        });
+    };
+
+    // Add a function to add a new property
+    const addProperty = () => {
+        setFormData((prev) => ({
+            ...prev,
+            properties: [...prev.properties, '']
+        }));
+    };
+
+    // Add a function to remove a property
+    const removeProperty = (index: number) => {
+        setFormData((prev) => {
+            const updatedProperties = [...prev.properties];
+            updatedProperties.splice(index, 1);
+            return {
+                ...prev,
+                properties: updatedProperties
+            };
+        });
     };
 
     return (
@@ -199,6 +231,40 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
                         label: classes.label
                     }}
                 />
+
+                {/* Properties Section */}
+                <div className="mt-4">
+                    <h4 className="text-sm font-medium mb-2">Properties</h4>
+                    {formData.properties.map((property, index) => (
+                        <div key={index} className="flex items-center mb-2">
+                            <TextInput
+                                placeholder={`Property ${index + 1}`}
+                                value={property}
+                                onChange={(event) => handlePropertyChange(index, event.currentTarget.value)}
+                                classNames={{
+                                    root: classes.root,
+                                    input: classes.input,
+                                    label: classes.label
+                                }}
+                                className="flex-grow"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => removeProperty(index)}
+                                className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        type="button"
+                        onClick={addProperty}
+                        className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                        + Add Property
+                    </button>
+                </div>
 
                 <Textarea
                     placeholder="Description"
