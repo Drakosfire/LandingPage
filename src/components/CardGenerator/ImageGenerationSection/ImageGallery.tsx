@@ -89,19 +89,21 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
     });
 
     return (
-        <div>
-            <h3>Step 3: Generate Card Images</h3>
+        <div className="flex flex-col gap-4">
+            <div className="w-full">
+                <Textarea
+                    placeholder="SD Prompt"
+                    value={sdPrompt}
+                    onChange={(event) => onSdPromptChange(event.target.value)}
+                    autosize
+                    minRows={2}
+                    maxRows={10}
+                    className="w-full p-2 border rounded"
+                />
+            </div>
             <div className={styles.imageGalleryContainer}>
 
                 <div className={styles.imageGalleryControls}>
-                    <TextInput
-                        placeholder="Enter image generation prompt"
-                        value={sdPrompt}
-                        onChange={(event) => onSdPromptChange(event.currentTarget.value)}
-                        classNames={classes}
-
-                    />
-
                     <button
                         onClick={handleGenerateImages}
                         disabled={isLoading || !template}
