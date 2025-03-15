@@ -17,11 +17,20 @@ const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => 
         // Add more example cards as needed
     ];
 
+    // Add a ref to track if this is the first render with new image
+    const isFirstRender = useRef(true);
+    const previousImage = useRef(image);
+
     useEffect(() => {
-        if (image && details) {
+        // Only render text when the image changes (not when details change)
+        if (image && image !== previousImage.current) {
             handleRenderText();
+            previousImage.current = image;
         }
-    }, [image, details]);
+
+        // Clear the first render flag
+        isFirstRender.current = false;
+    }, [image]);
 
     const handleRenderText = async () => {
         if (!image || !details) return;
