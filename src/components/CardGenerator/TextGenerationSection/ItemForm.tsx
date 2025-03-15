@@ -42,12 +42,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
         }
     }, [initialData]);
 
-    // Modify handleChange to work with Mantine inputs
+    // Modify handleChange to update both local and parent state
     const handleChange = (field: string, value: string) => {
-        setFormData((prev) => ({
-            ...prev,
+        const newFormData = {
+            ...formData,
             [field]: value
-        }));
+        };
+        setFormData(newFormData);
+        onGenerate(newFormData); // Update parent state
     };
 
     const handleIdeaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -106,36 +108,38 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
         }
     };
 
-    // Add a function to handle property changes
+    // Modify handlePropertyChange to update both local and parent state
     const handlePropertyChange = (index: number, value: string) => {
-        setFormData((prev) => {
-            const updatedProperties = [...prev.properties];
-            updatedProperties[index] = value;
-            return {
-                ...prev,
-                properties: updatedProperties
-            };
-        });
+        const updatedProperties = [...formData.properties];
+        updatedProperties[index] = value;
+        const newFormData = {
+            ...formData,
+            properties: updatedProperties
+        };
+        setFormData(newFormData);
+        onGenerate(newFormData); // Update parent state
     };
 
-    // Add a function to add a new property
+    // Modify addProperty to update both local and parent state
     const addProperty = () => {
-        setFormData((prev) => ({
-            ...prev,
-            properties: [...prev.properties, '']
-        }));
+        const newFormData = {
+            ...formData,
+            properties: [...formData.properties, '']
+        };
+        setFormData(newFormData);
+        onGenerate(newFormData); // Update parent state
     };
 
-    // Add a function to remove a property
+    // Modify removeProperty to update both local and parent state
     const removeProperty = (index: number) => {
-        setFormData((prev) => {
-            const updatedProperties = [...prev.properties];
-            updatedProperties.splice(index, 1);
-            return {
-                ...prev,
-                properties: updatedProperties
-            };
-        });
+        const updatedProperties = [...formData.properties];
+        updatedProperties.splice(index, 1);
+        const newFormData = {
+            ...formData,
+            properties: updatedProperties
+        };
+        setFormData(newFormData);
+        onGenerate(newFormData); // Update parent state
     };
 
     return (
