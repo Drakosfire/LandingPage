@@ -1,0 +1,246 @@
+# DungeonMind LandingPage Cursor Rules
+
+## Project Overview
+This is a React/TypeScript project for the DungeonMind platform, featuring multiple D&D tools including CardGenerator, RulesLawyer, StoreGenerator, and more. The project uses Mantine UI components with custom CSS design system.
+
+## Navigation Architecture (CRITICAL)
+
+### Primary Navigation Rules
+- **NavBar.tsx is SACRED**: Never override the main site navigation
+- **Fixed Positioning**: NavBar is fixed left sidebar (80px width, z-index: 1000)
+- **Layout Margin**: Main content uses `margin-left: 80px` on desktop (handled by App.css)
+- **Always Visible**: Main navigation must be visible on every page
+
+### Secondary Navigation Guidelines
+- **Integrate, Don't Replace**: Secondary navigation should integrate into existing headers
+- **FloatingHeader Pattern**: Use floating headers for tool-specific navigation
+- **Z-index Hierarchy**: Main nav (1000) > Secondary nav (500) > Content (100)
+- **Mobile Responsive**: Secondary navigation should collapse/scroll on mobile
+
+### Navigation Integration Checklist
+- [ ] Does the component respect the 80px left margin?
+- [ ] Is the z-index hierarchy maintained?
+- [ ] Does main navigation remain visible and functional?
+- [ ] Does secondary navigation integrate into existing headers?
+- [ ] Is mobile responsiveness maintained?
+
+## Component Architecture
+
+### Mantine UI Framework (PRIMARY)
+- **Mantine Exclusive**: We are migrating to Mantine UI exclusively - prioritize Mantine components over custom CSS
+- **Migration Opportunities**: Always look for opportunities to replace custom CSS/components with Mantine equivalents
+- **Theme System**: Use Mantine's theme system (`dungeonMindTheme.ts`) instead of CSS variables where possible
+- **Component Priority**: 
+  1. Use existing Mantine components (Button, Card, Grid, Stack, etc.)
+  2. Extend Mantine components with custom styling if needed
+  3. Create custom components only when Mantine doesn't provide equivalent
+- **Layout System**: Use Mantine's Grid, Container, Stack, Group for all layouts
+- **Form Components**: Replace custom form elements with Mantine's form components
+- **Icons**: Use @tabler/icons-react for consistent iconography
+
+### Design System Migration Strategy
+- **Phase-by-Phase**: Migrate existing custom CSS components to Mantine incrementally
+- **Theme Mapping**: Map existing CSS variables to Mantine theme tokens
+- **Backward Compatibility**: Maintain visual consistency during migration
+- **Component Consolidation**: Replace similar custom components with unified Mantine versions
+
+### CardGenerator Specific Rules
+- **Step Navigation**: Always integrate step tabs into FloatingHeader
+- **State Management**: Use centralized state in main CardGenerator component
+- **API Integration**: Follow established patterns in existing step components
+- **Layout Patterns**: Use Mantine Grid/Container instead of custom step-card containers
+- **Sidebar Integration**: Use Mantine Drawer for any additional panels (e.g., MyProjectsSidebar)
+
+## Mantine Migration Patterns
+
+### Component Replacement Priority
+1. **Layout Components**: Replace custom grids/containers with Mantine Grid/Container/Stack
+2. **Form Elements**: Replace custom inputs with Mantine TextInput/Textarea/Select/Button
+3. **Navigation**: Replace custom modals/drawers with Mantine Drawer/Modal
+4. **Content Cards**: Replace custom card containers with Mantine Card component
+5. **Loading States**: Use Mantine LoadingOverlay/Skeleton instead of custom spinners
+
+### Migration Checklist (Apply when touching existing code)
+- [ ] Can this custom CSS class be replaced with Mantine component?
+- [ ] Are we using inline styles that could be Mantine props?
+- [ ] Can this layout be simplified with Stack/Group/Grid?
+- [ ] Are we using custom buttons that could be Mantine Button?
+- [ ] Can this modal/popup be a Mantine Modal/Drawer?
+
+### Mantine Best Practices
+- **Responsive Design**: Use Mantine's responsive props (`span`, `visibleFrom`, `hiddenFrom`)
+- **Theme Integration**: Access theme values with `useMantalneTheme()` hook when needed
+- **Style Overrides**: Use `styles` prop instead of external CSS when possible
+- **Icon Usage**: Import only needed icons from `@tabler/icons-react`
+- **Provider Context**: Ensure all Mantine components are within MantineProvider scope
+
+### Code Transformation Examples
+```jsx
+// ❌ Old Pattern (Custom CSS)
+<div className="custom-grid">
+  <div className="custom-card">
+    <button className="custom-btn">Click me</button>
+  </div>
+</div>
+
+// ✅ New Pattern (Mantine)
+<Grid>
+  <Grid.Col span={6}>
+    <Card withBorder>
+      <Button>Click me</Button>
+    </Card>
+  </Grid.Col>
+</Grid>
+```
+
+## Code Quality Standards
+
+### TypeScript
+- **Strict Mode**: Always use TypeScript strict mode
+- **Interface Definitions**: Define clear interfaces for all props
+- **Type Safety**: Avoid `any` types, use proper typing
+
+### React Patterns
+- **Functional Components**: Use functional components with hooks
+- **Custom Hooks**: Extract reusable logic into custom hooks
+- **Event Handlers**: Use descriptive handler names (handleStepClick, handleImageSelect)
+- **State Management**: Use useState for local state, context for shared state
+
+### CSS Guidelines (Mantine-First Approach)
+- **Mantine Theme First**: Use Mantine theme tokens before CSS variables
+- **CSS Override Pattern**: Use Mantine's `styles` prop for component customization
+- **Legacy CSS**: Only use existing CSS variables for components not yet migrated
+- **Mobile First**: Leverage Mantine's responsive props (`span={{ base: 12, md: 6 }}`)
+- **Z-index Management**: Follow established z-index hierarchy (Main nav: 1000, Drawer: 600, etc.)
+- **Component Scoping**: Prefer Mantine styling props over external CSS files
+
+## File Organization
+
+### Component Structure
+```
+components/
+  ├── ComponentName/
+  │   ├── ComponentName.tsx       # Main component
+  │   ├── subcomponents/          # Related subcomponents
+  │   └── index.tsx              # Barrel export
+  └── shared/                    # Shared components
+```
+
+### Style Organization
+```
+styles/
+  ├── DesignSystem.css           # Global design system
+  ├── App.css                    # Main layout styles
+  └── ComponentName.module.css   # Component-specific styles
+```
+
+## API Integration
+
+### Backend Communication
+- **Base URL**: Use `DUNGEONMIND_API_URL` from config
+- **Error Handling**: Always implement proper error handling
+- **Loading States**: Show loading indicators for async operations
+- **Type Safety**: Define interfaces for API responses
+
+### Image Handling
+- **Cloudflare Integration**: Use established Cloudflare R2 patterns
+- **Image Optimization**: Implement proper image loading and error handling
+- **Upload Patterns**: Follow existing upload component patterns
+
+## Performance Considerations
+
+### Optimization Guidelines
+- **Lazy Loading**: Implement lazy loading for large components
+- **Image Optimization**: Use proper image formats and sizes
+- **Bundle Splitting**: Avoid importing entire libraries when only using small parts
+- **Memory Management**: Clean up event listeners and subscriptions
+
+### Caching Strategy
+- **API Caching**: Implement appropriate caching for API responses
+- **Image Caching**: Leverage browser caching for static assets
+- **State Persistence**: Use localStorage for user preferences
+
+## Testing Guidelines
+
+### Component Testing
+- **Unit Tests**: Test individual component functionality
+- **Integration Tests**: Test component interactions
+- **Accessibility Testing**: Ensure ARIA compliance and keyboard navigation
+
+### User Experience Testing
+- **Mobile Testing**: Test on various mobile devices
+- **Navigation Testing**: Verify navigation flows work correctly
+- **Error State Testing**: Test error scenarios and recovery
+
+## Common Pitfalls to Avoid
+
+### Navigation Issues
+- ❌ Never create independent navigation that conflicts with main nav
+- ❌ Don't override main layout margins in child components
+- ❌ Avoid creating multiple navigation elements in the same z-index range
+
+### CSS Issues
+- ❌ Don't hardcode colors or spacing values - use theme tokens
+- ❌ Avoid !important unless absolutely necessary
+- ❌ Don't create conflicting position: fixed elements
+- ❌ Don't write custom CSS when Mantine component exists
+- ❌ Don't use external CSS files for styling Mantine components (use `styles` prop)
+
+### React Issues
+- ❌ Don't mutate props directly
+- ❌ Avoid inline functions in render methods (use useCallback)
+- ❌ Don't forget to handle loading and error states
+- ❌ Don't render Mantine components outside of MantineProvider
+- ❌ Don't override Mantine component styles with external CSS classes
+- ❌ Don't use multiple MantineProvider instances in same component tree
+
+## Deployment Considerations
+
+### Build Process
+- **Environment Variables**: Use proper environment variable patterns
+- **Asset Optimization**: Ensure proper asset bundling and optimization
+- **Production Testing**: Test builds in production-like environment
+
+### Security
+- **Input Validation**: Validate all user inputs
+- **API Security**: Use proper authentication patterns
+- **XSS Prevention**: Sanitize user-generated content
+
+## Documentation Standards
+
+### Code Documentation
+- **Component Documentation**: Document complex components with JSDoc
+- **README Updates**: Keep README files current with project changes
+- **API Documentation**: Document custom hooks and utility functions
+
+### Change Documentation
+- **Git Commits**: Use descriptive commit messages
+- **Pull Requests**: Include thorough PR descriptions
+- **Breaking Changes**: Document any breaking changes clearly
+
+---
+
+## Quick Reference Commands
+
+### Development
+```bash
+npm start                 # Start development server
+npm run build            # Build for production
+npm test                 # Run tests
+npm run storybook        # Start Storybook (if configured)
+```
+
+### Debugging
+- Check browser console for errors
+- Verify network tab for API calls
+- Use React Developer Tools for component inspection
+- Test navigation flows on mobile
+
+---
+
+## Migration Status
+**Current Phase**: Actively migrating to Mantine UI framework
+**Completed**: CardGenerator sidebar, Step1 & Step2 layouts
+**Next Priority**: Remaining step components, form elements, and navigation components
+
+*This file should be updated as the project evolves and new Mantine patterns emerge.* 

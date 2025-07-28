@@ -5,7 +5,7 @@
   "private": true,
   "dependencies": {
     "@mantine/core": "^7.15.2",
-    "@tabler/icons-react": "^3.26.0",
+    "@tabler/icons-react": "^3.34.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -24,11 +24,12 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start --verbose",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "build:dev": "export NODE_ENV=development && export REACT_APP_DUNGEONMIND_API_URL=https://dev.dungeonmind.net && react-scripts build",
+    "start": "npx react-scripts start",
+    "start:dev": "export NODE_ENV=development && export REACT_APP_DUNGEONMIND_API_URL=https://dev.dungeonmind.net && npx react-scripts start",
+    "build": "npx react-scripts build",
+    "test": "npx react-scripts test",
+    "eject": "npx react-scripts eject",
+    "build:dev": "export NODE_ENV=development && export REACT_APP_DUNGEONMIND_API_URL=https://dev.dungeonmind.net && npx react-scripts build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
