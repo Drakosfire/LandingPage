@@ -4,7 +4,7 @@ import { DUNGEONMIND_API_URL } from '../../../config';
 import { Select, TextInput, Textarea } from '@mantine/core';
 import classes from '../../../styles/ItemForm.module.css';
 
-const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
+const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData, onGenerationLockChange }) => {
     const [userIdea, setUserIdea] = useState('');
     const [formData, setFormData] = useState({
         name: '',
@@ -26,17 +26,17 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
     useEffect(() => {
         if (initialData) {
             const newFormData = {
-                name: initialData.name,
-                type: initialData.type,
-                rarity: initialData.rarity,
-                value: initialData.value,
-                properties: initialData.properties,
-                damageFormula: initialData.damageFormula,
-                damageType: initialData.damageType,
-                weight: initialData.weight,
-                description: initialData.description,
-                quote: initialData.quote,
-                sdPrompt: initialData.sdPrompt
+                name: initialData.name || '',
+                type: initialData.type || '',
+                rarity: initialData.rarity || '',
+                value: initialData.value || '',
+                properties: Array.isArray(initialData.properties) ? initialData.properties : [],
+                damageFormula: initialData.damageFormula || '',
+                damageType: initialData.damageType || '',
+                weight: initialData.weight || '',
+                description: initialData.description || '',
+                quote: initialData.quote || '',
+                sdPrompt: initialData.sdPrompt || ''
             };
             setFormData(newFormData);
         }
@@ -58,21 +58,24 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
 
     const handleIdeaSubmit = async () => {
         setIsLoading(true);
+        onGenerationLockChange?.(true); // 🔒 Lock navigation during generation
         setError(null);
         // Check for empty userIdea 
         if (!userIdea.trim()) {
             setError('Please enter a valid idea');
             setIsLoading(false);
+            onGenerationLockChange?.(false); // 🔓 Unlock on early return
             return;
         }
         // Log what is being sent
-        console.log(`Sending request to ${DUNGEONMIND_API_URL}/api/cardgenerator/generate-item-dict with body: ${JSON.stringify({ userIdea })}`);
+        // Sending item generation request
         try {
             const response = await fetch(`${DUNGEONMIND_API_URL}/api/cardgenerator/generate-item-dict`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include', // Include session cookies
                 body: JSON.stringify({ userIdea })
             });
 
@@ -105,12 +108,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
             console.error('Error processing item:', error);
         } finally {
             setIsLoading(false);
+            onGenerationLockChange?.(false); // 🔓 Unlock navigation when done
         }
     };
 
     // Modify handlePropertyChange to update both local and parent state
     const handlePropertyChange = (index: number, value: string) => {
-        const updatedProperties = [...formData.properties];
+        const currentProperties = formData.properties || [];
+        const updatedProperties = [...currentProperties];
         updatedProperties[index] = value;
         const newFormData = {
             ...formData,
@@ -122,9 +127,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
 
     // Modify addProperty to update both local and parent state
     const addProperty = () => {
+        const currentProperties = formData.properties || [];
         const newFormData = {
             ...formData,
-            properties: [...formData.properties, '']
+            properties: [...currentProperties, '']
         };
         setFormData(newFormData);
         onGenerate(newFormData); // Update parent state
@@ -132,7 +138,8 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
 
     // Modify removeProperty to update both local and parent state
     const removeProperty = (index: number) => {
-        const updatedProperties = [...formData.properties];
+        const currentProperties = formData.properties || [];
+        const updatedProperties = [...currentProperties];
         updatedProperties.splice(index, 1);
         const newFormData = {
             ...formData,
@@ -239,7 +246,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData }) => {
                 {/* Properties Section */}
                 <div className="mt-4">
                     <h4 className="text-sm font-medium mb-2">Properties</h4>
-                    {formData.properties.map((property, index) => (
+                    {(formData.properties || []).map((property, index) => (
                         <div key={index} className="flex items-center mb-2">
                             <TextInput
                                 placeholder={`Property ${index + 1}`}

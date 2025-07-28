@@ -21,9 +21,7 @@ const ChatInterface: React.FC = () => {
         setMessage(prompt);
     };
 
-    useEffect(() => {
-        console.log('Chat history updated:', chatHistory);
-    }, [chatHistory]);
+    // Chat history updates handled by component state
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,9 +46,7 @@ const ChatInterface: React.FC = () => {
         if (!message.trim()) return;
 
         setIsLoading(true);
-        console.log('Sending message:', message);
         await sendMessage(message);
-        console.log('Message sent, current chat history:', chatHistory);
         setMessage('');
         setIsLoading(false);
     };

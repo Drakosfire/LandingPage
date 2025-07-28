@@ -1,0 +1,60 @@
+/* CardGenerator Layout - Responsive Z-Index and Positioning */
+
+/* Ensure proper z-index hierarchy:
+   Nav Bar: 600+
+   Header: 400
+   Projects Panel: 300
+   Main Content: 100
+*/
+
+.card-generator-header {
+    /* Desktop: Account for nav bar */
+    left: 80px;
+}
+
+.main-content {
+    /* Desktop: Account for nav bar and projects panel */
+    margin-left: 80px;
+    margin-right: 60px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .card-generator-header {
+        /* Mobile: Full width, no nav bar offset */
+        left: 0 !important;
+    }
+
+    .main-content {
+        /* Mobile: No nav bar or projects panel offset */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* Hide projects panel on mobile or make it overlay */
+    .projects-panel {
+        display: none;
+    }
+}
+
+/* Ensure projects panel doesn't interfere with main content flow */
+.projects-panel {
+    pointer-events: auto;
+}
+
+.projects-panel.collapsed {
+    pointer-events: none;
+}
+
+.projects-panel.collapsed .toggle-button {
+    pointer-events: auto;
+}
+
+/* Smooth transitions for responsive changes */
+@media (prefers-reduced-motion: no-preference) {
+
+    .card-generator-header,
+    .main-content {
+        transition: margin-left 0.3s ease, margin-right 0.3s ease, left 0.3s ease;
+    }
+}

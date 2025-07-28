@@ -27,13 +27,14 @@ const EmbeddingSelector: React.FC = () => {
 
     const handleLoadEmbedding = async () => {
         setIsLoading(true);
-        console.log('Loading embedding:', embeddingDisplayNames[selectedEmbedding]);
+        // Loading embedding silently
         try {
             const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/loadembeddings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // Include session cookies
                 body: JSON.stringify({
                     embedding: selectedEmbedding,
                     embeddings_file_path: `${selectedEmbedding}_embeddings.csv`,

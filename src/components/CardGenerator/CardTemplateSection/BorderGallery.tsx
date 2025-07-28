@@ -17,7 +17,7 @@ const BorderGallery: React.FC<BorderGalleryProps> = ({ onSelect }) => {
     const handleBorderSelect = (border: SelectedImage) => {
         setSelectedBorderId(border.id);
         onSelect(border.url);
-        console.log("border:", border.id)
+        // Border selected
     };
 
     return (

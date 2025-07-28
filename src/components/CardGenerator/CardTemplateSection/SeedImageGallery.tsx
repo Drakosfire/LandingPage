@@ -35,13 +35,14 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
 
                 const response = await fetch(`${DUNGEONMIND_API_URL}/api/cardgenerator/upload-image`, {
                     method: 'POST',
+                    credentials: 'include', // Include session cookies
                     body: formData,
                 });
 
                 if (!response.ok) {
                     throw new Error('Failed to upload image');
                 }
-                console.log("response:", response)
+                // Response received
                 const { url } = await response.json();
                 // This will need to be reworked to be state based, maybe a cookie or something
                 seedImages.push({ id: url, url: url, alt: 'Uploaded Image' });
@@ -79,7 +80,7 @@ const SeedImageGallery: React.FC<SeedImageGalleryProps> = ({ onSelect }) => {
     const handleImageSelect = (image: SelectedImage) => {
         setSelectedImage(image.id);
         onSelect(image.url);
-        console.log("image:", image.id)
+        // Image selected
 
     };
 

@@ -1,0 +1,104 @@
+/* Mantine Component Overrides for CardGenerator Layout */
+
+/* Ensure Mantine Container respects the main layout margins */
+.mantine-Container-root {
+    max-width: 1280px !important;
+    margin: 0 auto !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+/* Ensure proper z-index hierarchy for Grid components */
+.mantine-Grid-root {
+    position: relative;
+    z-index: 100;
+}
+
+/* Ensure Cards maintain proper spacing and don't overflow */
+.mantine-Card-root {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* Ensure Stack components maintain proper spacing */
+.mantine-Stack-root {
+    width: 100%;
+}
+
+/* Ensure Grid.Col components handle responsive spans correctly */
+.mantine-Grid-col {
+    min-width: 0;
+    /* Prevent overflow issues */
+    box-sizing: border-box;
+}
+
+/* Override Mantine Text component to use theme colors properly */
+.mantine-Text-root[data-c="blue.4"] {
+    color: var(--mantine-color-blue-4) !important;
+}
+
+.mantine-Text-root[data-c="green.4"] {
+    color: var(--mantine-color-green-4) !important;
+}
+
+.mantine-Text-root[data-c="dimmed"] {
+    color: var(--mantine-color-dimmed) !important;
+}
+
+/* Ensure Badge components use custom rarity colors */
+.mantine-Badge-root[data-color="rarity-common"] {
+    background-color: var(--mantine-color-rarity-common-1);
+    color: var(--mantine-color-rarity-common-9);
+}
+
+.mantine-Badge-root[data-color="rarity-uncommon"] {
+    background-color: var(--mantine-color-rarity-uncommon-1);
+    color: var(--mantine-color-rarity-uncommon-9);
+}
+
+.mantine-Badge-root[data-color="rarity-rare"] {
+    background-color: var(--mantine-color-rarity-rare-1);
+    color: var(--mantine-color-rarity-rare-9);
+}
+
+.mantine-Badge-root[data-color="rarity-epic"] {
+    background-color: var(--mantine-color-rarity-epic-1);
+    color: var(--mantine-color-rarity-epic-9);
+}
+
+.mantine-Badge-root[data-color="rarity-legendary"] {
+    background-color: var(--mantine-color-rarity-legendary-1);
+    color: var(--mantine-color-rarity-legendary-9);
+}
+
+/* Mobile-specific overrides */
+@media (max-width: 768px) {
+    .mantine-Container-root {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    .mantine-Card-root {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Ensure compatibility with existing CardGenerator layout */
+.card-generator-page .mantine-Container-root {
+    /* Override any conflicting styles from parent containers */
+    position: relative;
+    z-index: 100;
+}
+
+/* Sticky positioning for preview cards */
+.mantine-Card-root[style*="position: sticky"] {
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+/* Ensure smooth transitions for responsive changes */
+.mantine-Grid-root,
+.mantine-Grid-col {
+    transition: all 0.3s ease;
+}

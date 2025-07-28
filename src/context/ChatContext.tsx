@@ -28,9 +28,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    message,
-                }),
+                credentials: 'include', // Include session cookies
+                body: JSON.stringify({ query: message, embedding_id: currentEmbedding }),
             });
 
             if (!response.ok) {

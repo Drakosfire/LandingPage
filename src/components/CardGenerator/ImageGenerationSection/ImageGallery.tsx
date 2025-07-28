@@ -25,13 +25,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
     const [error, setError] = useState<string | null>(null);
 
     const handleGenerateImages = async () => {
-        console.log('ImageGallery: Generate button clicked');
-
         if (!template || !sdPrompt) {
-            console.warn('ImageGallery: Missing required data:', {
-                hasTemplate: !!template,
-                hasSdPrompt: !!sdPrompt
-            });
             setError('Template and prompt are required');
             return;
         }
@@ -44,22 +38,11 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
         formData.append('sdPrompt', sdPrompt);
         formData.append('numImages', '4');
 
-        console.log('ImageGallery: Sending request with:', {
-            templateSize: template.size,
-            sdPrompt,
-            formDataEntries: Array.from(formData.entries()).map(([key]) => key)
-        });
-
         try {
-            console.log('ImageGallery: Sending request to:', `${DUNGEONMIND_API_URL}/api/generate-card-images`);
             const response = await fetch(`${DUNGEONMIND_API_URL}/api/cardgenerator/generate-card-images`, {
                 method: 'POST',
+                credentials: 'include', // Include session cookies
                 body: formData,
-            });
-
-            console.log('ImageGallery: Received response:', {
-                status: response.status,
-                ok: response.ok
             });
 
             if (!response.ok) {
@@ -67,10 +50,8 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
             }
 
             const data = await response.json();
-            console.log('ImageGallery: Received data:', data);
             setGeneratedImages(data.images);
         } catch (error) {
-            console.error('ImageGallery: Error generating images:', error);
             setError('Failed to generate images. Please try again.');
         } finally {
             setIsLoading(false);
@@ -78,15 +59,8 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
     };
 
     const handleImageSelect = async (image: GeneratedImage) => {
-        console.log('ImageGallery: Selected image:', image);
         onSelect(image.url);
     };
-
-    console.log('ImageGallery: Rendering with state:', {
-        hasGeneratedImages: generatedImages.length > 0,
-        isLoading,
-        hasError: !!error
-    });
 
     return (
         <div className="flex flex-col gap-4">

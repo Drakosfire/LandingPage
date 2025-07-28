@@ -5,7 +5,7 @@ import styles from '../../../styles/TemplatePreview.styles';
 interface TemplatePreviewProps {
     template: {
         border: string;
-        seedImage: string;
+        itemImage: string;
     };
     onGenerate: (templateBlob: Blob, templateUrl: string) => void;
 }
@@ -17,60 +17,67 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onGenerate 
     // Constants for canvas dimensions
     const CANVAS_WIDTH = 768;
     const CANVAS_HEIGHT = 1024;
-    const SEED_X = 56;
-    const SEED_Y = 128;
-    const SEED_WIDTH = 657;
-    const SEED_HEIGHT = 422;
+    const ITEM_X = 56;
+    const ITEM_Y = 128;
+    const ITEM_WIDTH = 657;
+    const ITEM_HEIGHT = 422;
 
     // Add this ref to track the previous template
     const prevTemplateRef = useRef<typeof template>();
 
-    // Separate the canvas drawing logic
+    // Memoize the onGenerate callback to prevent unnecessary re-renders
+    const stableOnGenerate = useCallback(onGenerate, []);
+
+    // Separate the canvas drawing logic - only depend on template changes
     const drawTemplate = useCallback(() => {
         const canvas = canvasRef.current;
-        if (!canvas || !template.border || !template.seedImage) return;
+        if (!canvas || !template.border || !template.itemImage) return;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+
+        // Check if template has actually changed
+        if (prevTemplateRef.current?.border === template.border &&
+            prevTemplateRef.current?.itemImage === template.itemImage) {
+            return; // No change, don't redraw
+        }
 
         // Clear canvas
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         // Load and draw both images
         const borderImg = new Image();
-        const seedImg = new Image();
+        const itemImg = new Image();
 
         borderImg.crossOrigin = "anonymous";
-        seedImg.crossOrigin = "anonymous";
+        itemImg.crossOrigin = "anonymous";
 
         return new Promise<void>((resolve) => {
             borderImg.onload = () => {
-                seedImg.onload = () => {
-                    ctx.drawImage(seedImg, SEED_X, SEED_Y, SEED_WIDTH, SEED_HEIGHT);
+                itemImg.onload = () => {
+                    ctx.drawImage(itemImg, ITEM_X, ITEM_Y, ITEM_WIDTH, ITEM_HEIGHT);
                     ctx.drawImage(borderImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-                    // Generate if template has changed
-                    if (prevTemplateRef.current?.border !== template.border ||
-                        prevTemplateRef.current?.seedImage !== template.seedImage) {
-                        canvas.toBlob((blob) => {
-                            if (blob) {
-                                if (previewUrl) {
-                                    URL.revokeObjectURL(previewUrl);
-                                }
-                                const newUrl = URL.createObjectURL(blob);
-                                setPreviewUrl(newUrl);
-                                onGenerate(blob, newUrl);
+                    // Generate blob and call onGenerate
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            if (previewUrl) {
+                                URL.revokeObjectURL(previewUrl);
                             }
-                        }, 'image/png');
-                    }
+                            const newUrl = URL.createObjectURL(blob);
+                            setPreviewUrl(newUrl);
+                            stableOnGenerate(blob, newUrl);
+                        }
+                    }, 'image/png');
+
                     prevTemplateRef.current = template;
                     resolve();
                 };
-                seedImg.src = template.seedImage;
+                itemImg.src = template.itemImage;
             };
             borderImg.src = template.border;
         });
-    }, [template, previewUrl, onGenerate]);
+    }, [template.border, template.itemImage, stableOnGenerate]); // Only depend on template properties
 
     useEffect(() => {
         drawTemplate();

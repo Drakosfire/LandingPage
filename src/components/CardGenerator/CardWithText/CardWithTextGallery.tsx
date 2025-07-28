@@ -59,13 +59,14 @@ const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => 
                 }
             };
 
-            console.log('Sending request with body:', requestBody);
+            // Sending card rendering request
 
             const response = await fetch(`${DUNGEONMIND_API_URL}/api/cardgenerator/render-card-text`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // Include session cookies
                 body: JSON.stringify(requestBody)
             });
 
