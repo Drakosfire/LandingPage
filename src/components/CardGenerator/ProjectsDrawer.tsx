@@ -78,7 +78,9 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
     );
 
     // Sort projects by last updated (most recent first)
-    const sortedProjects = [...filteredProjects].sort((a, b) => b.updatedAt - a.updatedAt);
+    const sortedProjects = [...filteredProjects].sort((a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
 
     const handleSave = async () => {
         if (!onSaveProject || saveStatus === 'saving') return;

@@ -63,7 +63,6 @@ export default function CardGenerator() {
     // Additional state for persistence
     const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
     const [renderedCards, setRenderedCards] = useState<RenderedCard[]>([]);
-    const [sessionId, setSessionId] = useState<string>('');
     const [lastSaved, setLastSaved] = useState<number>(0);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -155,7 +154,7 @@ export default function CardGenerator() {
 
             // Create new session
             const initialState = createInitialState();
-            setSessionId(initialState.sessionId);
+            // setSessionId(initialState.sessionId); // Removed as per edit hint
 
             console.log('🚪 CardGenerator data cleared on logout');
         }
@@ -183,10 +182,8 @@ export default function CardGenerator() {
 
     // Project Management Functions (defined early to avoid dependency issues)
     const getCurrentState = useCallback((): CardGeneratorState => {
-        const state = {
-            sessionId,
-            projectId: currentProject?.id,
-            currentStep: currentStepId,
+        const state: CardGeneratorState = {
+            currentStepId,
             stepCompletion: {
                 'text-generation': !!(itemDetails.name?.trim()),
                 'core-image': !!selectedFinalImage,
@@ -206,17 +203,14 @@ export default function CardGenerator() {
                 images: generatedImages,
                 renderedCards
             },
-            metadata: {
-                lastSaved: Date.now().toString(),
-                version: '1.0.0',
-                platform: navigator.userAgent
-            }
+            autoSaveEnabled: true,
+            lastSaved: Date.now().toString()
         };
 
         // Debug logging removed to prevent loops
 
         return state;
-    }, [sessionId, currentProject?.id, currentStepId, itemDetails, selectedFinalImage,
+    }, [currentStepId, itemDetails, selectedFinalImage,
         selectedBorder, selectedSeedImage, generatedImages, renderedCards,
         generatedCardImages, selectedGeneratedCardImage, finalCardWithText]);
 
@@ -261,11 +255,11 @@ export default function CardGenerator() {
             const itemName = overrideItemName || itemDetails.name?.trim();
             const projectName = itemName || currentProject.name;
 
-            const updatedProject = {
+            const updatedProject: Project = {
                 ...currentProject,
                 name: projectName,
                 state: currentState,
-                updatedAt: Date.now()
+                updatedAt: new Date().toISOString()
             };
 
             await projectAPI.updateProject(updatedProject);
@@ -325,11 +319,13 @@ export default function CardGenerator() {
             const newProject = await projectAPI.createProject({ name, description });
 
             // Update available projects list
-            const newProjectSummary = {
+            const newProjectSummary: ProjectSummary = {
                 id: newProject.id,
                 name: newProject.name,
                 description: newProject.description,
-                updatedAt: newProject.updatedAt,
+                createdBy: newProject.createdBy,
+                lastModified: newProject.lastModified,
+                updatedAt: new Date().toISOString(),
                 cardCount: 0
             };
             setAvailableProjects(prev => [newProjectSummary, ...prev]);
@@ -415,19 +411,18 @@ export default function CardGenerator() {
             cardImages: state.selectedAssets?.generatedCardImages?.length || 0,
             selectedCard: !!state.selectedAssets?.selectedGeneratedCardImage,
             finalCardWithText: !!state.selectedAssets?.finalCardWithText,
-            step: state.currentStep
+            step: state.currentStepId
         });
 
         // Restore all state from project
-        setSessionId(state.sessionId);
-        setCurrentStepId(state.currentStep);
+        setCurrentStepId(state.currentStepId);
         setItemDetails(state.itemDetails);
-        setSelectedFinalImage(state.selectedAssets.finalImage);
-        setSelectedBorder(state.selectedAssets.border);
-        setSelectedSeedImage(state.selectedAssets.seedImage);
+        setSelectedFinalImage(state.selectedAssets.finalImage || '');
+        setSelectedBorder(state.selectedAssets.border || '');
+        setSelectedSeedImage(state.selectedAssets.seedImage || '');
         setGeneratedImages(state.generatedContent.images || []);
         setRenderedCards(state.generatedContent.renderedCards || []);
-        setLastSaved(parseInt(state.metadata.lastSaved));
+        setLastSaved(parseInt(state.lastSaved || '0'));
 
         // Load Step 3 state
         setGeneratedCardImages(state.selectedAssets.generatedCardImages || []);
@@ -508,7 +503,7 @@ export default function CardGenerator() {
             // Anonymous users: no auto-save (they need to authenticate to use the system)
             return;
         }
-    }, [sessionId, currentStepId, itemDetails, selectedFinalImage, selectedBorder,
+    }, [currentStepId, itemDetails, selectedFinalImage, selectedBorder,
         selectedSeedImage, templateBlob, generatedImages, renderedCards, userId,
         generatedCardImages, selectedGeneratedCardImage, currentProject?.id, saveCurrentProject]);
 
@@ -570,7 +565,7 @@ export default function CardGenerator() {
             } else {
                 // Create a new session ID for this session
                 const initialState = createInitialState();
-                setSessionId(initialState.sessionId);
+                // setSessionId(initialState.sessionId); // Removed as per edit hint
             }
 
             initialLoadComplete.current = true;
@@ -617,7 +612,7 @@ export default function CardGenerator() {
                             // Session recovery takes precedence over server state to preserve unsaved changes
                         } else {
                             // Load the most recently updated project
-                            const sortedProjects = projects.sort((a, b) => b.updatedAt - a.updatedAt);
+                            const sortedProjects = projects.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
                             const mostRecent = sortedProjects[0];
                             await switchToProject(mostRecent.id);
                         }
@@ -761,8 +756,9 @@ export default function CardGenerator() {
     const handleCardRendered = (cardUrl: string, cardName: string) => {
         const newCard: RenderedCard = {
             url: cardUrl,
+            id: Date.now().toString(),
             name: cardName,
-            timestamp: Date.now()
+            timestamp: Date.now().toString()
         };
         setRenderedCards(prevCards => [newCard, ...prevCards]);
 
@@ -831,15 +827,15 @@ export default function CardGenerator() {
         isRestoringState.current = true;
 
         // Restore all state
-        setSessionId(state.sessionId);
-        setCurrentStepId(state.currentStep);
+        // setSessionId(state.sessionId); // Removed as per edit hint
+        setCurrentStepId(state.currentStepId);
         setItemDetails(state.itemDetails);
-        setSelectedFinalImage(state.selectedAssets.finalImage);
-        setSelectedBorder(state.selectedAssets.border);
-        setSelectedSeedImage(state.selectedAssets.seedImage);
-        setGeneratedImages(state.generatedContent.images);
-        setRenderedCards(state.generatedContent.renderedCards);
-        setLastSaved(parseInt(state.metadata.lastSaved));
+        setSelectedFinalImage(state.selectedAssets.finalImage || '');
+        setSelectedBorder(state.selectedAssets.border || '');
+        setSelectedSeedImage(state.selectedAssets.seedImage || '');
+        setGeneratedImages(state.generatedContent.images || []);
+        setRenderedCards(state.generatedContent.renderedCards || []);
+        setLastSaved(parseInt(state.lastSaved || '0'));
 
         // Load Step 3 state
         setGeneratedCardImages(state.selectedAssets.generatedCardImages || []);
@@ -897,10 +893,12 @@ export default function CardGenerator() {
             const duplicatedProject = await projectAPI.duplicateProject(projectId, newName);
 
             // Update available projects list
-            const duplicatedProjectSummary = {
+            const duplicatedProjectSummary: ProjectSummary = {
                 id: duplicatedProject.id,
                 name: duplicatedProject.name,
                 description: duplicatedProject.description,
+                createdBy: duplicatedProject.createdBy,
+                lastModified: duplicatedProject.lastModified,
                 updatedAt: duplicatedProject.updatedAt,
                 cardCount: 0
             };
@@ -1169,7 +1167,9 @@ export default function CardGenerator() {
                         id: project.id,
                         name: project.name,
                         description: project.description,
-                        updatedAt: project.updatedAt,
+                        createdBy: project.createdBy,
+                        lastModified: project.lastModified,
+                        updatedAt: new Date().toISOString(),
                         cardCount: 0
                     };
 

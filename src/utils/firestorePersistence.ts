@@ -10,8 +10,7 @@ export const generateSessionId = (): string => {
 
 // Create initial state
 export const createInitialState = (): CardGeneratorState => ({
-    sessionId: generateSessionId(),
-    currentStep: 'text-generation',
+    currentStepId: 'text-generation',
     stepCompletion: {},
     itemDetails: {
         name: '',
@@ -27,22 +26,13 @@ export const createInitialState = (): CardGeneratorState => ({
         sdPrompt: ''
     },
     selectedAssets: {
-        finalImage: '',
-        border: '',
-        seedImage: '',
-        templateBlob: undefined,
-        generatedCardImages: [],
-        selectedGeneratedCardImage: ''
+        generatedCardImages: []
     },
     generatedContent: {
         images: [],
         renderedCards: []
     },
-    metadata: {
-        lastSaved: Date.now().toString(),
-        version: STORAGE_VERSION,
-        platform: navigator.userAgent
-    }
+    autoSaveEnabled: true
 });
 
 // Convert Blob to base64 string for serialization
@@ -86,18 +76,18 @@ export const saveCardSession = async (
         delete firestoreState.selectedAssets.templateBlob;
 
         // Update metadata - convert timestamp to string as expected by backend
-        firestoreState.metadata.lastSaved = Date.now().toString();
+        firestoreState.lastSaved = Date.now().toString();
 
         // Prepare Firestore request with camelCase format to match backend
         const sessionData = {
-            sessionId: firestoreState.sessionId,
             userId: userId || null,
-            currentStep: firestoreState.currentStep,
+            currentStepId: firestoreState.currentStepId,
             stepCompletion: firestoreState.stepCompletion,
             itemDetails: firestoreState.itemDetails,
             selectedAssets: firestoreState.selectedAssets,
             generatedContent: firestoreState.generatedContent,
-            metadata: firestoreState.metadata
+            autoSaveEnabled: firestoreState.autoSaveEnabled,
+            lastSaved: firestoreState.lastSaved
         };
 
         const requestBody = {
@@ -246,18 +236,13 @@ const loadFromLocalStorageOnly = (): { state: CardGeneratorState | null; templat
             return { state: null, templateBlob: null };
         }
 
+        // Check if saved state is compatible with current version
+        // Note: Version checking removed as new CardGeneratorState doesn't include metadata
         const savedState: CardGeneratorState = JSON.parse(savedData);
-
-        // Version check
-        if (savedState.metadata.version !== STORAGE_VERSION) {
-            console.log('Saved state version mismatch, creating new state');
-            localStorage.removeItem('cardGenerator_state');
-            return { state: null, templateBlob: null };
-        }
 
         // Restore blob if present
         let templateBlob: Blob | null = null;
-        if (savedState.selectedAssets.templateBlob) {
+        if (savedState.selectedAssets.templateBlob && typeof savedState.selectedAssets.templateBlob === 'string') {
             try {
                 templateBlob = base64ToBlob(savedState.selectedAssets.templateBlob);
                 // Remove base64 from state to keep it clean

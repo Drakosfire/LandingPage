@@ -50,7 +50,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                         {project.name}
                     </Text>
                     <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
-                        {formatRelativeTime(project.updatedAt)}
+                        {formatRelativeTime(new Date(project.updatedAt).getTime())}
                     </Text>
                 </Group>
 

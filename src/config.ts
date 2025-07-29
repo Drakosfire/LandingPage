@@ -15,8 +15,8 @@ const currentDomain = getCurrentDomain();
 export const DUNGEONMIND_API_URL = (() => {
     const envUrl = process.env.REACT_APP_DUNGEONMIND_API_URL;
 
-    // If we're on dev domain but env var points to production, ignore env var and auto-detect
-    if (currentDomain === 'dev.dungeonmind.net' && envUrl === 'https://www.dungeonmind.net') {
+    // If we're on dev domain, always use https://dev.dungeonmind.net
+    if (currentDomain === 'dev.dungeonmind.net') {
         return 'https://dev.dungeonmind.net';
     }
 
@@ -26,10 +26,8 @@ export const DUNGEONMIND_API_URL = (() => {
     }
 
     // Auto-detect based on domain
-    if (currentDomain === 'dev.dungeonmind.net') {
-        return 'https://dev.dungeonmind.net';
-    } else if (currentDomain === 'localhost') {
-        return 'https://dev.dungeonmind.net'; // Use dev API for local development
+    if (currentDomain === 'localhost') {
+        return 'http://localhost:7860'; // Use local server for development
     } else {
         return 'https://dungeonmind.net'; // Production
     }

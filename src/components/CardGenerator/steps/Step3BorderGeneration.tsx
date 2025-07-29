@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { createTemplate } from '../../../types/card.types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Template } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import BorderGallery from '../CardTemplateSection/BorderGallery';
 import TemplatePreview from '../CardTemplateSection/TemplatePreview';
@@ -168,7 +168,10 @@ const Step3BorderGeneration: React.FC<Step3BorderGenerationProps> = ({
         }
     };
 
-    const template = createTemplate(selectedBorder, selectedFinalImage);
+    const template = {
+        border: selectedBorder,
+        itemImage: selectedFinalImage || ''
+    };
 
     return (
         <div
