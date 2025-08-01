@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ItemFormProps } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
-import { Select, TextInput, Textarea } from '@mantine/core';
+import { TextInput, Textarea } from '@mantine/core';
 import classes from '../../../styles/ItemForm.module.css';
 
 const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData, onGenerationLockChange }) => {
@@ -25,6 +25,51 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData, onGenerati
     // Set initial data only once when component mounts or when initialData changes
     useEffect(() => {
         if (initialData) {
+            console.log('🔄 ItemForm: Syncing with new initialData:', {
+                name: initialData.name,
+                type: initialData.type,
+                rarity: initialData.rarity,
+                value: initialData.value,
+                description: initialData.description?.substring(0, 50) + '...'
+            });
+            console.log('🔄 ItemForm: Current formData before sync:', {
+                name: formData.name,
+                type: formData.type,
+                rarity: formData.rarity,
+                value: formData.value,
+                description: formData.description?.substring(0, 50) + '...'
+            });
+            const newFormData = {
+                name: initialData.name || '',
+                type: initialData.type || '',
+                rarity: initialData.rarity || '',
+                value: initialData.value || '',
+                properties: Array.isArray(initialData.properties) ? initialData.properties : [],
+                damageFormula: initialData.damageFormula || '',
+                damageType: initialData.damageType || '',
+                weight: initialData.weight || '',
+                description: initialData.description || '',
+                quote: initialData.quote || '',
+                sdPrompt: initialData.sdPrompt || ''
+            };
+            setFormData(newFormData);
+            console.log('🔄 ItemForm: Set new formData:', {
+                name: newFormData.name,
+                type: newFormData.type,
+                rarity: newFormData.rarity,
+                value: newFormData.value,
+                description: newFormData.description?.substring(0, 50) + '...'
+            });
+        }
+    }, [initialData]); // This should trigger when itemDetails state changes
+
+    // Additional sync - ensure we catch changes even if object reference doesn't change
+    useEffect(() => {
+        if (initialData && (
+            formData.name !== initialData.name ||
+            formData.description !== initialData.description
+        )) {
+            console.log('🔄 ItemForm: Field-level sync detected change');
             const newFormData = {
                 name: initialData.name || '',
                 type: initialData.type || '',
@@ -40,7 +85,18 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData, onGenerati
             };
             setFormData(newFormData);
         }
-    }, [initialData]);
+    }, [initialData, formData.name, formData.description]);
+
+    // Debug: Track when formData actually changes
+    useEffect(() => {
+        console.log('📝 ItemForm: formData state changed:', {
+            name: formData.name,
+            type: formData.type,
+            rarity: formData.rarity,
+            value: formData.value,
+            description: formData.description?.substring(0, 50) + '...'
+        });
+    }, [formData]);
 
     // Modify handleChange to update both local and parent state
     const handleChange = (field: string, value: string) => {

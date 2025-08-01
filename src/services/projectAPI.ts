@@ -30,11 +30,20 @@ interface BackendCardSessionData {
 }
 
 // Transform backend data to frontend structure
-export function transformBackendState(backendState: BackendCardSessionData): CardGeneratorState {
+export function transformBackendState(
+    backendState: BackendCardSessionData,
+    projectFallback?: { name?: string; description?: string }
+): CardGeneratorState {
     // Safely transform itemDetails with proper type checking
     const itemDetails = backendState.itemDetails || {};
+
+    // Use project-level data as fallback when itemDetails is empty
+    const hasItemData = Object.keys(itemDetails).some(key =>
+        itemDetails[key] && itemDetails[key].toString().trim()
+    );
+
     const transformedItemDetails = {
-        name: itemDetails.name || '',
+        name: itemDetails.name || (hasItemData ? '' : projectFallback?.name || ''),
         type: itemDetails.type || '',
         rarity: itemDetails.rarity || '',
         value: itemDetails.value || '',
@@ -42,7 +51,7 @@ export function transformBackendState(backendState: BackendCardSessionData): Car
         damageFormula: itemDetails.damageFormula || '',
         damageType: itemDetails.damageType || '',
         weight: itemDetails.weight || '',
-        description: itemDetails.description || '',
+        description: itemDetails.description || (hasItemData ? '' : projectFallback?.description || ''),
         quote: itemDetails.quote || '',
         sdPrompt: itemDetails.sdPrompt || ''
     };
@@ -137,7 +146,10 @@ class ProjectAPI {
         // Transform the backend state to frontend structure
         return {
             ...project,
-            state: transformBackendState(project.state)
+            state: transformBackendState(project.state, {
+                name: project.name,
+                description: project.description
+            })
         };
     }
 
@@ -179,16 +191,43 @@ class ProjectAPI {
             stateSize: project.state ? JSON.stringify(project.state).length : 0
         });
 
+        console.log('🔍 DEBUG getProject - Raw backend itemDetails received:', {
+            name: project.state?.itemDetails?.name,
+            type: project.state?.itemDetails?.type,
+            rarity: project.state?.itemDetails?.rarity,
+            value: project.state?.itemDetails?.value,
+            description: project.state?.itemDetails?.description?.substring(0, 50) + '...'
+        });
+
         // Transform the backend state to frontend structure
         return {
             ...project,
-            state: transformBackendState(project.state)
+            state: transformBackendState(project.state, {
+                name: project.name,
+                description: project.description
+            })
         };
     }
 
     async updateProject(project: Project): Promise<void> {
         // Transform frontend state to backend format
         const backendState = transformFrontendState(project.state);
+
+        console.log('💾 DEBUG updateProject - Frontend itemDetails being saved:', {
+            name: project.state.itemDetails.name,
+            type: project.state.itemDetails.type,
+            rarity: project.state.itemDetails.rarity,
+            value: project.state.itemDetails.value,
+            description: project.state.itemDetails.description?.substring(0, 50) + '...'
+        });
+
+        console.log('💾 DEBUG updateProject - Backend itemDetails being sent:', {
+            name: backendState.itemDetails.name,
+            type: backendState.itemDetails.type,
+            rarity: backendState.itemDetails.rarity,
+            value: backendState.itemDetails.value,
+            description: backendState.itemDetails.description?.substring(0, 50) + '...'
+        });
 
         const requestBody = {
             name: project.name,

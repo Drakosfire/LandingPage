@@ -377,6 +377,7 @@ export default function CardGenerator() {
             loadedProject = project; // Store for use in finally block
 
             console.log('🔄 switchToProject: Setting currentProject to:', project.name, 'ID:', project.id);
+            console.log('🔍 DEBUG switchToProject project.state.itemDetails:', project.state.itemDetails);
 
             // Cancel any pending auto-saves to prevent saving to wrong project
             debouncedSave.cancel();
@@ -413,6 +414,9 @@ export default function CardGenerator() {
             finalCardWithText: !!state.selectedAssets?.finalCardWithText,
             step: state.currentStepId
         });
+
+        // DEBUG: Log itemDetails to see what we're actually restoring
+        console.log('🔍 DEBUG restoreProjectState itemDetails:', state.itemDetails);
 
         // Restore all state from project
         setCurrentStepId(state.currentStepId);
@@ -768,8 +772,8 @@ export default function CardGenerator() {
 
     // Project management functions
     const canSaveProject = () => {
-        return itemDetails.name?.trim() !== '' &&
-            itemDetails.type?.trim() !== '' &&
+        // TEMP FIX: Don't require type field since backend isn't persisting it properly
+        return itemDetails.name?.trim() !== '' ||
             itemDetails.description?.trim() !== '';
     };
 
