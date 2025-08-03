@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CardPreviewProps } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
+import { ClickableImage } from '../shared';
 import styles from '../../../styles/CardWithTextGallery.module.css';
 import { Tabs } from '@mantine/core';
 
@@ -114,10 +115,15 @@ const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => 
                                     key={index}
                                     className={styles.cardWithTextGalleryImage}
                                 >
-                                    <img
+                                    <ClickableImage
                                         src={card.url}
                                         alt={`Generated card ${index + 1}`}
+                                        title={card.name}
+                                        description="Final card with text overlay"
                                         className={styles.cardWithTextGalleryImage}
+                                        showExpandButton={true}
+                                        expandButtonPosition="top-right"
+                                        downloadFilename={`${card.name}-final-card.png`}
                                     />
                                 </div>
                             ))
@@ -136,10 +142,15 @@ const CardWithTextGallery: React.FC<CardPreviewProps> = ({ image, details }) => 
                                 key={index}
                                 className={styles.cardWithTextGalleryImage}
                             >
-                                <img
+                                <ClickableImage
                                     src={card.url}
                                     alt={`Example card ${index + 1}`}
+                                    title={card.name}
+                                    description="Example card with text overlay"
                                     className={styles.cardWithTextGalleryImage}
+                                    showExpandButton={true}
+                                    expandButtonPosition="top-right"
+                                    downloadFilename={`${card.name}-example.png`}
                                 />
                             </div>
                         ))}

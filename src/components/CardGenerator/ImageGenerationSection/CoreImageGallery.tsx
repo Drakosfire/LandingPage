@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { GeneratedImage as SharedGeneratedImage } from '../../../types/card.types';
+import { ClickableImage } from '../shared';
 import '../../../styles/DesignSystem.css';
 
 interface CoreImageGalleryProps {
@@ -312,22 +313,22 @@ const CoreImageGallery: React.FC<CoreImageGalleryProps> = ({
                             <p style={{ color: 'var(--text-muted)' }}>Loading example images...</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="card-variations-grid">
                             {exampleImages.map((image, index) => (
                                 <div
                                     key={index}
-                                    className={`cursor-pointer transition-all border-2 rounded-lg overflow-hidden ${isImageSelected(image.url)
+                                    className={`transition-all border-2 rounded-lg overflow-hidden ${isImageSelected(image.url)
                                         ? 'border-primary-blue shadow-primary'
                                         : 'border-border-light hover:border-primary-blue'
                                         }`}
                                     style={{
                                         borderColor: isImageSelected(image.url) ? 'var(--primary-blue)' : 'var(--border-light)',
-                                        boxShadow: isImageSelected(image.url) ? 'var(--shadow-primary)' : 'var(--shadow-sm)'
+                                        boxShadow: isImageSelected(image.url) ? 'var(--shadow-primary)' : 'var(--shadow-sm)',
+                                        width: 'fit-content',
+                                        maxWidth: '100%'
                                     }}
-                                    onClick={() => handleImageSelect(image.url)}
                                 >
                                     <div style={{
-                                        height: '150px',
                                         backgroundColor: 'var(--surface-light)',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -335,21 +336,26 @@ const CoreImageGallery: React.FC<CoreImageGalleryProps> = ({
                                         overflow: 'hidden',
                                         position: 'relative'
                                     }}>
-                                        <img
+                                        <ClickableImage
                                             src={image.url}
                                             alt={image.name}
+                                            title={image.name}
+                                            description={`${image.category}: ${image.description}`}
                                             style={{
                                                 width: '100%',
-                                                height: '100%',
-                                                objectFit: 'contain'
+                                                maxWidth: 'min(160px, 20vw)',
+                                                minWidth: '120px',
+                                                height: 'auto',
+                                                aspectRatio: '3/4',
+                                                objectFit: 'contain',
+                                                display: 'block',
+                                                backgroundColor: '#f8f9fa',
+                                                borderRadius: '4px'
                                             }}
-                                            onError={(e) => {
-                                                // Fallback to placeholder if image fails to load
-                                                (e.target as HTMLImageElement).src = 'https://picsum.photos/150/150?random=fallback';
-                                            }}
+                                            onClick={() => handleImageSelect(image.url)}
+                                            showExpandButton={true}
+                                            expandButtonPosition="top-right"
                                         />
-                                        {/* Remove button for example images */}
-
                                     </div>
                                     <div style={{ padding: 'var(--space-2)' }}>
                                         <h4 style={{
@@ -395,22 +401,22 @@ const CoreImageGallery: React.FC<CoreImageGalleryProps> = ({
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="card-variations-grid">
                             {generatedImages.map((image, index) => (
                                 <div
                                     key={index}
-                                    className={`cursor-pointer transition-all border-2 rounded-lg overflow-hidden ${isImageSelected(image.url)
+                                    className={`transition-all border-2 rounded-lg overflow-hidden ${isImageSelected(image.url)
                                         ? 'border-primary-blue shadow-primary'
                                         : 'border-border-light hover:border-primary-blue'
                                         }`}
                                     style={{
                                         borderColor: isImageSelected(image.url) ? 'var(--primary-blue)' : 'var(--border-light)',
-                                        boxShadow: isImageSelected(image.url) ? 'var(--shadow-primary)' : 'var(--shadow-sm)'
+                                        boxShadow: isImageSelected(image.url) ? 'var(--shadow-primary)' : 'var(--shadow-sm)',
+                                        width: 'fit-content',
+                                        maxWidth: '100%'
                                     }}
-                                    onClick={() => handleImageSelect(image.url)}
                                 >
                                     <div style={{
-                                        height: '200px',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
@@ -418,15 +424,28 @@ const CoreImageGallery: React.FC<CoreImageGalleryProps> = ({
                                         backgroundColor: 'var(--surface-light)',
                                         position: 'relative'
                                     }}>
-                                        <img
+                                        <ClickableImage
                                             src={image.url}
                                             alt={`Generated item ${index + 1}`}
+                                            title={`Generated Image #${index + 1}`}
+                                            description="AI-generated image for your item"
                                             style={{
                                                 width: '100%',
-                                                height: '100%',
-                                                objectFit: 'contain'
+                                                maxWidth: 'min(160px, 20vw)',
+                                                minWidth: '120px',
+                                                height: 'auto',
+                                                aspectRatio: '3/4',
+                                                objectFit: 'contain',
+                                                display: 'block',
+                                                backgroundColor: '#f8f9fa',
+                                                borderRadius: '4px'
                                             }}
+                                            onClick={() => handleImageSelect(image.url)}
+                                            showExpandButton={true}
+                                            expandButtonPosition="bottom-right"
+                                            downloadFilename={`generated-image-${index + 1}.png`}
                                         />
+
                                         {/* Remove button for generated images */}
                                         <button
                                             onClick={async (e) => {
@@ -463,7 +482,7 @@ const CoreImageGallery: React.FC<CoreImageGalleryProps> = ({
                                             style={{
                                                 position: 'absolute',
                                                 top: '4px',
-                                                right: '4px',
+                                                left: '4px',
                                                 background: 'rgba(220, 38, 38, 0.9)',
                                                 color: 'white',
                                                 border: 'none',
@@ -476,7 +495,8 @@ const CoreImageGallery: React.FC<CoreImageGalleryProps> = ({
                                                 fontSize: '10px',
                                                 fontWeight: 'bold',
                                                 cursor: 'pointer',
-                                                transition: 'all 0.2s ease'
+                                                transition: 'all 0.2s ease',
+                                                zIndex: 50
                                             }}
                                             onMouseOver={(e) => {
                                                 e.currentTarget.style.background = 'rgba(220, 38, 38, 1)';

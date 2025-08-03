@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Grid, Card, Text, Stack, FileInput, Button, Group } from '@mantine/core';
 import { ItemDetails, GeneratedImage } from '../../../types/card.types';
 import CoreImageGallery from '../ImageGenerationSection/CoreImageGallery';
+import { ClickableImage } from '../shared';
 import '../../../styles/DesignSystem.css';
 
 interface Step2CoreImageProps {
@@ -126,9 +127,11 @@ const Step2CoreImage: React.FC<Step2CoreImageProps> = ({
 
                                     {uploadedImage && (
                                         <div style={{ marginTop: 'var(--space-4)' }}>
-                                            <img
+                                            <ClickableImage
                                                 src={uploadedImage}
                                                 alt="Uploaded item"
+                                                title="Uploaded Image"
+                                                description="Your uploaded image for the item"
                                                 style={{
                                                     width: '100%',
                                                     height: 'auto',
@@ -138,6 +141,9 @@ const Step2CoreImage: React.FC<Step2CoreImageProps> = ({
                                                     border: '2px solid var(--border-light)',
                                                     backgroundColor: '#f8f9fa'
                                                 }}
+                                                showExpandButton={true}
+                                                expandButtonPosition="top-right"
+                                                downloadFilename="uploaded-item-image.png"
                                             />
                                             <button
                                                 onClick={() => {
@@ -167,9 +173,11 @@ const Step2CoreImage: React.FC<Step2CoreImageProps> = ({
 
                                     {(selectedFinalImage || uploadedImage) ? (
                                         <Stack gap="md" align="center">
-                                            <img
+                                            <ClickableImage
                                                 src={selectedFinalImage || uploadedImage}
                                                 alt="Selected item image"
+                                                title="Selected Item Image"
+                                                description="The image chosen for your item card"
                                                 style={{
                                                     width: '100%',
                                                     height: 'auto',
@@ -179,6 +187,9 @@ const Step2CoreImage: React.FC<Step2CoreImageProps> = ({
                                                     border: '2px solid var(--mantine-color-blue-4)',
                                                     backgroundColor: '#f8f9fa'
                                                 }}
+                                                showExpandButton={true}
+                                                expandButtonPosition="top-right"
+                                                downloadFilename="selected-item-image.png"
                                             />
                                             <Text size="sm" c="green.4" fw={500}>
                                                 ✓ Image selected

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from '../../../styles/ImageGallery.module.css';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { Select, TextInput, Textarea, Grid } from '@mantine/core';
+import { ClickableImage } from '../shared';
 import classes from '../../../styles/ItemForm.module.css';
 interface ImageGalleryProps {
     template: Blob | null;
@@ -96,14 +97,17 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ template, sdPrompt, onSdPro
                 <Grid className={styles.imageGallery}>
                     {generatedImages.map((image, index) => (
                         <Grid.Col span={6} key={index}>
-                            <div
-                                className={styles.imageGalleryImage}
-                                onClick={() => handleImageSelect(image)}
-                            >
-                                <img
+                            <div className={styles.imageGalleryImage}>
+                                <ClickableImage
                                     src={image.url}
                                     alt={`Generated card ${index + 1}`}
+                                    title={`Generated Card Image #${index + 1}`}
+                                    description="AI-generated card image"
                                     className={styles.imageGalleryImage}
+                                    onClick={() => handleImageSelect(image)}
+                                    showExpandButton={true}
+                                    expandButtonPosition="top-right"
+                                    downloadFilename={`generated-card-${index + 1}.png`}
                                 />
                             </div>
                         </Grid.Col>

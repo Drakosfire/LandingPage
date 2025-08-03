@@ -3,6 +3,7 @@ import { Template } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import BorderGallery from '../CardTemplateSection/BorderGallery';
 import TemplatePreview from '../CardTemplateSection/TemplatePreview';
+import { ClickableImage } from '../shared';
 import '../../../styles/DesignSystem.css';
 
 // Add keyframe animation for loading spinner
@@ -356,20 +357,16 @@ const Step3BorderGeneration: React.FC<Step3BorderGenerationProps> = ({
                         {generatedImages.length > 0 ? (
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
                                 gap: 'var(--space-4)',
-                                marginTop: 'var(--space-4)'
-                            }}>
+                                marginTop: 'var(--space-4)',
+                                justifyItems: 'center'
+                            }} className="card-variations-grid">
                                 {generatedImages.map((imageUrl, index) => (
                                     <div
                                         key={index}
-                                        onClick={() => {
-                                            setSelectedGeneratedImage(imageUrl);
-                                            onSelectedGeneratedImageChange?.(imageUrl);
-                                        }}
                                         style={{
                                             position: 'relative',
-                                            cursor: 'pointer',
                                             borderRadius: 'var(--radius-base)',
                                             overflow: 'hidden',
                                             border: selectedGeneratedImage === imageUrl ?
@@ -378,20 +375,34 @@ const Step3BorderGeneration: React.FC<Step3BorderGenerationProps> = ({
                                             transition: 'all 0.2s ease',
                                             boxShadow: selectedGeneratedImage === imageUrl ?
                                                 '0 4px 12px rgba(74, 144, 226, 0.3)' :
-                                                '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                                '0 2px 8px rgba(0, 0, 0, 0.1)',
+                                            width: 'fit-content',
+                                            maxWidth: '100%'
                                         }}
                                     >
-                                        <img
+                                        <ClickableImage
                                             src={imageUrl}
                                             alt={`Generated card ${index + 1}`}
+                                            title={`Generated Card Variation #${index + 1}`}
+                                            description="AI-generated card variation with your selected border and image"
                                             style={{
                                                 width: '100%',
+                                                maxWidth: 'min(160px, 20vw)',
+                                                minWidth: '120px',
                                                 height: 'auto',
                                                 aspectRatio: '3/4',
                                                 objectFit: 'contain',
                                                 display: 'block',
-                                                backgroundColor: '#f8f9fa'
+                                                backgroundColor: '#f8f9fa',
+                                                borderRadius: '4px'
                                             }}
+                                            onClick={() => {
+                                                setSelectedGeneratedImage(imageUrl);
+                                                onSelectedGeneratedImageChange?.(imageUrl);
+                                            }}
+                                            showExpandButton={true}
+                                            expandButtonPosition="bottom-right"
+                                            downloadFilename={`card-variation-${index + 1}.png`}
                                         />
                                         {selectedGeneratedImage === imageUrl && (
                                             <div style={{
@@ -449,7 +460,8 @@ const Step3BorderGeneration: React.FC<Step3BorderGenerationProps> = ({
                                                 fontWeight: 'bold',
                                                 cursor: 'pointer',
                                                 opacity: 0.8,
-                                                transition: 'opacity 0.2s ease'
+                                                transition: 'opacity 0.2s ease',
+                                                zIndex: 50
                                             }}
                                             onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
                                             onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}

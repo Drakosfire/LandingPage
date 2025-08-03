@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ItemDetails } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { TextInput, Textarea, Button, Stack, Grid, Card, Text, Badge, Group } from '@mantine/core';
+import { ClickableImage } from '../shared';
 import '../../../styles/DesignSystem.css';
 
 interface Step5FinalAssemblyProps {
@@ -380,9 +381,11 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                                             Original Design (Step 3)
                                         </Text>
                                         <div style={{ textAlign: 'center' }}>
-                                            <img
+                                            <ClickableImage
                                                 src={selectedGeneratedCardImage}
                                                 alt="Selected card design from Step 3"
+                                                title="Original Card Design"
+                                                description="Card design from Step 3 before adding text"
                                                 style={{
                                                     width: '100%',
                                                     maxWidth: '250px',
@@ -394,6 +397,9 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                                                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                                                     backgroundColor: '#f8f9fa'
                                                 }}
+                                                showExpandButton={true}
+                                                expandButtonPosition="top-right"
+                                                downloadFilename="original-card-design.png"
                                             />
                                         </div>
                                     </div>
@@ -423,9 +429,11 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
 
                                         {finalCardWithText && !isRenderingText && (
                                             <div style={{ textAlign: 'center' }}>
-                                                <img
+                                                <ClickableImage
                                                     src={finalCardWithText}
                                                     alt="Final card with text"
+                                                    title="Final Card with Text"
+                                                    description="Complete card with all text and details added"
                                                     style={{
                                                         width: '100%',
                                                         maxWidth: '250px',
@@ -437,6 +445,9 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                                                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                                                         backgroundColor: '#f8f9fa'
                                                     }}
+                                                    showExpandButton={true}
+                                                    expandButtonPosition="top-right"
+                                                    downloadFilename={`${editableDetails.name || 'final-card'}.png`}
                                                 />
 
                                                 {/* Download Options */}

@@ -1,7 +1,10 @@
 // src/App.tsx
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import '@mantine/core/styles.css';
+import { MantineProvider } from '@mantine/core';
 import { DUNGEONMIND_API_URL } from './config';
+import dungeonMindTheme from './config/mantineTheme';
 import { AuthProvider } from './context/AuthContext';
 import NavBar from './components/NavBar';
 import AppLinks from './components/AppLinks';
@@ -45,35 +48,37 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <NavBar />
-          <div className="main-content">
-            <Routes>
-              <Route path="/" element={
-                <div>
-                  <section id="app-links">
-                    <AppLinks />
-                  </section>
-                  <section id="about-me">
-                    <AboutMe />
-                  </section>
-                  <section id="about-dungeonmind">
-                    <AboutDungeonMind />
-                  </section>
-                </div>
-              } />
-              <Route path="/blog" element={<BlogList />} />
-              <Route path="/blog/:id" element={<BlogPost />} />
-              <Route path="/ruleslawyer" element={<RulesLawyer />} />
-              <Route path="/cardgenerator" element={<CardGenerator />} />
-            </Routes>
-            <ConditionalFooter />
+    <MantineProvider theme={dungeonMindTheme}>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <NavBar />
+            <div className="main-content">
+              <Routes>
+                <Route path="/" element={
+                  <div>
+                    <section id="app-links">
+                      <AppLinks />
+                    </section>
+                    <section id="about-me">
+                      <AboutMe />
+                    </section>
+                    <section id="about-dungeonmind">
+                      <AboutDungeonMind />
+                    </section>
+                  </div>
+                } />
+                <Route path="/blog" element={<BlogList />} />
+                <Route path="/blog/:id" element={<BlogPost />} />
+                <Route path="/ruleslawyer" element={<RulesLawyer />} />
+                <Route path="/cardgenerator" element={<CardGenerator />} />
+              </Routes>
+              <ConditionalFooter />
+            </div>
           </div>
-        </div>
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
+    </MantineProvider>
   );
 };
 

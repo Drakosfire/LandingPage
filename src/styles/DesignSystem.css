@@ -908,3 +908,44 @@ body nav {
         opacity: 1;
     }
 }
+
+/* ========================================
+   RESPONSIVE CARD GALLERY GRID
+   ======================================== */
+
+.card-variations-grid {
+    /* Responsive grid for card variations */
+    display: grid !important;
+    gap: var(--space-4) !important;
+    justify-items: center !important;
+    margin-top: var(--space-4) !important;
+}
+
+/* Mobile: 1-2 columns */
+@media (max-width: 480px) {
+    .card-variations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+        gap: var(--space-3) !important;
+    }
+}
+
+/* Tablet: 2-3 columns */
+@media (min-width: 481px) and (max-width: 768px) {
+    .card-variations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    }
+}
+
+/* Desktop: 3-4 columns */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .card-variations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    }
+}
+
+/* Large desktop: 4+ columns */
+@media (min-width: 1025px) {
+    .card-variations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    }
+}
