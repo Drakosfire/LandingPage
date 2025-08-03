@@ -209,8 +209,8 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData, onGenerati
         <>
             <div className="space-y-6">
                 {/* Idea Input Section */}
-                <h3>Step 2: Generate item text</h3>
-                <h4> -Or- Write your own</h4>
+
+                <h4> Generate -Or- Write your own</h4>
                 <Textarea
                     placeholder="Describe your item"
                     value={userIdea}

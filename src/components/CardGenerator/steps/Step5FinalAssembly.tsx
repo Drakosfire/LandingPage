@@ -390,7 +390,7 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                                                     aspectRatio: '3/4',
                                                     objectFit: 'contain',
                                                     borderRadius: 'var(--radius-base)',
-                                                    border: '2px solid var(--primary-blue)',
+                                                    border: '2px solid #000000',
                                                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                                                     backgroundColor: '#f8f9fa'
                                                 }}
@@ -433,7 +433,7 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                                                         aspectRatio: '3/4',
                                                         objectFit: 'contain',
                                                         borderRadius: 'var(--radius-base)',
-                                                        border: '2px solid var(--success-green)',
+                                                        border: '2px solid #000000',
                                                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                                                         backgroundColor: '#f8f9fa'
                                                     }}

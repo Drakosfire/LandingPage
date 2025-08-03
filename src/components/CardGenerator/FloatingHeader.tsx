@@ -160,22 +160,27 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
 
                 {/* Current step and navigation */}
                 <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto 1fr',
+                    alignItems: 'center',
+                    gap: 'var(--space-2)'
                 }}>
-                    <button
-                        onClick={onPrevious}
-                        disabled={!canGoPrevious || isGenerationInProgress}
-                        className="btn btn-secondary btn-compact"
-                        style={{
-                            opacity: (canGoPrevious && !isGenerationInProgress) ? 1 : 0.5,
-                            cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
-                        }}
-                        title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
-                    >
-                        ← Previous
-                    </button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        {canGoPrevious && (
+                            <button
+                                onClick={onPrevious}
+                                disabled={isGenerationInProgress}
+                                className="btn btn-secondary btn-compact"
+                                style={{
+                                    opacity: !isGenerationInProgress ? 1 : 0.5,
+                                    cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
+                                }}
+                                title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
+                            >
+                                ← Previous
+                            </button>
+                        )}
+                    </div>
 
                     <div style={{
                         fontSize: 'var(--text-sm)',
@@ -186,18 +191,22 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                         {currentStep?.label}
                     </div>
 
-                    <button
-                        onClick={onNext}
-                        disabled={!canGoNext || isGenerationInProgress}
-                        className="btn btn-primary btn-compact"
-                        style={{
-                            opacity: (canGoNext && !isGenerationInProgress) ? 1 : 0.5,
-                            cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
-                        }}
-                        title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
-                    >
-                        Next →
-                    </button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        {canGoNext && (
+                            <button
+                                onClick={onNext}
+                                disabled={isGenerationInProgress}
+                                className="btn btn-primary btn-compact"
+                                style={{
+                                    opacity: !isGenerationInProgress ? 1 : 0.5,
+                                    cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
+                                }}
+                                title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
+                            >
+                                Next →
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -330,42 +339,49 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                 {/* Right: Navigation */}
                 <div style={{
                     flex: '0 0 auto',
-                    display: 'flex',
-                    gap: 'var(--space-2)'
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto 1fr',
+                    alignItems: 'center',
+                    gap: 'var(--space-2)',
+                    minWidth: '200px'
                 }}>
-                    <button
-                        onClick={onPrevious}
-                        disabled={!canGoPrevious || isGenerationInProgress}
-                        className="btn btn-secondary btn-compact"
-                        style={{
-                            opacity: (canGoPrevious && !isGenerationInProgress) ? 1 : 0.5,
-                            padding: 'var(--space-1) var(--space-2)',
-                            fontSize: 'var(--text-sm)',
-                            height: '20px',
-                            minHeight: '10px !important',
-                            cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
-                        }}
-                        title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
-                    >
-                        ← Previous
-                    </button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        {canGoPrevious && (
+                            <button
+                                onClick={onPrevious}
+                                disabled={isGenerationInProgress}
+                                className="btn btn-secondary btn-compact"
+                                style={{
+                                    opacity: !isGenerationInProgress ? 1 : 0.5,
+                                    cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
+                                }}
+                                title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
+                            >
+                                ← Previous
+                            </button>
+                        )}
+                    </div>
 
-                    <button
-                        onClick={onNext}
-                        disabled={!canGoNext || isGenerationInProgress}
-                        className="btn btn-primary btn-compact"
-                        style={{
-                            opacity: (canGoNext && !isGenerationInProgress) ? 1 : 0.5,
-                            padding: 'var(--space-1) var(--space-2)',
-                            fontSize: 'var(--text-sm)',
-                            height: '20px',
-                            minHeight: '10px !important',
-                            cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
-                        }}
-                        title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
-                    >
-                        Next →
-                    </button>
+                    <div style={{ textAlign: 'center' }}>
+                        {/* This div is empty but maintains the center column */}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        {canGoNext && (
+                            <button
+                                onClick={onNext}
+                                disabled={isGenerationInProgress}
+                                className="btn btn-primary btn-compact"
+                                style={{
+                                    opacity: !isGenerationInProgress ? 1 : 0.5,
+                                    cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
+                                }}
+                                title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
+                            >
+                                Next →
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </header>
