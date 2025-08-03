@@ -19,15 +19,21 @@ import ProjectsDrawer from './ProjectsDrawer';
 import Footer from '../Footer';
 import '../../styles/DesignSystem.css';
 import '../../styles/CardGeneratorLayout.css';
+import '../../styles/CardGeneratorPolish.css';
 
 // Import step navigation and individual step components
 import { Step, StepStatus } from './StepNavigation';
-import FloatingHeader from './FloatingHeader';
+// import FloatingHeader from './FloatingHeader'; // Removed - navigation now integrated into steps
 import Step1TextGeneration from './steps/Step1TextGeneration';
 import Step2CoreImage from './steps/Step2CoreImage';
 import Step3BorderGeneration from './steps/Step3BorderGeneration';
-
 import Step5FinalAssembly from './steps/Step5FinalAssembly';
+
+// Import enhanced components
+import FunGenerationFeedback from './shared/FunGenerationFeedback';
+import SuccessCelebration from './shared/SuccessCelebration';
+
+import ProjectsDrawerEnhanced from './ProjectsDrawerEnhanced';
 
 export default function CardGenerator() {
     // Main state management
@@ -67,6 +73,9 @@ export default function CardGenerator() {
     const [lastSaved, setLastSaved] = useState<number>(0);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+    // Projects drawer control
+    const [forceExpandDrawer, setForceExpandDrawer] = useState(false);
+
     // GENERATION LOCK SYSTEM - Prevent navigation during async operations
     const [generationLocks, setGenerationLocks] = useState({
         textGeneration: false,      // Step 1: ItemForm text generation
@@ -98,6 +107,13 @@ export default function CardGenerator() {
 
     // Project Management State
     const [currentProject, setCurrentProject] = useState<Project | null>(null);
+
+    // Enhanced UX State
+    const [showSuccessCelebration, setShowSuccessCelebration] = useState(false);
+    const [successCelebrationType, setSuccessCelebrationType] = useState<'text' | 'image' | 'border' | 'assembly'>('text');
+    const [showFunGenerationFeedback, setShowFunGenerationFeedback] = useState(false);
+    const [generationStage, setGenerationStage] = useState<'text' | 'image' | 'border' | 'assembly'>('text');
+    const [generationProgress, setGenerationProgress] = useState(0);
     const [availableProjects, setAvailableProjects] = useState<ProjectSummary[]>([]);
     const [projectLoading, setProjectLoading] = useState(false);
     const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
@@ -1067,23 +1083,13 @@ export default function CardGenerator() {
         setTemplateBlob(null);
     };
 
-    // Check if current step is valid for navigation
+    // Allow free navigation for exploration - users can move between steps freely
     const canGoNext = () => {
         switch (currentStepId) {
-            case 'text-generation':
-                return itemDetails.name?.trim() !== '' &&
-                    itemDetails.type?.trim() !== '' &&
-                    itemDetails.description?.trim() !== '';
-            case 'core-image':
-                return selectedFinalImage !== '';
-            case 'border-generation':
-                return selectedBorder !== '' && selectedFinalImage !== '';
-            case 'card-back':
-                return true; // Always can proceed from card back
             case 'final-assembly':
                 return false; // Last step, can't go next
             default:
-                return false;
+                return true; // Allow exploration of all other steps
         }
     };
 
@@ -1103,39 +1109,23 @@ export default function CardGenerator() {
                 position: 'relative' // Ensure it doesn't interfere with fixed nav
             }}>
                 {/* 
-              FIXED NAVIGATION ARCHITECTURE:
+              SIMPLIFIED NAVIGATION ARCHITECTURE:
               - Primary Navigation: Left sidebar (NavBar.tsx) - site-wide navigation (80px width, fixed)
-              - Secondary Navigation: Floating header - includes step tabs AND controls
+              - Step Navigation: Integrated into each step component
               - Content: Respects main layout margins (margin-left: 80px on desktop)
             */}
 
-                {/* Floating Header - Contains step navigation AND project management */}
-                <FloatingHeader
-                    steps={steps}
-                    currentStepId={currentStepId}
-                    onStepClick={handleStepClick}
-                    onPrevious={handlePrevious}
-                    onNext={handleNext}
-                    canGoNext={canGoNext()}
-                    canGoPrevious={canGoPrevious()}
-                    projectName={currentProject?.name || 'New Project'}
-                    currentItemName={getReliableItemName()}
-                    saveStatus={saveStatus}
-                    isGenerationInProgress={isAnyGenerationInProgress}
-                />
-
-                {/* Main Content Area - Account for nav bar, header, and footer */}
+                {/* Main Content Area - Account for nav bar and footer only */}
                 <main
                     className="main-content"
                     style={{
                         position: 'relative',
                         zIndex: 100,
                         marginLeft: '80px', // Account for nav bar width on desktop
-                        marginTop: '80px', // Account for header height
                         marginRight: '60px', // Account for collapsed drawer width
                         marginBottom: '60px', // Account for footer height
                         transition: 'margin-right 0.3s ease',
-                        minHeight: 'calc(100vh - 140px)', // Full height minus header and footer
+                        minHeight: 'calc(100vh - 60px)', // Full height minus footer
                         padding: 'var(--space-4)'
                     }}
                 >
@@ -1145,6 +1135,12 @@ export default function CardGenerator() {
                             itemDetails={itemDetails}
                             onItemDetailsChange={handleItemDetailsChange}
                             onGenerationLockChange={(isLocked) => setGenerationLock('textGeneration', isLocked)}
+                            onNext={handleNext}
+                            onPrevious={handlePrevious}
+                            canGoNext={canGoNext()}
+                            canGoPrevious={canGoPrevious()}
+                            currentStepIndex={0}
+                            totalSteps={steps.length}
                         />
                     )}
 
@@ -1158,6 +1154,12 @@ export default function CardGenerator() {
                             onImagesGenerated={handleImagesGenerated}
                             persistedImages={generatedImages}
                             onGenerationLockChange={(isLocked) => setGenerationLock('coreImageGeneration', isLocked)}
+                            onNext={handleNext}
+                            onPrevious={handlePrevious}
+                            canGoNext={canGoNext()}
+                            canGoPrevious={canGoPrevious()}
+                            currentStepIndex={1}
+                            totalSteps={steps.length}
                         />
                     )}
 
@@ -1177,6 +1179,12 @@ export default function CardGenerator() {
                                 selectedGeneratedImage={selectedGeneratedCardImage}
                                 onSelectedGeneratedImageChange={handleSelectedGeneratedCardImageChange}
                                 onGenerationLockChange={(isLocked) => setGenerationLock('borderGeneration', isLocked)}
+                                onNext={handleNext}
+                                onPrevious={handlePrevious}
+                                canGoNext={canGoNext()}
+                                canGoPrevious={canGoPrevious()}
+                                currentStepIndex={2}
+                                totalSteps={steps.length}
                             />
                         );
                     })()}
@@ -1186,10 +1194,21 @@ export default function CardGenerator() {
                         <Step5FinalAssembly
                             itemDetails={itemDetails}
                             selectedGeneratedCardImage={selectedGeneratedCardImage}
-                            onComplete={handleComplete}
+                            onComplete={() => {
+                                // Open the Projects drawer instead of navigating away
+                                setForceExpandDrawer(true);
+                                // Reset the force expand after a short delay to allow normal drawer behavior
+                                setTimeout(() => setForceExpandDrawer(false), 100);
+                            }}
                             onItemDetailsChange={handleItemDetailsChange}
                             onCardRendered={handleCardRendered}
                             finalCardWithText={finalCardWithText}
+                            onNext={handleNext}
+                            onPrevious={handlePrevious}
+                            canGoNext={canGoNext()}
+                            canGoPrevious={canGoPrevious()}
+                            currentStepIndex={3}
+                            totalSteps={steps.length}
                         />
                     )}
                 </main>
@@ -1226,8 +1245,8 @@ export default function CardGenerator() {
                 }}
             />
 
-            {/* Projects Drawer */}
-            <ProjectsDrawer
+            {/* Enhanced Projects Drawer */}
+            <ProjectsDrawerEnhanced
                 projects={projects}
                 currentProjectId={currentProject?.id}
                 currentItemName={getReliableItemName()}
@@ -1250,7 +1269,27 @@ export default function CardGenerator() {
                 onRefreshProjects={loadProjects}
                 currentProjectState={getCurrentState()}
                 isGenerationInProgress={isAnyGenerationInProgress}
+                forceExpanded={forceExpandDrawer}
             />
+
+            {/* Enhanced UX Components */}
+            {showFunGenerationFeedback && (
+                <FunGenerationFeedback
+                    stage={generationStage}
+                    progress={generationProgress}
+                    itemName={itemDetails.name}
+                />
+            )}
+
+            {showSuccessCelebration && (
+                <SuccessCelebration
+                    type={successCelebrationType}
+                    itemName={itemDetails.name}
+                    onComplete={() => setShowSuccessCelebration(false)}
+                />
+            )}
+
+
 
             {/* Footer */}
             <Footer />

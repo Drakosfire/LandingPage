@@ -14,7 +14,8 @@ import {
     TextInput,
     Title,
     Collapse,
-    Paper
+    Paper,
+    Progress
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import {
@@ -28,7 +29,8 @@ import {
     IconFolderOpen,
     IconChevronLeft,
     IconChevronRight,
-    IconDownload
+    IconDownload,
+    IconLoader
 } from '@tabler/icons-react';
 import { ProjectSummary } from '../../types/card.types';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
@@ -379,172 +381,213 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                     backgroundColor: isCurrentProject ? 'var(--mantine-color-blue-0)' : undefined
                                                 }}
                                             >
-                                                <Group wrap="nowrap" align="flex-start" gap={isMobile ? "xs" : "sm"}>
-                                                    {/* Project Thumbnail/Avatar */}
-                                                    <Avatar
-                                                        size={isMobile ? "sm" : "md"}
-                                                        radius="sm"
-                                                        color="blue"
-                                                        variant="light"
-                                                    >
-                                                        <IconFolder size={isMobile ? 14 : 18} />
-                                                    </Avatar>
+                                                <Stack gap="sm">
+                                                    <Group wrap="nowrap" align="flex-start" gap={isMobile ? "xs" : "sm"}>
+                                                        {/* Project Thumbnail/Avatar */}
+                                                        <Avatar
+                                                            size={isMobile ? "sm" : "md"}
+                                                            radius="sm"
+                                                            color="blue"
+                                                            variant="light"
+                                                        >
+                                                            <IconFolder size={isMobile ? 14 : 18} />
+                                                        </Avatar>
 
-                                                    {/* Project Info */}
-                                                    <Stack gap="xs" flex={1} style={{ minWidth: 0 }}>
-                                                        <Group justify="space-between" wrap="nowrap">
-                                                            <Text
-                                                                fw={600}
-                                                                size="xs"
-                                                                truncate
-                                                                style={{ maxWidth: isMobile ? '100px' : '120px' }}
-                                                            >
-                                                                {project.name || 'Unnamed'}
-                                                            </Text>
-
-                                                            {/* Action Buttons */}
-                                                            <Group gap={isMobile ? "4px" : "xs"}>
-                                                                {/* Load Button */}
-                                                                <ActionIcon
-                                                                    variant="subtle"
-                                                                    color={isCurrentProject ? "green" : "blue"}
-                                                                    size={isMobile ? "sm" : "xs"}
-                                                                    loading={isLoading}
-                                                                    disabled={!!loadingProjectId || isGenerationInProgress} // 🔒 Disable during project loading OR generation
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleLoadProject(project.id);
-                                                                    }}
-                                                                    title={
-                                                                        isGenerationInProgress ? "Project loading disabled during generation" :
-                                                                            loadingProjectId ? "Loading project..." :
-                                                                                isCurrentProject ? "Currently Loaded" : "Load Project"
-                                                                    }
+                                                        {/* Project Info */}
+                                                        <Stack gap="xs" flex={1} style={{ minWidth: 0 }}>
+                                                            <Group justify="space-between" wrap="nowrap">
+                                                                <Text
+                                                                    fw={600}
+                                                                    size="xs"
+                                                                    truncate
+                                                                    style={{ maxWidth: isMobile ? '100px' : '120px' }}
                                                                 >
-                                                                    <IconDownload size={isMobile ? 14 : 12} />
-                                                                </ActionIcon>
+                                                                    {project.name || 'Unnamed'}
+                                                                </Text>
 
-                                                                {/* Menu Button */}
-                                                                <Menu position="bottom-end" withinPortal>
-                                                                    <Menu.Target>
-                                                                        <ActionIcon
-                                                                            variant="subtle"
-                                                                            color="gray"
-                                                                            size={isMobile ? "sm" : "xs"}
-                                                                            onClick={(e) => e.stopPropagation()}
+                                                                {/* Enhanced Load Button */}
+                                                                <Group gap="xs">
+                                                                    {isLoading ? (
+                                                                        <Badge
+                                                                            color="blue"
+                                                                            variant="light"
+                                                                            leftSection={<IconLoader size={12} />}
                                                                         >
-                                                                            <IconDotsVertical size={isMobile ? 14 : 12} />
-                                                                        </ActionIcon>
-                                                                    </Menu.Target>
-                                                                    <Menu.Dropdown>
-                                                                        <Menu.Item
-                                                                            leftSection={<IconCopy size={isMobile ? 14 : 12} />}
+                                                                            Loading...
+                                                                        </Badge>
+                                                                    ) : isCurrentProject ? (
+                                                                        <Badge color="green" variant="light">
+                                                                            Active
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <Button
+                                                                            size="xs"
+                                                                            variant="light"
+                                                                            color="blue"
+                                                                            disabled={!!loadingProjectId || isGenerationInProgress}
+                                                                            loading={isLoading}
+                                                                            leftSection={<IconDownload size={14} />}
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
-                                                                                handleDuplicate(project.id);
+                                                                                handleLoadProject(project.id);
                                                                             }}
+                                                                            title={
+                                                                                isGenerationInProgress ?
+                                                                                    "Cannot load during generation" :
+                                                                                    "Load this project"
+                                                                            }
                                                                         >
-                                                                            Duplicate
-                                                                        </Menu.Item>
-                                                                        <Menu.Item
-                                                                            leftSection={<IconTrash size={isMobile ? 14 : 12} />}
-                                                                            color="red"
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleDeleteClick(project);
-                                                                            }}
-                                                                        >
-                                                                            Delete
-                                                                        </Menu.Item>
-                                                                    </Menu.Dropdown>
-                                                                </Menu>
-                                                            </Group>
-                                                        </Group>
-
-                                                        {isCurrentProject && (
-                                                            <Badge size="xs" color="green" variant="filled">
-                                                                Loaded
-                                                            </Badge>
-                                                        )}
-
-                                                        {/* Development Mode: Detailed Metadata for Current Project */}
-                                                        {process.env.NODE_ENV === 'development' && isCurrentProject && currentProjectState && (
-                                                            <Stack gap="xs">
-                                                                <Group justify="space-between">
-                                                                    <Text size="xs" c="dimmed">
-                                                                        Core Images: {currentProjectState?.generatedContent?.images?.length || 0}
-                                                                    </Text>
-                                                                    <Text size="xs" c="dimmed">
-                                                                        Card Images: {currentProjectState?.selectedAssets?.generatedCardImages?.length || 0}
-                                                                    </Text>
+                                                                            Load
+                                                                        </Button>
+                                                                    )}
                                                                 </Group>
-                                                                <Group justify="space-between">
-                                                                    <Text size="xs" c="dimmed">
-                                                                        Text Cards: {currentProjectState?.generatedContent?.renderedCards?.length || 0}
-                                                                    </Text>
-                                                                    <Text size="xs" c="blue">
-                                                                        Step: {currentProjectState?.currentStep || 'none'}
-                                                                    </Text>
-                                                                </Group>
-                                                                <Group justify="space-between">
-                                                                    <Text size="xs" c="dimmed">
-                                                                        Selected: {currentProjectState?.selectedAssets?.selectedGeneratedCardImage ? '✓' : '✗'}
-                                                                    </Text>
-                                                                    <Text size="xs" c="dimmed">
-                                                                        {new Date(project.updatedAt).toLocaleDateString()}
-                                                                    </Text>
-                                                                </Group>
-                                                            </Stack>
-                                                        )}
-
-                                                        {/* Development Mode: Basic Display for Non-Current Projects */}
-                                                        {process.env.NODE_ENV === 'development' && (!isCurrentProject || !currentProjectState) && (
-                                                            <Group justify="space-between">
-                                                                <Text size="xs" c="dimmed">
-                                                                    {project.cardCount} {project.cardCount === 1 ? 'card' : 'cards'}
-                                                                </Text>
-                                                                <Text size="xs" c="dimmed">
-                                                                    {new Date(project.updatedAt).toLocaleDateString()}
-                                                                </Text>
                                                             </Group>
-                                                        )}
 
-                                                        {/* Production Mode: Simple Display */}
-                                                        {process.env.NODE_ENV !== 'development' && (
-                                                            <Group justify="space-between">
-                                                                <Text size="xs" c="dimmed">
-                                                                    {project.cardCount} {project.cardCount === 1 ? 'card' : 'cards'}
-                                                                </Text>
-                                                                <Text size="xs" c="dimmed">
-                                                                    {new Date(project.updatedAt).toLocaleDateString()}
-                                                                </Text>
-                                                            </Group>
-                                                        )}
-                                                    </Stack>
+                                                            {/* Menu Button */}
+                                                            <Menu position="bottom-end" withinPortal>
+                                                                <Menu.Target>
+                                                                    <ActionIcon
+                                                                        variant="subtle"
+                                                                        color="gray"
+                                                                        size={isMobile ? "sm" : "xs"}
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        <IconDotsVertical size={isMobile ? 14 : 12} />
+                                                                    </ActionIcon>
+                                                                </Menu.Target>
+                                                                <Menu.Dropdown>
+                                                                    <Menu.Item
+                                                                        leftSection={<IconCopy size={isMobile ? 14 : 12} />}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDuplicate(project.id);
+                                                                        }}
+                                                                    >
+                                                                        Duplicate
+                                                                    </Menu.Item>
+                                                                    <Menu.Item
+                                                                        leftSection={<IconTrash size={isMobile ? 14 : 12} />}
+                                                                        color="red"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteClick(project);
+                                                                        }}
+                                                                    >
+                                                                        Delete
+                                                                    </Menu.Item>
+                                                                </Menu.Dropdown>
+                                                            </Menu>
+                                                    </Group>
                                                 </Group>
-                                            </Card>
-                                        );
+
+                                                {isCurrentProject && (
+                                                    <Badge size="xs" color="green" variant="filled">
+                                                        Loaded
+                                                    </Badge>
+                                                )}
+
+                                                {/* Development Mode: Detailed Metadata for Current Project */}
+                                                {process.env.NODE_ENV === 'development' && isCurrentProject && currentProjectState && (
+                                                    <Stack gap="xs">
+                                                        <Group justify="space-between">
+                                                            <Text size="xs" c="dimmed">
+                                                                Core Images: {currentProjectState?.generatedContent?.images?.length || 0}
+                                                            </Text>
+                                                            <Text size="xs" c="dimmed">
+                                                                Card Images: {currentProjectState?.selectedAssets?.generatedCardImages?.length || 0}
+                                                            </Text>
+                                                        </Group>
+                                                        <Group justify="space-between">
+                                                            <Text size="xs" c="dimmed">
+                                                                Text Cards: {currentProjectState?.generatedContent?.renderedCards?.length || 0}
+                                                            </Text>
+                                                            <Text size="xs" c="blue">
+                                                                Step: {currentProjectState?.currentStep || 'none'}
+                                                            </Text>
+                                                        </Group>
+                                                        <Group justify="space-between">
+                                                            <Text size="xs" c="dimmed">
+                                                                Selected: {currentProjectState?.selectedAssets?.selectedGeneratedCardImage ? '✓' : '✗'}
+                                                            </Text>
+                                                            <Text size="xs" c="dimmed">
+                                                                {new Date(project.updatedAt).toLocaleDateString()}
+                                                            </Text>
+                                                        </Group>
+                                                    </Stack>
+                                                )}
+
+                                                {/* Development Mode: Basic Display for Non-Current Projects */}
+                                                {process.env.NODE_ENV === 'development' && (!isCurrentProject || !currentProjectState) && (
+                                                    <Group justify="space-between">
+                                                        <Text size="xs" c="dimmed">
+                                                            {project.cardCount} {project.cardCount === 1 ? 'card' : 'cards'}
+                                                        </Text>
+                                                        <Text size="xs" c="dimmed">
+                                                            {new Date(project.updatedAt).toLocaleDateString()}
+                                                        </Text>
+                                                    </Group>
+                                                )}
+
+                                                {/* Production Mode: Simple Display */}
+                                                {process.env.NODE_ENV !== 'development' && (
+                                                    <Group justify="space-between">
+                                                        <Text size="xs" c="dimmed">
+                                                            {project.cardCount} {project.cardCount === 1 ? 'card' : 'cards'}
+                                                        </Text>
+                                                        <Text size="xs" c="dimmed">
+                                                            {new Date(project.updatedAt).toLocaleDateString()}
+                                                        </Text>
+                                                    </Group>
+                                                )}
+
+                                                {/* Project Completion Status */}
+                                                <Group gap="xs">
+                                                    {project.hasText && (
+                                                        <Badge size="xs" color="blue" variant="light">
+                                                            Text ✓
+                                                        </Badge>
+                                                    )}
+                                                    {project.hasImages && (
+                                                        <Badge size="xs" color="purple" variant="light">
+                                                            Images ✓
+                                                        </Badge>
+                                                    )}
+                                                    {project.hasBorders && (
+                                                        <Badge size="xs" color="gold" variant="light">
+                                                            Style ✓
+                                                        </Badge>
+                                                    )}
+                                                    {project.hasFinalCard && (
+                                                        <Badge size="xs" color="green" variant="light">
+                                                            Complete ✓
+                                                        </Badge>
+                                                    )}
+                                                </Group>
+                                            </Stack>
+                                                </Group>
+                        </Card>
+                        );
                                     })
                                 )}
-                            </Stack>
-                        </ScrollArea>
                     </Stack>
-                </Collapse>
-            </Paper>
+                </ScrollArea>
+            </Stack>
+        </Collapse >
+            </Paper >
 
-            {/* Delete Confirmation Modal */}
-            <DeleteConfirmationModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => {
-                    setIsDeleteModalOpen(false);
-                    setProjectToDelete(null);
-                }}
-                onConfirm={confirmDelete}
-                title="Delete Project"
-                message="Are you sure you want to delete this project?"
-                itemName={projectToDelete?.name}
-                isLoading={isDeletingProject}
-            />
+    {/* Delete Confirmation Modal */ }
+    < DeleteConfirmationModal
+isOpen = { isDeleteModalOpen }
+onClose = {() => {
+    setIsDeleteModalOpen(false);
+    setProjectToDelete(null);
+}}
+onConfirm = { confirmDelete }
+title = "Delete Project"
+message = "Are you sure you want to delete this project?"
+itemName = { projectToDelete?.name }
+isLoading = { isDeletingProject }
+    />
         </>
     );
 };

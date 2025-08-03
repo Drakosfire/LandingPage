@@ -1,7 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import {
+    Container,
+    TextInput,
+    Textarea,
+    Button,
+    Stack,
+    Grid,
+    Card,
+    Text,
+    Badge,
+    Group,
+    Title,
+    Alert,
+    List,
+    Progress,
+    Box
+} from '@mantine/core';
+import { IconInfoCircle, IconCheck, IconDownload, IconExclamationCircle, IconPlus } from '@tabler/icons-react';
 import { ItemDetails } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
-import { TextInput, Textarea, Button, Stack, Grid, Card, Text, Badge, Group } from '@mantine/core';
 import { ClickableImage } from '../shared';
 import '../../../styles/DesignSystem.css';
 
@@ -12,6 +29,12 @@ interface Step5FinalAssemblyProps {
     onItemDetailsChange?: (updatedDetails: ItemDetails) => void; // Callback to update parent state
     onCardRendered?: (cardUrl: string, cardName: string) => void; // NEW: For persistence
     finalCardWithText?: string; // NEW: Pass existing final card from parent state
+    onNext?: () => void;
+    onPrevious?: () => void;
+    canGoNext?: boolean;
+    canGoPrevious?: boolean;
+    currentStepIndex?: number;
+    totalSteps?: number;
 }
 
 const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
@@ -20,7 +43,13 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
     onComplete,
     onItemDetailsChange,
     onCardRendered,
-    finalCardWithText: propFinalCardWithText
+    finalCardWithText: propFinalCardWithText,
+    onNext,
+    onPrevious,
+    canGoNext = false,
+    canGoPrevious = false,
+    currentStepIndex = 3,
+    totalSteps = 4
 }) => {
     const [finalCardWithText, setFinalCardWithText] = useState<string | null>(propFinalCardWithText || null);
     const [isRenderingText, setIsRenderingText] = useState(false);
@@ -179,6 +208,17 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
         }
     };
 
+    const getCompletionPercentage = () => {
+        let completed = 0;
+        const total = 3; // Card selected, text rendered, ready to download
+
+        if (selectedGeneratedCardImage) completed++;
+        if (finalCardWithText) completed++;
+        if (finalCardWithText && !hasUnsavedChanges) completed++; // Fully completed
+
+        return Math.round((completed / total) * 100);
+    };
+
     return (
         <div
             id="step-panel-final-assembly"
@@ -186,305 +226,378 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
             aria-labelledby="step-tab-final-assembly"
             className="step-panel"
         >
-            <div className="container">
-                {/* Missing Generated Card Warning */}
-                {!selectedGeneratedCardImage && (
-                    <div className="mb-6">
-                        <div className="step-card" style={{
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            border: '2px solid var(--error-red)'
-                        }}>
-                            <div className="flex items-center gap-4">
-                                <div className="text-2xl">⚠️</div>
-                                <div>
-                                    <h4 style={{
-                                        fontSize: 'var(--text-lg)',
-                                        fontWeight: 'var(--font-semibold)',
-                                        color: 'var(--error-red)',
-                                        margin: '0 0 var(--space-1) 0'
-                                    }}>
-                                        No Card Selected
-                                    </h4>
-                                    <p style={{
-                                        fontSize: 'var(--text-base)',
-                                        color: 'var(--text-secondary)',
-                                        margin: 0
-                                    }}>
-                                        Please go back to Step 3 to generate and select a card before proceeding.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {selectedGeneratedCardImage && (
-                    <Grid gutter="md">
-                        {/* Text Editing Panel */}
-                        <Grid.Col span={{ base: 12, lg: 6 }}>
-                            <Card shadow="sm" padding="lg" radius="md" withBorder>
-                                <Stack gap="md">
-                                    <Group justify="space-between" align="center">
-                                        <Text size="xl" fw={600}>
-                                            📝 Edit Card Text
-                                        </Text>
-                                        {hasUnsavedChanges && (
-                                            <Badge color="blue" variant="light">
-                                                Changes Pending
-                                            </Badge>
-                                        )}
+            <Container size="lg" style={{ maxWidth: '1280px' }}>
+                <Stack gap="lg">
+                    {/* Card Creation Journey at Top */}
+                    <Card shadow="sm" padding="md" radius="md" withBorder>
+                        <Stack gap="md">
+                            <Title order={5}>Your Card Creation Journey</Title>
+                            <Group justify="space-between" wrap="wrap">
+                                <Group gap="lg">
+                                    <Group gap="xs">
+                                        <Badge color="blue" variant="light" size="sm">1</Badge>
+                                        <Text size="sm" fw={500} c="dimmed">Describe Item</Text>
                                     </Group>
+                                    <Group gap="xs">
+                                        <Badge color="purple" variant="light" size="sm">2</Badge>
+                                        <Text size="sm" fw={500} c="dimmed">Choose Image</Text>
+                                    </Group>
+                                    <Group gap="xs">
+                                        <Badge color="orange" variant="light" size="sm">3</Badge>
+                                        <Text size="sm" fw={500} c="dimmed">Card Style</Text>
+                                    </Group>
+                                    <Group gap="xs">
+                                        <Badge color="green" variant="filled" size="sm">4</Badge>
+                                        <Text size="sm" fw={500}>Assemble Card</Text>
+                                    </Group>
+                                </Group>
+                            </Group>
+                        </Stack>
+                    </Card>
 
-                                    <TextInput
-                                        label="Name"
-                                        placeholder="Item name"
-                                        value={editableDetails.name}
-                                        onChange={(e) => handleFieldChange('name', e.currentTarget.value)}
-                                    />
-
-                                    <Grid>
-                                        <Grid.Col span={6}>
-                                            <TextInput
-                                                label="Type"
-                                                placeholder="Weapon, Armor, etc."
-                                                value={editableDetails.type}
-                                                onChange={(e) => handleFieldChange('type', e.currentTarget.value)}
-                                            />
-                                        </Grid.Col>
-                                        <Grid.Col span={6}>
-                                            <TextInput
-                                                label="Rarity"
-                                                placeholder="Common, Uncommon, etc."
-                                                value={editableDetails.rarity}
-                                                onChange={(e) => handleFieldChange('rarity', e.currentTarget.value)}
-                                            />
-                                        </Grid.Col>
-                                    </Grid>
-
-                                    <Grid>
-                                        <Grid.Col span={6}>
-                                            <TextInput
-                                                label="Value"
-                                                placeholder="50 gp"
-                                                value={editableDetails.value}
-                                                onChange={(e) => handleFieldChange('value', e.currentTarget.value)}
-                                            />
-                                        </Grid.Col>
-                                        <Grid.Col span={6}>
-                                            <TextInput
-                                                label="Weight"
-                                                placeholder="2 lbs"
-                                                value={editableDetails.weight}
-                                                onChange={(e) => handleFieldChange('weight', e.currentTarget.value)}
-                                            />
-                                        </Grid.Col>
-                                    </Grid>
-
-                                    <Grid>
-                                        <Grid.Col span={6}>
-                                            <TextInput
-                                                label="Damage Formula"
-                                                placeholder="1d8"
-                                                value={editableDetails.damageFormula}
-                                                onChange={(e) => handleFieldChange('damageFormula', e.currentTarget.value)}
-                                            />
-                                        </Grid.Col>
-                                        <Grid.Col span={6}>
-                                            <TextInput
-                                                label="Damage Type"
-                                                placeholder="Slashing"
-                                                value={editableDetails.damageType}
-                                                onChange={(e) => handleFieldChange('damageType', e.currentTarget.value)}
-                                            />
-                                        </Grid.Col>
-                                    </Grid>
-
-                                    <Textarea
-                                        label="Description"
-                                        placeholder="Item description"
-                                        rows={4}
-                                        value={editableDetails.description}
-                                        onChange={(e) => handleFieldChange('description', e.currentTarget.value)}
-                                    />
-
-                                    <Textarea
-                                        label="Quote"
-                                        placeholder="Flavor text or quote"
-                                        rows={2}
-                                        value={editableDetails.quote}
-                                        onChange={(e) => handleFieldChange('quote', e.currentTarget.value)}
-                                    />
-
-                                    {/* Properties Section */}
-                                    <div>
-                                        <Text size="sm" fw={500} mb="xs">Properties</Text>
-                                        <Stack gap="xs">
-                                            {editableDetails.properties.map((property, index) => (
-                                                <Group key={index} gap="xs">
-                                                    <TextInput
-                                                        placeholder={`Property ${index + 1}`}
-                                                        value={property}
-                                                        onChange={(e) => handlePropertyChange(index, e.currentTarget.value)}
-                                                        style={{ flex: 1 }}
-                                                    />
-                                                    <Button
-                                                        variant="subtle"
-                                                        color="red"
-                                                        size="sm"
-                                                        onClick={() => removeProperty(index)}
-                                                    >
-                                                        ✕
-                                                    </Button>
-                                                </Group>
-                                            ))}
-                                            <Button
-                                                variant="light"
-                                                size="sm"
-                                                onClick={addProperty}
-                                            >
-                                                + Add Property
-                                            </Button>
-                                        </Stack>
-                                    </div>
-
-                                    {/* Apply Changes Button */}
-                                    <Button
-                                        onClick={handleApplyChanges}
-                                        disabled={!hasUnsavedChanges || isRenderingText}
-                                        loading={isRenderingText}
-                                        fullWidth
-                                        size="md"
-                                    >
-                                        {isRenderingText ? 'Rendering Card...' : 'Re-render Card with Changes'}
-                                    </Button>
-
-                                    {error && (
-                                        <Text color="red" size="sm">
-                                            {error}
-                                        </Text>
+                    {/* Main Step Content */}
+                    <Card shadow="sm" padding="lg" radius="md" withBorder>
+                        <Stack gap="lg">
+                            {/* Step Header with Navigation */}
+                            <Group justify="space-between">
+                                <Group>
+                                    <Badge color="green" variant="light">Step 4 of 4</Badge>
+                                    <Title order={4}>Finalize Your Card</Title>
+                                </Group>
+                                <Group gap="xs">
+                                    {canGoPrevious && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={onPrevious}
+                                            leftSection={<Text>←</Text>}
+                                        >
+                                            Previous
+                                        </Button>
                                     )}
-                                </Stack>
-                            </Card>
-                        </Grid.Col>
+                                    {finalCardWithText && (
+                                        <Button
+                                            size="sm"
+                                            onClick={onComplete}
+                                            rightSection={<IconPlus size={16} />}
+                                            color="blue"
+                                        >
+                                            New Project
+                                        </Button>
+                                    )}
+                                </Group>
+                            </Group>
 
-                        {/* Card Preview Panel */}
-                        <Grid.Col span={{ base: 12, lg: 6 }}>
-                            <Card shadow="sm" padding="lg" radius="md" withBorder>
-                                <Stack gap="md">
-                                    <Text size="xl" fw={600}>
-                                        🎨 Card Preview
-                                    </Text>
+                            {/* Missing Generated Card Warning */}
+                            {!selectedGeneratedCardImage && (
+                                <Alert icon={<IconExclamationCircle size={16} />} color="red" variant="light">
+                                    <Text size="sm" fw={500}>No Card Selected</Text>
+                                    <Text size="xs" c="dimmed">Please go back to Step 3 to generate and select a card before proceeding.</Text>
+                                </Alert>
+                            )}
 
-                                    {/* Selected Card from Step 3 */}
-                                    <div>
-                                        <Text size="sm" fw={500} mb="xs" color="dimmed">
-                                            Original Design (Step 3)
-                                        </Text>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <ClickableImage
-                                                src={selectedGeneratedCardImage}
-                                                alt="Selected card design from Step 3"
-                                                title="Original Card Design"
-                                                description="Card design from Step 3 before adding text"
-                                                style={{
-                                                    width: '100%',
-                                                    maxWidth: '250px',
-                                                    height: 'auto',
-                                                    aspectRatio: '3/4',
-                                                    objectFit: 'contain',
-                                                    borderRadius: 'var(--radius-base)',
-                                                    border: '2px solid #000000',
-                                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                                                    backgroundColor: '#f8f9fa'
-                                                }}
-                                                showExpandButton={true}
-                                                expandButtonPosition="top-right"
-                                                downloadFilename="original-card-design.png"
-                                            />
-                                        </div>
-                                    </div>
+                            {/* Action-Oriented Instructions */}
+                            {selectedGeneratedCardImage && (
+                                <Alert icon={<IconInfoCircle size={16} />} color="green" variant="light">
+                                    <Text size="sm" fw={500}>What to do next:</Text>
+                                    <List size="sm" mt="xs">
+                                        <List.Item>Review and edit your card text details</List.Item>
+                                        <List.Item>Click "Re-render Card" to apply any changes</List.Item>
+                                        <List.Item>Download your finished card as PNG or PDF</List.Item>
+                                        <List.Item>Your card is automatically saved to your project</List.Item>
+                                    </List>
+                                </Alert>
+                            )}
 
-                                    {/* Final Card with Text */}
-                                    <div>
-                                        <Text size="sm" fw={500} mb="xs" color="dimmed">
-                                            Final Card with Text
-                                        </Text>
+                            {/* Progress Indicator with Navigation */}
+                            {selectedGeneratedCardImage && (
+                                <Box>
+                                    <Group justify="space-between" mb="xs">
+                                        <Text size="sm" fw={500}>Step Progress</Text>
+                                        <Text size="sm" c="dimmed">{getCompletionPercentage()}% complete</Text>
+                                    </Group>
+                                    <Progress
+                                        value={getCompletionPercentage()}
+                                        color="green"
+                                        size="lg"
+                                    />
+                                </Box>
+                            )}
 
-                                        {isRenderingText && (
-                                            <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                                <div style={{
-                                                    width: '32px',
-                                                    height: '32px',
-                                                    border: '3px solid var(--primary-blue)',
-                                                    borderTop: '3px solid transparent',
-                                                    borderRadius: '50%',
-                                                    animation: 'spin 1s linear infinite',
-                                                    margin: '0 auto 1rem auto'
-                                                }} />
-                                                <Text size="sm" color="blue">
-                                                    Rendering text changes...
-                                                </Text>
-                                            </div>
-                                        )}
+                            {selectedGeneratedCardImage && (
+                                <Grid gutter="md">
+                                    {/* Text Editing Panel */}
+                                    <Grid.Col span={{ base: 12, lg: 6 }}>
+                                        <Card shadow="sm" padding="lg" radius="md" withBorder>
+                                            <Stack gap="md">
+                                                <Group justify="space-between" align="center">
+                                                    <Text size="xl" fw={600}>
+                                                        📝 Edit Card Text
+                                                    </Text>
+                                                    {hasUnsavedChanges && (
+                                                        <Badge color="blue" variant="light">
+                                                            Changes Pending
+                                                        </Badge>
+                                                    )}
+                                                </Group>
 
-                                        {finalCardWithText && !isRenderingText && (
-                                            <div style={{ textAlign: 'center' }}>
-                                                <ClickableImage
-                                                    src={finalCardWithText}
-                                                    alt="Final card with text"
-                                                    title="Final Card with Text"
-                                                    description="Complete card with all text and details added"
-                                                    style={{
-                                                        width: '100%',
-                                                        maxWidth: '250px',
-                                                        height: 'auto',
-                                                        aspectRatio: '3/4',
-                                                        objectFit: 'contain',
-                                                        borderRadius: 'var(--radius-base)',
-                                                        border: '2px solid #000000',
-                                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                                                        backgroundColor: '#f8f9fa'
-                                                    }}
-                                                    showExpandButton={true}
-                                                    expandButtonPosition="top-right"
-                                                    downloadFilename={`${editableDetails.name || 'final-card'}.png`}
+                                                <TextInput
+                                                    label="Name"
+                                                    placeholder="Item name"
+                                                    value={editableDetails.name}
+                                                    onChange={(e) => handleFieldChange('name', e.currentTarget.value)}
                                                 />
 
-                                                {/* Download Options */}
-                                                <Group justify="center" mt="md">
-                                                    <Button
-                                                        onClick={() => handleDownload('png')}
-                                                        variant="filled"
-                                                        size="sm"
-                                                    >
-                                                        📥 Download PNG
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => handleDownload('pdf')}
-                                                        variant="outline"
-                                                        size="sm"
-                                                    >
-                                                        📄 Download PDF
-                                                    </Button>
-                                                </Group>
-                                            </div>
-                                        )}
+                                                <Grid>
+                                                    <Grid.Col span={6}>
+                                                        <TextInput
+                                                            label="Type"
+                                                            placeholder="Weapon, Armor, etc."
+                                                            value={editableDetails.type}
+                                                            onChange={(e) => handleFieldChange('type', e.currentTarget.value)}
+                                                        />
+                                                    </Grid.Col>
+                                                    <Grid.Col span={6}>
+                                                        <TextInput
+                                                            label="Rarity"
+                                                            placeholder="Common, Uncommon, etc."
+                                                            value={editableDetails.rarity}
+                                                            onChange={(e) => handleFieldChange('rarity', e.currentTarget.value)}
+                                                        />
+                                                    </Grid.Col>
+                                                </Grid>
 
-                                        {!isRenderingText && !error && !finalCardWithText && (
-                                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚡</div>
-                                                <Text size="sm">
-                                                    Card will be generated automatically when ready.
+                                                <Grid>
+                                                    <Grid.Col span={6}>
+                                                        <TextInput
+                                                            label="Value"
+                                                            placeholder="50 gp"
+                                                            value={editableDetails.value}
+                                                            onChange={(e) => handleFieldChange('value', e.currentTarget.value)}
+                                                        />
+                                                    </Grid.Col>
+                                                    <Grid.Col span={6}>
+                                                        <TextInput
+                                                            label="Weight"
+                                                            placeholder="2 lbs"
+                                                            value={editableDetails.weight}
+                                                            onChange={(e) => handleFieldChange('weight', e.currentTarget.value)}
+                                                        />
+                                                    </Grid.Col>
+                                                </Grid>
+
+                                                <Grid>
+                                                    <Grid.Col span={6}>
+                                                        <TextInput
+                                                            label="Damage Formula"
+                                                            placeholder="1d8"
+                                                            value={editableDetails.damageFormula}
+                                                            onChange={(e) => handleFieldChange('damageFormula', e.currentTarget.value)}
+                                                        />
+                                                    </Grid.Col>
+                                                    <Grid.Col span={6}>
+                                                        <TextInput
+                                                            label="Damage Type"
+                                                            placeholder="Slashing"
+                                                            value={editableDetails.damageType}
+                                                            onChange={(e) => handleFieldChange('damageType', e.currentTarget.value)}
+                                                        />
+                                                    </Grid.Col>
+                                                </Grid>
+
+                                                <Textarea
+                                                    label="Description"
+                                                    placeholder="Item description"
+                                                    rows={4}
+                                                    value={editableDetails.description}
+                                                    onChange={(e) => handleFieldChange('description', e.currentTarget.value)}
+                                                />
+
+                                                <Textarea
+                                                    label="Quote"
+                                                    placeholder="Flavor text or quote"
+                                                    rows={2}
+                                                    value={editableDetails.quote}
+                                                    onChange={(e) => handleFieldChange('quote', e.currentTarget.value)}
+                                                />
+
+                                                {/* Properties Section */}
+                                                <div>
+                                                    <Text size="sm" fw={500} mb="xs">Properties</Text>
+                                                    <Stack gap="xs">
+                                                        {editableDetails.properties.map((property, index) => (
+                                                            <Group key={index} gap="xs">
+                                                                <TextInput
+                                                                    placeholder={`Property ${index + 1}`}
+                                                                    value={property}
+                                                                    onChange={(e) => handlePropertyChange(index, e.currentTarget.value)}
+                                                                    style={{ flex: 1 }}
+                                                                />
+                                                                <Button
+                                                                    variant="subtle"
+                                                                    color="red"
+                                                                    size="sm"
+                                                                    onClick={() => removeProperty(index)}
+                                                                >
+                                                                    ✕
+                                                                </Button>
+                                                            </Group>
+                                                        ))}
+                                                        <Button
+                                                            variant="light"
+                                                            size="sm"
+                                                            onClick={addProperty}
+                                                        >
+                                                            + Add Property
+                                                        </Button>
+                                                    </Stack>
+                                                </div>
+
+                                                {/* Apply Changes Button */}
+                                                <Button
+                                                    onClick={handleApplyChanges}
+                                                    disabled={!hasUnsavedChanges || isRenderingText}
+                                                    loading={isRenderingText}
+                                                    fullWidth
+                                                    size="md"
+                                                >
+                                                    {isRenderingText ? 'Rendering Card...' : 'Re-render Card with Changes'}
+                                                </Button>
+
+                                                {error && (
+                                                    <Text color="red" size="sm">
+                                                        {error}
+                                                    </Text>
+                                                )}
+                                            </Stack>
+                                        </Card>
+                                    </Grid.Col>
+
+                                    {/* Card Preview Panel */}
+                                    <Grid.Col span={{ base: 12, lg: 6 }}>
+                                        <Card shadow="sm" padding="lg" radius="md" withBorder>
+                                            <Stack gap="md">
+                                                <Text size="xl" fw={600}>
+                                                    🎨 Card Preview
                                                 </Text>
-                                            </div>
-                                        )}
-                                    </div>
-                                </Stack>
-                            </Card>
-                        </Grid.Col>
-                    </Grid>
-                )}
-            </div>
+
+                                                {/* Selected Card from Step 3 */}
+                                                <div>
+                                                    <Text size="sm" fw={500} mb="xs" color="dimmed">
+                                                        Original Design (Step 3)
+                                                    </Text>
+                                                    <div style={{ textAlign: 'center' }}>
+                                                        <ClickableImage
+                                                            src={selectedGeneratedCardImage}
+                                                            alt="Selected card design from Step 3"
+                                                            title="Original Card Design"
+                                                            description="Card design from Step 3 before adding text"
+                                                            style={{
+                                                                width: '100%',
+                                                                maxWidth: '250px',
+                                                                height: 'auto',
+                                                                aspectRatio: '3/4',
+                                                                objectFit: 'contain',
+                                                                borderRadius: 'var(--radius-base)',
+                                                                border: '2px solid #000000',
+                                                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                                                backgroundColor: '#f8f9fa'
+                                                            }}
+                                                            showExpandButton={true}
+                                                            expandButtonPosition="top-right"
+                                                            downloadFilename="original-card-design.png"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Final Card with Text */}
+                                                <div>
+                                                    <Text size="sm" fw={500} mb="xs" color="dimmed">
+                                                        Final Card with Text
+                                                    </Text>
+
+                                                    {isRenderingText && (
+                                                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                                            <div style={{
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                border: '3px solid var(--primary-blue)',
+                                                                borderTop: '3px solid transparent',
+                                                                borderRadius: '50%',
+                                                                animation: 'spin 1s linear infinite',
+                                                                margin: '0 auto 1rem auto'
+                                                            }} />
+                                                            <Text size="sm" color="blue">
+                                                                Rendering text changes...
+                                                            </Text>
+                                                        </div>
+                                                    )}
+
+                                                    {finalCardWithText && !isRenderingText && (
+                                                        <div style={{ textAlign: 'center' }}>
+                                                            <ClickableImage
+                                                                src={finalCardWithText}
+                                                                alt="Final card with text"
+                                                                title="Final Card with Text"
+                                                                description="Complete card with all text and details added"
+                                                                style={{
+                                                                    width: '100%',
+                                                                    maxWidth: '250px',
+                                                                    height: 'auto',
+                                                                    aspectRatio: '3/4',
+                                                                    objectFit: 'contain',
+                                                                    borderRadius: 'var(--radius-base)',
+                                                                    border: '2px solid #000000',
+                                                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                                                    backgroundColor: '#f8f9fa'
+                                                                }}
+                                                                showExpandButton={true}
+                                                                expandButtonPosition="top-right"
+                                                                downloadFilename={`${editableDetails.name || 'final-card'}.png`}
+                                                            />
+
+                                                            {/* Download Options */}
+                                                            <Group justify="center" mt="md">
+                                                                <Button
+                                                                    onClick={() => handleDownload('png')}
+                                                                    variant="filled"
+                                                                    size="sm"
+                                                                >
+                                                                    📥 Download PNG
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => handleDownload('pdf')}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                >
+                                                                    📄 Download PDF
+                                                                </Button>
+                                                            </Group>
+                                                        </div>
+                                                    )}
+
+                                                    {!isRenderingText && !error && !finalCardWithText && (
+                                                        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                                                            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚡</div>
+                                                            <Text size="sm">
+                                                                Card will be generated automatically when ready.
+                                                            </Text>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </Stack>
+                                        </Card>
+                                    </Grid.Col>
+                                </Grid>
+                            )}
+
+
+                        </Stack>
+                    </Card>
+
+
+                </Stack>
+            </Container>
         </div>
     );
 };
