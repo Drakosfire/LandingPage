@@ -136,10 +136,21 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData, onGenerati
             });
 
             const data = await response.json();
+            console.log('🔍 ItemForm: Raw API response:', data);
 
-            // Assuming the API returns an object with the first (and only) key being the item name
-            const itemKey = Object.keys(data)[0];
-            const item = data[itemKey];
+            // Handle the new API response structure
+            let item;
+            if (data.success && data.item_details) {
+                // New structure: { success: true, item_details: { "item_name": {...} } }
+                const itemKey = Object.keys(data.item_details)[0];
+                item = data.item_details[itemKey];
+                console.log('🔍 ItemForm: Using new API structure, extracted item:', item);
+            } else {
+                // Fallback to old structure: { "item_name": {...} }
+                const itemKey = Object.keys(data)[0];
+                item = data[itemKey];
+                console.log('🔍 ItemForm: Using old API structure, extracted item:', item);
+            }
 
             // Update the form with the received data
             const newFormData = {
@@ -155,6 +166,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onGenerate, initialData, onGenerati
                 quote: item.Quote || '',
                 sdPrompt: item['SD Prompt'] || ''
             };
+
+            console.log('🔍 ItemForm: Transformed form data:', {
+                name: newFormData.name,
+                type: newFormData.type,
+                rarity: newFormData.rarity,
+                value: newFormData.value,
+                description: newFormData.description?.substring(0, 50) + '...'
+            });
 
             setFormData(newFormData);
             onGenerate(newFormData);
