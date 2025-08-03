@@ -98,7 +98,7 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                 }
             };
 
-            const response = await fetch(`${DUNGEONMIND_API_URL}/api/cardgenerator/render-card-text`, {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/v1/cardgenerator/render-text-with-url`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
