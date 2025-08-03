@@ -16,6 +16,7 @@ import {
     Collapse,
     Paper
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import {
     IconPlus,
     IconDeviceFloppy,
@@ -70,6 +71,15 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
     const [projectToDelete, setProjectToDelete] = useState<ProjectSummary | null>(null);
     const [isDeletingProject, setIsDeletingProject] = useState(false);
     const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
+
+    // Responsive breakpoints
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const isTablet = useMediaQuery('(max-width: 1024px)');
+
+    // Determine sizes based on screen size
+    const collapsedWidth = isMobile ? '20px' : '60px'; // Match NavBar mobile width
+    const expandedWidth = isMobile ? '280px' : isTablet ? '320px' : '350px';
+    const topOffset = isMobile ? '60px' : '80px'; // Account for smaller mobile header
 
     // Filter projects based on search
     const filteredProjects = projects.filter(project =>
@@ -179,21 +189,42 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
 
     return (
         <>
+            <style>
+                {`
+                    .no-padding {
+                        padding: 0 !important;
+                    }
+                    .no-padding .mantine-Paper-root {
+                        padding: 0 !important;
+                    }
+                    .no-padding .mantine-Paper-root > * {
+                        padding: 0 !important;
+                    }
+                `}
+            </style>
             <Paper
                 shadow="lg"
-                className={`projects-panel ${!isExpanded ? 'collapsed' : ''}`}
+                className={`projects-panel ${!isExpanded ? 'collapsed' : ''} no-padding`}
+                styles={{
+                    root: {
+                        padding: '0 !important', // Force override Mantine's default Paper padding
+                        '--paper-padding': '0 !important', // Override Mantine's CSS custom property
+                        '--mantine-spacing-lg': '0 !important' // Override the specific spacing variable
+                    }
+                }}
                 style={{
                     position: 'fixed',
-                    top: '80px', // Account for header height
+                    top: topOffset,
                     right: 0,
-                    height: 'calc(100vh - 80px)',
-                    width: isExpanded ? '350px' : '60px',
+                    height: `calc(100vh - ${topOffset})`,
+                    width: isExpanded ? expandedWidth : collapsedWidth,
                     zIndex: 300, // Below header
                     transition: 'width 0.3s ease',
                     display: 'flex',
                     flexDirection: 'column',
-                    borderRadius: '8px 0 0 8px',
-                    borderRight: 'none'
+                    borderRadius: isMobile ? '12px 0 0 12px' : '8px 0 0 8px',
+                    borderRight: 'none',
+                    padding: '0 !important' // Additional inline style override
                 }}
             >
                 {/* Toggle Button */}
@@ -203,7 +234,7 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                     style={{
                         position: 'absolute',
                         top: '50%',
-                        left: isExpanded ? '10px' : '50%',
+                        left: isExpanded ? '0px' : '50%',
                         transform: isExpanded ? 'translateY(-50%)' : 'translate(-50%, -50%)',
                         zIndex: 301, // Above the panel but below header
                         transition: 'left 0.3s ease, transform 0.3s ease',
@@ -262,11 +293,18 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
 
                 {/* Expanded State - Full content */}
                 <Collapse in={isExpanded} style={{ height: '100%' }}>
-                    <Stack gap="md" style={{ height: '100%', padding: '60px 16px 16px 16px' }}>
+                    <Stack
+                        gap={isMobile ? "xs" : "sm"}
+                        style={{
+                            height: '100%',
+                            marginLeft: '20px', // Add space for the toggle button
+                            width: 'calc(100% - 20px)' // Adjust width to account for the margin
+                        }}
+                    >
                         {/* Header */}
-                        <Group gap="sm">
-                            <IconFolderOpen size={20} />
-                            <Title order={4}>Projects</Title>
+                        <Group gap={isMobile ? "xs" : "sm"}>
+                            <IconFolderOpen size={isMobile ? 16 : 20} />
+                            <Title order={isMobile ? 5 : 4}>Projects</Title>
                             {loadingProjectId && (
                                 <Text size="xs" c="blue">
                                     Loading...
@@ -275,27 +313,29 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                         </Group>
 
                         {/* Action Buttons */}
-                        <Stack gap="sm">
+                        <Stack gap="xs">
                             <Button
-                                leftSection={<IconPlus size={16} />}
+                                leftSection={<IconPlus size={isMobile ? 14 : 16} />}
                                 onClick={onCreateNewProject}
                                 variant="filled"
                                 fullWidth
+                                size={isMobile ? "sm" : "md"}
                                 disabled={isGenerationInProgress} // 🔒 Disable during generation
                                 title={isGenerationInProgress ? "Project creation disabled during generation" : ""}
                             >
-                                New Project
+                                {isMobile ? "New" : "New Project"}
                             </Button>
 
                             {canSaveProject && currentItemName && (
                                 <Button
-                                    leftSection={<IconDeviceFloppy size={16} />}
+                                    leftSection={<IconDeviceFloppy size={isMobile ? 14 : 16} />}
                                     onClick={handleSave}
                                     loading={saveStatus === 'saving'}
                                     disabled={saveButtonContent.disabled}
                                     variant="outline"
                                     color={saveStatus === 'success' ? 'green' : saveStatus === 'error' ? 'red' : 'blue'}
                                     fullWidth
+                                    size={isMobile ? "sm" : "md"}
                                 >
                                     {saveButtonContent.text}
                                 </Button>
@@ -306,16 +346,16 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
 
                         {/* Search */}
                         <TextInput
-                            placeholder="Search projects..."
-                            leftSection={<IconSearch size={16} />}
+                            placeholder={isMobile ? "Search..." : "Search projects..."}
+                            leftSection={<IconSearch size={isMobile ? 14 : 16} />}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.currentTarget.value)}
-                            size="sm"
+                            size={isMobile ? "xs" : "sm"}
                         />
 
                         {/* Projects List */}
                         <ScrollArea flex={1} type="scroll">
-                            <Stack gap="sm">
+                            <Stack gap="xs">
                                 {isLoadingProjects ? (
                                     <Text c="dimmed" ta="center" size="sm">Loading...</Text>
                                 ) : sortedProjects.length === 0 ? (
@@ -332,22 +372,22 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                 key={project.id}
                                                 withBorder
                                                 radius="sm"
-                                                padding="sm"
+                                                padding={isMobile ? "xs" : "sm"}
                                                 style={{
                                                     cursor: 'pointer',
                                                     borderColor: isCurrentProject ? 'var(--mantine-color-blue-4)' : undefined,
                                                     backgroundColor: isCurrentProject ? 'var(--mantine-color-blue-0)' : undefined
                                                 }}
                                             >
-                                                <Group wrap="nowrap" align="flex-start" gap="sm">
+                                                <Group wrap="nowrap" align="flex-start" gap={isMobile ? "xs" : "sm"}>
                                                     {/* Project Thumbnail/Avatar */}
                                                     <Avatar
-                                                        size="md"
+                                                        size={isMobile ? "sm" : "md"}
                                                         radius="sm"
                                                         color="blue"
                                                         variant="light"
                                                     >
-                                                        <IconFolder size={18} />
+                                                        <IconFolder size={isMobile ? 14 : 18} />
                                                     </Avatar>
 
                                                     {/* Project Info */}
@@ -357,18 +397,18 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                                 fw={600}
                                                                 size="xs"
                                                                 truncate
-                                                                style={{ maxWidth: '120px' }}
+                                                                style={{ maxWidth: isMobile ? '100px' : '120px' }}
                                                             >
                                                                 {project.name || 'Unnamed'}
                                                             </Text>
 
                                                             {/* Action Buttons */}
-                                                            <Group gap="xs">
+                                                            <Group gap={isMobile ? "4px" : "xs"}>
                                                                 {/* Load Button */}
                                                                 <ActionIcon
                                                                     variant="subtle"
                                                                     color={isCurrentProject ? "green" : "blue"}
-                                                                    size="xs"
+                                                                    size={isMobile ? "sm" : "xs"}
                                                                     loading={isLoading}
                                                                     disabled={!!loadingProjectId || isGenerationInProgress} // 🔒 Disable during project loading OR generation
                                                                     onClick={(e) => {
@@ -381,7 +421,7 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                                                 isCurrentProject ? "Currently Loaded" : "Load Project"
                                                                     }
                                                                 >
-                                                                    <IconDownload size={12} />
+                                                                    <IconDownload size={isMobile ? 14 : 12} />
                                                                 </ActionIcon>
 
                                                                 {/* Menu Button */}
@@ -390,15 +430,15 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                                         <ActionIcon
                                                                             variant="subtle"
                                                                             color="gray"
-                                                                            size="xs"
+                                                                            size={isMobile ? "sm" : "xs"}
                                                                             onClick={(e) => e.stopPropagation()}
                                                                         >
-                                                                            <IconDotsVertical size={12} />
+                                                                            <IconDotsVertical size={isMobile ? 14 : 12} />
                                                                         </ActionIcon>
                                                                     </Menu.Target>
                                                                     <Menu.Dropdown>
                                                                         <Menu.Item
-                                                                            leftSection={<IconCopy size={12} />}
+                                                                            leftSection={<IconCopy size={isMobile ? 14 : 12} />}
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
                                                                                 handleDuplicate(project.id);
@@ -407,7 +447,7 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                                             Duplicate
                                                                         </Menu.Item>
                                                                         <Menu.Item
-                                                                            leftSection={<IconTrash size={12} />}
+                                                                            leftSection={<IconTrash size={isMobile ? 14 : 12} />}
                                                                             color="red"
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
