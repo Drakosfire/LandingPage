@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     Stack,
     Group,
@@ -6,7 +6,6 @@ import {
     Button,
     ActionIcon,
     Card,
-    Avatar,
     Badge,
     Menu,
     ScrollArea,
@@ -25,16 +24,12 @@ import {
     IconCopy,
     IconTrash,
     IconSearch,
-    IconFolder,
     IconFolderOpen,
-    IconChevronLeft,
-    IconChevronRight,
     IconDownload,
     IconLoader
 } from '@tabler/icons-react';
-import { ProjectSummary } from '../../types/card.types';
+import { ProjectSummary, CardGeneratorState } from '../../types/card.types';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
-import ProjectLoadingProgress from './shared/ProjectLoadingProgress';
 
 interface ProjectsDrawerEnhancedProps {
     projects: ProjectSummary[];
@@ -87,6 +82,51 @@ const ProjectsDrawerEnhanced: React.FC<ProjectsDrawerEnhancedProps> = ({
     const isDrawerExpanded = isExpanded || forceExpanded;
 
     const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
+
+    // Completion status calculation for projects
+    const calculateProjectCompletion = useCallback((project: ProjectSummary, state?: CardGeneratorState) => {
+        if (!state) {
+            return {
+                hasText: false,
+                hasImages: false,
+                hasBorders: false,
+                hasFinalCard: false,
+                percentage: 0
+            };
+        }
+
+        const itemDetails = state.itemDetails;
+        const selectedAssets = state.selectedAssets;
+        const generatedContent = state.generatedContent;
+
+        // Step 1: Text Generation
+        const hasText = !!(itemDetails?.name?.trim() || itemDetails?.description?.trim());
+
+        // Step 2: Core Image  
+        const hasImages = !!(selectedAssets?.finalImage?.trim());
+
+        // Step 3: Border Generation
+        const hasBorders = !!(
+            selectedAssets?.border?.trim() &&
+            generatedContent?.images?.length > 0 &&
+            selectedAssets?.selectedGeneratedCardImage?.trim()
+        );
+
+        // Step 4: Final Assembly
+        const hasFinalCard = !!(selectedAssets?.finalCardWithText?.trim());
+
+        // Calculate completion percentage
+        const completedSteps = [hasText, hasImages, hasBorders, hasFinalCard].filter(Boolean).length;
+        const percentage = Math.round((completedSteps / 4) * 100);
+
+        return {
+            hasText,
+            hasImages,
+            hasBorders,
+            hasFinalCard,
+            percentage
+        };
+    }, []);
 
     // Responsive breakpoints
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -177,10 +217,6 @@ const ProjectsDrawerEnhanced: React.FC<ProjectsDrawerEnhancedProps> = ({
     };
 
     const saveButtonContent = getSaveButtonContent();
-
-    const toggleExpanded = () => {
-        setIsExpanded(!isExpanded);
-    };
 
     return (
         <>
@@ -367,6 +403,11 @@ const ProjectsDrawerEnhanced: React.FC<ProjectsDrawerEnhancedProps> = ({
                                         const isBeingLoaded = loadingProjectId === project.id;
                                         const isDisabled = !!loadingProjectId || isGenerationInProgress;
 
+                                        // Calculate completion status for current project
+                                        const completion = isCurrentProject && currentProjectState
+                                            ? calculateProjectCompletion(project, currentProjectState)
+                                            : { hasText: false, hasImages: false, hasBorders: false, hasFinalCard: false, percentage: 0 };
+
                                         return (
                                             <Card
                                                 key={project.id}
@@ -429,34 +470,44 @@ const ProjectsDrawerEnhanced: React.FC<ProjectsDrawerEnhancedProps> = ({
                                                     </Group>
 
                                                     {/* Project Progress Indicator */}
-                                                    {project.completionStatus && (
+                                                    {isCurrentProject && completion.percentage > 0 && (
                                                         <Progress
-                                                            value={project.completionStatus.percentage}
+                                                            value={completion.percentage}
                                                             size="xs"
-                                                            color={project.completionStatus.percentage === 100 ? 'green' : 'blue'}
+                                                            color={completion.percentage === 100 ? 'green' : 'blue'}
                                                         />
                                                     )}
 
                                                     {/* Project Metadata */}
                                                     <Group gap="xs">
-                                                        {project.hasText && (
+                                                        {isCurrentProject ? (
+                                                            // Show completion badges for current project
+                                                            <>
+                                                                {completion.hasText && (
+                                                                    <Badge size="xs" color="blue" variant="light">
+                                                                        Text ✓
+                                                                    </Badge>
+                                                                )}
+                                                                {completion.hasImages && (
+                                                                    <Badge size="xs" color="purple" variant="light">
+                                                                        Images ✓
+                                                                    </Badge>
+                                                                )}
+                                                                {completion.hasBorders && (
+                                                                    <Badge size="xs" color="gold" variant="light">
+                                                                        Style ✓
+                                                                    </Badge>
+                                                                )}
+                                                                {completion.hasFinalCard && (
+                                                                    <Badge size="xs" color="green" variant="light">
+                                                                        Complete ✓
+                                                                    </Badge>
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            // Show card count for other projects
                                                             <Badge size="xs" color="blue" variant="light">
-                                                                Text ✓
-                                                            </Badge>
-                                                        )}
-                                                        {project.hasImages && (
-                                                            <Badge size="xs" color="purple" variant="light">
-                                                                Images ✓
-                                                            </Badge>
-                                                        )}
-                                                        {project.hasBorders && (
-                                                            <Badge size="xs" color="gold" variant="light">
-                                                                Style ✓
-                                                            </Badge>
-                                                        )}
-                                                        {project.hasFinalCard && (
-                                                            <Badge size="xs" color="green" variant="light">
-                                                                Complete ✓
+                                                                {project.cardCount} {project.cardCount === 1 ? 'card' : 'cards'}
                                                             </Badge>
                                                         )}
                                                     </Group>

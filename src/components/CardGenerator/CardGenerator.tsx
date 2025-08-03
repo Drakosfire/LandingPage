@@ -15,7 +15,7 @@ import {
 import { projectAPI } from '../../services/projectAPI';
 import { useAuth } from '../../context/AuthContext';
 import CreateProjectModal from './CreateProjectModal';
-import ProjectsDrawer from './ProjectsDrawer';
+
 import Footer from '../Footer';
 import '../../styles/DesignSystem.css';
 import '../../styles/CardGeneratorLayout.css';

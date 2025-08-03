@@ -7,7 +7,7 @@ import '../../styles/mantineOverrides.css';
 import { ItemDetails, GeneratedImage, createTemplate, CardGeneratorState, RenderedCard, ProjectSummary } from '../../types/card.types';
 import { useAuth } from '../../context/AuthContext';
 import CreateProjectModal from './CreateProjectModal';
-import ProjectsDrawer from './ProjectsDrawer';
+import ProjectsDrawerEnhanced from './ProjectsDrawerEnhanced';
 import '../../styles/DesignSystem.css';
 import '../../styles/CardGeneratorLayout.css';
 
@@ -349,7 +349,7 @@ export default function CardGeneratorRefactored() {
             />
 
             {/* Projects Drawer */}
-            <ProjectsDrawer
+            <ProjectsDrawerEnhanced
                 projects={projectManager.projects}
                 currentProjectId={projectManager.currentProject?.id}
                 currentItemName={projectManager.getReliableItemName()}

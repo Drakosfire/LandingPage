@@ -16,7 +16,7 @@ import {
     Progress,
     Box
 } from '@mantine/core';
-import { IconInfoCircle, IconCheck, IconDownload, IconExclamationCircle, IconPlus } from '@tabler/icons-react';
+import { IconInfoCircle, IconDownload, IconExclamationCircle, IconPlus } from '@tabler/icons-react';
 import { ItemDetails } from '../../../types/card.types';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { ClickableImage } from '../shared';

@@ -5,7 +5,6 @@ import {
     Card,
     Text,
     Stack,
-    FileInput,
     Button,
     Group,
     Badge,
@@ -60,9 +59,7 @@ const Step2CoreImage: React.FC<Step2CoreImageProps> = ({
         // Removed verbose debug logging for persisted images
     }, [persistedImages]);
 
-    const isStepValid = () => {
-        return selectedFinalImage !== '' || uploadedImage !== '';
-    };
+
 
     const getCompletionPercentage = () => {
         let completed = 0;

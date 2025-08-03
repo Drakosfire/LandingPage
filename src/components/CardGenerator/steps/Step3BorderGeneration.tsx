@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
     Container,
     Grid,
@@ -14,13 +14,13 @@ import {
     Group,
     Button
 } from '@mantine/core';
-import { IconInfoCircle, IconCheck, IconPalette, IconWand, IconExclamationCircle } from '@tabler/icons-react';
-import { Template } from '../../../types/card.types';
+import { IconInfoCircle, IconPalette, IconWand, IconExclamationCircle } from '@tabler/icons-react';
+// Template type not needed
 import { DUNGEONMIND_API_URL } from '../../../config';
 import BorderGallery from '../CardTemplateSection/BorderGallery';
 import TemplatePreview from '../CardTemplateSection/TemplatePreview';
 import { ClickableImage } from '../shared';
-import FunGenerationFeedback from '../shared/FunGenerationFeedback';
+// FunGenerationFeedback not used
 
 import '../../../styles/DesignSystem.css';
 

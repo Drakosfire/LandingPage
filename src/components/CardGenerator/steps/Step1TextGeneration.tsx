@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     Container,
-    Grid,
     Card,
     Text,
     Stack,
@@ -14,7 +13,7 @@ import {
     Box,
     Button
 } from '@mantine/core';
-import { IconInfoCircle, IconCheck, IconEdit } from '@tabler/icons-react';
+import { IconInfoCircle } from '@tabler/icons-react';
 import { ItemDetails } from '../../../types/card.types';
 import ItemForm from '../TextGenerationSection/ItemForm';
 import '../../../styles/DesignSystem.css';
@@ -42,11 +41,7 @@ const Step1TextGeneration: React.FC<Step1TextGenerationProps> = ({
     currentStepIndex = 0,
     totalSteps = 4
 }) => {
-    const isStepValid = () => {
-        return itemDetails.name?.trim() !== '' &&
-            itemDetails.type?.trim() !== '' &&
-            itemDetails.description?.trim() !== '';
-    };
+
 
     const getCompletionPercentage = () => {
         let completed = 0;
