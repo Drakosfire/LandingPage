@@ -259,7 +259,7 @@ export default function CardGeneratorRefactored() {
                         padding: 'var(--space-4)'
                     }}
                 >
-                    {/* Step 1: Text Description & Generation */}
+                    {/* Step 1: Describe Item */}
                     {stepNavigation.currentStepId === 'text-generation' && (
                         <Step1TextGeneration
                             itemDetails={itemDetails}
@@ -270,7 +270,7 @@ export default function CardGeneratorRefactored() {
                         />
                     )}
 
-                    {/* Step 2: Core Image (Upload/Generate) */}
+                    {/* Step 2: Choose Image */}
                     {stepNavigation.currentStepId === 'core-image' && (
                         <Step2CoreImage
                             itemDetails={itemDetails}
@@ -285,7 +285,7 @@ export default function CardGeneratorRefactored() {
                         />
                     )}
 
-                    {/* Step 3: AI Border Analysis & Generation */}
+                    {/* Step 3: Card Style */}
                     {stepNavigation.currentStepId === 'border-generation' && (
                         <Step3BorderGeneration
                             selectedBorder={selectedBorder}
@@ -305,7 +305,7 @@ export default function CardGeneratorRefactored() {
                         />
                     )}
 
-                    {/* Step 4: Final Assembly & Gallery */}
+                    {/* Step 4: Final Card */}
                     {stepNavigation.currentStepId === 'final-assembly' && (
                         <Step5FinalAssembly
                             itemDetails={itemDetails}

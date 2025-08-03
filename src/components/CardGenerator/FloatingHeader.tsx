@@ -139,8 +139,6 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                             </span>
                         )}
                     </div>
-
-
                 </div>
 
                 {/* Progress bar */}
@@ -169,10 +167,9 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                     <button
                         onClick={onPrevious}
                         disabled={!canGoPrevious || isGenerationInProgress}
-                        className="btn btn-secondary"
+                        className="btn btn-secondary btn-compact"
                         style={{
                             opacity: (canGoPrevious && !isGenerationInProgress) ? 1 : 0.5,
-                            padding: 'var(--space-2) var(--space-3)',
                             cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
                         }}
                         title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
@@ -192,10 +189,9 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                     <button
                         onClick={onNext}
                         disabled={!canGoNext || isGenerationInProgress}
-                        className="btn btn-primary"
+                        className="btn btn-primary btn-compact"
                         style={{
                             opacity: (canGoNext && !isGenerationInProgress) ? 1 : 0.5,
-                            padding: 'var(--space-2) var(--space-3)',
                             cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
                         }}
                         title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
@@ -229,7 +225,8 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                         color: 'var(--text-primary)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 'var(--space-2)'
+                        gap: 'var(--space-2)',
+                        marginTop: 'var(--space-1)' // Bump title down slightly
                     }}>
                         <span>{getDisplayTitle()}</span>
                         {saveStatusInfo && (
@@ -261,8 +258,6 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                             transition: 'width 0.3s ease'
                         }} />
                     </div>
-
-
                 </div>
 
                 {/* Center: Step Navigation */}
@@ -341,10 +336,13 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                     <button
                         onClick={onPrevious}
                         disabled={!canGoPrevious || isGenerationInProgress}
-                        className="btn btn-secondary"
+                        className="btn btn-secondary btn-compact"
                         style={{
                             opacity: (canGoPrevious && !isGenerationInProgress) ? 1 : 0.5,
-                            padding: 'var(--space-2) var(--space-3)',
+                            padding: 'var(--space-1) var(--space-2)',
+                            fontSize: 'var(--text-sm)',
+                            height: '20px',
+                            minHeight: '10px !important',
                             cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
                         }}
                         title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}
@@ -355,10 +353,13 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                     <button
                         onClick={onNext}
                         disabled={!canGoNext || isGenerationInProgress}
-                        className="btn btn-primary"
+                        className="btn btn-primary btn-compact"
                         style={{
                             opacity: (canGoNext && !isGenerationInProgress) ? 1 : 0.5,
-                            padding: 'var(--space-2) var(--space-3)',
+                            padding: 'var(--space-1) var(--space-2)',
+                            fontSize: 'var(--text-sm)',
+                            height: '20px',
+                            minHeight: '10px !important',
                             cursor: isGenerationInProgress ? 'not-allowed' : 'pointer'
                         }}
                         title={isGenerationInProgress ? 'Navigation disabled during generation' : ''}

@@ -173,6 +173,10 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
 
     const saveButtonContent = getSaveButtonContent();
 
+    const toggleExpanded = () => {
+        setIsExpanded(!isExpanded);
+    };
+
     return (
         <>
             <Paper
@@ -193,54 +197,68 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                 }}
             >
                 {/* Toggle Button */}
-                <ActionIcon
+                <Button
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="toggle-button"
                     style={{
                         position: 'absolute',
-                        top: '20px',
+                        top: '50%',
                         left: isExpanded ? '10px' : '50%',
-                        transform: isExpanded ? 'none' : 'translateX(-50%)',
+                        transform: isExpanded ? 'translateY(-50%)' : 'translate(-50%, -50%)',
                         zIndex: 301, // Above the panel but below header
-                        transition: 'left 0.3s ease, transform 0.3s ease'
+                        transition: 'left 0.3s ease, transform 0.3s ease',
+                        width: '20px', // Fixed narrow width
+                        minHeight: '120px', // Extend vertically to fit rotated text
+                        padding: 'var(--space-3) 0', // No horizontal padding
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                     }}
-                    size="lg"
+                    size="sm"
                     variant="filled"
                     color="blue"
                 >
-                    {isExpanded ? <IconChevronRight size={20} /> : <IconChevronLeft size={20} />}
-                </ActionIcon>
-
-                {/* Collapsed State - Just the icon */}
-                {!isExpanded && (
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'center',
+                        justifyContent: 'space-between',
                         height: '100%',
-                        gap: '16px',
-                        padding: '20px 0'
+                        padding: '2px 0'
                     }}>
-                        <IconFolderOpen size={24} color="var(--mantine-color-blue-6)" />
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flex: 1
+                        }}>
+                            <Text
+                                size="xs"
+                                style={{
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    whiteSpace: 'nowrap',
+                                    transform: 'rotate(-90deg)',
+                                    padding: '2px'
+                                }}
+                            >
+                                PROJECTS
+                            </Text>
+                        </div>
                         <Text
-                            size="xs"
+                            size="sm"
                             style={{
-                                transform: 'rotate(-90deg)',
-                                whiteSpace: 'nowrap',
-                                color: 'var(--mantine-color-blue-6)',
-                                fontWeight: 600
+                                color: 'white',
+                                fontWeight: 600,
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.3s ease',
+                                padding: '2px'
                             }}
                         >
-                            PROJECTS
+                            ›
                         </Text>
-                        {projects.length > 0 && (
-                            <Badge size="sm" color="blue" variant="filled">
-                                {projects.length}
-                            </Badge>
-                        )}
                     </div>
-                )}
+                </Button>
 
                 {/* Expanded State - Full content */}
                 <Collapse in={isExpanded} style={{ height: '100%' }}>

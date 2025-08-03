@@ -16,6 +16,7 @@ import { projectAPI } from '../../services/projectAPI';
 import { useAuth } from '../../context/AuthContext';
 import CreateProjectModal from './CreateProjectModal';
 import ProjectsDrawer from './ProjectsDrawer';
+import Footer from '../Footer';
 import '../../styles/DesignSystem.css';
 import '../../styles/CardGeneratorLayout.css';
 
@@ -683,29 +684,29 @@ export default function CardGenerator() {
     const [steps, setSteps] = useState<Step[]>([
         {
             id: 'text-generation',
-            label: 'Text Description & Generation',
+            label: 'Describe Item',
             shortLabel: 'Text',
             icon: '📝',
             status: 'active'
         },
         {
             id: 'core-image',
-            label: 'Core Image (Upload/Generate)',
+            label: 'Choose Image',
             shortLabel: 'Image',
             icon: '🖼️',
             status: 'pending'
         },
         {
             id: 'border-generation',
-            label: 'AI Border Analysis & Generation',
-            shortLabel: 'Border',
+            label: 'Card Style',
+            shortLabel: 'Style',
             icon: '🎨',
             status: 'pending'
         },
         {
             id: 'final-assembly',
-            label: 'Final Assembly & Gallery',
-            shortLabel: 'Finish',
+            label: 'Assemble Card',
+            shortLabel: 'Assemble',
             icon: '✨',
             status: 'pending'
         }
@@ -1098,8 +1099,7 @@ export default function CardGenerator() {
         <MantineProvider theme={dungeonMindTheme}>
             <div className="card-generator-page" style={{
                 background: 'var(--parchment-base)',
-                minHeight: 'calc(100vh - 60px)', // Account for footer
-                paddingBottom: '60px', // Space for footer
+                minHeight: '100vh',
                 position: 'relative' // Ensure it doesn't interfere with fixed nav
             }}>
                 {/* 
@@ -1124,7 +1124,7 @@ export default function CardGenerator() {
                     isGenerationInProgress={isAnyGenerationInProgress}
                 />
 
-                {/* Main Content Area - Account for nav bar, header, and drawer */}
+                {/* Main Content Area - Account for nav bar, header, and footer */}
                 <main
                     className="main-content"
                     style={{
@@ -1133,12 +1133,13 @@ export default function CardGenerator() {
                         marginLeft: '80px', // Account for nav bar width on desktop
                         marginTop: '80px', // Account for header height
                         marginRight: '60px', // Account for collapsed drawer width
+                        marginBottom: '60px', // Account for footer height
                         transition: 'margin-right 0.3s ease',
-                        minHeight: 'calc(100vh - 80px)', // Full height minus header
+                        minHeight: 'calc(100vh - 140px)', // Full height minus header and footer
                         padding: 'var(--space-4)'
                     }}
                 >
-                    {/* Step 1: Text Description & Generation */}
+                    {/* Step 1: Describe Item */}
                     {currentStepId === 'text-generation' && (
                         <Step1TextGeneration
                             itemDetails={itemDetails}
@@ -1147,7 +1148,7 @@ export default function CardGenerator() {
                         />
                     )}
 
-                    {/* Step 2: Core Image (Upload/Generate) */}
+                    {/* Step 2: Choose Image */}
                     {currentStepId === 'core-image' && (
                         <Step2CoreImage
                             itemDetails={itemDetails}
@@ -1160,9 +1161,7 @@ export default function CardGenerator() {
                         />
                     )}
 
-
-
-                    {/* Step 3: AI Border Analysis & Generation */}
+                    {/* Step 3: Card Style */}
                     {currentStepId === 'border-generation' && (() => {
                         return (
                             <Step3BorderGeneration
@@ -1182,7 +1181,7 @@ export default function CardGenerator() {
                         );
                     })()}
 
-                    {/* Step 4: Final Assembly & Gallery */}
+                    {/* Step 4: Final Card */}
                     {currentStepId === 'final-assembly' && (
                         <Step5FinalAssembly
                             itemDetails={itemDetails}
@@ -1252,6 +1251,9 @@ export default function CardGenerator() {
                 currentProjectState={getCurrentState()}
                 isGenerationInProgress={isAnyGenerationInProgress}
             />
+
+            {/* Footer */}
+            <Footer />
         </MantineProvider>
     );
 }

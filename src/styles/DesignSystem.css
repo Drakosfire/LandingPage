@@ -352,6 +352,14 @@ body nav {
     overflow: hidden;
 }
 
+/* Compact button variant for header navigation */
+.btn-compact {
+    min-height: 20px !important;
+    height: 20px !important;
+    padding: var(--space-1) var(--space-2) !important;
+    font-size: var(--text-sm) !important;
+}
+
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;

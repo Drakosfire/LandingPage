@@ -1,6 +1,6 @@
 // src/App.tsx
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { DUNGEONMIND_API_URL } from './config';
 import { AuthProvider } from './context/AuthContext';
 import NavBar from './components/NavBar';
@@ -13,6 +13,19 @@ import BlogPost from './Blog/BlogPost';
 import RulesLawyer from './components/RulesLawyer';
 import './styles/App.css';
 import CardGenerator from './components/CardGenerator/CardGenerator';
+
+// Component to conditionally render Footer
+const ConditionalFooter: React.FC = () => {
+  const location = useLocation();
+  const isCardGeneratorRoute = location.pathname === '/cardgenerator';
+
+  // Don't render Footer on CardGenerator route
+  if (isCardGeneratorRoute) {
+    return null;
+  }
+
+  return <Footer />;
+};
 
 const App: React.FC = () => {
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
@@ -56,7 +69,7 @@ const App: React.FC = () => {
               <Route path="/ruleslawyer" element={<RulesLawyer />} />
               <Route path="/cardgenerator" element={<CardGenerator />} />
             </Routes>
-            <Footer />
+            <ConditionalFooter />
           </div>
         </div>
       </Router>
