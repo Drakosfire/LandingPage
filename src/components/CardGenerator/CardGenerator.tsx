@@ -446,6 +446,7 @@ export default function CardGenerator() {
             const currentState = getCurrentState();
             const sessionBackup = {
                 state: currentState,
+                projectId: currentProject?.id, // Include projectId for proper recovery
                 timestamp: Date.now(),
                 userId: userId || 'anonymous'
             };
@@ -454,13 +455,21 @@ export default function CardGenerator() {
         } catch (error) {
             // Session backup failed silently
         }
-    }, [getCurrentState, userId]);
+    }, [getCurrentState, userId, currentProject?.id]);
 
     // Auto-save function with debouncing (now project-aware)
     const saveCurrentState = useCallback(async () => {
         if (isRestoringState.current || !initialLoadComplete.current) {
             console.log('💾 Auto-save SKIPPED: { isRestoringState:', isRestoringState.current, 'initialLoadComplete:', initialLoadComplete.current, '}');
             return; // Don't save during restoration or initial load
+        }
+
+        // Prevent auto-save during session recovery to avoid duplicate projects
+        const recoveredState = recoverFromLocalStorage();
+        const hasRecentSession = recoveredState && recoveredState.itemDetails?.name?.trim();
+        if (hasRecentSession && !currentProject?.id) {
+            console.log('💾 Auto-save SKIPPED: Session recovery in progress, preventing duplicate project creation');
+            return;
         }
 
         // Skip during project initialization ONLY if we don't have meaningful user content
@@ -562,7 +571,35 @@ export default function CardGenerator() {
                         })
                         .catch(error => {
                             console.warn('⚠️ Failed to restore currentProject from session:', error);
+                            // If project doesn't exist, create a new one with the recovered data
+                            createNewProject(recoveredState.itemDetails?.name || 'Recovered Project', 'Project recovered from session backup');
                         });
+                } else {
+                    // No projectId in session backup, but we have recovered data
+                    // Try to find an existing project with the same name first
+                    if (recoveredState.itemDetails?.name?.trim()) {
+                        console.info('No projectId in session backup, searching for existing project with same name');
+
+                        // Load available projects and search for matching name
+                        projectAPI.listProjects()
+                            .then(projects => {
+                                const matchingProject = projects.find(p =>
+                                    p.name.toLowerCase() === recoveredState.itemDetails.name.toLowerCase()
+                                );
+
+                                if (matchingProject) {
+                                    console.info('Found existing project with matching name:', matchingProject.name);
+                                    switchToProject(matchingProject.id);
+                                } else {
+                                    console.info('No matching project found, creating new project from recovered session data');
+                                    createNewProject(recoveredState.itemDetails.name, 'Project recovered from session backup');
+                                }
+                            })
+                            .catch(error => {
+                                console.warn('Failed to search for existing projects, creating new project:', error);
+                                createNewProject(recoveredState.itemDetails.name, 'Project recovered from session backup');
+                            });
+                    }
                 }
 
                 isRestoringState.current = false;
@@ -614,6 +651,8 @@ export default function CardGenerator() {
 
                         if (hasRecentSession) {
                             // Session recovery takes precedence over server state to preserve unsaved changes
+                            // Don't create a new project here - let the session recovery handle it
+                            console.info('Session recovery in progress, skipping project initialization');
                         } else {
                             // Load the most recently updated project
                             const sortedProjects = projects.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());

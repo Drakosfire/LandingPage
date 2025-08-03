@@ -58,11 +58,17 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
         }
     }, [selectedGeneratedCardImage, itemDetails, finalCardWithText]);
 
-    // Update local state when parent itemDetails change
+    // Update local state when parent itemDetails change (but only if we don't have unsaved changes)
     useEffect(() => {
-        setEditableDetails(itemDetails);
-        setHasUnsavedChanges(false);
-    }, [itemDetails]);
+        // Only update local state if we don't have unsaved changes
+        // This prevents overwriting user edits with stale parent data
+        if (!hasUnsavedChanges) {
+            console.log('🔄 Step5: Updating editableDetails from parent itemDetails');
+            setEditableDetails(itemDetails);
+        } else {
+            console.log('🔄 Step5: Skipping parent update due to unsaved changes');
+        }
+    }, [itemDetails, hasUnsavedChanges]);
 
     const handleRenderCardWithText = async (details: ItemDetails = editableDetails) => {
         if (!selectedGeneratedCardImage || !details) return;
@@ -113,11 +119,8 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                 onCardRendered(data.url, details.name || 'card');
             }
 
-            // Update parent state if callback provided
-            if (onItemDetailsChange) {
-                onItemDetailsChange(details);
-            }
-
+            // Note: Parent state is already updated via handleFieldChange calls
+            // Reset unsaved changes flag after successful render
             setHasUnsavedChanges(false);
         } catch (err) {
             console.error('Error rendering card with text:', err);
@@ -134,6 +137,11 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
         };
         setEditableDetails(updatedDetails);
         setHasUnsavedChanges(true);
+
+        // ✅ NEW: Immediately update parent state to trigger auto-save
+        if (onItemDetailsChange) {
+            onItemDetailsChange(updatedDetails);
+        }
     };
 
     const handlePropertyChange = (index: number, value: string) => {
@@ -220,8 +228,8 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                                             📝 Edit Card Text
                                         </Text>
                                         {hasUnsavedChanges && (
-                                            <Badge color="orange" variant="light">
-                                                Unsaved Changes
+                                            <Badge color="blue" variant="light">
+                                                Changes Pending
                                             </Badge>
                                         )}
                                     </Group>
@@ -346,7 +354,7 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                                         fullWidth
                                         size="md"
                                     >
-                                        {isRenderingText ? 'Applying Changes...' : 'Apply Changes & Re-render Card'}
+                                        {isRenderingText ? 'Rendering Card...' : 'Re-render Card with Changes'}
                                     </Button>
 
                                     {error && (
@@ -464,23 +472,6 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                             </Card>
                         </Grid.Col>
                     </Grid>
-                )}
-
-                {/* Completion Status */}
-                {finalCardWithText && (
-                    <div style={{
-                        textAlign: 'center',
-                        marginTop: 'var(--space-8)',
-                        paddingTop: 'var(--space-6)',
-                        borderTop: '1px solid var(--border-light)'
-                    }}>
-                        <Text size="xl" fw={600} color="green" mb="md">
-                            🎉 Card Creation Complete!
-                        </Text>
-                        <Text size="md" color="dimmed" mb="md">
-                            Your {editableDetails.name} card is ready. Use the Projects drawer to create another card or manage your collection.
-                        </Text>
-                    </div>
                 )}
             </div>
         </div>
