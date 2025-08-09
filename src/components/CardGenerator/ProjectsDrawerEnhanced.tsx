@@ -186,10 +186,11 @@ const ProjectsDrawerEnhanced: React.FC<ProjectsDrawerEnhancedProps> = ({
         setIsDeletingProject(true);
         try {
             await onDeleteProject(projectToDelete.id);
-            setIsDeleteModalOpen(false);
-            setProjectToDelete(null);
+            // Let the modal handle closing and cleanup
         } catch (error) {
             console.error('Failed to delete project:', error);
+            // Re-throw to let the modal handle the error state
+            throw error;
         } finally {
             setIsDeletingProject(false);
         }
@@ -431,7 +432,7 @@ const ProjectsDrawerEnhanced: React.FC<ProjectsDrawerEnhancedProps> = ({
                                                             </Text>
                                                         </Stack>
 
-                                                        {/* Enhanced Load Button */}
+                                                        {/* Enhanced Load Button and Actions */}
                                                         <Group gap="xs">
                                                             {isBeingLoaded ? (
                                                                 <Badge
@@ -466,6 +467,32 @@ const ProjectsDrawerEnhanced: React.FC<ProjectsDrawerEnhancedProps> = ({
                                                                     Load
                                                                 </Button>
                                                             )}
+
+                                                            {/* Prominent Delete Button */}
+                                                            <ActionIcon
+                                                                variant="subtle"
+                                                                color="red"
+                                                                size="sm"
+                                                                disabled={isDisabled}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    console.log('Delete clicked for project:', project.id, 'isCurrentProject:', isCurrentProject, 'isDisabled:', isDisabled);
+                                                                    handleDeleteClick(project);
+                                                                }}
+                                                                title={
+                                                                    isDisabled ?
+                                                                        "Cannot delete during generation" :
+                                                                        isCurrentProject ?
+                                                                            "Delete this active project (⚠️ Will clear current work)" :
+                                                                            "Delete this project"
+                                                                }
+                                                                style={{
+                                                                    opacity: isDisabled ? 0.5 : 1,
+                                                                    cursor: isDisabled ? 'not-allowed' : 'pointer'
+                                                                }}
+                                                            >
+                                                                <IconTrash size={isMobile ? 14 : 16} />
+                                                            </ActionIcon>
                                                         </Group>
                                                     </Group>
 
@@ -565,10 +592,15 @@ const ProjectsDrawerEnhanced: React.FC<ProjectsDrawerEnhancedProps> = ({
                 onClose={() => {
                     setIsDeleteModalOpen(false);
                     setProjectToDelete(null);
+                    setIsDeletingProject(false); // Reset loading state on close
                 }}
                 onConfirm={confirmDelete}
                 title="Delete Project"
-                message="Are you sure you want to delete this project?"
+                message={
+                    projectToDelete?.id === currentProjectId
+                        ? "⚠️ You are about to delete your ACTIVE project. This will clear your current work and cannot be undone."
+                        : "Are you sure you want to delete this project?"
+                }
                 itemName={projectToDelete?.name}
                 isLoading={isDeletingProject}
             />
