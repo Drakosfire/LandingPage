@@ -127,53 +127,25 @@ export default function CardGenerator() {
         }
     }, [currentProject?.id]);
 
-    // Clear all data on logout
+    // Soft-reset on logout: preserve in-progress work, only clear project bindings
     useEffect(() => {
-        // When user becomes unauthenticated, clear all state
+        // When user becomes unauthenticated, avoid destructive resets to prevent data loss from transient 401s
         if (!authState.isLoading && !authState.isAuthenticated && userId === null) {
-            console.log('🚪 User logged out - clearing all CardGenerator data');
+            console.log('🚪 User logged out - preserving CardGenerator work in session, clearing project bindings');
 
-            // Clear all state
+            // Detach from server-backed entities only
             setCurrentProject(null);
             setAvailableProjects([]);
             setProjects([]);
-            setItemDetails({
-                name: '',
-                type: '',
-                rarity: '',
-                value: '',
-                properties: [],
-                damageFormula: '',
-                damageType: '',
-                weight: '',
-                description: '',
-                quote: '',
-                sdPrompt: ''
-            });
-            setSelectedFinalImage('');
-            setSelectedBorder('');
-            setSelectedSeedImage('');
-            setTemplateBlob(null);
-            setGeneratedImages([]);
-            setGeneratedCardImages([]);
-            setSelectedGeneratedCardImage('');
-            setRenderedCards([]);
-            setFinalCardWithText('');
-            setCurrentStepId('text-generation');
 
-            // Clear localStorage backup
-            localStorage.removeItem('cardGenerator_sessionBackup');
-            localStorage.removeItem('cardGenerator_state');
+            // Do NOT clear itemDetails, images, rendered cards, or localStorage backups.
+            // Users can continue their work and re-authenticate to save.
 
-            // Reset refs
+            // Reset refs related to project saving/switching
             lastSavedProjectId.current = null;
             lastProjectSwitchTime.current = 0;
 
-            // Create new session
-            const initialState = createInitialState();
-            // setSessionId(initialState.sessionId); // Removed as per edit hint
-
-            console.log('🚪 CardGenerator data cleared on logout');
+            console.log('🚪 CardGenerator project bindings cleared on logout (state preserved)');
         }
     }, [authState.isLoading, authState.isAuthenticated, userId]);
 
