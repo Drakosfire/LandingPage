@@ -183,25 +183,25 @@ const Step3BorderGeneration: React.FC<Step3BorderGenerationProps> = ({
                     // Replace temporary URLs with permanent Cloudflare URLs
                     const permanentImageUrls = uploadData.uploaded_images.map((uploaded: any) => uploaded.permanent_url);
 
-                    setGeneratedImages(prevImages => {
-                        const updatedImages = [...permanentImageUrls, ...prevImages];
-                        onGeneratedImagesChange?.(updatedImages);
-                        return updatedImages;
-                    });
+                    // ✅ FIXED: Calculate updated images first, then update state and callback
+                    const updatedImages = [...permanentImageUrls, ...generatedImages];
+
+                    setGeneratedImages(updatedImages);
+                    onGeneratedImagesChange?.(updatedImages);
                 } else {
-                    setGeneratedImages(prevImages => {
-                        const updatedImages = [...tempImageUrls, ...prevImages];
-                        onGeneratedImagesChange?.(updatedImages);
-                        return updatedImages;
-                    });
+                    // ✅ FIXED: Calculate updated images first, then update state and callback
+                    const updatedImages = [...tempImageUrls, ...generatedImages];
+
+                    setGeneratedImages(updatedImages);
+                    onGeneratedImagesChange?.(updatedImages);
                 }
             } catch (uploadError) {
                 // Fallback to temporary URLs if upload fails
-                setGeneratedImages(prevImages => {
-                    const updatedImages = [...tempImageUrls, ...prevImages];
-                    onGeneratedImagesChange?.(updatedImages);
-                    return updatedImages;
-                });
+                // ✅ FIXED: Calculate updated images first, then update state and callback
+                const updatedImages = [...tempImageUrls, ...generatedImages];
+
+                setGeneratedImages(updatedImages);
+                onGeneratedImagesChange?.(updatedImages);
             }
 
         } catch (error) {

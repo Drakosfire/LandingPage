@@ -855,6 +855,8 @@ export default function CardGenerator() {
     };
 
     const handleCardRendered = (cardUrl: string, cardName: string) => {
+        console.log('🎯 handleCardRendered called with:', cardUrl, cardName);
+
         const newCard: RenderedCard = {
             url: cardUrl,
             id: Date.now().toString(),
@@ -865,6 +867,11 @@ export default function CardGenerator() {
 
         // Also update the final card state for Step 5 persistence
         setFinalCardWithText(cardUrl);
+
+        // ✅ NEW: Explicit save for Step 5 final card
+        console.log('💾 Step5: Explicit save triggered for final card rendered');
+        saveToLocalStorage();
+        debouncedSave();
     };
 
     // Project management functions
@@ -1068,14 +1075,20 @@ export default function CardGenerator() {
             }
         });
 
-        // Let the normal debounced auto-save handle this
-        // Removed immediate save to prevent race conditions
+        // ✅ NEW: Explicit save for Step 3 data changes
+        console.log('💾 Step3: Explicit save triggered for generated images change');
+        saveToLocalStorage();
+        debouncedSave();
     };
+
     const handleSelectedGeneratedCardImageChange = (image: string) => {
+        console.log('🎯 handleSelectedGeneratedCardImageChange called with:', image);
         setSelectedGeneratedCardImage(image);
 
-        // Let the normal debounced auto-save handle this
-        // Removed immediate save to prevent race conditions
+        // ✅ NEW: Explicit save for Step 3 selection changes
+        console.log('💾 Step3: Explicit save triggered for selected image change');
+        saveToLocalStorage();
+        debouncedSave();
     };
 
     // Navigation handlers
@@ -1085,20 +1098,38 @@ export default function CardGenerator() {
             console.log('🔒 Navigation blocked - generation in progress:', generationLocks);
             return;
         }
+
+        console.log('🔄 Step navigation: Saving state before moving to step:', stepId);
+        // Explicitly save current state before navigation
+        saveToLocalStorage();
+        debouncedSave();
+
         setCurrentStepId(stepId);
     };
 
     const handleNext = () => {
         const currentIndex = steps.findIndex(step => step.id === currentStepId);
         if (currentIndex < steps.length - 1) {
-            setCurrentStepId(steps[currentIndex + 1].id);
+            const nextStepId = steps[currentIndex + 1].id;
+            console.log('🔄 Next step: Saving state before moving to:', nextStepId);
+            // Explicitly save current state before navigation
+            saveToLocalStorage();
+            debouncedSave();
+
+            setCurrentStepId(nextStepId);
         }
     };
 
     const handlePrevious = () => {
         const currentIndex = steps.findIndex(step => step.id === currentStepId);
         if (currentIndex > 0) {
-            setCurrentStepId(steps[currentIndex - 1].id);
+            const prevStepId = steps[currentIndex - 1].id;
+            console.log('🔄 Previous step: Saving state before moving to:', prevStepId);
+            // Explicitly save current state before navigation
+            saveToLocalStorage();
+            debouncedSave();
+
+            setCurrentStepId(prevStepId);
         }
     };
 
