@@ -193,21 +193,6 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
         handleRenderCardWithText(editableDetails);
     };
 
-    const handleDownload = async (format: 'png' | 'pdf') => {
-        if (!finalCardWithText) return;
-
-        try {
-            const link = document.createElement('a');
-            link.href = finalCardWithText;
-            link.download = `${editableDetails.name || 'card'}.${format}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error('Download failed:', error);
-        }
-    };
-
     const getCompletionPercentage = () => {
         let completed = 0;
         const total = 3; // Card selected, text rendered, ready to download
@@ -553,24 +538,19 @@ const Step5FinalAssembly: React.FC<Step5FinalAssemblyProps> = ({
                                                                 }}
                                                                 showExpandButton={true}
                                                                 expandButtonPosition="top-right"
+                                                                showOpenInTab={true}
                                                                 downloadFilename={`${editableDetails.name || 'final-card'}.png`}
                                                             />
 
-                                                            {/* Download Options */}
+                                                            {/* Open in New Tab Button */}
                                                             <Group justify="center" mt="md">
                                                                 <Button
-                                                                    onClick={() => handleDownload('png')}
+                                                                    onClick={() => window.open(finalCardWithText, '_blank')}
                                                                     variant="filled"
                                                                     size="sm"
+                                                                    leftSection={<IconDownload size={16} />}
                                                                 >
-                                                                    📥 Download PNG
-                                                                </Button>
-                                                                <Button
-                                                                    onClick={() => handleDownload('pdf')}
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                >
-                                                                    📄 Download PDF
+                                                                    Open in New Tab
                                                                 </Button>
                                                             </Group>
                                                         </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Image, ActionIcon, Group, Text, Stack } from '@mantine/core';
-import { IconX, IconDownload, IconMaximize } from '@tabler/icons-react';
+import { IconX, IconExternalLink, IconMaximize } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 
 interface ImageModalProps {
@@ -12,8 +12,8 @@ interface ImageModalProps {
     title?: string;
     /** Description to display below the image */
     description?: string;
-    /** Whether to show download button */
-    showDownload?: boolean;
+    /** Whether to show open in tab button */
+    showOpenInTab?: boolean;
     /** Custom download filename */
     downloadFilename?: string;
     /** Modal size - can be 'sm', 'md', 'lg', 'xl', or 'full' */
@@ -31,20 +31,16 @@ const ImageModal: React.FC<ImageModalProps> = ({
     altText = 'Image',
     title,
     description,
-    showDownload = true,
+    showOpenInTab = true,
     downloadFilename,
     size = 'lg',
     opened,
     onClose,
     className
 }) => {
-    const handleDownload = () => {
-        const link = document.createElement('a');
-        link.href = imageUrl;
-        link.download = downloadFilename || `image-${Date.now()}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const handleOpenInTab = () => {
+        // Open the image in a new tab
+        window.open(imageUrl, '_blank');
     };
 
     return (
@@ -75,7 +71,7 @@ const ImageModal: React.FC<ImageModalProps> = ({
                     />
                 </div>
 
-                {(description || showDownload) && (
+                {(description || showOpenInTab) && (
                     <Group justify="space-between" className="border-t border-gray-200 pt-4">
                         {description && (
                             <Text size="sm" c="dimmed" className="flex-1">
@@ -83,15 +79,15 @@ const ImageModal: React.FC<ImageModalProps> = ({
                             </Text>
                         )}
 
-                        {showDownload && (
+                        {showOpenInTab && (
                             <ActionIcon
                                 variant="subtle"
                                 color="blue"
-                                onClick={handleDownload}
-                                title="Download image"
+                                onClick={handleOpenInTab}
+                                title="Open image in new tab"
                                 size="lg"
                             >
-                                <IconDownload size={20} />
+                                <IconExternalLink size={20} />
                             </ActionIcon>
                         )}
                     </Group>

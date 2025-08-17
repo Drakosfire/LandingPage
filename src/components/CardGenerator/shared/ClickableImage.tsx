@@ -25,8 +25,8 @@ interface ClickableImageProps {
     clickable?: boolean;
     /** Custom click handler */
     onClick?: () => void;
-    /** Whether to show download in modal */
-    showDownload?: boolean;
+    /** Whether to show open in tab button in modal */
+    showOpenInTab?: boolean;
     /** Modal size */
     modalSize?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
     /** Custom style for the image element */
@@ -44,7 +44,7 @@ const ClickableImage: React.FC<ClickableImageProps> = ({
     expandButtonPosition = 'top-right',
     clickable = true,
     onClick,
-    showDownload = true,
+    showOpenInTab = true,
     modalSize = 'lg',
     style
 }) => {
@@ -138,7 +138,7 @@ const ClickableImage: React.FC<ClickableImageProps> = ({
                 title={modalState.title}
                 description={modalState.description}
                 downloadFilename={modalState.downloadFilename}
-                showDownload={showDownload}
+                showOpenInTab={showOpenInTab}
                 size={modalSize}
                 opened={modalState.opened}
                 onClose={closeModal}
