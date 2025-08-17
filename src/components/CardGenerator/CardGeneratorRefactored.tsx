@@ -156,8 +156,6 @@ export default function CardGeneratorRefactored() {
 
     // Auto-save setup
     useEffect(() => {
-        if (!isLoggedIn || !userId) return;
-
         const currentState: CardGeneratorState = {
             currentStepId: stepNavigation.currentStepId,
             stepCompletion: {},
@@ -179,10 +177,9 @@ export default function CardGeneratorRefactored() {
             lastSaved: new Date().toISOString()
         };
 
+        // Auto-save works for both logged-in and non-logged-in users
         sessionManager.setupAutoSave(currentState);
     }, [
-        isLoggedIn,
-        userId,
         stepNavigation.currentStepId,
         itemDetails,
         selectedFinalImage,
@@ -200,18 +197,18 @@ export default function CardGeneratorRefactored() {
     // Initialize session and projects on mount
     useEffect(() => {
         const initializeApp = async () => {
-            if (!isLoggedIn || !userId) return;
-
             console.log('🚀 Initializing CardGenerator...');
 
-            // Load session first
+            // Load session first (works for both logged-in and non-logged-in users)
             const session = await sessionManager.loadSession();
             if (session) {
                 restoreProjectState(session);
             }
 
-            // Then load projects
-            await projectManager.loadProjects();
+            // Only load projects if user is logged in
+            if (isLoggedIn && userId) {
+                await projectManager.loadProjects();
+            }
 
             console.log('🚀 CardGenerator initialization complete');
         };

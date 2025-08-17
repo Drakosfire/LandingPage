@@ -127,11 +127,30 @@ export default function CardGenerator() {
         }
     }, [currentProject?.id]);
 
+    // Track previous auth state to detect real logout vs refresh
+    const previousAuthState = useRef<{ isAuthenticated: boolean; userId: string | null }>({
+        isAuthenticated: false,
+        userId: null
+    });
+
     // Clear all data on logout
     useEffect(() => {
-        // When user becomes unauthenticated, clear all state
-        if (!authState.isLoading && !authState.isAuthenticated && userId === null) {
+        // Only clear data if:
+        // 1. Auth check is complete (not loading)
+        // 2. User is currently not authenticated
+        // 3. User was previously authenticated (indicating a real logout, not a refresh)
+        const wasPreviouslyAuthenticated = previousAuthState.current.isAuthenticated;
+        const wasPreviouslyLoggedIn = previousAuthState.current.userId !== null;
+
+        if (!authState.isLoading && !authState.isAuthenticated && userId === null && wasPreviouslyAuthenticated) {
             console.log('🚪 User logged out - clearing all CardGenerator data');
+            console.log('🚪 Auth state change:', {
+                wasPreviouslyAuthenticated,
+                wasPreviouslyLoggedIn,
+                currentAuthState: authState.isAuthenticated,
+                currentUserId: userId,
+                isLoading: authState.isLoading
+            });
 
             // Clear all state
             setCurrentProject(null);
@@ -175,6 +194,28 @@ export default function CardGenerator() {
 
             console.log('🚪 CardGenerator data cleared on logout');
         }
+
+        // Debug logging for auth state changes
+        if (authState.isAuthenticated !== previousAuthState.current.isAuthenticated || userId !== previousAuthState.current.userId) {
+            console.log('🔍 Auth state changed:', {
+                previous: {
+                    isAuthenticated: previousAuthState.current.isAuthenticated,
+                    userId: previousAuthState.current.userId
+                },
+                current: {
+                    isAuthenticated: authState.isAuthenticated,
+                    userId: userId,
+                    isLoading: authState.isLoading
+                },
+                willClearData: !authState.isLoading && !authState.isAuthenticated && userId === null && wasPreviouslyAuthenticated
+            });
+        }
+
+        // Update previous auth state
+        previousAuthState.current = {
+            isAuthenticated: authState.isAuthenticated,
+            userId: userId
+        };
     }, [authState.isLoading, authState.isAuthenticated, userId]);
 
 

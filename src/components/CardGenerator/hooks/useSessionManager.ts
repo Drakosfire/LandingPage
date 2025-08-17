@@ -118,10 +118,6 @@ export const useSessionManager = (
 
     // Setup auto-save with debouncing
     const setupAutoSave = useCallback((state: CardGeneratorState) => {
-        if (!isLoggedIn || !userId) {
-            return;
-        }
-
         // Clear existing timeout
         if (autoSaveTimeoutRef.current) {
             clearTimeout(autoSaveTimeoutRef.current);
@@ -129,7 +125,18 @@ export const useSessionManager = (
 
         // Set up new auto-save with 2 second debounce
         const debouncedSave = debounce(() => {
-            saveSession(state);
+            if (isLoggedIn && userId) {
+                // Save to server for logged-in users
+                saveSession(state);
+            } else {
+                // Save to localStorage for non-logged-in users
+                try {
+                    localStorage.setItem('cardGenerator_state', JSON.stringify(state));
+                    console.log('💾 Auto-saved to localStorage');
+                } catch (error) {
+                    console.warn('💾 Failed to save to localStorage:', error);
+                }
+            }
         }, 2000);
 
         // Store the timeout ID for cleanup
