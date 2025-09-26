@@ -33,3 +33,11 @@ export const DUNGEONMIND_API_URL = (() => {
     }
 })();
 
+// Base URL for DnD statblock CSS assets (served by server or CDN)
+// Never hardcode paths; prefer env var REACT_APP_DND_CSS_BASE_URL [[memory:6447958]]
+export const DND_CSS_BASE_URL = (() => {
+    const envUrl = process.env.REACT_APP_DND_CSS_BASE_URL;
+    if (envUrl) return envUrl.replace(/\/$/, '');
+    return '';
+})();
+

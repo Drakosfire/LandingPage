@@ -16,14 +16,16 @@ import BlogPost from './Blog/BlogPost';
 import RulesLawyer from './components/RulesLawyer';
 import './styles/App.css';
 import CardGenerator from './components/CardGenerator/CardGenerator';
+import StatBlockGenerator from './components/StatBlockGenerator/StatBlockGenerator';
 
 // Component to conditionally render Footer
 const ConditionalFooter: React.FC = () => {
   const location = useLocation();
   const isCardGeneratorRoute = location.pathname === '/cardgenerator';
+  const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
 
-  // Don't render Footer on CardGenerator route
-  if (isCardGeneratorRoute) {
+  // Don't render Footer on generator routes
+  if (isCardGeneratorRoute || isStatBlockGeneratorRoute) {
     return null;
   }
 
@@ -31,14 +33,12 @@ const ConditionalFooter: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const [healthStatus, setHealthStatus] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchHealthStatus = async () => {
       try {
         const response = await fetch(`${DUNGEONMIND_API_URL}/health`);
         const data = await response.json();
-        setHealthStatus(data.status);
+        console.log('API Health Status:', data.status);
       } catch (error) {
         console.error('Error fetching health status:', error);
       }
@@ -72,6 +72,7 @@ const App: React.FC = () => {
                 <Route path="/blog/:id" element={<BlogPost />} />
                 <Route path="/ruleslawyer" element={<RulesLawyer />} />
                 <Route path="/cardgenerator" element={<CardGenerator />} />
+                <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
               </Routes>
               <ConditionalFooter />
             </div>
