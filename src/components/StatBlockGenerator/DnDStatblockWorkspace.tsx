@@ -1,17 +1,139 @@
 import React from 'react';
-import { Card } from '@mantine/core';
+
 import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { DND_CSS_BASE_URL } from '../../config';
+import type { Action } from '../../types/statblock.types';
 
 interface DnDStatblockWorkspaceProps {
     height?: number | string;
 }
 
 const DnDStatblockWorkspace: React.FC<DnDStatblockWorkspaceProps> = ({ height = 700 }) => {
-    const { creatureDetails, updateCreatureDetails } = useStatBlockGenerator();
+    const {
+        creatureDetails,
+        selectedAssets,
+        updateCreatureDetails,
+    } = useStatBlockGenerator();
 
-    // Helper to render a value or placeholder
-    const val = (v: any, placeholder = '—') => (v === null || v === undefined || v === '' ? placeholder : v);
+    const getSelectedImage = () => {
+        if (selectedAssets?.creatureImage) return selectedAssets.creatureImage;
+        if (typeof selectedAssets?.selectedImageIndex === 'number') {
+            return selectedAssets.generatedImages?.[selectedAssets.selectedImageIndex];
+        }
+        return selectedAssets?.generatedImages?.[0];
+    };
+
+    const formatModifier = (value?: number) => {
+        if (value === null || value === undefined || Number.isNaN(value)) return '—';
+        return value >= 0 ? `+${value}` : `${value}`;
+    };
+
+    const abilityMod = (score?: number) => {
+        if (score === null || score === undefined || Number.isNaN(score)) return undefined;
+        return Math.floor((Number(score) - 10) / 2);
+    };
+
+    const setNumericField = <T extends Record<string, number | undefined>>(
+        current: T | undefined,
+        key: keyof T,
+        text: string
+    ): T => {
+        const next = { ...(current || {}) } as any;
+        if (text === '') {
+            delete next[key];
+        } else {
+            const value = Number(text);
+            if (Number.isNaN(value)) {
+                delete next[key];
+            } else {
+                next[key] = value;
+            }
+        }
+        return next;
+    };
+
+    const updateActionListItem = (
+        key: 'specialAbilities' | 'actions' | 'bonusActions' | 'reactions',
+        index: number,
+        updates: Partial<Action>
+    ) => {
+        const current = (creatureDetails[key] || []) as Action[];
+        const next = [...current];
+        next[index] = { ...next[index], ...updates } as Action;
+        updateCreatureDetails({ [key]: next } as Partial<typeof creatureDetails>);
+    };
+
+    const renderActionSection = (
+        key: 'specialAbilities' | 'actions' | 'bonusActions' | 'reactions',
+        heading: string,
+        sectionId: string
+    ) => {
+        const entries = creatureDetails[key];
+        if (!entries || entries.length === 0) return null;
+
+        return (
+            <>
+                <h4 id={sectionId}>{heading}</h4>
+                <dl>
+                    {entries.map((entry, idx) => (
+                        <React.Fragment key={`${sectionId}-${idx}`}>
+                            <dt>
+                                <em><strong>
+                                    <EditableText
+                                        value={entry.name}
+                                        placeholder="Action Name"
+                                        onChange={(text) => updateActionListItem(key, idx, { name: text })}
+                                    />
+                                </strong></em> :</dt>
+                            <dd>
+                                <EditableText
+                                    value={entry.desc}
+                                    placeholder="Description"
+                                    onChange={(text) => updateActionListItem(key, idx, { desc: text })}
+                                />
+                                {entry.attackBonus !== undefined ? (
+                                    <span>
+                                        {' '}
+                                        <EditableText
+                                            value={formatModifier(entry.attackBonus)}
+                                            placeholder="Attack Bonus"
+                                            onChange={(text) => {
+                                                const numeric = text === '' ? undefined : Number(text);
+                                                updateActionListItem(key, idx, {
+                                                    attackBonus: Number.isNaN(numeric as number) ? undefined : numeric
+                                                });
+                                            }}
+                                        />
+                                    </span>
+                                ) : null}
+                                {entry.damage ? (
+                                    <span>
+                                        {' '}
+                                        <EditableText
+                                            value={entry.damage}
+                                            placeholder="Damage"
+                                            onChange={(text) => updateActionListItem(key, idx, { damage: text })}
+                                        />
+                                    </span>
+                                ) : null}
+                                {entry.recharge ? (
+                                    <span>
+                                        {' '}
+                                        (<EditableText
+                                            value={entry.recharge}
+                                            placeholder="Recharge"
+                                            onChange={(text) => updateActionListItem(key, idx, { recharge: text })}
+                                        />)
+                                    </span>
+                                ) : null}
+                            </dd>
+                            <br />
+                        </React.Fragment>
+                    ))}
+                </dl>
+            </>
+        );
+    };
 
     // Inline editable span that preserves PHB styles
     const EditableText: React.FC<{
