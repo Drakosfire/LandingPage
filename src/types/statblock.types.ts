@@ -32,6 +32,7 @@ export interface SpeedObject {
 }
 
 export interface SensesObject {
+    [sense: string]: number | undefined;
     blindsight?: number;
     darkvision?: number;
     tremorsense?: number;
@@ -77,12 +78,19 @@ export interface Action {
     damageType?: string;
     range?: string;
     recharge?: string; // "5-6", "6", etc.
+    usage?: string;
+    location?: {
+        page: number;
+        column: 1 | 2;
+    };
 }
 
 export interface Spell {
     name: string;
     level: number;
     school?: string;
+    usage?: string;
+    description?: string;
 }
 
 export interface SpellSlots {
@@ -110,6 +118,7 @@ export interface SpellcastingBlock {
 export interface LegendaryActionsBlock {
     actionsPerTurn: number;
     actions: Action[];
+    description?: string;
 }
 
 export interface LairActionsBlock {

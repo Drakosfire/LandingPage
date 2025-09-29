@@ -1,194 +1,344 @@
-.dm-statblock-responsive {
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 0 1rem;
-    box-sizing: border-box;
-}
+ .dm-statblock-responsive {
+     width: 100%;
+     max-width: 100%;
+     margin: 0 auto;
+     padding: 0 1rem;
+     box-sizing: border-box;
+ }
 
-.dm-statblock-page {
-    position: relative;
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: cover;
-    border-radius: 6px;
-    color: #2b1d0f;
-}
+ .brewRenderer {
+     width: var(--dm-page-width);
+     margin: 0 auto;
+ }
 
-.dm-statblock-page::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.15);
-    pointer-events: none;
-}
+ .pages {
+     display: flex;
+     flex-direction: column;
+     gap: 48px;
+ }
 
-.dm-column-layout {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
+ .page.phb {
+     width: var(--dm-page-width);
+     height: var(--dm-page-height);
+ }
 
-.dm-component-wrapper {
-    font-family: inherit;
-}
+ .dm-statblock-measurement-layer .page.phb {
+     transform: none !important;
+     margin: 0;
+ }
 
-.dm-portrait-panel {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.55);
-    border: 3px solid rgba(0, 0, 0, 0.6);
-    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.25);
-    overflow: hidden;
-}
+ .dm-statblock-page {
+     position: relative;
+     background-repeat: no-repeat;
+     background-position: center center;
+     background-size: cover;
+     border-radius: 6px;
+     color: #2b1d0f;
+ }
 
-.dm-portrait-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    mix-blend-mode: multiply;
-}
+ .dm-statblock-page::before {
+     content: '';
+     position: absolute;
+     inset: 0;
+     background: rgba(255, 255, 255, 0.15);
+     pointer-events: none;
+ }
 
-.dm-portrait-placeholder {
-    font-family: 'NodestoCapsCondensed', serif;
-    font-size: 1.4rem;
-    text-transform: uppercase;
-    color: rgba(88, 24, 13, 0.8);
-}
+ .dm-column-layout {
+     position: relative;
+     width: 100%;
+     height: 100%;
+ }
 
-.dm-identity-header {
-    text-align: left;
-    color: #58180d;
-}
+ .dm-component-wrapper {
+     font-family: inherit;
+ }
 
-.dm-monster-name {
-    font-family: 'BookInsanityRemake', 'NodestoCapsCondensed', serif;
-    font-size: 2.2rem;
-    letter-spacing: 0.02em;
-    margin: 0;
-    line-height: 1.1;
-}
+ .dm-portrait-panel {
+     width: 100%;
+     height: 100%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     background: rgba(255, 255, 255, 0.55);
+     border: 3px solid rgba(0, 0, 0, 0.6);
+     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.25);
+     overflow: hidden;
+ }
 
-.dm-monster-meta {
-    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-    font-size: 1rem;
-    margin: 0.3rem 0 0;
-    color: #2b1d0f;
-}
+ .dm-portrait-image {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+     mix-blend-mode: multiply;
+ }
 
-.dm-stat-summary {
-    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-    font-size: 0.95rem;
-    background: rgba(255, 255, 255, 0.65);
-    padding: 0.75rem 1rem;
-    border-radius: 4px;
-    border-left: 4px solid #a11d18;
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-}
+ .dm-portrait-placeholder {
+     font-family: 'NodestoCapsCondensed', serif;
+     font-size: 1.4rem;
+     text-transform: uppercase;
+     color: rgba(88, 24, 13, 0.8);
+ }
 
-.dm-stat-summary dt {
-    font-weight: 700;
-    color: #58180d;
-}
+ .dm-pagination-marker {
+     font-family: 'BookInsanityRemake', serif;
+     font-size: 0.95rem;
+     text-transform: uppercase;
+     letter-spacing: 0.05em;
+     color: rgba(88, 24, 13, 0.8);
+     text-align: right;
+     margin-bottom: 0.75rem;
+ }
 
-.dm-stat-summary dd {
-    font-weight: 600;
-    margin-bottom: 0.4rem;
-}
+ .monster-portrait {
+     text-align: center;
+     margin: 0.35cm auto;
+     max-width: 100%;
+ }
 
-.dm-quickfacts {
-    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-    font-size: 0.95rem;
-    background: rgba(255, 249, 237, 0.8);
-    padding: 0.5rem 0.8rem;
-    border-radius: 4px;
-    border-left: 4px solid rgba(161, 29, 24, 0.8);
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
-}
+ .monster-portrait__image {
+     display: inline-block;
+     max-width: 100%;
+     height: auto;
+     border: 2px solid rgba(34, 20, 12, 0.4);
+     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+     mix-blend-mode: multiply;
+ }
 
-.dm-quickfacts-row {
-    display: flex;
-    gap: 0.3rem;
-    margin-bottom: 0.25rem;
-}
+ .monster-portrait__placeholder {
+     display: inline-block;
+     padding: 0.5rem 1rem;
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+     font-size: 0.95rem;
+     color: rgba(34, 20, 12, 0.75);
+     border: 1px dashed rgba(34, 20, 12, 0.35);
+     background-color: rgba(255, 249, 237, 0.65);
+ }
 
-.dm-quickfacts-row strong {
-    color: #58180d;
-    font-weight: 700;
-}
+ .dm-identity-header {
+     text-align: left;
+     color: #58180d;
+ }
 
-.dm-quickfacts-row span {
-    font-weight: 600;
-}
+ .dm-monster-name {
+     font-family: 'BookInsanityRemake', 'NodestoCapsCondensed', serif;
+     font-size: 2.2rem;
+     letter-spacing: 0.02em;
+     margin: 0;
+     line-height: 1.1;
+ }
 
-.dm-action-section {
-    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-    background: rgba(255, 255, 255, 0.7);
-    padding: 0.8rem 1rem;
-    border-radius: 4px;
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-}
+ .dm-monster-meta {
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+     font-size: 1rem;
+     margin: 0.3rem 0 0;
+     color: #2b1d0f;
+ }
 
-.dm-section-heading {
-    font-family: 'BookInsanityRemake', serif;
-    color: #a11d18;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: 0 0 0.6rem;
-}
+ .dm-stat-summary {
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+     font-size: 0.95rem;
+     background: rgba(255, 255, 255, 0.65);
+     padding: 0.75rem 1rem;
+     border-radius: 4px;
+     border-left: 4px solid #a11d18;
+     box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+ }
 
-.dm-action-row {
-    margin-bottom: 0.35rem;
-}
+ .dm-stat-summary dt {
+     font-weight: 700;
+     color: #58180d;
+ }
 
-.dm-action-row dt {
-    margin-right: 0.4rem;
-    color: #58180d;
-}
+ .dm-stat-summary dd {
+     font-weight: 600;
+     margin-bottom: 0.4rem;
+ }
 
-.dm-action-row dd {
-    color: #2b1d0f;
-}
+ .dm-quickfacts {
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+     font-size: 0.95rem;
+     background: rgba(255, 249, 237, 0.8);
+     padding: 0.5rem 0.8rem;
+     border-radius: 4px;
+     border-left: 4px solid rgba(161, 29, 24, 0.8);
+     box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+ }
 
-.dm-ability-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
-    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-    font-size: 0.95rem;
-    background: rgba(247, 235, 215, 0.85);
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-}
+ .dm-quickfacts-row {
+     display: flex;
+     gap: 0.3rem;
+     margin-bottom: 0.25rem;
+ }
 
-.dm-ability-table th {
-    background: linear-gradient(180deg, rgba(143, 36, 28, 0.9) 0%, rgba(90, 22, 18, 0.9) 100%);
-    color: #fdf6ea;
-    padding: 0.4rem 0;
-    font-weight: 700;
-}
+ .dm-quickfacts-row strong {
+     color: #58180d;
+     font-weight: 700;
+ }
 
-.dm-ability-table td {
-    padding: 0.5rem 0;
-    color: #2b1d0f;
-}
+ .dm-quickfacts-row span {
+     font-weight: 600;
+ }
 
-.dm-ability-value {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.2rem;
-    font-weight: 700;
-}
+ .dm-action-section,
+ .dm-trait-section,
+ .dm-bonus-action-section,
+ .dm-reaction-section,
+ .dm-legendary-section,
+ .dm-lair-section,
+ .dm-spellcasting-section {
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+     background: rgba(255, 255, 255, 0.7);
+     padding: 0.8rem 1rem;
+     border-radius: 4px;
+     box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+     margin-bottom: 0.6rem;
+ }
 
-.dm-ability-value span:last-child {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #58180d;
-}
+ .dm-section-heading {
+     font-family: 'BookInsanityRemake', serif;
+     color: #a11d18;
+     text-transform: uppercase;
+     letter-spacing: 0.05em;
+     margin: 0 0 0.6rem;
+ }
 
-.dm-canvas-fallback .mantine-Text-root {
-    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-}
+ .dm-action-list {
+     margin: 0;
+     padding: 0;
+ }
+
+ .dm-action-term {
+     font-family: 'BookInsanityRemake', serif;
+     font-size: 1.05rem;
+     margin: 0;
+     color: #58180d;
+ }
+
+ .dm-action-term strong {
+     font-weight: 700;
+ }
+
+ .dm-action-description {
+     margin: 0.25rem 0 0.5rem;
+     color: #2b1d0f;
+     line-height: 1.35;
+ }
+
+ .dm-action-divider {
+     height: 1px;
+     width: 100%;
+     background: rgba(88, 24, 13, 0.25);
+     margin: 0.4rem 0 0.6rem;
+ }
+
+ .dm-legendary-summary,
+ .dm-lair-summary,
+ .dm-spellcasting-summary {
+     margin: 0.4rem 0 0.6rem;
+     font-style: italic;
+     color: rgba(43, 29, 15, 0.9);
+ }
+
+ .dm-spellcasting-table {
+     width: 100%;
+     border-collapse: collapse;
+     margin-top: 0.4rem;
+ }
+
+ .dm-spellcasting-table th,
+ .dm-spellcasting-table td {
+     text-align: left;
+     padding: 0.3rem 0.4rem;
+     border-bottom: 1px solid rgba(88, 24, 13, 0.2);
+ }
+
+ .dm-spellcasting-table th {
+     background: rgba(161, 29, 24, 0.12);
+     font-weight: 700;
+     color: #58180d;
+ }
+
+ .dm-spellcasting-list-section {
+     margin-top: 0.75rem;
+ }
+
+ .dm-spellcasting-subheading {
+     font-family: 'BookInsanityRemake', serif;
+     color: #58180d;
+     margin: 0 0 0.4rem;
+     font-size: 1rem;
+     text-transform: uppercase;
+     letter-spacing: 0.04em;
+ }
+
+ .dm-spellcasting-deflist {
+     margin: 0;
+     padding: 0;
+ }
+
+ .dm-spellcasting-term {
+     display: flex;
+     flex-direction: column;
+     font-family: 'BookInsanityRemake', serif;
+     color: #58180d;
+ }
+
+ .dm-spellcasting-term strong {
+     font-size: 1.05rem;
+ }
+
+ .dm-spellcasting-meta {
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+     font-size: 0.85rem;
+     color: rgba(43, 29, 15, 0.75);
+     margin-top: 0.15rem;
+ }
+
+ .dm-spellcasting-description {
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+     font-size: 0.9rem;
+     line-height: 1.35;
+     margin: 0.25rem 0 0.6rem;
+     color: #2b1d0f;
+ }
+
+ .dm-ability-table {
+     width: 100%;
+     border-collapse: collapse;
+     text-align: center;
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+     font-size: 0.95rem;
+     background: rgba(247, 235, 215, 0.85);
+     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+ }
+
+ .dm-ability-table th {
+     background: linear-gradient(180deg, rgba(143, 36, 28, 0.9) 0%, rgba(90, 22, 18, 0.9) 100%);
+     color: #fdf6ea;
+     padding: 0.4rem 0;
+     font-weight: 700;
+ }
+
+ .dm-ability-table td {
+     padding: 0.5rem 0;
+     color: #2b1d0f;
+ }
+
+ .dm-ability-value {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     gap: 0.2rem;
+     font-weight: 700;
+ }
+
+ .dm-ability-value span:last-child {
+     font-size: 0.85rem;
+     font-weight: 600;
+     color: #58180d;
+ }
+
+ .dm-canvas-fallback .mantine-Text-root {
+     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+ }

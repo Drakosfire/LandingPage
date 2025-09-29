@@ -1,16 +1,20 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import type {
     CanvasComponentProps,
-    ComponentInstance,
     ComponentRegistryEntry,
     PageVariables,
     StatblockPageDocument,
     TemplateConfig,
-    TemplateSlot
 } from '../../types/statblockCanvas.types';
 import { DND_CSS_BASE_URL } from '../../config';
 import '../../styles/StatblockCanvas.css';
+import type { CanvasLayoutEntry } from '../../canvas/layout/types';
+import { CanvasLayoutProvider } from '../../canvas/layout/state';
+import { useCanvasLayout } from '../../canvas/hooks/useCanvasLayout';
+import { CanvasPage } from '../../canvas/components/CanvasPage';
+import { MeasurementLayer } from '../../canvas/layout/measurement';
+import type { BasePageDimensions } from '../../canvas/layout/utils';
 
 interface StatblockPageProps {
     page: StatblockPageDocument;
@@ -18,107 +22,62 @@ interface StatblockPageProps {
     componentRegistry: Record<string, ComponentRegistryEntry>;
 }
 
-const PX_PER_INCH = 96;
-const MM_PER_INCH = 25.4;
 const MIN_SCALE = 0.35;
 const MAX_SCALE = 2.5;
-
-const dimensionToPx = (value: number, unit: 'px' | 'mm' | 'in'): number => {
-    switch (unit) {
-        case 'px':
-            return value;
-        case 'in':
-            return value * PX_PER_INCH;
-        case 'mm':
-            return (value / MM_PER_INCH) * PX_PER_INCH;
-        default:
-            return value;
-    }
-};
+const PAGE_GAP_PX = 48;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-const ColumnLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="columnWrapper">
-        {children}
-    </div>
-);
-
-const formatDimension = (value: number, unit: 'px' | 'mm' | 'in') => `${value}${unit}`;
-
-const getSlotPosition = (instance: ComponentInstance, template: TemplateConfig): TemplateSlot['position'] | undefined => {
-    if (instance.layout.position) return instance.layout.position;
-    if (!instance.layout.slotId) return undefined;
-    return template.slots.find((slot) => slot.id === instance.layout.slotId)?.position;
-};
-
-const renderComponent = (
-    instance: ComponentInstance,
+const renderEntry = (
+    entry: CanvasLayoutEntry,
     registry: Record<string, ComponentRegistryEntry>,
-    props: Omit<CanvasComponentProps, 'id' | 'dataRef' | 'variables' | 'layout'>
+    props: Omit<CanvasComponentProps, 'id' | 'dataRef' | 'layout'>
 ) => {
-    const entry = registry[instance.type];
-    if (!entry) {
+    const registryEntry = registry[entry.instance.type];
+    if (!registryEntry) {
         return null;
     }
 
-    const Component = entry.component;
+    const Component = registryEntry.component;
+    const region = entry.region
+        ? {
+            ...entry.region,
+            index: entry.region.index ?? 0,
+        }
+        : undefined;
+
     return (
         <Component
-            id={instance.id}
-            dataRef={instance.dataRef}
-            variables={instance.variables}
-            layout={instance.layout}
+            id={entry.instance.id}
+            dataRef={entry.instance.dataRef}
+            variables={entry.instance.variables}
+            layout={entry.instance.layout}
+            region={region}
+            regionContent={entry.regionContent}
+            regionOverflow={Boolean(entry.overflow)}
             {...props}
         />
     );
 };
 
-const StatblockPage: React.FC<StatblockPageProps> = ({ page, template, componentRegistry }) => {
+const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, componentRegistry }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
 
-    useEffect(() => {
-        if (!DND_CSS_BASE_URL) {
-            return undefined;
-        }
-        //TODO: Make configurable if that can be done securely.
-        const cssFiles = ['all.css', 'bundle.css', 'style.css', '5ePHBstyle.css'];
-        const appendedLinks: HTMLLinkElement[] = [];
+    const layout = useCanvasLayout({
+        componentInstances: page.componentInstances,
+        template,
+        dataSources: page.dataSources ?? [],
+        componentRegistry,
+        pageVariables: page.pageVariables,
+    });
 
-        cssFiles.forEach((file) => {
-            const existing = document.querySelector(`link[data-dnd-css="${file}"]`);
-            if (existing) return;
+    const baseDimensions: BasePageDimensions = layout.baseDimensions;
+    const baseWidthPx = baseDimensions.widthPx;
+    const baseHeightPx = baseDimensions.heightPx;
+    const baseContentHeightPx = baseDimensions.contentHeightPx;
 
-            const linkEl = document.createElement('link');
-            linkEl.rel = 'stylesheet';
-            linkEl.href = `${DND_CSS_BASE_URL}/${file}`;
-            linkEl.setAttribute('data-dnd-css', file);
-            document.head.appendChild(linkEl);
-            appendedLinks.push(linkEl);
-        });
-
-        return () => {
-            appendedLinks.forEach((linkEl) => {
-                if (document.head.contains(linkEl)) {
-                    document.head.removeChild(linkEl);
-                }
-            });
-        };
-    }, [page.id]);
-
-    const baseWidthPx = useMemo(
-        () => dimensionToPx(page.pageVariables.dimensions.width, page.pageVariables.dimensions.unit),
-        [page.pageVariables.dimensions.unit, page.pageVariables.dimensions.width]
-    );
-    const baseHeightPx = useMemo(
-        () => dimensionToPx(page.pageVariables.dimensions.height, page.pageVariables.dimensions.unit),
-        [page.pageVariables.dimensions.height, page.pageVariables.dimensions.unit]
-    );
-    const baseWidth = `${page.pageVariables.dimensions.width}${page.pageVariables.dimensions.unit}`;
-    const baseHeight = `${page.pageVariables.dimensions.height}${page.pageVariables.dimensions.unit}`;
-
-    React.useLayoutEffect(() => {
+    useLayoutEffect(() => {
         if (typeof ResizeObserver === 'undefined') {
             return undefined;
         }
@@ -136,7 +95,6 @@ const StatblockPage: React.FC<StatblockPageProps> = ({ page, template, component
 
             const widthScale = entry.contentRect.width / baseWidthPx;
             const nextScale = clamp(widthScale, MIN_SCALE, MAX_SCALE);
-
             setScale((current) => (Math.abs(current - nextScale) > 0.01 ? nextScale : current));
         });
 
@@ -145,54 +103,135 @@ const StatblockPage: React.FC<StatblockPageProps> = ({ page, template, component
         return () => observer.disconnect();
     }, [baseWidthPx]);
 
-    const scaledHeightPx = baseHeightPx * scale;
+    useEffect(() => {
+        if (!DND_CSS_BASE_URL) {
+            return;
+        }
 
-    const parchmentUrl = DND_CSS_BASE_URL
-        ? `${DND_CSS_BASE_URL}/themes/assets/parchmentBackground.jpg`
-        : undefined;
+        const cssFiles = ['all.css', 'bundle.css', 'style.css', '5ePHBstyle.css'];
+        const appendedLinks: HTMLLinkElement[] = [];
+
+        cssFiles.forEach((file) => {
+            const existing = document.querySelector(`link[data-dnd-css="${file}"]`);
+            if (existing) return;
+
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = `${DND_CSS_BASE_URL}/${file}`;
+            link.setAttribute('data-dnd-css', file);
+            document.head.appendChild(link);
+            appendedLinks.push(link);
+        });
+
+        return () => {
+            appendedLinks.forEach((link) => {
+                if (document.head.contains(link)) {
+                    document.head.removeChild(link);
+                }
+            });
+        };
+    }, [page.id]);
+
+    const scaledHeightPx = baseHeightPx * scale;
+    const pageCount = Math.max(1, layout.plan?.pages.length ?? 1);
 
     const pageStyles: React.CSSProperties = {
-        width: baseWidth,
-        height: baseHeight,
+        width: `${baseWidthPx}px`,
+        height: `${baseHeightPx}px`,
         transform: `scale(${scale})`,
         transformOrigin: 'top left',
         margin: '0 auto',
         position: 'relative',
-        backgroundColor: parchmentUrl ? undefined : '#f8f2e4',
-        backgroundImage: parchmentUrl ? `url(${parchmentUrl})` : undefined,
-        backgroundSize: parchmentUrl ? 'cover' : undefined,
-        backgroundRepeat: parchmentUrl ? 'no-repeat' : undefined,
-        backgroundPosition: parchmentUrl ? 'center' : undefined,
+        backgroundColor: '#f8f2e4',
     };
 
-    const containerStyle: React.CSSProperties = {
+    const totalScaledHeightPx = pageCount * scaledHeightPx + (pageCount - 1) * PAGE_GAP_PX;
+
+    const containerStyle = useMemo<React.CSSProperties>(() => ({
         width: '100%',
-        height: `${scaledHeightPx}px`,
+        height: `${totalScaledHeightPx}px`,
         maxWidth: `${baseWidthPx * MAX_SCALE}px`,
         position: 'relative',
-        overflow: 'hidden',
+        overflow: 'visible',
         margin: '0 auto',
-    };
+        '--dm-page-width': `${baseWidthPx}px`,
+        '--dm-page-height': `${baseHeightPx}px`,
+        '--dm-page-content-height': `${baseContentHeightPx}px`,
+        '--dm-page-count': `${pageCount}`,
+    }), [baseContentHeightPx, baseHeightPx, baseWidthPx, pageCount, totalScaledHeightPx]);
 
-    const sharedProps: Omit<CanvasComponentProps, 'id' | 'dataRef' | 'variables' | 'layout'> = {
-        mode: page.pageVariables.mode,
-        pageVariables: page.pageVariables,
-        dataSources: page.dataSources
-    };
+    const pageVariablesWithPagination: PageVariables = useMemo(() => {
+        if (!layout.plan) {
+            return page.pageVariables;
+        }
+
+        const requestedPageCount = page.pageVariables.pagination?.pageCount ?? 1;
+        if (layout.plan.pages.length === requestedPageCount) {
+            return page.pageVariables;
+        }
+
+        return {
+            ...page.pageVariables,
+            pagination: {
+                ...(page.pageVariables.pagination ?? {
+                    columnCount: page.pageVariables.columns.columnCount,
+                    pageCount: requestedPageCount,
+                }),
+                pageCount: layout.plan.pages.length,
+            },
+        };
+    }, [layout.plan, page.pageVariables]);
+
+    const renderWithProps = (entry: CanvasLayoutEntry) =>
+        renderEntry(entry, componentRegistry, {
+            mode: page.pageVariables.mode,
+            pageVariables: pageVariablesWithPagination,
+            dataSources: page.dataSources ?? [],
+        });
 
     return (
         <div className="dm-statblock-responsive" ref={containerRef} style={containerStyle}>
-            <div className="brewRenderer">
+            <div className="brewRenderer" style={{ width: `${baseWidthPx}px` }}>
                 <div className="pages">
-                    <div className="page phb" style={pageStyles}>
-                        <div className="columnWrapper">
-                            <div className="block monster frame wide">
-                                {page.componentInstances.map((instance) => (
-                                    <React.Fragment key={instance.id}>
-                                        {renderComponent(instance, componentRegistry, sharedProps)}
-                                    </React.Fragment>
-                                ))}
-                            </div>
+                    <CanvasPage layoutPlan={layout.plan} renderEntry={renderWithProps} />
+                </div>
+            </div>
+            <div
+                className="dm-statblock-measurement-layer"
+                aria-hidden
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'hidden',
+                    pointerEvents: 'none',
+                }}
+            >
+                <div
+                    className="page phb"
+                    style={{
+                        width: `${baseWidthPx}px`,
+                        height: `${baseHeightPx}px`,
+                        margin: 0,
+                        transform: undefined,
+                        transformOrigin: 'top left',
+                    }}
+                >
+                    <div className="columnWrapper">
+                        <div className="monster frame wide">
+                            <MeasurementLayer
+                                entries={layout.measurementEntries}
+                                renderComponent={(entry) =>
+                                    renderEntry(entry, componentRegistry, {
+                                        mode: page.pageVariables.mode,
+                                        pageVariables: pageVariablesWithPagination,
+                                        dataSources: page.dataSources ?? [],
+                                    })
+                                }
+                                onMeasurements={layout.onMeasurements}
+                            />
                         </div>
                     </div>
                 </div>
@@ -201,5 +240,10 @@ const StatblockPage: React.FC<StatblockPageProps> = ({ page, template, component
     );
 };
 
-export default StatblockPage;
+const StatblockPage: React.FC<StatblockPageProps> = (props) => (
+    <CanvasLayoutProvider>
+        <StatblockCanvasInner {...props} />
+    </CanvasLayoutProvider>
+);
 
+export default StatblockPage;

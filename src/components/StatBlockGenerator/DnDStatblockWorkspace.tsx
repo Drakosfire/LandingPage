@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Card } from '@mantine/core';
 import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { DND_CSS_BASE_URL } from '../../config';
 import type { Action } from '../../types/statblock.types';
@@ -201,7 +202,7 @@ const DnDStatblockWorkspace: React.FC<DnDStatblockWorkspaceProps> = ({ height = 
             <div className='brewRenderer'>
                 <div className='pages'>
                     <div className='page phb' id='workspace-p1'>
-                        <div className='block monster frame wide'>
+                        <div className='monster frame wide'>
                             <h4>
                                 <EditableText
                                     value={creatureDetails.name}
