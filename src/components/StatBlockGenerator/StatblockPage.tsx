@@ -103,6 +103,113 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         return () => observer.disconnect();
     }, [baseWidthPx]);
 
+    // Measure the VISIBLE monster frame (not the measurement layer) for accurate pagination
+    useLayoutEffect(() => {
+        if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.debug('[StatblockPage] useLayoutEffect for monster frame measurement triggered', {
+                hasLayoutPlan: !!layout.plan,
+                pageCount: layout.plan?.pages.length ?? 0,
+            });
+        }
+
+        // Wait for layout to render before measuring
+        if (!layout.plan || layout.plan.pages.length === 0) {
+            if (process.env.NODE_ENV !== 'production') {
+                // eslint-disable-next-line no-console
+                console.debug('[StatblockPage] No layout plan yet, skipping frame measurement');
+            }
+            return undefined;
+        }
+
+        if (typeof ResizeObserver === 'undefined') {
+            if (process.env.NODE_ENV !== 'production') {
+                // eslint-disable-next-line no-console
+                console.warn('[StatblockPage] ResizeObserver not available');
+            }
+            return undefined;
+        }
+
+        const container = containerRef.current;
+        if (!container) {
+            if (process.env.NODE_ENV !== 'production') {
+                // eslint-disable-next-line no-console
+                console.warn('[StatblockPage] containerRef.current is null');
+            }
+            return undefined;
+        }
+
+        if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.debug('[StatblockPage] Container found, searching for monster frame...', {
+                brewRenderer: container.querySelector('.brewRenderer'),
+                allMonsterFrames: container.querySelectorAll('.monster.frame.wide').length,
+            });
+        }
+
+        // Query for the visible monster frame (NOT in the measurement layer)
+        // Use a more specific selector to avoid the measurement layer
+        const visibleFrame = container.querySelector('.brewRenderer .pages .monster.frame.wide');
+        if (!visibleFrame) {
+            if (process.env.NODE_ENV !== 'production') {
+                // eslint-disable-next-line no-console
+                console.warn('[StatblockPage] Could not find visible monster frame for measurement', {
+                    containerClassName: container.className,
+                    hasBrewRenderer: !!container.querySelector('.brewRenderer'),
+                    hasPages: !!container.querySelector('.brewRenderer .pages'),
+                    hasAnyMonsterFrame: !!container.querySelector('.monster.frame.wide'),
+                });
+            }
+            return undefined;
+        }
+
+        if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.debug('[StatblockPage] Found visible monster frame:', {
+                className: visibleFrame.className,
+                parentClassName: visibleFrame.parentElement?.className,
+            });
+        }
+
+        let lastMeasuredHeight = 0;
+
+        const updateRegionHeight = () => {
+            const rect = visibleFrame.getBoundingClientRect();
+            const computedStyle = window.getComputedStyle(visibleFrame);
+
+            if (process.env.NODE_ENV !== 'production') {
+                // eslint-disable-next-line no-console
+                console.debug('[StatblockPage] Measuring visible monster frame:', {
+                    boundingHeight: rect.height,
+                    computedHeight: computedStyle.height,
+                    offsetHeight: (visibleFrame as HTMLElement).offsetHeight,
+                    clientHeight: (visibleFrame as HTMLElement).clientHeight,
+                    scrollHeight: (visibleFrame as HTMLElement).scrollHeight,
+                    lastMeasured: lastMeasuredHeight,
+                });
+            }
+
+            if (rect.height > 0 && Math.abs(rect.height - lastMeasuredHeight) > 1) {
+                lastMeasuredHeight = rect.height;
+                if (process.env.NODE_ENV !== 'production') {
+                    // eslint-disable-next-line no-console
+                    console.debug('[StatblockPage] SET_REGION_HEIGHT will be called with:', rect.height);
+                }
+                layout.setRegionHeight(rect.height);
+            }
+        };
+
+        const observer = new ResizeObserver(() => {
+            updateRegionHeight();
+        });
+
+        observer.observe(visibleFrame);
+        // Measure immediately
+        updateRegionHeight();
+
+        return () => observer.disconnect();
+    }, [layout.plan, layout.setRegionHeight]); // Wait for layout plan, then measure visible frame
+
     useEffect(() => {
         if (!DND_CSS_BASE_URL) {
             return;
@@ -135,17 +242,10 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const scaledHeightPx = baseHeightPx * scale;
     const pageCount = Math.max(1, layout.plan?.pages.length ?? 1);
 
-    const pageStyles: React.CSSProperties = {
-        width: `${baseWidthPx}px`,
-        height: `${baseHeightPx}px`,
-        transform: `scale(${scale})`,
-        transformOrigin: 'top left',
-        margin: '0 auto',
-        position: 'relative',
-        backgroundColor: '#f8f2e4',
-    };
+    const columnCount = page.pageVariables.columns.columnCount;
+    const columnGapPx = 24;
 
-    const totalScaledHeightPx = pageCount * scaledHeightPx + (pageCount - 1) * PAGE_GAP_PX;
+    const totalScaledHeightPx = pageCount * scaledHeightPx + (pageCount - 1) * PAGE_GAP_PX * scale;
 
     const containerStyle = useMemo<React.CSSProperties>(() => ({
         width: '100%',
@@ -158,7 +258,10 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         '--dm-page-height': `${baseHeightPx}px`,
         '--dm-page-content-height': `${baseContentHeightPx}px`,
         '--dm-page-count': `${pageCount}`,
-    }), [baseContentHeightPx, baseHeightPx, baseWidthPx, pageCount, totalScaledHeightPx]);
+        '--dm-page-scale': `${scale}`,
+        '--dm-column-count': `${columnCount}`,
+        '--dm-column-gap': `${columnGapPx}px`,
+    }), [baseContentHeightPx, baseHeightPx, baseWidthPx, columnCount, pageCount, totalScaledHeightPx, scale]);
 
     const pageVariablesWithPagination: PageVariables = useMemo(() => {
         if (!layout.plan) {
@@ -191,9 +294,11 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
 
     return (
         <div className="dm-statblock-responsive" ref={containerRef} style={containerStyle}>
-            <div className="brewRenderer" style={{ width: `${baseWidthPx}px` }}>
+            <div className="brewRenderer">
                 <div className="pages">
-                    <CanvasPage layoutPlan={layout.plan} renderEntry={renderWithProps} />
+                    <div className="pages-content">
+                        <CanvasPage layoutPlan={layout.plan} renderEntry={renderWithProps} />
+                    </div>
                 </div>
             </div>
             <div
