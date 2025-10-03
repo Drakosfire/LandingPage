@@ -397,6 +397,7 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
                 requestedPageCount,
                 baseDimensions,
                 measurementVersion: state.measurementVersion,
+                measurements: state.measurements,
             });
             // Clear dirty flag immediately to prevent double pagination from effect re-firing
             return { ...state, pendingLayout, isLayoutDirty: false };

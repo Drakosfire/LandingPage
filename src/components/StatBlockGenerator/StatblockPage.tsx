@@ -71,6 +71,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
     const [fontsReady, setFontsReady] = useState(false);
+    const [measuredColumnWidth, setMeasuredColumnWidth] = useState<number | null>(null);
 
     // Wait for custom fonts to load before measuring
     useLayoutEffect(() => {
@@ -253,6 +254,17 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                 className: visibleFrame.className,
                 parentClassName: visibleFrame.parentElement?.className,
             });
+        }
+
+        // Measure the visible column width for accurate measurement layer sizing
+        const visibleColumn = visibleFrame.querySelector('.canvas-column');
+        if (visibleColumn) {
+            const colWidth = visibleColumn.getBoundingClientRect().width;
+            setMeasuredColumnWidth(colWidth);
+            if (process.env.NODE_ENV !== 'production') {
+                // eslint-disable-next-line no-console
+                console.debug('[StatblockPage] Measured visible column width:', colWidth);
+            }
         }
 
         let lastMeasuredHeight = 0;
@@ -465,12 +477,13 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                 aria-hidden
                 style={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: 0,
-                    height: 0,
-                    overflow: 'hidden',
+                    top: '-9999px', // Move offscreen instead of collapsing
+                    left: '-9999px',
+                    width: `${baseWidthPx}px`, // Match page width to allow proper measurement
+                    height: `${baseHeightPx}px`, // Match page height
+                    overflow: 'visible', // Allow measurement of full content
                     pointerEvents: 'none',
+                    visibility: 'hidden', // Hide from screen readers and visual
                 }}
             >
                 <div
@@ -485,7 +498,17 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                 >
                     <div className="columnWrapper">
                         <div className="monster frame wide" style={{ height: 'auto' }}>
-                            <div className="canvas-column">
+                            <div
+                                className="canvas-column"
+                                style={{
+                                    // CRITICAL: Use measured visible column width for accurate measurements
+                                    // Fallback to calculated width if measurement not available yet
+                                    width: measuredColumnWidth
+                                        ? `${measuredColumnWidth}px`
+                                        : `${(baseWidthPx - (columnCount - 1) * columnGapPx) / columnCount}px`,
+                                    flex: 'none', // Prevent flex from overriding explicit width
+                                }}
+                            >
                                 <MeasurementLayer
                                     entries={layout.measurementEntries}
                                     renderComponent={(entry) =>

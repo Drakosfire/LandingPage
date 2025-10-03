@@ -166,9 +166,14 @@ export const estimateActionHeight = (action: Action) => {
     return Math.max(total, MIN_LIST_ITEM_HEIGHT_PX);
 };
 
-export const estimateListHeight = (items: Action[]) => {
+export const estimateListHeight = (items: Action[], isContinuation: boolean = false) => {
     if (items.length === 0) return 0;
-    return items.reduce((acc, action) => acc + estimateActionHeight(action), 0) + (items.length - 1) * LIST_ITEM_SPACING_PX;
+    const itemsHeight = items.reduce((acc, action) => acc + estimateActionHeight(action), 0);
+    const spacingHeight = (items.length - 1) * LIST_ITEM_SPACING_PX;
+
+    // TODO: Investigate actual header heights - old formula was closer
+    // For now, don't add extra header (estimates already include some overhead)
+    return itemsHeight + spacingHeight;
 };
 
 const REGION_KIND_MAP: Partial<Record<ComponentInstance['type'], RegionListContent['kind']>> = {
@@ -359,7 +364,7 @@ export const buildBuckets = ({
                     homeRegion: resolvedHome,
                     homeRegionKey: homeKey,
                     regionContent,
-                    estimatedHeight: record?.height ?? estimateListHeight(segment.items),
+                    estimatedHeight: record?.height ?? estimateListHeight(segment.items, segment.startIndex > 0),
                     measurementKey,
                     needsMeasurement: !record,
                     span: record ? { top: 0, bottom: record.height, height: record.height } : undefined,

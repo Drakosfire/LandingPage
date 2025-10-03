@@ -8,6 +8,8 @@ import type {
     RegionListContent,
     RegionCursor,
     RegionSpan,
+    MeasurementKey,
+    MeasurementRecord,
 } from './types';
 import { toRegionContent } from '../../components/StatBlockGenerator/canvasComponents/utils';
 import {
@@ -66,6 +68,7 @@ interface PaginateArgs {
     requestedPageCount: number;
     baseDimensions?: { contentHeightPx: number; topMarginPx: number } | null;
     measurementVersion?: number;
+    measurements: Map<MeasurementKey, MeasurementRecord>;
 }
 
 const MAX_REGION_ITERATIONS = 400;
@@ -147,7 +150,12 @@ const computeSpan = (cursor: RegionCursor, estimatedHeight: number): RegionSpan 
     height: estimatedHeight,
 });
 
-const fitsInRegion = (span: RegionSpan, cursor: RegionCursor): boolean => span.bottom <= cursor.maxHeight;
+const fitsInRegion = (span: RegionSpan, cursor: RegionCursor): boolean => {
+    // Check if component + spacing buffer fits in region
+    // (cursor advances by span.bottom + COMPONENT_VERTICAL_SPACING_PX)
+    const cursorAfterPlacement = span.bottom + COMPONENT_VERTICAL_SPACING_PX;
+    return cursorAfterPlacement <= cursor.maxHeight;
+};
 
 const advanceCursor = (cursor: RegionCursor, span: RegionSpan) => {
     cursor.currentOffset = span.bottom + COMPONENT_VERTICAL_SPACING_PX;
@@ -199,15 +207,17 @@ interface SplitDecision {
  * @param entry - Layout entry with regionContent
  * @param cursor - Current position in region
  * @param regionHeight - Total region height
+ * @param measurements - Measurement map to look up actual heights
  * @returns Split decision with placement details
  */
 const findBestListSplit = (
     entry: CanvasLayoutEntry,
     cursor: RegionCursor,
-    regionHeight: number
+    regionHeight: number,
+    measurements: Map<MeasurementKey, MeasurementRecord>
 ): SplitDecision => {
     const items = entry.regionContent!.items;
-    const BOTTOM_THRESHOLD = 0.80; // Cannot start in bottom 20%
+    const BOTTOM_THRESHOLD = 1; // Cannot start in bottom 20%
     const currentOffset = cursor.currentOffset;
 
     // Try splits from largest to smallest (greedy: maximize items in current region)
@@ -216,9 +226,76 @@ const findBestListSplit = (
         const secondSegment = items.slice(splitAt);
 
         // MEASURE where this split would place
-        const firstSegmentHeight = estimateListHeight(firstSegment);
+        // Try to use actual measurement first, fallback to estimate
+        const splitRegionContent = toRegionContent(
+            entry.regionContent!.kind,
+            firstSegment,
+            entry.regionContent!.startIndex,
+            entry.regionContent!.totalCount,
+            entry.regionContent!.isContinuation,
+            entry.regionContent!.metadata
+        );
+        const splitMeasurementKey = computeMeasurementKey(entry.instance.id, splitRegionContent);
+        const measured = measurements.get(splitMeasurementKey);
+        const isContinuation = entry.regionContent!.isContinuation;
+        const estimated = estimateListHeight(firstSegment, isContinuation);
+
+        // If split measurement doesn't exist, try proportional calculation from full measurement
+        let proportionalHeight: number | undefined;
+        if (!measured && splitAt < items.length) {
+            // Look up full component measurement
+            const fullRegionContent = toRegionContent(
+                entry.regionContent!.kind,
+                items,
+                entry.regionContent!.startIndex,
+                entry.regionContent!.totalCount,
+                entry.regionContent!.isContinuation,
+                entry.regionContent!.metadata
+            );
+            const fullMeasurementKey = computeMeasurementKey(entry.instance.id, fullRegionContent);
+            const fullMeasured = measurements.get(fullMeasurementKey);
+
+            if (fullMeasured) {
+                // Calculate proportionally: (fullHeight / totalItems) * splitItems
+                // This assumes items are roughly equal in height
+                proportionalHeight = (fullMeasured.height / items.length) * splitAt;
+                console.log('📐 Proportional calculation from full measurement:', {
+                    component: entry.instance.id,
+                    splitAt,
+                    fullHeight: fullMeasured.height,
+                    totalItems: items.length,
+                    proportional: proportionalHeight.toFixed(2),
+                    estimate: estimated,
+                    improvement: `${(((estimated - proportionalHeight) / proportionalHeight) * 100).toFixed(1)}% error avoided`,
+                });
+            }
+        }
+
+        const firstSegmentHeight = measured?.height ?? proportionalHeight ?? estimated;
         const firstSegmentTop = currentOffset;
-        const firstSegmentBottom = firstSegmentTop + firstSegmentHeight;
+        // Account for spacing buffer that gets added after component placement
+        // (cursor advances by height + spacing, not just height)
+        const firstSegmentBottom = firstSegmentTop + firstSegmentHeight + COMPONENT_VERTICAL_SPACING_PX;
+
+        // Log measurement vs estimate discrepancies
+        if (measured && Math.abs(measured.height - estimated) > 10) {
+            console.warn('📏 Height discrepancy:', {
+                component: entry.instance.id,
+                splitAt,
+                measured: measured.height,
+                estimated,
+                error: measured.height - estimated,
+                errorPercent: `${(((measured.height - estimated) / measured.height) * 100).toFixed(1)}%`,
+                usingMeasurement: true,
+            });
+        } else if (!measured && splitAt < items.length) {
+            console.log('📐 Using estimate (no measurement):', {
+                component: entry.instance.id,
+                splitAt,
+                estimated,
+                measurementKey: splitMeasurementKey,
+            });
+        }
 
         // CHECK constraint: Does it start in bottom 20%?
         const startsInBottomZone = firstSegmentTop > (regionHeight * BOTTOM_THRESHOLD);
@@ -276,7 +353,7 @@ const findBestListSplit = (
     };
 };
 
-export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCount, baseDimensions, measurementVersion }: PaginateArgs): LayoutPlan => {
+export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCount, baseDimensions, measurementVersion, measurements }: PaginateArgs): LayoutPlan => {
     const runId = ++debugRunId;
 
     const normalizedRegionHeight = normalizeRegionHeight(regionHeightPx, baseDimensions ?? null);
@@ -519,7 +596,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 // Measurement-based split evaluation for list components
                 // For list components with multiple items, use concrete measurements to determine
                 // the best split point. For block components, use simple threshold check.
-                const startsInBottomFifth = span.top > (normalizedRegionHeight * 0.8);
+                const startsInBottomFifth = span.top > (normalizedRegionHeight * 1);
                 let shouldAvoidSplit = startsInBottomFifth; // Default: simple threshold for blocks
                 let splitDecision: SplitDecision | null = null;
 
@@ -527,7 +604,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 if (entry.regionContent && entry.regionContent.items.length > 1) {
                     console.log(`🔍 [paginate] Evaluating list split for ${entry.instance.id} with ${entry.regionContent.items.length} items`);
 
-                    splitDecision = findBestListSplit(entry, cursor, normalizedRegionHeight);
+                    splitDecision = findBestListSplit(entry, cursor, normalizedRegionHeight, measurements);
 
                     // If split evaluation says we can't place, treat like shouldAvoidSplit
                     if (!splitDecision.canPlace) {
@@ -569,7 +646,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                             componentId: entry.instance.id,
                             regionKey: key,
                             spanTop: span.top,
-                            threshold: normalizedRegionHeight * 0.8,
+                            threshold: normalizedRegionHeight * 1,
                             regionHeight: normalizedRegionHeight,
                             componentType: entry.regionContent ? 'single-item-list' : 'block',
                         });
@@ -942,7 +1019,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                         ...entry,
                         regionContent: followUpContent,
                         measurementKey: computeMeasurementKey(entry.instance.id, followUpContent),
-                        estimatedHeight: estimateListHeight(remainingItems),
+                        estimatedHeight: estimateListHeight(remainingItems, true), // Continuation segment
                         span: undefined,
                         overflow: true,
                         overflowRouted: true,
