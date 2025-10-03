@@ -28,10 +28,17 @@ export interface CanvasLayoutEntry {
     orderIndex: number;
     sourceRegionKey: string;
     region: LayoutRegion;
+    homeRegion: RegionAssignment;
+    homeRegionKey: string;
     regionContent?: RegionListContent;
     estimatedHeight: number;
     measurementKey: MeasurementKey;
     needsMeasurement: boolean;
+    span?: RegionSpan;
+    slotDimensions?: {
+        widthPx?: number;
+        heightPx?: number;
+    };
     overflow?: boolean;
     overflowRouted?: boolean;
     splitRemainder?: Action[];
@@ -75,6 +82,40 @@ export interface CanvasEntriesResult {
     measurementEntries: MeasurementEntry[];
 }
 
+export interface RegionAssignment {
+    page: number;
+    column: 1 | 2;
+}
+
+export interface RegionSpan {
+    top: number;
+    bottom: number;
+    height: number;
+}
+
+export interface RegionCursor {
+    regionKey: string;
+    currentOffset: number;
+    maxHeight: number;
+}
+
+export interface SlotAssignment {
+    region: RegionAssignment;
+    homeRegion: RegionAssignment;
+    slotIndex: number;
+    orderIndex: number;
+}
+
+/**
+ * Tracks the canonical "home" location for a component based on its template slot
+ * or explicit layout.location. This is immutable unless the component's configuration changes.
+ */
+export interface HomeRegionAssignment {
+    homeRegion: RegionAssignment;
+    slotIndex: number;
+    orderIndex: number;
+}
+
 export interface CanvasLayoutState {
     components: ComponentInstance[];
     template: TemplateConfig | null;
@@ -99,6 +140,18 @@ export interface CanvasLayoutState {
     measurementEntries: MeasurementEntry[];
     buckets: RegionBuckets;
     isLayoutDirty: boolean;
+
+    // Measure-first flow: track if all components have initial measurements
+    allComponentsMeasured: boolean;
+    
+    // Measure-first flow: explicitly track if we're waiting for initial measurements before pagination
+    waitingForInitialMeasurements: boolean;
+
+    // Committed placement from last layout plan
+    assignedRegions: Map<string, SlotAssignment>;
+
+    // Immutable home regions from template/configuration
+    homeRegions: Map<string, HomeRegionAssignment>;
 }
 
 

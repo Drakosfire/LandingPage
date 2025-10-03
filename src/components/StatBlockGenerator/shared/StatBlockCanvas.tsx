@@ -1,86 +1,103 @@
-import React, { useMemo } from 'react';
-import { Card, Stack, Text } from '@mantine/core';
+import React, { useMemo, useCallback } from 'react';
+import { Card, Stack, Text, Group, Button, Switch } from '@mantine/core';
+import { IconDownload, IconEdit, IconLock } from '@tabler/icons-react';
 
 import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import StatblockPage from '../StatblockPage';
-import { buildDemoPageDocument, demoTemplate } from '../../../fixtures/statblockTemplates';
-import type { ComponentRegistryEntry } from '../../../types/statblockCanvas.types';
-import {
-    IdentityHeader,
-    StatSummary,
-    AbilityScoresTable,
-    PortraitPanel,
-    QuickFacts,
-    ActionSection,
-} from '../canvasComponents';
-
-const componentRegistry: Record<string, ComponentRegistryEntry> = {
-    'identity-header': {
-        type: 'identity-header',
-        displayName: 'Identity Header',
-        component: IdentityHeader,
-        defaults: {
-            dataRef: { type: 'statblock', path: 'name' },
-            layout: { isVisible: true },
-        },
-    },
-    'stat-summary': {
-        type: 'stat-summary',
-        displayName: 'Stat Summary',
-        component: StatSummary,
-        defaults: {
-            dataRef: { type: 'statblock', path: 'armorClass' },
-            layout: { isVisible: true },
-        },
-    },
-    'ability-table': {
-        type: 'ability-table',
-        displayName: 'Ability Scores',
-        component: AbilityScoresTable,
-        defaults: {
-            dataRef: { type: 'statblock', path: 'abilities' },
-            layout: { isVisible: true },
-        },
-    },
-    'portrait-panel': {
-        type: 'portrait-panel',
-        displayName: 'Portrait',
-        component: PortraitPanel,
-        defaults: {
-            dataRef: { type: 'custom', key: 'portraitUrl' },
-            layout: { isVisible: true },
-        },
-    },
-    'quick-facts': {
-        type: 'quick-facts',
-        displayName: 'Quick Facts',
-        component: QuickFacts,
-        defaults: {
-            dataRef: { type: 'statblock', path: 'savingThrows' },
-            layout: { isVisible: true },
-        },
-    },
-    'action-section': {
-        type: 'action-section',
-        displayName: 'Actions',
-        component: ActionSection,
-        defaults: {
-            dataRef: { type: 'statblock', path: 'actions' },
-            layout: { isVisible: true },
-        },
-    },
-};
+import { getTemplate, DEFAULT_TEMPLATE } from '../../../fixtures/templates';
+import { CANVAS_COMPONENT_REGISTRY } from '../../../canvas/registry';
+import { buildPageDocument, extractCustomData } from '../../../canvas/data';
+import { exportPageToHTMLFile } from '../../../canvas/export';
+import TemplateSelector from './TemplateSelector';
 
 const StatBlockCanvas: React.FC = () => {
-    const { currentStepId, isCanvasPreviewReady } = useStatBlockGenerator();
+    const {
+        currentStepId,
+        isCanvasPreviewReady,
+        selectedTemplateId,
+        setSelectedTemplateId,
+        isCanvasEditMode,
+        setIsCanvasEditMode,
+        creatureDetails,
+        updateCreatureDetails,
+        selectedAssets
+    } = useStatBlockGenerator();
+
+    const handleExportHTML = useCallback(() => {
+        const template = getTemplate(selectedTemplateId) ?? DEFAULT_TEMPLATE;
+        const customData = extractCustomData(selectedAssets);
+
+        const livePage = buildPageDocument({
+            template,
+            statblockData: creatureDetails,
+            customData,
+            projectId: creatureDetails.projectId,
+            ownerId: 'current-user',
+        });
+
+        exportPageToHTMLFile(livePage, template);
+    }, [selectedTemplateId, creatureDetails, selectedAssets]);
 
     const canvasContent = useMemo(() => {
         if (isCanvasPreviewReady) {
-            const demoPage = buildDemoPageDocument();
+            // Get selected template or fall back to default
+            const template = getTemplate(selectedTemplateId) ?? DEFAULT_TEMPLATE;
+
+            // Build page document with LIVE creature data from generator state
+            const customData = extractCustomData(selectedAssets);
+
+            const livePage = buildPageDocument({
+                template,
+                statblockData: creatureDetails,
+                customData,
+                projectId: creatureDetails.projectId,
+                ownerId: 'current-user',
+            });
+
             return (
-                <Card shadow="sm" padding="sm" radius="md" withBorder>
-                    <StatblockPage page={demoPage} template={demoTemplate} componentRegistry={componentRegistry} />
-                </Card>
+                <Stack gap="md">
+                    <Card shadow="sm" padding="md" radius="md" withBorder>
+                        <Stack gap="sm">
+                            <TemplateSelector
+                                currentTemplateId={selectedTemplateId}
+                                onTemplateChange={setSelectedTemplateId}
+                            />
+                            <Group gap="sm">
+                                <Switch
+                                    checked={isCanvasEditMode}
+                                    onChange={(event) => setIsCanvasEditMode(event.currentTarget.checked)}
+                                    label="Edit Mode"
+                                    size="sm"
+                                    thumbIcon={
+                                        isCanvasEditMode ? (
+                                            <IconEdit size={12} stroke={3} />
+                                        ) : (
+                                            <IconLock size={12} stroke={3} />
+                                        )
+                                    }
+                                />
+                                <Button
+                                    leftSection={<IconDownload size={16} />}
+                                    variant="light"
+                                    size="sm"
+                                    onClick={handleExportHTML}
+                                    flex={1}
+                                >
+                                    Export HTML
+                                </Button>
+                            </Group>
+                        </Stack>
+                    </Card>
+                    <Card shadow="sm" padding="sm" radius="md" withBorder>
+                        <StatblockPage
+                            page={livePage}
+                            template={template}
+                            componentRegistry={CANVAS_COMPONENT_REGISTRY}
+                            isEditMode={isCanvasEditMode}
+                            onUpdateData={updateCreatureDetails}
+                        />
+                    </Card>
+                </Stack>
             );
         }
 
@@ -90,13 +107,13 @@ const StatBlockCanvas: React.FC = () => {
                     <Text fw={500}>Canvas Preview</Text>
                     <Text size="sm" c="dimmed">
                         Canvas content for the {currentStepId ? currentStepId.replace('-', ' ') : 'current'} step will
-                        appear here once its tooling is connected. We’ll wire this up alongside the upcoming feature
+                        appear here once its tooling is connected. We'll wire this up alongside the upcoming feature
                         work.
                     </Text>
                 </Stack>
             </Card>
         );
-    }, [currentStepId, isCanvasPreviewReady]);
+    }, [currentStepId, isCanvasPreviewReady, selectedTemplateId, setSelectedTemplateId, creatureDetails, selectedAssets]);
 
     return (
         <div className="statblock-canvas-area">

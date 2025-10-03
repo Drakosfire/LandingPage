@@ -4,6 +4,9 @@ import type { CanvasComponentProps } from '../../../types/statblockCanvas.types'
 import { formatActionDetails, toRegionContent } from './utils';
 
 const LegendaryActionsSection: React.FC<CanvasComponentProps> = ({ regionContent, regionOverflow }) => {
+    // DEBUG: Log what we're rendering (ONCE) - Must be before early return!
+    const loggedRef = React.useRef(false);
+
     if (!regionContent || regionContent.items.length === 0) {
         return null;
     }
@@ -15,6 +18,17 @@ const LegendaryActionsSection: React.FC<CanvasComponentProps> = ({ regionContent
         regionContent.totalCount,
         regionContent.isContinuation
     );
+
+    if (process.env.NODE_ENV !== 'production' && !loggedRef.current) {
+        loggedRef.current = true;
+        console.warn('📋 [LegendaryActionsSection] RENDERING:', {
+            itemCount: items.length,
+            startIndex,
+            totalCount,
+            isContinuation,
+            itemNames: items.map(a => a.name),
+        });
+    }
 
     const heading = startIndex === 0 ? 'Legendary Actions' : 'Legendary Actions (cont.)';
     const summaryText = regionContent.metadata?.legendarySummary;

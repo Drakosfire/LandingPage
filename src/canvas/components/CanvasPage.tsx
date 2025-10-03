@@ -24,15 +24,21 @@ const CanvasPage: React.FC<CanvasPageProps> = ({ layoutPlan, renderEntry }) => {
                         </div>
                     )}
                     <div className="columnWrapper">
-                        {page.columns.map((column) => (
-                            <div key={column.key} className="monster frame wide" data-column-key={column.key}>
-                                {column.entries.map((entry) => (
-                                    <div key={entry.instance.id} className="canvas-entry" data-entry-id={entry.instance.id}>
-                                        {renderEntry(entry)}
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
+                        <div className="monster frame wide" data-page-columns={page.columns.length}>
+                            {page.columns.map((column) => (
+                                <div key={column.key} className="canvas-column" data-column-key={column.key} data-column-number={column.columnNumber}>
+                                    {column.entries.map((entry, index) => (
+                                        <div
+                                            key={`${entry.instance.id}:${entry.region?.page ?? page.pageNumber}:${entry.region?.index ?? index}`}
+                                            className="canvas-entry"
+                                            data-entry-id={entry.instance.id}
+                                        >
+                                            {renderEntry(entry)}
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             ))}

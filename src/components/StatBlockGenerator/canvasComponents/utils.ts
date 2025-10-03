@@ -1,5 +1,5 @@
-import type { ComponentDataReference, ComponentDataSource } from '../../../types/statblockCanvas.types';
-import type { StatBlockDetails } from '../../../types/statblock.types';
+import type { ComponentDataReference, ComponentDataSource, RegionListContent } from '../../../types/statblockCanvas.types';
+import type { Action, StatBlockDetails } from '../../../types/statblock.types';
 
 const getSource = (dataSources: ComponentDataSource[], dataRef: ComponentDataReference): ComponentDataSource | undefined => {
     if (dataRef.sourceId) {
@@ -54,6 +54,90 @@ export const abilityModifier = (score: number | undefined): string => {
     }
     const modifier = Math.floor((Number(score) - 10) / 2);
     return modifier >= 0 ? `+${modifier}` : `${modifier}`;
+};
+
+export const hasData = (value: unknown): boolean => {
+    if (value === null || value === undefined) {
+        return false;
+    }
+
+    if (typeof value === 'string') {
+        return value.trim().length > 0;
+    }
+
+    if (Array.isArray(value)) {
+        return value.length > 0;
+    }
+
+    if (typeof value === 'object') {
+        return Object.keys(value as Record<string, unknown>).length > 0;
+    }
+
+    return true;
+};
+
+export const isActionEntry = (entry: unknown): entry is Action => {
+    if (!entry || typeof entry !== 'object') {
+        return false;
+    }
+
+    const candidate = entry as Record<string, unknown>;
+    return typeof candidate.name === 'string' && typeof candidate.desc === 'string';
+};
+
+export const normalizeActionArray = (value: unknown): Action[] => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.filter(isActionEntry);
+};
+
+export const toRegionContent = (
+    kind: RegionListContent['kind'],
+    items: Action[],
+    startIndex = 0,
+    totalCount?: number,
+    isContinuation = false,
+    metadata?: Record<string, unknown>
+): RegionListContent => ({
+    kind,
+    items,
+    startIndex,
+    totalCount: totalCount ?? items.length,
+    isContinuation,
+    metadata,
+});
+
+export const formatActionDetails = (action: Action): string => {
+    const parts: string[] = [];
+
+    if (action.desc) {
+        parts.push(action.desc);
+    }
+
+    if (action.attackBonus !== undefined) {
+        const bonus = action.attackBonus >= 0 ? `+${action.attackBonus}` : `${action.attackBonus}`;
+        parts.push(`Attack Bonus: ${bonus}`);
+    }
+
+    if (action.damage) {
+        parts.push(`Damage: ${action.damage}`);
+    }
+
+    if (action.recharge) {
+        parts.push(`Recharge ${action.recharge}`);
+    }
+
+    if (action.range) {
+        parts.push(`Range: ${action.range}`);
+    }
+
+    if (action.damageType) {
+        parts.push(`Type: ${action.damageType}`);
+    }
+
+    return parts.join(' ');
 };
 
 

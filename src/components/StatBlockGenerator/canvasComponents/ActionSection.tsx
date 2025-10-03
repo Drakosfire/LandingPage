@@ -2,56 +2,69 @@ import React from 'react';
 
 import type { CanvasComponentProps } from '../../../types/statblockCanvas.types';
 import type { Action } from '../../../types/statblock.types';
-import { resolveDataReference } from './utils';
+import { formatActionDetails, toRegionContent, getPrimaryStatblock } from './utils';
+import EditableText from './EditableText';
 
-const isAction = (entry: unknown): entry is Action => {
-    if (!entry || typeof entry !== 'object') return false;
-    return 'name' in entry && 'desc' in entry;
-};
+const ActionSection: React.FC<CanvasComponentProps> = ({ regionContent, regionOverflow, dataSources, isEditMode = false, onUpdateData }) => {
+    const statblock = getPrimaryStatblock(dataSources);
 
-const renderActionDetails = (action: Action) => {
-    const parts: string[] = [];
-    if (action.desc) {
-        parts.push(action.desc);
-    }
-    if (action.attackBonus !== undefined) {
-        parts.push(`Attack Bonus: ${action.attackBonus >= 0 ? `+${action.attackBonus}` : action.attackBonus}`);
-    }
-    if (action.damage) {
-        parts.push(`Damage: ${action.damage}`);
-    }
-    if (action.recharge) {
-        parts.push(`Recharge ${action.recharge}`);
-    }
-    return parts.join(' ');
-};
-
-const ActionSection: React.FC<CanvasComponentProps> = ({ dataRef, dataSources }) => {
-    const resolved = resolveDataReference(dataSources, dataRef);
-    const actions = Array.isArray(resolved) ? resolved.filter(isAction) : [];
-
-    if (actions.length === 0) {
+    if (!regionContent || regionContent.items.length === 0) {
         return null;
     }
 
+    const { items, startIndex, totalCount, isContinuation } = toRegionContent('action-list', regionContent.items, regionContent.startIndex, regionContent.totalCount, regionContent.isContinuation);
+
+    const showHeading = startIndex === 0;
+    const headingText = isContinuation ? 'Actions (cont.)' : 'Actions';
+
+    const updateAction = (actionIndex: number, updates: Partial<Action>) => {
+        if (!statblock?.actions) return;
+        const newActions = [...statblock.actions];
+        newActions[actionIndex] = { ...newActions[actionIndex], ...updates };
+        onUpdateData?.({ actions: newActions });
+    };
+
     return (
-        <>
-            <h4 id="actions">Actions</h4>
-            <dl>
-                {actions.map((action, index) => (
-                    <React.Fragment key={`${action.name}-${index}`}>
-                        <dt>
-                            <em>
-                                <strong>{action.name || 'Unnamed Action'}</strong>
-                            </em>
-                            {action.usage ? ` (${action.usage})` : ''}
-                        </dt>
-                        <dd>{renderActionDetails(action)}</dd>
-                        <br />
-                    </React.Fragment>
-                ))}
+        <section className={`dm-action-section${regionOverflow ? ' dm-section-overflow' : ''}`}>
+            {showHeading ? (
+                <h4 className="dm-section-heading" id="actions">{headingText}</h4>
+            ) : (
+                <h4 className="dm-section-heading" id="actions">{headingText}</h4>
+            )}
+            <dl className="dm-action-list">
+                {items.map((action, index) => {
+                    const globalIndex = startIndex + index;
+                    const isLast = globalIndex === totalCount - 1;
+                    return (
+                        <React.Fragment key={`${action.name || 'action'}-${globalIndex}`}>
+                            <dt className="dm-action-term">
+                                <em>
+                                    <strong>
+                                        <EditableText
+                                            value={action.name}
+                                            onChange={(value) => updateAction(globalIndex, { name: value })}
+                                            isEditMode={isEditMode}
+                                            placeholder="Action name"
+                                        />
+                                    </strong>
+                                </em>
+                                {action.usage ? ` (${action.usage})` : ''}
+                            </dt>
+                            <dd className="dm-action-description">
+                                <EditableText
+                                    value={formatActionDetails(action)}
+                                    onChange={(value) => updateAction(globalIndex, { desc: value })}
+                                    isEditMode={isEditMode}
+                                    placeholder="Action description"
+                                    multiline
+                                />
+                            </dd>
+                            {!isLast ? <div className="dm-action-divider" /> : null}
+                        </React.Fragment>
+                    );
+                })}
             </dl>
-        </>
+        </section>
     );
 };
 

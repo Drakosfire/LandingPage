@@ -1,16 +1,18 @@
 // StatBlockHeader.tsx - Header Component for StatBlock Generator
 import React from 'react';
 import { Group, Button, Text, Badge, ActionIcon, Title } from '@mantine/core';
-import { IconFolder, IconAlertCircle } from '@tabler/icons-react';
+import { IconFolder, IconAlertCircle, IconTestPipe } from '@tabler/icons-react';
 
 interface StatBlockHeaderProps {
     onOpenProjects: () => void;
+    onLoadDemo?: () => void;
     saveStatus: 'idle' | 'saving' | 'saved' | 'error';
     error: string | null;
 }
 
 const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
     onOpenProjects,
+    onLoadDemo,
     saveStatus,
     error
 }) => {
@@ -40,6 +42,16 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                     <ActionIcon color="red" variant="light">
                         <IconAlertCircle size={16} />
                     </ActionIcon>
+                )}
+                {onLoadDemo && (
+                    <Button
+                        leftSection={<IconTestPipe size={16} />}
+                        variant="light"
+                        color="violet"
+                        onClick={onLoadDemo}
+                    >
+                        Load Demo (Dustwalker)
+                    </Button>
                 )}
                 <Button
                     leftSection={<IconFolder size={16} />}

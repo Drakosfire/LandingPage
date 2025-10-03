@@ -45,7 +45,8 @@ const StatBlockGeneratorContent: React.FC = () => {
         isAnyGenerationInProgress,
         setGenerationLock,
         saveStatus,
-        error
+        error,
+        loadDemoData
     } = useStatBlockGenerator();
 
     // Local UI state
@@ -153,6 +154,7 @@ const StatBlockGeneratorContent: React.FC = () => {
                 {/* Header */}
                 <StatBlockHeader
                     onOpenProjects={() => setForceExpandDrawer(true)}
+                    onLoadDemo={loadDemoData}
                     saveStatus={saveStatus}
                     error={error}
                 />

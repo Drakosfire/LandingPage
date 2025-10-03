@@ -1,0 +1,215 @@
+/**
+ * HTML Export Utilities
+ * 
+ * Export statblock canvas to standalone HTML file.
+ */
+
+import type { StatblockPageDocument, TemplateConfig } from '../../types/statblockCanvas.types';
+import type { StatBlockDetails } from '../../types/statblock.types';
+import { DND_CSS_BASE_URL } from '../../config';
+
+interface ExportOptions {
+    includeStyles?: boolean;
+    includeMetadata?: boolean;
+    title?: string;
+}
+
+/**
+ * Generate standalone HTML from page document
+ */
+export async function exportToHTML(
+    page: StatblockPageDocument,
+    template: TemplateConfig,
+    options: ExportOptions = {}
+): Promise<string> {
+    const {
+        includeStyles = true,
+        includeMetadata = true,
+        title = 'D&D 5e Statblock',
+    } = options;
+
+    const statblock = page.dataSources.find((s) => s.type === 'statblock')?.payload as StatBlockDetails;
+    const creatureName = statblock?.name ?? 'Creature';
+
+    const cssLinks = includeStyles
+        ? `
+    <!-- D&D 5e PHB Styles -->
+    <link rel="stylesheet" href="${DND_CSS_BASE_URL}/all.css">
+    <link rel="stylesheet" href="${DND_CSS_BASE_URL}/bundle.css">
+    <link rel="stylesheet" href="${DND_CSS_BASE_URL}/style.css">
+    <link rel="stylesheet" href="${DND_CSS_BASE_URL}/5ePHBstyle.css">
+    
+    <!-- Canvas Styles -->
+    <link rel="stylesheet" href="/static/css/StatblockCanvas.css">
+    `
+        : '';
+
+    const metadata = includeMetadata
+        ? `
+    <meta name="generator" content="DungeonMind StatBlock Generator">
+    <meta name="template" content="${template.name}">
+    <meta name="creature" content="${creatureName}">
+    <meta name="created" content="${new Date().toISOString()}">
+    `
+        : '';
+
+    const printStyles = `
+    <style>
+        @media print {
+            body {
+                margin: 0;
+                padding: 20px;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .dm-statblock-responsive {
+                transform: none !important;
+                max-width: 100% !important;
+            }
+            
+            .page {
+                page-break-after: always;
+                break-after: page;
+            }
+            
+            .page:last-child {
+                page-break-after: auto;
+                break-after: auto;
+            }
+        }
+        
+        body {
+            font-family: 'Bookinsanity', 'Book Antiqua', serif;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .export-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .export-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #c0ad6a;
+        }
+        
+        .export-header h1 {
+            margin: 0;
+            color: #58180d;
+            font-size: 2em;
+        }
+        
+        .export-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+    `;
+
+    // Get the rendered content from the DOM
+    // This is a placeholder - actual implementation would need server-side rendering
+    // or capturing the rendered DOM
+    const statblockContent = `
+        <!-- Statblock content would be rendered here -->
+        <!-- This requires either:
+             1. Server-side rendering
+             2. Capturing DOM snapshot
+             3. Using a headless browser
+        -->
+        <div class="dm-statblock-responsive">
+            <div class="brewRenderer">
+                <div class="pages">
+                    <div class="page phb">
+                        <div class="columnWrapper">
+                            <div class="monster frame wide">
+                                <!-- Component-rendered content -->
+                                <p><em>Note: Full statblock rendering requires DOM capture.</em></p>
+                                <p><strong>Export data:</strong></p>
+                                <pre>${JSON.stringify(statblock, null, 2)}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title} - ${creatureName}</title>
+    ${metadata}
+    ${cssLinks}
+    ${printStyles}
+</head>
+<body>
+    <div class="export-container">
+        <div class="export-header">
+            <h1>${creatureName}</h1>
+            <p>Generated by DungeonMind StatBlock Generator</p>
+        </div>
+        
+        ${statblockContent}
+        
+        <div class="export-footer no-print">
+            <p>Created on ${new Date().toLocaleDateString()}</p>
+            <p>Template: ${template.name}</p>
+            <button onclick="window.print()" style="padding: 8px 16px; cursor: pointer;">Print / Save as PDF</button>
+        </div>
+    </div>
+</body>
+</html>`;
+}
+
+/**
+ * Download HTML as file
+ */
+export function downloadHTML(html: string, filename: string): void {
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * Export page document to HTML file
+ */
+export async function exportPageToHTMLFile(
+    page: StatblockPageDocument,
+    template: TemplateConfig
+): Promise<void> {
+    const statblock = page.dataSources.find((s) => s.type === 'statblock')?.payload as StatBlockDetails;
+    const creatureName = statblock?.name ?? 'Creature';
+    const filename = `${creatureName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_statblock.html`;
+
+    const html = await exportToHTML(page, template, {
+        title: creatureName,
+        includeStyles: true,
+        includeMetadata: true,
+    });
+
+    downloadHTML(html, filename);
+}
+
+

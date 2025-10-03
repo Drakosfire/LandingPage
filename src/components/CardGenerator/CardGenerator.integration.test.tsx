@@ -6,17 +6,17 @@ import { AuthProvider } from '../../context/AuthContext';
 import { projectAPI } from '../../services/projectAPI';
 import { Project, CardGeneratorState } from '../../types/card.types';
 
+const mockUseAuth = jest.fn();
+
 // Mock the project API
 jest.mock('../../services/projectAPI');
 const mockProjectAPI = projectAPI as jest.Mocked<typeof projectAPI>;
 
 // Mock the auth context
 jest.mock('../../context/AuthContext', () => ({
-    useAuth: () => ({
-        userId: 'test-user-123',
-        isLoggedIn: true,
-        authState: { isLoading: false, isAuthenticated: true }
-    })
+    AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useAuth: () => mockUseAuth()
 }));
 
 // Mock localStorage
@@ -28,6 +28,18 @@ const localStorageMock = {
 };
 Object.defineProperty(window, 'localStorage', {
     value: localStorageMock
+});
+
+class ResizeObserverMock {
+    observe() { }
+    unobserve() { }
+    disconnect() { }
+}
+
+Object.defineProperty(window, 'ResizeObserver', {
+    writable: true,
+    configurable: true,
+    value: ResizeObserverMock
 });
 
 // Helper function to create valid test projects
@@ -78,6 +90,25 @@ describe('CardGenerator Integration Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         localStorageMock.getItem.mockReturnValue(null);
+
+        mockUseAuth.mockImplementation(() => ({
+            authState: {
+                isAuthenticated: true,
+                user: {
+                    sub: 'test-user-123',
+                    email: 'test@example.com',
+                    name: 'Test User'
+                },
+                isLoading: false,
+                error: null
+            },
+            login: jest.fn(),
+            logout: jest.fn().mockResolvedValue(undefined),
+            refreshAuth: jest.fn().mockResolvedValue(undefined),
+            clearError: jest.fn(),
+            userId: 'test-user-123',
+            isLoggedIn: true
+        }));
     });
 
     const renderCardGenerator = () => {
@@ -356,13 +387,19 @@ describe('CardGenerator Integration Tests', () => {
 
     describe('Authentication Edge Cases', () => {
         it('should handle authentication state changes', async () => {
-            // Mock authentication failure
-            jest.doMock('../../context/AuthContext', () => ({
-                useAuth: () => ({
-                    userId: null,
-                    isLoggedIn: false,
-                    authState: { isLoading: false, isAuthenticated: false }
-                })
+            mockUseAuth.mockImplementation(() => ({
+                authState: {
+                    isAuthenticated: false,
+                    user: null,
+                    isLoading: false,
+                    error: null
+                },
+                login: jest.fn(),
+                logout: jest.fn().mockResolvedValue(undefined),
+                refreshAuth: jest.fn().mockResolvedValue(undefined),
+                clearError: jest.fn(),
+                userId: null,
+                isLoggedIn: false
             }));
 
             renderCardGenerator();

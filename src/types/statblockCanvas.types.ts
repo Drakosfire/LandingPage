@@ -1,4 +1,4 @@
-import type { StatBlockDetails } from './statblock.types';
+import type { Action, StatBlockDetails } from './statblock.types';
 import type React from 'react';
 
 export type PageMode = 'locked' | 'freeform';
@@ -32,11 +32,17 @@ export interface SnapConfig {
     snapToEdges: boolean;
 }
 
+export interface PaginationConfig {
+    pageCount: number;
+    columnCount: 1 | 2;
+}
+
 export interface PageVariables {
     mode: PageMode;
     dimensions: PageDimensions;
     background: PageBackgroundConfig;
     columns: ColumnConfig;
+    pagination: PaginationConfig;
     snap: SnapConfig;
     templateId?: string;
 }
@@ -86,6 +92,10 @@ export interface ComponentLayoutConfig {
     maxSize?: ComponentDimensions;
     isVisible: boolean;
     isLocked?: boolean;
+    location?: {
+        page: number;
+        column: 1 | 2;
+    };
 }
 
 export type ComponentDataReference =
@@ -99,6 +109,15 @@ export interface ComponentInstance {
     layout: ComponentLayoutConfig;
     modeOverrides?: Partial<ComponentLayoutConfig>;
     variables?: Record<string, unknown>;
+}
+
+export interface RegionListContent {
+    kind: 'action-list' | 'trait-list' | 'bonus-action-list' | 'reaction-list' | 'legendary-action-list' | 'lair-action-list' | 'spell-list';
+    items: Action[];
+    startIndex: number;
+    totalCount: number;
+    isContinuation: boolean;
+    metadata?: Record<string, unknown>;
 }
 
 export interface TemplateSlot {
@@ -184,6 +203,15 @@ export interface CanvasComponentProps {
     mode: PageMode;
     pageVariables: PageVariables;
     dataSources: ComponentDataSource[];
+    isEditMode?: boolean;
+    onUpdateData?: (updates: Partial<import('./statblock.types').StatBlockDetails>) => void;
+    region?: {
+        page: number;
+        column: 1 | 2;
+        index: number;
+    };
+    regionContent?: RegionListContent;
+    regionOverflow?: boolean;
 }
 
 export interface PageLoadResponse {

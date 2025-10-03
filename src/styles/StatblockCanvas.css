@@ -4,14 +4,35 @@
      margin: 0 auto;
      padding: 0 1rem;
      box-sizing: border-box;
+     overflow: hidden;
+     display: flex;
+     justify-content: center;
+     align-items: flex-start;
+     --dm-page-scale: 1;
+ }
+
+ .brewRenderer-wrapper {
+     margin: 0;
+     position: relative;
+     overflow: visible;
+     transition: transform 0.2s ease-out;
+     /* Transform and origin are set via inline styles for precise control */
  }
 
  .brewRenderer {
-     width: var(--dm-page-width);
-     margin: 0 auto;
+     margin: 0;
+     position: relative;
+     overflow: visible;
+     /* Width and height are set via inline styles for precise control */
  }
 
  .pages {
+     width: var(--dm-page-width);
+     position: relative;
+ }
+
+ .pages-content {
+     width: var(--dm-page-width);
      display: flex;
      flex-direction: column;
      gap: 48px;
@@ -20,6 +41,13 @@
  .page.phb {
      width: var(--dm-page-width);
      height: var(--dm-page-height);
+     column-count: var(--dm-column-count, 1);
+     column-gap: var(--dm-column-gap, 12px);
+     column-fill: balance;
+ }
+
+ .dm-statblock-measurement-layer {
+     --dm-page-scale: 1;
  }
 
  .dm-statblock-measurement-layer .page.phb {
@@ -341,4 +369,76 @@
 
  .dm-canvas-fallback .mantine-Text-root {
      font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+ }
+
+ .dm-statblock-responsive .columnWrapper {
+     display: flex;
+     gap: var(--dm-column-gap, 12px);
+     width: 100%;
+     height: 100%;
+ }
+
+ .dm-statblock-responsive .monster.frame.wide {
+     flex: 1 1 auto;
+     display: flex;
+     width: 100%;
+     height: 100%;
+     max-width: 100%;
+     box-sizing: border-box;
+ }
+
+ .dm-statblock-responsive .canvas-column {
+     flex: 1 1 0;
+     display: flex;
+     flex-direction: column;
+     gap: var(--dm-column-gap, 12px);
+ }
+
+ .portrait-wrapper {
+     display: inline-block;
+     max-width: 100%;
+ }
+
+ .portrait-wrapper--sized {
+     width: 100%;
+     height: 100%;
+ }
+
+ .dm-statblock-measurement-layer .monster.frame.wide {
+     transform: none !important;
+ }
+
+ .dm-statblock-measurement-layer .monster-portrait {
+     margin: 0;
+ }
+
+ .dm-statblock-measurement-layer .portrait-wrapper {
+     display: block;
+     overflow: hidden;
+ }
+
+ .dm-statblock-measurement-layer .portrait-wrapper img {
+     width: 100%;
+     height: 100%;
+     max-width: 100%;
+     max-height: 100%;
+     object-fit: cover;
+ }
+
+ .dm-statblock-measurement-layer .dm-portrait-panel {
+     min-height: 0;
+ }
+
+ .dm-statblock-measurement-layer .portrait-measurement-wrapper {
+     position: relative;
+     overflow: hidden;
+     display: block;
+ }
+
+ .dm-statblock-measurement-layer .portrait-measurement-wrapper img {
+     width: 100%;
+     height: 100%;
+     max-width: 100%;
+     max-height: 100%;
+     object-fit: cover;
  }

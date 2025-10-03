@@ -13,6 +13,8 @@ import type {
     MeasurementRecord,
     MeasurementEntry,
     RegionBuckets,
+    RegionAssignment,
+    SlotAssignment,
 } from './types';
 import {
     getPrimaryStatblock,
@@ -29,8 +31,8 @@ export const MEASUREMENT_THROTTLE_MS = 150;
 
 export const DEFAULT_PAGE_TOP_MARGIN_MM = 18;
 export const DEFAULT_PAGE_BOTTOM_MARGIN_MM = 18;
-export const COMPONENT_VERTICAL_SPACING_PX = 18;
-export const LIST_ITEM_SPACING_PX = 12;
+export const COMPONENT_VERTICAL_SPACING_PX = 12; // Reduced from 18px for tighter layout
+export const LIST_ITEM_SPACING_PX = 8; // Reduced from 12px for tighter layout
 export const ACTION_HEADER_HEIGHT_PX = 36;
 export const ACTION_CONTINUATION_HEADER_HEIGHT_PX = 28;
 export const ACTION_META_LINE_HEIGHT_PX = 16;
@@ -176,6 +178,7 @@ const REGION_KIND_MAP: Partial<Record<ComponentInstance['type'], RegionListConte
     'reaction-section': 'reaction-list',
     'legendary-actions': 'legendary-action-list',
     'lair-actions': 'lair-action-list',
+    'spellcasting-block': 'spell-list',
 };
 
 interface BuildBucketsArgs {
@@ -185,22 +188,32 @@ interface BuildBucketsArgs {
     pageWidthPx: number;
     dataSources: ComponentDataSource[];
     measurements: Map<MeasurementKey, MeasurementRecord>;
+    assignedRegions?: Map<string, SlotAssignment>;
 }
 
-const buildBuckets = ({
+export const buildBuckets = ({
     instances,
     template,
     columnCount,
     pageWidthPx,
     dataSources,
     measurements,
+    assignedRegions,
 }: BuildBucketsArgs): RegionBuckets => {
     const slotOrder = buildSlotOrder(template);
     const buckets: RegionBuckets = new Map();
 
     instances.forEach((instance, index) => {
-        const baseLocation = resolveLocation(instance, template, columnCount, pageWidthPx);
+        const persisted = assignedRegions?.get(instance.id);
+        const resolvedHomeRaw = resolveLocation(instance, template, columnCount, pageWidthPx);
+        const resolvedHome: RegionAssignment = {
+            page: Math.max(1, resolvedHomeRaw.page),
+            column: columnCount === 1 ? 1 : (clamp(resolvedHomeRaw.column, 1, columnCount) as 1 | 2),
+        };
+        const baseLocation = persisted ? persisted.homeRegion : resolvedHome;
         const slotIndex = instance.layout.slotId ? slotOrder.get(instance.layout.slotId) ?? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
+        const slotDimensions = slotDimensionLookup(template, instance.layout.slotId);
+        const homeKey = regionKey(resolvedHome.page, resolvedHome.column);
         const listKind = REGION_KIND_MAP[instance.type];
 
         if (listKind) {
@@ -225,6 +238,26 @@ const buildBuckets = ({
                         const lair = (resolved as { actions?: Action[] }) ?? statblock?.lairActions;
                         return normalizeActionArray(lair?.actions);
                     }
+                    case 'spellcasting-block': {
+                        const spellcasting = (resolved as { cantrips?: unknown[]; knownSpells?: unknown[] }) ?? statblock?.spells;
+                        // Combine cantrips and known spells into a single list for splitting
+                        // Preserve ALL spell properties (level, school, usage) for proper rendering
+                        const cantrips = (spellcasting?.cantrips ?? []).map((spell: any) => ({
+                            name: spell.name,
+                            desc: spell.description ?? '',
+                            level: spell.level ?? 0,
+                            school: spell.school,
+                            usage: spell.usage,
+                        }));
+                        const knownSpells = (spellcasting?.knownSpells ?? []).map((spell: any) => ({
+                            name: spell.name,
+                            desc: spell.description ?? '',
+                            level: spell.level,
+                            school: spell.school,
+                            usage: spell.usage,
+                        }));
+                        return normalizeActionArray([...cantrips, ...knownSpells] as Action[]);
+                    }
                     default:
                         return [];
                 }
@@ -240,9 +273,13 @@ const buildBuckets = ({
                     orderIndex: index,
                     sourceRegionKey: key,
                     region: baseLocation,
+                    homeRegion: resolvedHome,
+                    homeRegionKey: homeKey,
                     measurementKey,
                     estimatedHeight: record?.height ?? DEFAULT_COMPONENT_HEIGHT_PX,
                     needsMeasurement: !record,
+                    span: record ? { top: 0, bottom: record.height, height: record.height } : undefined,
+                    slotDimensions,
                 };
                 if (!buckets.has(key)) {
                     buckets.set(key, []);
@@ -319,10 +356,14 @@ const buildBuckets = ({
                         page: pageNumber,
                         column: columnNumber,
                     },
+                    homeRegion: resolvedHome,
+                    homeRegionKey: homeKey,
                     regionContent,
                     estimatedHeight: record?.height ?? estimateListHeight(segment.items),
                     measurementKey,
                     needsMeasurement: !record,
+                    span: record ? { top: 0, bottom: record.height, height: record.height } : undefined,
+                    slotDimensions,
                     listContinuation: {
                         isContinuation: segment.startIndex > 0,
                         startIndex: segment.startIndex,
@@ -340,15 +381,43 @@ const buildBuckets = ({
         const key = regionKey(baseLocation.page, baseLocation.column);
         const measurementKey = computeMeasurementKey(instance.id);
         const record = measurements.get(measurementKey);
+
+        // Add debug logging for first few components and component-12
+        if (process.env.NODE_ENV !== 'production' &&
+            (instance.id === 'component-0' || instance.id === 'component-1' ||
+                instance.id === 'component-2' || instance.id === 'component-12')) {
+            console.debug('[buildBuckets] Template vs Measurement:', {
+                instanceId: instance.id,
+                componentType: instance.type,
+                dataRef: instance.dataRef,
+                slotId: instance.layout.slotId,
+                templateSlotHeight: slotDimensions?.heightPx,
+                templateSlotWidth: slotDimensions?.widthPx,
+                measuredHeight: record?.height,
+                fallbackHeight: DEFAULT_COMPONENT_HEIGHT_PX,
+                finalEstimatedHeight: record?.height ?? DEFAULT_COMPONENT_HEIGHT_PX,
+                conflict: slotDimensions?.heightPx && record?.height &&
+                    Math.abs(slotDimensions.heightPx - record.height) > 5 ?
+                    `Template wants ${slotDimensions.heightPx}px, content measured ${record.height}px` :
+                    'No conflict',
+                isAbnormal: record?.height && record.height > 1500 ?
+                    `⚠️ Abnormally large: ${record.height}px` : false,
+            });
+        }
+
         const entry: CanvasLayoutEntry = {
             instance,
             slotIndex,
             orderIndex: index,
             sourceRegionKey: key,
             region: baseLocation,
-            estimatedHeight: record?.height ?? DEFAULT_COMPONENT_HEIGHT_PX,
+            homeRegion: resolvedHome,
+            homeRegionKey: homeKey,
             measurementKey,
+            estimatedHeight: record?.height ?? DEFAULT_COMPONENT_HEIGHT_PX,
             needsMeasurement: !record,
+            span: record ? { top: 0, bottom: record.height, height: record.height } : undefined,
+            slotDimensions,
         };
         if (!buckets.has(key)) {
             buckets.set(key, []);
@@ -366,17 +435,118 @@ const buildBuckets = ({
     return buckets;
 };
 
+// Cache to preserve measurement entry object identity across pagination cycles
+// This prevents React from unmounting/remounting measurement components unnecessarily
+const measurementEntryCache = new Map<MeasurementKey, CanvasLayoutEntry>();
+
 const collectMeasurementEntries = (buckets: RegionBuckets): MeasurementEntry[] => {
     const unique = new Map<MeasurementKey, CanvasLayoutEntry>();
+    const duplicateCheck = new Map<MeasurementKey, number>();
+
     buckets.forEach((entries) => {
         entries.forEach((entry) => {
-            if (!entry.needsMeasurement) return;
+            // Track how many times we see each key
+            if (process.env.NODE_ENV !== 'production') {
+                const count = duplicateCheck.get(entry.measurementKey) || 0;
+                duplicateCheck.set(entry.measurementKey, count + 1);
+            }
+
+            // Always include entries in measurement layer, even if they already have measurements
+            // This allows re-measuring if component content changes
             if (!unique.has(entry.measurementKey)) {
-                unique.set(entry.measurementKey, entry);
+                // Reuse cached entry if measurement key exists
+                const cached = measurementEntryCache.get(entry.measurementKey);
+                if (cached) {
+                    // IMPORTANT: Merge new measurement data into cached entry
+                    const merged = {
+                        ...cached,
+                        estimatedHeight: entry.estimatedHeight, // Use new measurement
+                        span: entry.span,                       // Update span if changed
+                        needsMeasurement: entry.needsMeasurement,
+                    };
+                    unique.set(entry.measurementKey, merged);
+                    measurementEntryCache.set(entry.measurementKey, merged);
+                } else {
+                    unique.set(entry.measurementKey, entry);
+                    measurementEntryCache.set(entry.measurementKey, entry);
+                }
             }
         });
     });
+
+    // Log duplicates
+    if (process.env.NODE_ENV !== 'production') {
+        const duplicates = Array.from(duplicateCheck.entries()).filter(([_, count]) => count > 1);
+        if (duplicates.length > 0) {
+            console.warn('[collectMeasurementEntries] Found duplicate keys in buckets:', duplicates);
+        }
+    }
+
+    // Clean up cache entries that are no longer needed
+    const currentKeys = new Set(unique.keys());
+    measurementEntryCache.forEach((_, key) => {
+        if (!currentKeys.has(key)) {
+            measurementEntryCache.delete(key);
+        }
+    });
+
     return Array.from(unique.values());
+};
+
+/**
+ * Create measurement entries from raw components BEFORE buckets are built.
+ * This enables measure-first flow where we measure all components upfront.
+ * Only creates essential measurements (block components + full lists), not all possible splits.
+ */
+export const createInitialMeasurementEntries = ({
+    instances,
+    template,
+    columnCount,
+    pageWidthPx,
+    dataSources,
+}: {
+    instances: ComponentInstance[];
+    template: TemplateConfig;
+    columnCount: number;
+    pageWidthPx: number;
+    dataSources: ComponentDataSource[];
+}): MeasurementEntry[] => {
+    const entries: MeasurementEntry[] = [];
+    const slotOrder = buildSlotOrder(template);
+
+    instances.forEach((instance, index) => {
+        const slotDimensions = slotDimensionLookup(template, instance.layout.slotId);
+        const slotIndex = instance.layout.slotId
+            ? slotOrder.get(instance.layout.slotId) ?? Number.MAX_SAFE_INTEGER
+            : Number.MAX_SAFE_INTEGER;
+
+        // Determine home region for this component
+        const resolvedHomeRaw = resolveLocation(instance, template, columnCount, pageWidthPx);
+        const homeRegion: RegionAssignment = {
+            page: Math.max(1, resolvedHomeRaw.page),
+            column: toColumnType(resolvedHomeRaw.column),
+        };
+
+        // Create basic measurement entry for block component
+        // We'll measure all components as blocks first
+        const measurementKey = computeMeasurementKey(instance.id);
+
+        entries.push({
+            instance,
+            slotIndex,
+            orderIndex: index,
+            sourceRegionKey: regionKey(homeRegion.page, homeRegion.column),
+            region: homeRegion,
+            homeRegion,
+            homeRegionKey: regionKey(homeRegion.page, homeRegion.column),
+            estimatedHeight: DEFAULT_COMPONENT_HEIGHT_PX,
+            measurementKey,
+            needsMeasurement: true,
+            slotDimensions,
+        });
+    });
+
+    return entries;
 };
 
 export interface BuildCanvasEntriesArgs {
@@ -386,6 +556,7 @@ export interface BuildCanvasEntriesArgs {
     pageWidthPx: number;
     dataSources: ComponentDataSource[];
     measurements: Map<MeasurementKey, MeasurementRecord>;
+    assignedRegions?: Map<string, SlotAssignment>;
 }
 
 export const buildCanvasEntries = ({
@@ -395,9 +566,63 @@ export const buildCanvasEntries = ({
     pageWidthPx,
     dataSources,
     measurements,
+    assignedRegions,
 }: BuildCanvasEntriesArgs): CanvasEntriesResult => {
-    const buckets = buildBuckets({ instances, template, columnCount, pageWidthPx, dataSources, measurements });
+    const buckets = buildBuckets({ instances, template, columnCount, pageWidthPx, dataSources, measurements, assignedRegions });
     const measurementEntries = collectMeasurementEntries(buckets);
     return { buckets, measurementEntries };
+};
+
+const slotDimensionLookup = (template: TemplateConfig, slotId: string | undefined) => {
+    if (!slotId) {
+        return undefined;
+    }
+    const slot = template.slots.find((item) => item.id === slotId);
+    if (!slot) {
+        return undefined;
+    }
+    return {
+        widthPx: slot.position.width,
+        heightPx: slot.position.height,
+    };
+};
+
+/**
+ * Computes canonical home regions for all component instances based on their template slots
+ * and explicit layout.location settings. This map should be recomputed only when components
+ * or the template change, not when measurements or reroutes occur.
+ */
+export const computeHomeRegions = ({
+    instances,
+    template,
+    columnCount,
+    pageWidthPx,
+}: {
+    instances: ComponentInstance[];
+    template: TemplateConfig;
+    columnCount: number;
+    pageWidthPx: number;
+}): Map<string, { homeRegion: RegionAssignment; slotIndex: number; orderIndex: number }> => {
+    const slotOrder = buildSlotOrder(template);
+    const homeRegions = new Map<string, { homeRegion: RegionAssignment; slotIndex: number; orderIndex: number }>();
+
+    instances.forEach((instance, index) => {
+        const resolvedHomeRaw = resolveLocation(instance, template, columnCount, pageWidthPx);
+        const homeRegion: RegionAssignment = {
+            page: Math.max(1, resolvedHomeRaw.page),
+            column: columnCount === 1 ? 1 : (clamp(resolvedHomeRaw.column, 1, columnCount) as 1 | 2),
+        };
+        const slotIndex = instance.layout.slotId
+            ? slotOrder.get(instance.layout.slotId) ?? Number.MAX_SAFE_INTEGER
+            : Number.MAX_SAFE_INTEGER;
+
+        homeRegions.set(instance.id, {
+            homeRegion,
+            slotIndex,
+            orderIndex: index,
+        });
+    });
+
+    return homeRegions;
 };
 

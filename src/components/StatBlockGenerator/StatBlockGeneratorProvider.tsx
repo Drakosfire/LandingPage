@@ -15,12 +15,15 @@ import {
     ValidationResult,
     CRCalculationResult
 } from '../../types/statblock.types';
+import { defaultStatblockDetails } from '../../fixtures/statblockTemplates';
 
 // Context interface for StatBlockGenerator
 export interface StatBlockGeneratorContextType {
     // Core State
     currentStepId: string;
     isCanvasPreviewReady: boolean;
+    selectedTemplateId: string;
+    isCanvasEditMode: boolean;
     creatureDetails: StatBlockDetails;
     selectedAssets: {
         creatureImage?: string;
@@ -55,10 +58,13 @@ export interface StatBlockGeneratorContextType {
     // State Updates
     updateCreatureDetails: (updates: Partial<StatBlockDetails>) => void;
     replaceCreatureDetails: (next: StatBlockDetails) => void;
+    setSelectedTemplateId: (templateId: string) => void;
+    setIsCanvasEditMode: (isEditMode: boolean) => void;
     setSelectedCreatureImage: (image: string, index?: number) => void;
     addGeneratedImage: (image: GeneratedImage) => void;
     addGenerated3DModel: (model: Generated3DModel) => void;
     addGeneratedExport: (exportItem: GeneratedExport) => void;
+    loadDemoData: () => void;
 
     // Validation & CR Calculation
     validateStatBlock: () => Promise<ValidationResult>;
@@ -111,7 +117,10 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     // Core state
     const [currentStepId, setCurrentStepId] = useState<string>('creature-description');
     const [stepCompletion, setStepCompletion] = useState<Record<string, boolean>>({});
-    const [creatureDetails, setCreatureDetails] = useState<StatBlockDetails>(createInitialStatBlockDetails());
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string>('demo-monster-template');
+    const [isCanvasEditMode, setIsCanvasEditMode] = useState<boolean>(false);
+    // Start with Dustwalker demo data for testing/demo purposes
+    const [creatureDetails, setCreatureDetails] = useState<StatBlockDetails>(defaultStatblockDetails);
 
     // Assets and generated content
     const [selectedAssets, setSelectedAssets] = useState({
@@ -232,6 +241,13 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             // Debounced save will be implemented here
         }
     }, [autoSaveEnabled]);
+
+    const loadDemoData = useCallback(() => {
+        // Import demo data dynamically to avoid circular deps
+        import('../../fixtures/statblockTemplates').then(({ defaultStatblockDetails }) => {
+            replaceCreatureDetails(defaultStatblockDetails);
+        });
+    }, [replaceCreatureDetails]);
 
     const setSelectedCreatureImage = useCallback((image: string, index?: number) => {
         setSelectedAssets(prev => ({
@@ -369,6 +385,8 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         // Core State
         currentStepId,
         isCanvasPreviewReady,
+        selectedTemplateId,
+        isCanvasEditMode,
         creatureDetails,
         selectedAssets,
         generatedContent,
@@ -389,10 +407,13 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         // State Updates
         updateCreatureDetails,
         replaceCreatureDetails,
+        setSelectedTemplateId,
+        setIsCanvasEditMode,
         setSelectedCreatureImage,
         addGeneratedImage,
         addGenerated3DModel,
         addGeneratedExport,
+        loadDemoData,
 
         // Validation & CR Calculation
         validateStatBlock,

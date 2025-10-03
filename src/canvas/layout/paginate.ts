@@ -32,11 +32,30 @@ const normalizeRegionHeight = (
     baseDimensions: { contentHeightPx: number; topMarginPx: number } | null
 ): number => {
     if (!baseDimensions) {
+        if (process.env.NODE_ENV !== 'production') {
+            console.debug('[normalizeRegionHeight] No baseDimensions, using raw regionHeightPx:', regionHeightPx);
+        }
         return regionHeightPx;
     }
 
     const headerAllowance = Math.max(baseDimensions.topMarginPx - COMPONENT_VERTICAL_SPACING_PX, 0);
     const adjusted = Math.max(regionHeightPx - headerAllowance, regionHeightPx * 0.9);
+
+    if (process.env.NODE_ENV !== 'production') {
+        console.debug('[normalizeRegionHeight] 🎯 HEIGHT CALCULATION:', {
+            inputRegionHeightPx: regionHeightPx,
+            baseContentHeightPx: baseDimensions.contentHeightPx,
+            topMarginPx: baseDimensions.topMarginPx,
+            headerAllowance,
+            calculatedOptions: {
+                minusAllowance: regionHeightPx - headerAllowance,
+                times90Percent: regionHeightPx * 0.9
+            },
+            finalAdjustedHeight: adjusted,
+            message: regionHeightPx < 850 ? '✅ Using MEASURED frame height' : '❌ Using THEORETICAL page height'
+        });
+    }
+
     return adjusted;
 };
 
@@ -50,6 +69,7 @@ interface PaginateArgs {
 }
 
 const MAX_REGION_ITERATIONS = 400;
+const MAX_PAGES = 10; // Circuit breaker to prevent infinite pagination loops
 
 let debugRunId = 0;
 
@@ -68,9 +88,22 @@ const ensurePage = (
     pageNumber: number,
     columnCount: number,
     pendingQueues: Map<string, CanvasLayoutEntry[]>
-) => {
+): boolean => {
     while (pages.length < pageNumber) {
         const nextPageNumber = pages.length + 1;
+
+        // Circuit breaker: prevent infinite pagination
+        if (nextPageNumber > MAX_PAGES) {
+            console.error('[paginate] ⚠️ MAX_PAGES LIMIT REACHED:', {
+                currentPages: pages.length,
+                requestedPage: pageNumber,
+                maxPages: MAX_PAGES,
+                reason: 'Pagination stopped to prevent infinite loop',
+                suggestion: 'Check for components with abnormal heights (>1500px) that never fit on a page',
+            });
+            return false; // Signal that we hit the limit
+        }
+
         const columns: LayoutColumn[] = [];
         for (let columnIndex = 1; columnIndex <= columnCount; columnIndex += 1) {
             const key = regionKey(nextPageNumber, columnIndex);
@@ -81,6 +114,7 @@ const ensurePage = (
         }
         pages.push({ pageNumber: nextPageNumber, columns });
     }
+    return true; // Successfully created pages
 };
 
 const computeRegionSequence = (pages: PageLayout[]): RegionPosition[] =>
@@ -133,10 +167,123 @@ const detachFromSource = (entry: CanvasLayoutEntry, key: string, buckets: Map<st
     }
 };
 
+// Track previous regionHeight to detect feedback loops
+let lastRegionHeightPx: number | null = null;
+let lastNormalizedHeight: number | null = null;
+
+/**
+ * Split decision result for list components
+ */
+interface SplitDecision {
+    canPlace: boolean;              // Can we place any items?
+    placedItems: unknown[];         // Items to place in current region
+    remainingItems: unknown[];      // Items to move to next region
+    placedHeight: number;           // Height of placed segment
+    placedTop: number;              // Top position in region
+    placedBottom: number;           // Bottom position in region
+    willOverflow: boolean;          // Will placed segment exceed region boundary?
+    reason: string;                 // Why this decision was made
+}
+
+/**
+ * Find best split point for list component using measurement-based evaluation.
+ * 
+ * Algorithm:
+ * 1. Try splits from largest to smallest (greedy: maximize items in current region)
+ * 2. For each split option, MEASURE where it would be placed
+ * 3. Check constraints:
+ *    - Top: Does it start in bottom 20%? (invalid except minimum-1-item rule)
+ *    - Bottom: Does it exceed region boundary? (try fewer items)
+ * 4. Return first split that satisfies constraints
+ * 
+ * @param entry - Layout entry with regionContent
+ * @param cursor - Current position in region
+ * @param regionHeight - Total region height
+ * @returns Split decision with placement details
+ */
+const findBestListSplit = (
+    entry: CanvasLayoutEntry,
+    cursor: RegionCursor,
+    regionHeight: number
+): SplitDecision => {
+    const items = entry.regionContent!.items;
+    const BOTTOM_THRESHOLD = 0.80; // Cannot start in bottom 20%
+    const currentOffset = cursor.currentOffset;
+
+    // Try splits from largest to smallest (greedy: maximize items in current region)
+    for (let splitAt = items.length; splitAt > 0; splitAt--) {
+        const firstSegment = items.slice(0, splitAt);
+        const secondSegment = items.slice(splitAt);
+
+        // MEASURE where this split would place
+        const firstSegmentHeight = estimateListHeight(firstSegment);
+        const firstSegmentTop = currentOffset;
+        const firstSegmentBottom = firstSegmentTop + firstSegmentHeight;
+
+        // CHECK constraint: Does it start in bottom 20%?
+        const startsInBottomZone = firstSegmentTop > (regionHeight * BOTTOM_THRESHOLD);
+
+        if (startsInBottomZone) {
+            // Invalid start position
+            if (splitAt === 1) {
+                // Minimum rule: Always place at least 1 item, even if in bottom zone
+                return {
+                    canPlace: true,
+                    placedItems: firstSegment,
+                    remainingItems: secondSegment,
+                    placedHeight: firstSegmentHeight,
+                    placedTop: firstSegmentTop,
+                    placedBottom: firstSegmentBottom,
+                    willOverflow: firstSegmentBottom > regionHeight,
+                    reason: `Minimum rule: Place 1 item despite starting at ${((firstSegmentTop / regionHeight) * 100).toFixed(1)}% (in bottom 20%)`,
+                };
+            }
+            // Try fewer items
+            continue;
+        }
+
+        // CHECK constraint: Does it exceed region boundary?
+        const exceedsRegion = firstSegmentBottom > regionHeight;
+
+        if (!exceedsRegion) {
+            // Fits completely - this is our best split
+            return {
+                canPlace: true,
+                placedItems: firstSegment,
+                remainingItems: secondSegment,
+                placedHeight: firstSegmentHeight,
+                placedTop: firstSegmentTop,
+                placedBottom: firstSegmentBottom,
+                willOverflow: false,
+                reason: `Fits completely: ${splitAt} item(s) at ${((firstSegmentTop / regionHeight) * 100).toFixed(1)}%-${((firstSegmentBottom / regionHeight) * 100).toFixed(1)}%`,
+            };
+        }
+
+        // Overflows but starts in valid zone - try fewer items
+        // (continue loop)
+    }
+
+    // Should never reach here due to minimum-1-item rule
+    return {
+        canPlace: false,
+        placedItems: [],
+        remainingItems: items,
+        placedHeight: 0,
+        placedTop: currentOffset,
+        placedBottom: currentOffset,
+        willOverflow: false,
+        reason: 'No valid split found (should not reach here)',
+    };
+};
+
 export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCount, baseDimensions, measurementVersion }: PaginateArgs): LayoutPlan => {
     const runId = ++debugRunId;
 
     const normalizedRegionHeight = normalizeRegionHeight(regionHeightPx, baseDimensions ?? null);
+
+    // Detect regionHeight changes (feedback loop indicator)
+    const regionHeightChanged = lastRegionHeightPx !== null && Math.abs(lastRegionHeightPx - regionHeightPx) > 1;
+    const normalizedHeightChanged = lastNormalizedHeight !== null && Math.abs(lastNormalizedHeight - normalizedRegionHeight) > 1;
 
     logPaginationDecision(runId, 'run-start', {
         columnCount,
@@ -145,7 +292,19 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
         requestedPageCount,
         bucketCount: buckets.size,
         measurementVersion: measurementVersion ?? 'unknown',
+        heightChanges: regionHeightChanged ? {
+            previousRaw: lastRegionHeightPx,
+            currentRaw: regionHeightPx,
+            rawDelta: regionHeightPx - (lastRegionHeightPx ?? 0),
+            previousNormalized: lastNormalizedHeight,
+            currentNormalized: normalizedRegionHeight,
+            normalizedDelta: normalizedRegionHeight - (lastNormalizedHeight ?? 0),
+            warningFeedbackLoop: normalizedHeightChanged,
+        } : null,
     });
+
+    lastRegionHeightPx = regionHeightPx;
+    lastNormalizedHeight = normalizedRegionHeight;
 
     const pages: PageLayout[] = [];
     const overflowWarnings: OverflowWarning[] = [];
@@ -182,7 +341,10 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
     }, 1);
 
     const initialPageCount = Math.max(1, requestedPageCount, maxBucketPage);
-    ensurePage(pages, initialPageCount, columnCount, pendingQueues);
+    if (!ensurePage(pages, initialPageCount, columnCount, pendingQueues)) {
+        // Hit MAX_PAGES limit during initial setup
+        return { pages, overflowWarnings: [] };
+    }
 
     const getPendingQueue = (key: string) => {
         if (!pendingQueues.has(key)) {
@@ -228,11 +390,37 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
             const cursor = createCursor(key, normalizedRegionHeight);
             let safetyCounter = 0;
 
+            if (process.env.NODE_ENV !== 'production') {
+                logPaginationDecision(runId, 'region-start', {
+                    regionKey: key,
+                    page: page.pageNumber,
+                    column: column.columnNumber,
+                    normalizedRegionHeight,
+                    queueLength: regionQueue.length,
+                    queueComponents: regionQueue.map(e => e.instance.id),
+                });
+            }
+
             while (regionQueue.length > 0 && safetyCounter < MAX_REGION_ITERATIONS) {
                 safetyCounter += 1;
                 const entry = regionQueue.shift();
                 if (!entry) {
                     break;
+                }
+
+                // Track component-12 processing
+                if (process.env.NODE_ENV !== 'production' && entry.instance.id === 'component-12') {
+                    console.warn('[paginate] 📦 PROCESSING component-12 from queue:', {
+                        runId,
+                        regionKey: key,
+                        queueRemaining: regionQueue.length,
+                        estimatedHeight: entry.estimatedHeight,
+                        overflow: entry.overflow,
+                        overflowRouted: entry.overflowRouted,
+                        hasSpan: !!entry.span,
+                        spanHeight: entry.span?.height,
+                        safetyCounter,
+                    });
                 }
                 if (safetyCounter >= MAX_REGION_ITERATIONS) {
                     logPaginationDecision(runId, 'safety-cap-hit', {
@@ -247,6 +435,12 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 const span = computeSpan(cursor, estimatedHeight);
                 const fits = fitsInRegion(span, cursor);
 
+                // Calculate available space for debugging
+                const availableSpace = cursor.maxHeight - cursor.currentOffset;
+                const spaceNeeded = estimatedHeight;
+                const spaceDeficit = fits ? 0 : spaceNeeded - availableSpace;
+                const utilizationPercent = ((cursor.currentOffset / cursor.maxHeight) * 100).toFixed(1);
+
                 logPaginationDecision(runId, 'entry-check', {
                     componentId: entry.instance.id,
                     regionKey: key,
@@ -260,6 +454,14 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     hasEstimateOnly: estimatedHeight === DEFAULT_COMPONENT_HEIGHT_PX,
                     regionHeightPx: normalizedRegionHeight,
                     fits,
+                    spaceAnalysis: {
+                        cursorOffset: cursor.currentOffset,
+                        availableSpace,
+                        spaceNeeded,
+                        spaceDeficit,
+                        utilizationPercent: `${utilizationPercent}%`,
+                        willOverflow: !fits,
+                    },
                 });
 
                 if (fits) {
@@ -283,7 +485,20 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     };
 
                     columnEntries.push(committedEntry);
+                    const prevOffset = cursor.currentOffset;
                     advanceCursor(cursor, span);
+
+                    logPaginationDecision(runId, 'entry-placed', {
+                        componentId: entry.instance.id,
+                        regionKey: key,
+                        spanTop: span.top,
+                        spanBottom: span.bottom,
+                        spanHeight: span.height,
+                        cursorBefore: prevOffset,
+                        cursorAfter: cursor.currentOffset,
+                        cursorAdvance: cursor.currentOffset - prevOffset,
+                        remainingSpace: cursor.maxHeight - cursor.currentOffset,
+                    });
                     continue;
                 }
 
@@ -297,21 +512,68 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     span,
                     estimatedHeight,
                     regionHeightPx: normalizedRegionHeight,
+                    hasRegionContent: !!entry.regionContent,
+                    itemCount: entry.regionContent?.items.length ?? 0,
                 });
 
-                // If component starts in the bottom 20% of available space, don't split it
-                // This prevents awkward tiny fragments at the bottom of a page
+                // Measurement-based split evaluation for list components
+                // For list components with multiple items, use concrete measurements to determine
+                // the best split point. For block components, use simple threshold check.
                 const startsInBottomFifth = span.top > (normalizedRegionHeight * 0.8);
-                const shouldAvoidSplit = startsInBottomFifth && entry.regionContent && entry.regionContent.items.length > 1;
+                let shouldAvoidSplit = startsInBottomFifth; // Default: simple threshold for blocks
+                let splitDecision: SplitDecision | null = null;
 
-                if (shouldAvoidSplit) {
-                    logPaginationDecision(runId, 'avoid-split-bottom-fifth', {
+                // For list components with multiple items, use measurement-based evaluation
+                if (entry.regionContent && entry.regionContent.items.length > 1) {
+                    console.log(`🔍 [paginate] Evaluating list split for ${entry.instance.id} with ${entry.regionContent.items.length} items`);
+
+                    splitDecision = findBestListSplit(entry, cursor, normalizedRegionHeight);
+
+                    // If split evaluation says we can't place, treat like shouldAvoidSplit
+                    if (!splitDecision.canPlace) {
+                        shouldAvoidSplit = true;
+                    }
+
+                    // Direct console logging for visibility
+                    console.log(`📊 [paginate] Split decision for ${entry.instance.id}:`, {
+                        canPlace: splitDecision.canPlace,
+                        placedItems: splitDecision.placedItems.length,
+                        remainingItems: splitDecision.remainingItems.length,
+                        placedTop: `${splitDecision.placedTop}px (${((splitDecision.placedTop / normalizedRegionHeight) * 100).toFixed(1)}%)`,
+                        placedBottom: `${splitDecision.placedBottom}px (${((splitDecision.placedBottom / normalizedRegionHeight) * 100).toFixed(1)}%)`,
+                        willOverflow: splitDecision.willOverflow,
+                        reason: splitDecision.reason,
+                    });
+
+                    logPaginationDecision(runId, 'measured-split-decision', {
                         componentId: entry.instance.id,
                         regionKey: key,
-                        spanTop: span.top,
-                        threshold: normalizedRegionHeight * 0.8,
+                        currentOffset: cursor.currentOffset,
                         regionHeight: normalizedRegionHeight,
+                        splitDecision: {
+                            canPlace: splitDecision.canPlace,
+                            placedItems: splitDecision.placedItems.length,
+                            remainingItems: splitDecision.remainingItems.length,
+                            placedTop: splitDecision.placedTop,
+                            placedBottom: splitDecision.placedBottom,
+                            placedTopPercent: `${((splitDecision.placedTop / normalizedRegionHeight) * 100).toFixed(1)}%`,
+                            placedBottomPercent: `${((splitDecision.placedBottom / normalizedRegionHeight) * 100).toFixed(1)}%`,
+                            willOverflow: splitDecision.willOverflow,
+                            reason: splitDecision.reason,
+                        },
                     });
+                } else {
+                    // Block component or single-item list: use simple threshold check
+                    if (shouldAvoidSplit) {
+                        logPaginationDecision(runId, 'avoid-start-in-bottom', {
+                            componentId: entry.instance.id,
+                            regionKey: key,
+                            spanTop: span.top,
+                            threshold: normalizedRegionHeight * 0.8,
+                            regionHeight: normalizedRegionHeight,
+                            componentType: entry.regionContent ? 'single-item-list' : 'block',
+                        });
+                    }
                 }
 
                 const nextRegion = findNextRegion(pages, key);
@@ -348,7 +610,10 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
 
                         if (!candidateRegion && forceAdvance) {
                             const newPageNumber = pages.length + 1;
-                            ensurePage(pages, newPageNumber, columnCount, pendingQueues);
+                            if (!ensurePage(pages, newPageNumber, columnCount, pendingQueues)) {
+                                // Hit MAX_PAGES limit, stop pagination
+                                return null;
+                            }
                             candidateRegion = findNextRegion(pages, key);
                         }
 
@@ -361,7 +626,10 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                             return null;
                         }
 
-                        ensurePage(pages, candidateRegion.pageNumber, columnCount, pendingQueues);
+                        if (!ensurePage(pages, candidateRegion.pageNumber, columnCount, pendingQueues)) {
+                            // Hit MAX_PAGES limit, stop pagination
+                            return null;
+                        }
 
                         const previousRegion = entry.region ?? { page: page.pageNumber, column: page.columns[columnIndex].columnNumber };
 
@@ -413,6 +681,21 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                         };
 
                         const pendingQueue = getPendingQueue(candidateRegion.key);
+
+                        // Track component-12 specifically to detect duplicates
+                        if (process.env.NODE_ENV !== 'production' && entry.instance.id === 'component-12') {
+                            console.warn('[paginate] 🔄 CREATING FOLLOW-UP for component-12:', {
+                                runId,
+                                from: key,
+                                to: candidateRegion.key,
+                                alreadyRerouted: entry.overflowRouted,
+                                currentQueueSize: pendingQueue.length,
+                                estimatedHeight: entry.estimatedHeight,
+                                hasSpan: !!entry.span,
+                                spanHeight: entry.span?.height,
+                            });
+                        }
+
                         pendingQueue.push(followUp);
                         routedInRegion.add(routeKey);
                         logPaginationDecision(runId, 'route-entry', {
@@ -478,7 +761,10 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
 
                     if (!nextRegion) {
                         const newPageNumber = pages.length + 1;
-                        ensurePage(pages, newPageNumber, columnCount, pendingQueues);
+                        if (!ensurePage(pages, newPageNumber, columnCount, pendingQueues)) {
+                            // Hit MAX_PAGES limit, stop pagination
+                            break;
+                        }
                     }
 
                     const updatedNextRegion = findNextRegion(pages, key);
@@ -512,7 +798,10 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                         continue;
                     }
 
-                    ensurePage(pages, updatedNextRegion.pageNumber, columnCount, pendingQueues);
+                    if (!ensurePage(pages, updatedNextRegion.pageNumber, columnCount, pendingQueues)) {
+                        // Hit MAX_PAGES limit, stop pagination
+                        break;
+                    }
                     const routedNextKey = routeOverflowToNextRegion();
                     const movedRemaining = moveRemainingToRegion(routedNextKey ?? null);
                     logPaginationDecision(runId, 'route-remaining', {
@@ -611,7 +900,14 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 if (remainingItems.length > 0) {
                     if (!nextRegion) {
                         const newPageNumber = pages.length + 1;
-                        ensurePage(pages, newPageNumber, columnCount, pendingQueues);
+                        if (!ensurePage(pages, newPageNumber, columnCount, pendingQueues)) {
+                            // Hit MAX_PAGES limit, mark as overflow and stop
+                            columnEntries[columnEntries.length - 1] = {
+                                ...columnEntries[columnEntries.length - 1],
+                                overflow: true,
+                            };
+                            continue;
+                        }
                     }
 
                     const updatedNextRegion = findNextRegion(pages, key);
@@ -624,7 +920,14 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                         continue;
                     }
 
-                    ensurePage(pages, updatedNextRegion.pageNumber, columnCount, pendingQueues);
+                    if (!ensurePage(pages, updatedNextRegion.pageNumber, columnCount, pendingQueues)) {
+                        // Hit MAX_PAGES limit, mark as overflow and stop
+                        columnEntries[columnEntries.length - 1] = {
+                            ...columnEntries[columnEntries.length - 1],
+                            overflow: true,
+                        };
+                        continue;
+                    }
 
                     const followUpContent = toRegionContent(
                         entry.regionContent.kind,
@@ -657,6 +960,25 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
 
                     const pendingQueue = getPendingQueue(updatedNextRegion.key);
                     pendingQueue.push(followUpEntry);
+                }
+            }
+
+            // Track component-12 duplicates in final column
+            if (process.env.NODE_ENV !== 'production') {
+                const component12Entries = columnEntries.filter(e => e.instance.id === 'component-12');
+                if (component12Entries.length > 0) {
+                    console.warn('[paginate] 📋 Component-12 in final column:', {
+                        runId,
+                        regionKey: key,
+                        count: component12Entries.length,
+                        isDuplicate: component12Entries.length > 1,
+                        entries: component12Entries.map(e => ({
+                            estimatedHeight: e.estimatedHeight,
+                            overflow: e.overflow,
+                            overflowRouted: e.overflowRouted,
+                            spanHeight: e.span?.height,
+                        })),
+                    });
                 }
             }
 

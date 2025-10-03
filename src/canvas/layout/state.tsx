@@ -16,7 +16,13 @@ import type {
     SlotAssignment,
 } from './types';
 import { paginate } from './paginate';
-import { buildCanvasEntries, computeBasePageDimensions, computeHomeRegions } from './utils';
+import {
+    buildCanvasEntries,
+    buildBuckets,
+    computeBasePageDimensions,
+    computeHomeRegions,
+    createInitialMeasurementEntries,
+} from './utils';
 
 const shouldLogLayoutDirty = process.env.NODE_ENV !== 'production';
 
@@ -63,12 +69,33 @@ export const createInitialState = (): CanvasLayoutState => ({
     measurementEntries: [],
     buckets: new Map(),
     isLayoutDirty: false,
+    allComponentsMeasured: false,
+    waitingForInitialMeasurements: false,
     assignedRegions: new Map(),
     homeRegions: new Map(),
 });
 
 const upsertRegionAssignment = (assignedRegions: Map<string, SlotAssignment>, entry: SlotAssignment, instanceId: string) => {
     assignedRegions.set(instanceId, entry);
+};
+
+/**
+ * Check if we have measurements for all components.
+ * For block components: just need the component-id:block measurement.
+ * For list components: need at least the full list measurement.
+ */
+const checkAllComponentsMeasured = (
+    components: ComponentInstance[],
+    measurements: Map<MeasurementKey, MeasurementRecord>
+): boolean => {
+    for (const component of components) {
+        const blockKey = `${component.id}:block`;
+        if (!measurements.has(blockKey)) {
+            // We need at least the block measurement for every component
+            return false;
+        }
+    }
+    return true;
 };
 
 export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutAction): CanvasLayoutState => {
@@ -78,9 +105,42 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
                 ...base,
                 buckets: new Map(),
                 measurementEntries: [],
+                waitingForInitialMeasurements: false,
+                allComponentsMeasured: false,
             };
         }
 
+        // If we have no measurements yet AND we have components, start measure-first flow
+        const hasNoMeasurements = base.measurements.size === 0;
+        const hasComponents = base.components.length > 0;
+        const shouldWaitForMeasurements = hasNoMeasurements && hasComponents;
+
+        if (shouldWaitForMeasurements) {
+            // Create measurement entries from RAW components (no buckets yet)
+            const measurementEntries = createInitialMeasurementEntries({
+                instances: base.components,
+                template: base.template,
+                columnCount: base.columnCount,
+                pageWidthPx: base.pageWidthPx,
+                dataSources: base.dataSources,
+            });
+
+            if (process.env.NODE_ENV !== 'production') {
+                console.debug('[measure-first] Creating measurement entries for', base.components.length, 'components (no buckets yet)');
+                console.debug('[measure-first] Waiting for initial measurements...');
+            }
+
+            return {
+                ...base,
+                buckets: new Map(), // Empty - don't build yet!
+                measurementEntries,
+                waitingForInitialMeasurements: true,
+                allComponentsMeasured: false,
+                isLayoutDirty: false, // Don't trigger pagination yet
+            };
+        }
+
+        // We have measurements - proceed with normal bucket building
         const { buckets, measurementEntries } = buildCanvasEntries({
             instances: base.components,
             template: base.template,
@@ -91,7 +151,25 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
             assignedRegions: base.assignedRegions,
         });
 
-        return { ...base, buckets, measurementEntries };
+        const allMeasured = checkAllComponentsMeasured(base.components, base.measurements);
+
+        if (process.env.NODE_ENV !== 'production') {
+            console.debug('[recomputeEntries]', {
+                componentCount: base.components.length,
+                measurementEntryCount: measurementEntries.length,
+                existingMeasurementCount: base.measurements.size,
+                allMeasured,
+                bucketCount: buckets.size,
+            });
+        }
+
+        return {
+            ...base,
+            buckets,
+            measurementEntries,
+            waitingForInitialMeasurements: false,
+            allComponentsMeasured: allMeasured,
+        };
     };
 
     switch (action.type) {
@@ -192,6 +270,17 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
             action.payload.measurements.forEach(({ key, height, measuredAt }) => {
                 const previous = state.measurements.get(key);
 
+                // Debug component-0 specifically
+                if (process.env.NODE_ENV !== 'production' && key === 'component-0:block') {
+                    console.debug('[MEASUREMENTS_UPDATED] component-0:', {
+                        key,
+                        newHeight: height,
+                        previousHeight: previous?.height,
+                        heightDiff: previous ? Math.abs(previous.height - height) : 'N/A',
+                        willUpdate: !previous || Math.abs(previous.height - height) > EPSILON,
+                    });
+                }
+
                 // Height of 0 is treated as explicit deletion
                 if (height <= 0) {
                     if (measurements.has(key)) {
@@ -214,12 +303,21 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
 
             const nextVersion = state.measurementVersion + 1;
 
+            // Check if we now have ALL component measurements
+            const allMeasured = checkAllComponentsMeasured(state.components, measurements);
+            const wasWaiting = state.waitingForInitialMeasurements;
+            const nowComplete = wasWaiting && allMeasured;
+
             const newMeasurements = action.payload.measurements.filter(
                 m => m.height > 0 && !state.measurements.has(m.key)
             );
             const updatedMeasurements = action.payload.measurements.filter(
                 m => m.height > 0 && state.measurements.has(m.key)
             );
+
+            if (nowComplete && process.env.NODE_ENV !== 'production') {
+                console.debug('[measure-first] All initial measurements complete, will build buckets and paginate');
+            }
 
             logLayoutDirty('MEASUREMENTS_UPDATED', {
                 updates: action.payload.measurements.length,
@@ -228,17 +326,28 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
                 additions: action.payload.measurements.filter(m => m.height > 0).length,
                 newKeys: newMeasurements.length,
                 updatedKeys: updatedMeasurements.length,
-                willRebuildEntries: hasAdditions,
+                allComponentsMeasured: allMeasured,
+                wasWaiting,
+                nowComplete,
+                willRebuildEntries: hasAdditions || nowComplete,
                 willTriggerRepagination: true,
             });
 
-            // Only rebuild entries if we have new measurements, not just deletions
-            // Deletions don't change the component structure, so we can keep existing entries
-            if (hasAdditions) {
+            // Update state with new measurements first
+            const updatedState = {
+                ...state,
+                measurements,
+                measurementVersion: nextVersion,
+                allComponentsMeasured: allMeasured,
+                waitingForInitialMeasurements: wasWaiting && !allMeasured,
+            };
+
+            // If we just completed initial measurements OR have new measurements, rebuild entries
+            const shouldRebuild = nowComplete || hasAdditions;
+
+            if (shouldRebuild) {
                 const recomputed = recomputeEntries({
-                    ...state,
-                    measurements,
-                    measurementVersion: nextVersion,
+                    ...updatedState,
                     assignedRegions: state.assignedRegions,
                 });
 
@@ -251,14 +360,20 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
 
             // For deletions only, just update measurements without rebuilding entries
             return {
-                ...state,
-                measurements,
-                measurementVersion: nextVersion,
+                ...updatedState,
                 isLayoutDirty: true,
                 pendingLayout: null,
             };
         }
         case 'RECALCULATE_LAYOUT': {
+            // Don't paginate if we're waiting for initial measurements
+            if (state.waitingForInitialMeasurements) {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.debug('[measure-first] Skipping pagination - waiting for initial measurements');
+                }
+                return state;
+            }
+
             if (!state.template || !state.pageVariables) {
                 return state;
             }
