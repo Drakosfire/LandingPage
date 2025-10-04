@@ -417,56 +417,6 @@ export const buildBuckets = ({
     return buckets;
 };
 
-// Cache to preserve measurement entry object identity across pagination cycles
-// This prevents React from unmounting/remounting measurement components unnecessarily
-const measurementEntryCache = new Map<MeasurementKey, CanvasLayoutEntry>();
-
-const collectMeasurementEntries = (buckets: RegionBuckets): MeasurementEntry[] => {
-    const unique = new Map<MeasurementKey, CanvasLayoutEntry>();
-    const duplicateCheck = new Map<MeasurementKey, number>();
-
-    buckets.forEach((entries) => {
-        entries.forEach((entry) => {
-            // Track how many times we see each key
-            if (process.env.NODE_ENV !== 'production') {
-                const count = duplicateCheck.get(entry.measurementKey) || 0;
-                duplicateCheck.set(entry.measurementKey, count + 1);
-            }
-
-            // Always include entries in measurement layer, even if they already have measurements
-            // This allows re-measuring if component content changes
-            if (!unique.has(entry.measurementKey)) {
-                // Reuse cached entry if measurement key exists
-                const cached = measurementEntryCache.get(entry.measurementKey);
-                if (cached) {
-                    // IMPORTANT: Merge new measurement data into cached entry
-                    const merged = {
-                        ...cached,
-                        estimatedHeight: entry.estimatedHeight, // Use new measurement
-                        span: entry.span,                       // Update span if changed
-                        needsMeasurement: entry.needsMeasurement,
-                    };
-                    unique.set(entry.measurementKey, merged);
-                    measurementEntryCache.set(entry.measurementKey, merged);
-                } else {
-                    unique.set(entry.measurementKey, entry);
-                    measurementEntryCache.set(entry.measurementKey, entry);
-                }
-            }
-        });
-    });
-
-    // Clean up cache entries that are no longer needed
-    const currentKeys = new Set(unique.keys());
-    measurementEntryCache.forEach((_, key) => {
-        if (!currentKeys.has(key)) {
-            measurementEntryCache.delete(key);
-        }
-    });
-
-    return Array.from(unique.values());
-};
-
 /**
  * Create measurement entries from raw components BEFORE buckets are built.
  * This enables measure-first flow where we measure all components upfront.
@@ -561,10 +511,37 @@ export const createInitialMeasurementEntries = ({
                 return; // Skip this instance, move to next
             }
 
+            // Generate summary metadata for first-segment measurements
+            // This ensures measurements include the intro paragraph (e.g., legendary actions summary)
+            const summaryMetadata = (() => {
+                switch (instance.type) {
+                    case 'legendary-actions':
+                        return {
+                            legendarySummary:
+                                (resolved as { description?: string; actionsPerTurn?: number })?.description ??
+                                statblock?.legendaryActions?.description ??
+                                'The creature can take the following legendary actions, choosing from the options below.',
+                            legendaryFrequency:
+                                (resolved as { actionsPerTurn?: number })?.actionsPerTurn ??
+                                statblock?.legendaryActions?.actionsPerTurn,
+                        };
+                    case 'lair-actions':
+                        return {
+                            lairSummary:
+                                (resolved as { description?: string })?.description ??
+                                statblock?.lairActions?.description ??
+                                'On initiative count 20 (losing initiative ties), the creature uses one of the following lair actions.',
+                        };
+                    default:
+                        return undefined;
+                }
+            })();
+
             // Generate split measurements for each possible split point
             // Example: For 14 spells, generate measurements for 1, 2, 3, ..., 14 items
             // IMPORTANT: Generate ALL splits including the full list (splitAt === totalCount)
             // because pagination needs the full list measurement key (e.g., "component-12:spell-list:0:14:14")
+            // CRITICAL: Include summaryMetadata for first segments (startIndex === 0) to match visible rendering
             for (let splitAt = 1; splitAt <= totalCount; splitAt++) {
                 const items = itemsSource.slice(0, splitAt);
                 const isContinuation = false; // Initial splits are never continuations
@@ -575,7 +552,7 @@ export const createInitialMeasurementEntries = ({
                     0, // startIndex
                     totalCount,
                     isContinuation,
-                    undefined // metadata only for full component
+                    summaryMetadata // Include metadata for accurate measurement
                 );
 
                 const splitMeasurementKey = computeMeasurementKey(instance.id, regionContent);
@@ -594,6 +571,88 @@ export const createInitialMeasurementEntries = ({
                     needsMeasurement: true,
                     slotDimensions,
                 });
+            }
+
+            // Generate continuation measurements (Phase 1: Strategic Continuations)
+            // For lists that span multiple columns, we need measurements for continuations
+            // (segments that start at index > 0)
+            // Strategy: Generate shallow continuations for common split patterns
+            // - Covers startIndex 1-5 (most common continuation points)
+            // - Generates all possible count values from each startIndex
+            // Example: 14 spells with startIndex=1 generates: (1,1), (1,2), ..., (1,13)
+            const MAX_CONTINUATION_START_INDEX = Math.min(5, totalCount - 1);
+
+            for (let startIdx = 1; startIdx <= MAX_CONTINUATION_START_INDEX; startIdx++) {
+                const remainingCount = totalCount - startIdx;
+
+                // Generate measurements for all possible continuation lengths from this start point
+                for (let count = 1; count <= remainingCount; count++) {
+                    const items = itemsSource.slice(startIdx, startIdx + count);
+                    const isContinuation = true; // These are continuations
+
+                    // Continuations don't include summary metadata (no intro paragraphs)
+                    const regionContent = toRegionContent(
+                        listKind,
+                        items,
+                        startIdx, // startIndex for continuation
+                        totalCount,
+                        isContinuation,
+                        undefined // No metadata for continuations
+                    );
+
+                    const splitMeasurementKey = computeMeasurementKey(instance.id, regionContent);
+
+                    entries.push({
+                        instance,
+                        slotIndex,
+                        orderIndex: index,
+                        sourceRegionKey: homeKey,
+                        region: homeRegion,
+                        homeRegion,
+                        homeRegionKey: homeKey,
+                        regionContent,
+                        estimatedHeight: estimateListHeight(items, isContinuation),
+                        measurementKey: splitMeasurementKey,
+                        needsMeasurement: true,
+                        slotDimensions,
+                    });
+                }
+            }
+
+            // Generate single-item continuations for remaining indices
+            // These handle the "last few items" cases (e.g., spell 13/14, spell 14/14)
+            // which are common when lists nearly fit but need 1-2 items to continue
+            if (totalCount > MAX_CONTINUATION_START_INDEX + 1) {
+                for (let startIdx = MAX_CONTINUATION_START_INDEX + 1; startIdx < totalCount; startIdx++) {
+                    const items = itemsSource.slice(startIdx, startIdx + 1);
+                    const isContinuation = true;
+
+                    const regionContent = toRegionContent(
+                        listKind,
+                        items,
+                        startIdx,
+                        totalCount,
+                        isContinuation,
+                        undefined
+                    );
+
+                    const splitMeasurementKey = computeMeasurementKey(instance.id, regionContent);
+
+                    entries.push({
+                        instance,
+                        slotIndex,
+                        orderIndex: index,
+                        sourceRegionKey: homeKey,
+                        region: homeRegion,
+                        homeRegion,
+                        homeRegionKey: homeKey,
+                        regionContent,
+                        estimatedHeight: estimateListHeight(items, isContinuation),
+                        measurementKey: splitMeasurementKey,
+                        needsMeasurement: true,
+                        slotDimensions,
+                    });
+                }
             }
         } else {
             // Non-list component: create basic block measurement
