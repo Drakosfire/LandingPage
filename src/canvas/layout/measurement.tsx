@@ -87,13 +87,6 @@ export const useIdleMeasurementDispatcher = (
             return;
         }
 
-        if (shouldLogMeasurements) {
-            // eslint-disable-next-line no-console
-            console.debug('[measurement-flush]', {
-                deletions: deletions.map(({ key }) => key),
-                measurements: measurements.map(({ key, height }) => ({ key, height })),
-            });
-        }
         dispatch(combined);
     }, [dispatch]);
 
@@ -169,67 +162,17 @@ class MeasurementObserver {
         const rect = this.node.getBoundingClientRect();
         const height = rect.height > 0 ? rect.height : 0;
 
-        if (process.env.NODE_ENV !== 'production') {
-            const componentId = this.key.split(':')[0];
-            const REASONABLE_MAX = 4000; // ~4x page height - spellcasting blocks can be large
-            const isAbnormal = height > REASONABLE_MAX;
-
-            // Only log component-8 and component-10 ONCE
-            const isTargetComponent = componentId === 'component-8' || componentId === 'component-10';
-            const shouldLog = isTargetComponent && !this.hasLogged;
-
-            if (shouldLog) {
-                this.hasLogged = true;
-                const computed = window.getComputedStyle(this.node);
-                const parentComputed = this.node.parentElement ? window.getComputedStyle(this.node.parentElement) : null;
-
-                console.warn(`🎯 [MeasurementObserver] ${componentId} MEASURED:`, {
-                    key: this.key,
-                    boundingHeight: rect.height,
-                    scrollHeight: this.node.scrollHeight,
-                    offsetHeight: this.node.offsetHeight,
-                    clientHeight: this.node.clientHeight,
-                    mismatch: Math.abs(rect.height - this.node.scrollHeight),
-                    usingHeight: height,
-                    isConstrained: rect.height < this.node.scrollHeight,
-                    isAbnormal,
-                    childCount: this.node.children.length,
-                    computedStyle: {
-                        height: computed.height,
-                        minHeight: computed.minHeight,
-                        maxHeight: computed.maxHeight,
-                        display: computed.display,
-                        flexGrow: computed.flexGrow,
-                        flexShrink: computed.flexShrink,
-                        position: computed.position,
-                    },
-                    parentStyle: parentComputed ? {
-                        display: parentComputed.display,
-                        height: parentComputed.height,
-                        flexDirection: parentComputed.flexDirection,
-                    } : null,
-                });
-            }
-
-            // Warn about abnormal measurements with detailed diagnostics (not applicable for our targeted logging)
-            if (isAbnormal && !isTargetComponent) {
-                const computed = window.getComputedStyle(this.node);
-                console.warn('[MeasurementObserver] ⚠️ ABNORMAL HEIGHT DETECTED:', {
-                    key: this.key,
-                    height,
-                    scrollHeight: this.node.scrollHeight,
-                    offsetHeight: this.node.offsetHeight,
-                    reason: 'Component expanding beyond reasonable bounds',
-                    likelyCauses: {
-                        hasHeightPercent: computed.height.includes('%'),
-                        hasFlexGrow: computed.flexGrow !== '0',
-                        parentIsFlexColumn: this.node.parentElement &&
-                            window.getComputedStyle(this.node.parentElement).flexDirection === 'column',
-                        childrenCount: this.node.children.length,
-                    },
-                    suggestion: 'Check component CSS for height: 100% or flex-grow issues',
-                });
-            }
+        // Warn about abnormally large measurements (>4000px)
+        if (process.env.NODE_ENV !== 'production' && height > 4000) {
+            const computed = window.getComputedStyle(this.node);
+            console.warn('[MeasurementObserver] ⚠️ ABNORMAL HEIGHT:', {
+                key: this.key,
+                height,
+                likelyCauses: {
+                    hasHeightPercent: computed.height.includes('%'),
+                    hasFlexGrow: computed.flexGrow !== '0',
+                },
+            });
         }
 
         this.onMeasure(this.key, height);
@@ -323,21 +266,6 @@ export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, ren
 
     const observers = useRef(new Map<string, MeasurementObserver>());
 
-    // DEBUG: Log ALL measurement entry keys to see what we have
-    const loggedRef = useRef(false);
-    if (process.env.NODE_ENV !== 'production' && !loggedRef.current) {
-        loggedRef.current = true;
-        console.warn('=== ALL MEASUREMENT ENTRIES ===');
-        console.warn('Total entries:', entries.length);
-        console.warn('Entry keys:', entries.map(e => e.measurementKey));
-
-        const component8 = entries.filter(e => e.measurementKey.startsWith('component-8'));
-        const component10 = entries.filter(e => e.measurementKey.startsWith('component-10'));
-
-        console.warn('Component-8 count:', component8.length, 'keys:', component8.map(e => e.measurementKey));
-        console.warn('Component-10 count:', component10.length, 'keys:', component10.map(e => e.measurementKey));
-    }
-
     const handleRef = useCallback(
         (entry: MeasurementEntry) => (node: HTMLDivElement | null) => {
             const key = entry.measurementKey;
@@ -376,45 +304,32 @@ export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, ren
 
     return (
         <>
-            {entries.map((entry) => {
-                // Debug component-12 wrapper specifically
-                const isComponent12 = entry.measurementKey.startsWith('component-12');
-                if (process.env.NODE_ENV !== 'production' && isComponent12) {
-                    console.debug('[MeasurementLayer] Rendering component-12 wrapper:', {
-                        measurementKey: entry.measurementKey,
-                        slotDimensions: entry.slotDimensions,
-                        estimatedHeight: entry.estimatedHeight,
-                        instanceType: entry.instance.type,
-                    });
-                }
-
-                return (
-                    <div
-                        key={entry.measurementKey}
-                        ref={handleRef(entry)}
-                        className="dm-measurement-entry"
-                        data-measurement-key={entry.measurementKey}
-                        style={{
-                            // CRITICAL: Render in flex context to match visible layout
-                            // Parent container is already positioned offscreen, so no need for absolute positioning
-                            // Let column width naturally constrain - DO NOT use template slotDimensions.widthPx
-                            // as it may not match actual rendered column width, causing incorrect text wrapping
-                            width: 'auto',
-                            // Natural height - let content determine height
-                            // Infinite expansion is detected via computed style checks (flexGrow, height: 100%)
-                            height: 'auto',
-                            minHeight: 0,
-                            // Prevent flex/grid expansion
-                            flexShrink: 0,
-                            flexGrow: 0,
-                            overflow: 'hidden', // Prevent visual bleed during measurement
-                            transform: 'none',
-                        }}
-                    >
-                        {renderComponent(entry)}
-                    </div>
-                );
-            })}
+            {entries.map((entry) => (
+                <div
+                    key={entry.measurementKey}
+                    ref={handleRef(entry)}
+                    className="dm-measurement-entry"
+                    data-measurement-key={entry.measurementKey}
+                    style={{
+                        // CRITICAL: Render in flex context to match visible layout
+                        // Parent container is already positioned offscreen, so no need for absolute positioning
+                        // Let column width naturally constrain - DO NOT use template slotDimensions.widthPx
+                        // as it may not match actual rendered column width, causing incorrect text wrapping
+                        width: 'auto',
+                        // Natural height - let content determine height
+                        // Infinite expansion is detected via computed style checks (flexGrow, height: 100%)
+                        height: 'auto',
+                        minHeight: 0,
+                        // Prevent flex/grid expansion
+                        flexShrink: 0,
+                        flexGrow: 0,
+                        overflow: 'hidden', // Prevent visual bleed during measurement
+                        transform: 'none',
+                    }}
+                >
+                    {renderComponent(entry)}
+                </div>
+            ))}
         </>
     );
 };

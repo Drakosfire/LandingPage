@@ -29,38 +29,6 @@ interface RegionPosition {
     key: string;
 }
 
-const normalizeRegionHeight = (
-    regionHeightPx: number,
-    baseDimensions: { contentHeightPx: number; topMarginPx: number } | null
-): number => {
-    if (!baseDimensions) {
-        if (process.env.NODE_ENV !== 'production') {
-            console.debug('[normalizeRegionHeight] No baseDimensions, using raw regionHeightPx:', regionHeightPx);
-        }
-        return regionHeightPx;
-    }
-
-    const headerAllowance = Math.max(baseDimensions.topMarginPx - COMPONENT_VERTICAL_SPACING_PX, 0);
-    const adjusted = Math.max(regionHeightPx - headerAllowance, regionHeightPx * 0.9);
-
-    if (process.env.NODE_ENV !== 'production') {
-        console.debug('[normalizeRegionHeight] 🎯 HEIGHT CALCULATION:', {
-            inputRegionHeightPx: regionHeightPx,
-            baseContentHeightPx: baseDimensions.contentHeightPx,
-            topMarginPx: baseDimensions.topMarginPx,
-            headerAllowance,
-            calculatedOptions: {
-                minusAllowance: regionHeightPx - headerAllowance,
-                times90Percent: regionHeightPx * 0.9
-            },
-            finalAdjustedHeight: adjusted,
-            message: regionHeightPx < 850 ? '✅ Using MEASURED frame height' : '❌ Using THEORETICAL page height'
-        });
-    }
-
-    return adjusted;
-};
-
 interface PaginateArgs {
     buckets: RegionBuckets;
     columnCount: number;
@@ -77,6 +45,21 @@ const MAX_PAGES = 10; // Circuit breaker to prevent infinite pagination loops
 let debugRunId = 0;
 
 const shouldLogPaginationDecisions = process.env.NODE_ENV !== 'production';
+
+// Track statistics for optimization analysis
+interface PaginationStats {
+    heightSources: { measured: number; proportional: number; estimate: number };
+    bottomZoneRejections: number;
+    splitDecisions: number;
+    componentsPlaced: number;
+}
+
+const paginationStats: PaginationStats = {
+    heightSources: { measured: 0, proportional: 0, estimate: 0 },
+    bottomZoneRejections: 0,
+    splitDecisions: 0,
+    componentsPlaced: 0,
+};
 
 const logPaginationDecision = (...args: unknown[]) => {
     if (!shouldLogPaginationDecisions) {
@@ -257,17 +240,8 @@ const findBestListSplit = (
 
             if (fullMeasured) {
                 // Calculate proportionally: (fullHeight / totalItems) * splitItems
-                // This assumes items are roughly equal in height
+                // Note: This is a fallback. Ideally all split variations should be pre-measured.
                 proportionalHeight = (fullMeasured.height / items.length) * splitAt;
-                console.log('📐 Proportional calculation from full measurement:', {
-                    component: entry.instance.id,
-                    splitAt,
-                    fullHeight: fullMeasured.height,
-                    totalItems: items.length,
-                    proportional: proportionalHeight.toFixed(2),
-                    estimate: estimated,
-                    improvement: `${(((estimated - proportionalHeight) / proportionalHeight) * 100).toFixed(1)}% error avoided`,
-                });
             }
         }
 
@@ -277,33 +251,36 @@ const findBestListSplit = (
         // (cursor advances by height + spacing, not just height)
         const firstSegmentBottom = firstSegmentTop + firstSegmentHeight + COMPONENT_VERTICAL_SPACING_PX;
 
-        // Log measurement vs estimate discrepancies
-        if (measured && Math.abs(measured.height - estimated) > 10) {
-            console.warn('📏 Height discrepancy:', {
-                component: entry.instance.id,
-                splitAt,
-                measured: measured.height,
-                estimated,
-                error: measured.height - estimated,
-                errorPercent: `${(((measured.height - estimated) / measured.height) * 100).toFixed(1)}%`,
-                usingMeasurement: true,
-            });
-        } else if (!measured && splitAt < items.length) {
-            console.log('📐 Using estimate (no measurement):', {
-                component: entry.instance.id,
-                splitAt,
-                estimated,
-                measurementKey: splitMeasurementKey,
-            });
+        // Track which height calculation path was used
+        const heightSource = measured ? 'measured' : proportionalHeight ? 'proportional' : 'estimate';
+        if (measured) {
+            paginationStats.heightSources.measured++;
+        } else if (proportionalHeight) {
+            paginationStats.heightSources.proportional++;
+            // Warn about fallback usage - with measure-first, this should be rare
+            if (process.env.NODE_ENV !== 'production') {
+                console.warn('[paginate] Using proportional height fallback:', {
+                    component: entry.instance.id,
+                    splitKey: splitMeasurementKey,
+                    reason: 'Split measurement not found - using proportional calculation from full measurement',
+                    splitAt,
+                    totalItems: items.length,
+                });
+            }
+        } else {
+            paginationStats.heightSources.estimate++;
         }
 
         // CHECK constraint: Does it start in bottom 20%?
         const startsInBottomZone = firstSegmentTop > (regionHeight * BOTTOM_THRESHOLD);
 
         if (startsInBottomZone) {
+            paginationStats.bottomZoneRejections++;
+
             // Invalid start position
             if (splitAt === 1) {
                 // Minimum rule: Always place at least 1 item, even if in bottom zone
+                paginationStats.splitDecisions++;
                 return {
                     canPlace: true,
                     placedItems: firstSegment,
@@ -315,6 +292,7 @@ const findBestListSplit = (
                     reason: `Minimum rule: Place 1 item despite starting at ${((firstSegmentTop / regionHeight) * 100).toFixed(1)}% (in bottom 20%)`,
                 };
             }
+
             // Try fewer items
             continue;
         }
@@ -324,6 +302,7 @@ const findBestListSplit = (
 
         if (!exceedsRegion) {
             // Fits completely - this is our best split
+            paginationStats.splitDecisions++;
             return {
                 canPlace: true,
                 placedItems: firstSegment,
@@ -341,6 +320,13 @@ const findBestListSplit = (
     }
 
     // Should never reach here due to minimum-1-item rule
+    console.error('❌ No valid split found (should not reach here):', {
+        component: entry.instance.id,
+        itemCount: items.length,
+        currentOffset,
+        regionHeight,
+    });
+
     return {
         canPlace: false,
         placedItems: [],
@@ -356,16 +342,16 @@ const findBestListSplit = (
 export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCount, baseDimensions, measurementVersion, measurements }: PaginateArgs): LayoutPlan => {
     const runId = ++debugRunId;
 
-    const normalizedRegionHeight = normalizeRegionHeight(regionHeightPx, baseDimensions ?? null);
+    // NOTE: regionHeightPx is the measured column height from DOM, which already
+    // accounts for all rendered content (headers, etc). We use it directly without adjustment.
 
     // Detect regionHeight changes (feedback loop indicator)
     const regionHeightChanged = lastRegionHeightPx !== null && Math.abs(lastRegionHeightPx - regionHeightPx) > 1;
-    const normalizedHeightChanged = lastNormalizedHeight !== null && Math.abs(lastNormalizedHeight - normalizedRegionHeight) > 1;
+    const normalizedHeightChanged = lastNormalizedHeight !== null && Math.abs(lastNormalizedHeight - regionHeightPx) > 1;
 
     logPaginationDecision(runId, 'run-start', {
         columnCount,
         regionHeightPx,
-        normalizedRegionHeight,
         requestedPageCount,
         bucketCount: buckets.size,
         measurementVersion: measurementVersion ?? 'unknown',
@@ -374,14 +360,14 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
             currentRaw: regionHeightPx,
             rawDelta: regionHeightPx - (lastRegionHeightPx ?? 0),
             previousNormalized: lastNormalizedHeight,
-            currentNormalized: normalizedRegionHeight,
-            normalizedDelta: normalizedRegionHeight - (lastNormalizedHeight ?? 0),
+            currentNormalized: regionHeightPx,
+            normalizedDelta: regionHeightPx - (lastNormalizedHeight ?? 0),
             warningFeedbackLoop: normalizedHeightChanged,
         } : null,
     });
 
     lastRegionHeightPx = regionHeightPx;
-    lastNormalizedHeight = normalizedRegionHeight;
+    lastNormalizedHeight = regionHeightPx;
 
     const pages: PageLayout[] = [];
     const overflowWarnings: OverflowWarning[] = [];
@@ -464,19 +450,11 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
             pendingQueues.set(key, []);
 
             const columnEntries: CanvasLayoutEntry[] = [];
-            const cursor = createCursor(key, normalizedRegionHeight);
+            // Use measured column height directly (no normalization needed)
+            // The regionHeightPx is ALREADY the measured column height from the DOM,
+            // which already accounts for any header space.
+            const cursor = createCursor(key, regionHeightPx);
             let safetyCounter = 0;
-
-            if (process.env.NODE_ENV !== 'production') {
-                logPaginationDecision(runId, 'region-start', {
-                    regionKey: key,
-                    page: page.pageNumber,
-                    column: column.columnNumber,
-                    normalizedRegionHeight,
-                    queueLength: regionQueue.length,
-                    queueComponents: regionQueue.map(e => e.instance.id),
-                });
-            }
 
             while (regionQueue.length > 0 && safetyCounter < MAX_REGION_ITERATIONS) {
                 safetyCounter += 1;
@@ -485,20 +463,6 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     break;
                 }
 
-                // Track component-12 processing
-                if (process.env.NODE_ENV !== 'production' && entry.instance.id === 'component-12') {
-                    console.warn('[paginate] 📦 PROCESSING component-12 from queue:', {
-                        runId,
-                        regionKey: key,
-                        queueRemaining: regionQueue.length,
-                        estimatedHeight: entry.estimatedHeight,
-                        overflow: entry.overflow,
-                        overflowRouted: entry.overflowRouted,
-                        hasSpan: !!entry.span,
-                        spanHeight: entry.span?.height,
-                        safetyCounter,
-                    });
-                }
                 if (safetyCounter >= MAX_REGION_ITERATIONS) {
                     logPaginationDecision(runId, 'safety-cap-hit', {
                         regionKey: key,
@@ -529,7 +493,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     measurementKey: entry.measurementKey,
                     needsMeasurement: entry.needsMeasurement,
                     hasEstimateOnly: estimatedHeight === DEFAULT_COMPONENT_HEIGHT_PX,
-                    regionHeightPx: normalizedRegionHeight,
+                    regionHeightPx,
                     fits,
                     spaceAnalysis: {
                         cursorOffset: cursor.currentOffset,
@@ -542,6 +506,8 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 });
 
                 if (fits) {
+                    paginationStats.componentsPlaced++;
+
                     const committedEntry: CanvasLayoutEntry = {
                         ...entry,
                         region: {
@@ -588,7 +554,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     column: column.columnNumber,
                     span,
                     estimatedHeight,
-                    regionHeightPx: normalizedRegionHeight,
+                    regionHeightPx,
                     hasRegionContent: !!entry.regionContent,
                     itemCount: entry.regionContent?.items.length ?? 0,
                 });
@@ -596,60 +562,17 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 // Measurement-based split evaluation for list components
                 // For list components with multiple items, use concrete measurements to determine
                 // the best split point. For block components, use simple threshold check.
-                const startsInBottomFifth = span.top > (normalizedRegionHeight * 1);
+                const startsInBottomFifth = span.top > (regionHeightPx * 1);
                 let shouldAvoidSplit = startsInBottomFifth; // Default: simple threshold for blocks
                 let splitDecision: SplitDecision | null = null;
 
                 // For list components with multiple items, use measurement-based evaluation
                 if (entry.regionContent && entry.regionContent.items.length > 1) {
-                    console.log(`🔍 [paginate] Evaluating list split for ${entry.instance.id} with ${entry.regionContent.items.length} items`);
-
-                    splitDecision = findBestListSplit(entry, cursor, normalizedRegionHeight, measurements);
+                    splitDecision = findBestListSplit(entry, cursor, regionHeightPx, measurements);
 
                     // If split evaluation says we can't place, treat like shouldAvoidSplit
                     if (!splitDecision.canPlace) {
                         shouldAvoidSplit = true;
-                    }
-
-                    // Direct console logging for visibility
-                    console.log(`📊 [paginate] Split decision for ${entry.instance.id}:`, {
-                        canPlace: splitDecision.canPlace,
-                        placedItems: splitDecision.placedItems.length,
-                        remainingItems: splitDecision.remainingItems.length,
-                        placedTop: `${splitDecision.placedTop}px (${((splitDecision.placedTop / normalizedRegionHeight) * 100).toFixed(1)}%)`,
-                        placedBottom: `${splitDecision.placedBottom}px (${((splitDecision.placedBottom / normalizedRegionHeight) * 100).toFixed(1)}%)`,
-                        willOverflow: splitDecision.willOverflow,
-                        reason: splitDecision.reason,
-                    });
-
-                    logPaginationDecision(runId, 'measured-split-decision', {
-                        componentId: entry.instance.id,
-                        regionKey: key,
-                        currentOffset: cursor.currentOffset,
-                        regionHeight: normalizedRegionHeight,
-                        splitDecision: {
-                            canPlace: splitDecision.canPlace,
-                            placedItems: splitDecision.placedItems.length,
-                            remainingItems: splitDecision.remainingItems.length,
-                            placedTop: splitDecision.placedTop,
-                            placedBottom: splitDecision.placedBottom,
-                            placedTopPercent: `${((splitDecision.placedTop / normalizedRegionHeight) * 100).toFixed(1)}%`,
-                            placedBottomPercent: `${((splitDecision.placedBottom / normalizedRegionHeight) * 100).toFixed(1)}%`,
-                            willOverflow: splitDecision.willOverflow,
-                            reason: splitDecision.reason,
-                        },
-                    });
-                } else {
-                    // Block component or single-item list: use simple threshold check
-                    if (shouldAvoidSplit) {
-                        logPaginationDecision(runId, 'avoid-start-in-bottom', {
-                            componentId: entry.instance.id,
-                            regionKey: key,
-                            spanTop: span.top,
-                            threshold: normalizedRegionHeight * 1,
-                            regionHeight: normalizedRegionHeight,
-                            componentType: entry.regionContent ? 'single-item-list' : 'block',
-                        });
                     }
                 }
 
@@ -758,21 +681,6 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                         };
 
                         const pendingQueue = getPendingQueue(candidateRegion.key);
-
-                        // Track component-12 specifically to detect duplicates
-                        if (process.env.NODE_ENV !== 'production' && entry.instance.id === 'component-12') {
-                            console.warn('[paginate] 🔄 CREATING FOLLOW-UP for component-12:', {
-                                runId,
-                                from: key,
-                                to: candidateRegion.key,
-                                alreadyRerouted: entry.overflowRouted,
-                                currentQueueSize: pendingQueue.length,
-                                estimatedHeight: entry.estimatedHeight,
-                                hasSpan: !!entry.span,
-                                spanHeight: entry.span?.height,
-                            });
-                        }
-
                         pendingQueue.push(followUp);
                         routedInRegion.add(routeKey);
                         logPaginationDecision(runId, 'route-entry', {
@@ -785,7 +693,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                         return candidateRegion.key;
                     };
 
-                    if (estimatedHeight > normalizedRegionHeight) {
+                    if (estimatedHeight > regionHeightPx) {
                         const columnHasOverflow = columnEntries.some((existing) => existing.overflow || existing.overflowRouted);
                         const rerouteKey = routeOverflowToNextRegion({ allowOverflowReroute: true, forceAdvance: true });
                         if (columnHasOverflow && rerouteKey) {
@@ -821,7 +729,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                         columnEntries.push(committedEntry);
 
                         // Mark the column as full so subsequent entries route elsewhere
-                        cursor.currentOffset = normalizedRegionHeight + COMPONENT_VERTICAL_SPACING_PX;
+                        cursor.currentOffset = regionHeightPx + COMPONENT_VERTICAL_SPACING_PX;
                         const forcedRouteKey = routeOverflowToNextRegion({ forceAdvance: true });
                         const movedRemainingToRegion = moveRemainingToRegion(forcedRouteKey ?? null);
                         logPaginationDecision(runId, 'force-route', {
@@ -867,7 +775,7 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
 
                         columnEntries.push(committedEntry);
                         // Mark region as full to prevent subsequent entries from overlapping
-                        cursor.currentOffset = normalizedRegionHeight + COMPONENT_VERTICAL_SPACING_PX;
+                        cursor.currentOffset = regionHeightPx + COMPONENT_VERTICAL_SPACING_PX;
                         logPaginationDecision(runId, 'region-full-no-next', {
                             componentId: entry.instance.id,
                             regionKey: key,
@@ -893,21 +801,53 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     continue;
                 }
 
+                // Use splitDecision if available (has accurate measurements)
+                // Otherwise fall back to estimate-based splitting
                 const items = entry.regionContent.items;
-                const remainingItems: typeof items = [];
-                const placedItems: typeof items = [];
-                let cumulativeHeight = 0;
-                const availableHeight = Math.max(normalizedRegionHeight - cursor.currentOffset, 0);
+                let remainingItems: typeof items = [];
+                let placedItems: typeof items = [];
+                let placedHeight = 0;
 
-                items.forEach((item, itemIndex) => {
-                    const itemHeight = estimateActionHeight(item) + (itemIndex > 0 ? LIST_ITEM_SPACING_PX : 0);
-                    if (cumulativeHeight + itemHeight <= availableHeight || placedItems.length === 0) {
-                        placedItems.push(item);
-                        cumulativeHeight += itemHeight;
-                    } else {
-                        remainingItems.push(item);
-                    }
-                });
+                if (splitDecision && splitDecision.canPlace) {
+                    // Use measured split decision
+                    placedItems = splitDecision.placedItems as typeof items;
+                    remainingItems = splitDecision.remainingItems as typeof items;
+                    placedHeight = splitDecision.placedHeight;
+
+                    logPaginationDecision(runId, 'split-using-measurements', {
+                        componentId: entry.instance.id,
+                        regionKey: key,
+                        placedCount: placedItems.length,
+                        remainingCount: remainingItems.length,
+                        placedHeight,
+                        reason: splitDecision.reason,
+                    });
+                } else {
+                    // Fallback: estimate-based splitting (legacy path)
+                    let cumulativeHeight = 0;
+                    const availableHeight = Math.max(regionHeightPx - cursor.currentOffset, 0);
+
+                    items.forEach((item, itemIndex) => {
+                        const itemHeight = estimateActionHeight(item) + (itemIndex > 0 ? LIST_ITEM_SPACING_PX : 0);
+                        if (cumulativeHeight + itemHeight <= availableHeight || placedItems.length === 0) {
+                            placedItems.push(item);
+                            cumulativeHeight += itemHeight;
+                        } else {
+                            remainingItems.push(item);
+                        }
+                    });
+
+                    placedHeight = cumulativeHeight;
+
+                    logPaginationDecision(runId, 'split-using-estimates', {
+                        componentId: entry.instance.id,
+                        regionKey: key,
+                        placedCount: placedItems.length,
+                        remainingCount: remainingItems.length,
+                        placedHeight,
+                        reason: 'No split decision available',
+                    });
+                }
 
                 if (placedItems.length === 0) {
                     const committedEntry: CanvasLayoutEntry = {
@@ -930,12 +870,10 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
 
                     columnEntries.push(committedEntry);
                     // Mark region as full since even a single list item won't fit
-                    cursor.currentOffset = normalizedRegionHeight + COMPONENT_VERTICAL_SPACING_PX;
+                    cursor.currentOffset = regionHeightPx + COMPONENT_VERTICAL_SPACING_PX;
                     logPaginationDecision(runId, 'region-full-no-space-for-list', {
                         componentId: entry.instance.id,
                         regionKey: key,
-                        availableHeight,
-                        estimatedItemHeight: items.length > 0 ? estimateActionHeight(items[0]) : 0,
                     });
                     continue;
                 }
@@ -948,8 +886,6 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     entry.regionContent.isContinuation,
                     entry.regionContent.metadata
                 );
-
-                const placedHeight = cumulativeHeight;
                 const placedEntry: CanvasLayoutEntry = {
                     ...entry,
                     regionContent: placedContent,
@@ -1040,35 +976,37 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 }
             }
 
-            // Track component-12 duplicates in final column
-            if (process.env.NODE_ENV !== 'production') {
-                const component12Entries = columnEntries.filter(e => e.instance.id === 'component-12');
-                if (component12Entries.length > 0) {
-                    console.warn('[paginate] 📋 Component-12 in final column:', {
-                        runId,
-                        regionKey: key,
-                        count: component12Entries.length,
-                        isDuplicate: component12Entries.length > 1,
-                        entries: component12Entries.map(e => ({
-                            estimatedHeight: e.estimatedHeight,
-                            overflow: e.overflow,
-                            overflowRouted: e.overflowRouted,
-                            spanHeight: e.span?.height,
-                        })),
-                    });
-                }
-            }
-
             column.entries = columnEntries;
             processedBuckets.set(key, columnEntries);
         }
     }
 
-    logPaginationDecision(runId, 'run-finish', {
-        pageCount: pages.length,
-        overflowCount: overflowWarnings.length,
-        normalizedRegionHeight,
-    });
+    // Report stats for observability (development only)
+    if (process.env.NODE_ENV !== 'production' && paginationStats.componentsPlaced > 0) {
+        const total = paginationStats.heightSources.measured +
+            paginationStats.heightSources.proportional +
+            paginationStats.heightSources.estimate;
+
+        console.debug('[paginate] Stats:', {
+            componentsPlaced: paginationStats.componentsPlaced,
+            splitDecisions: paginationStats.splitDecisions,
+            bottomZoneRejections: paginationStats.bottomZoneRejections,
+            heightSources: {
+                measured: paginationStats.heightSources.measured,
+                proportional: paginationStats.heightSources.proportional,
+                estimate: paginationStats.heightSources.estimate,
+                percentMeasured: total > 0 ? ((paginationStats.heightSources.measured / total) * 100).toFixed(1) + '%' : 'N/A',
+            },
+        });
+    }
+
+    // Reset stats for next run
+    paginationStats.heightSources.measured = 0;
+    paginationStats.heightSources.proportional = 0;
+    paginationStats.heightSources.estimate = 0;
+    paginationStats.bottomZoneRejections = 0;
+    paginationStats.splitDecisions = 0;
+    paginationStats.componentsPlaced = 0;
 
     return { pages, overflowWarnings };
 };

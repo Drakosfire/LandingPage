@@ -90,12 +90,9 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                     document.fonts.load('700 14px ScalySansRemake'),
                 ]);
 
-                if (process.env.NODE_ENV !== 'production') {
-                    console.debug('[StatblockPage] Custom fonts loaded');
-                }
                 setFontsReady(true);
             } catch (error) {
-                console.warn('[StatblockPage] Font loading failed, proceeding anyway:', error);
+                console.warn('[StatblockPage] Font loading failed:', error);
                 setFontsReady(true); // Proceed even if font loading fails
             }
         };
@@ -116,12 +113,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const baseHeightPx = baseDimensions.heightPx;
     const baseContentHeightPx = baseDimensions.contentHeightPx;
 
-    console.log('[StatblockPage] Base dimensions:', { baseWidthPx, baseHeightPx, baseContentHeightPx });
-    console.log('[StatblockPage] About to declare ResizeObserver useLayoutEffect');
-
     useLayoutEffect(() => {
-        console.log('[StatblockPage] ✨ INSIDE ResizeObserver useLayoutEffect callback', { baseWidthPx, hasContainer: !!containerRef.current });
-
         if (typeof ResizeObserver === 'undefined') {
             console.warn('[StatblockPage] ResizeObserver not available');
             return undefined;
@@ -129,11 +121,8 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
 
         const node = containerRef.current;
         if (!node || baseWidthPx === 0) {
-            console.warn('[StatblockPage] Cannot setup ResizeObserver:', { hasNode: !!node, baseWidthPx });
             return undefined;
         }
-
-        console.log('[StatblockPage] Setting up ResizeObserver...');
 
         const observer = new ResizeObserver((entries) => {
             const entry = entries[0];
@@ -150,68 +139,21 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             const widthScale = availableWidth / baseWidthPx;
             const nextScale = clamp(widthScale, MIN_SCALE, MAX_SCALE);
 
-            // Measure the actual brewRenderer after scale is applied
-            const brewWrapper = node.querySelector('.brewRenderer-wrapper');
-            const brewRect = brewWrapper?.getBoundingClientRect();
-
-            console.log('[SCALE MEASUREMENT]', {
-                container: {
-                    totalWidth: entry.contentRect.width,
-                    paddingLeft,
-                    paddingRight,
-                    availableWidth,
-                },
-                page: {
-                    baseWidthPx,
-                    baseHeightPx,
-                },
-                scale: {
-                    calculatedScale: widthScale,
-                    clampedScale: nextScale,
-                    MIN_SCALE,
-                    MAX_SCALE,
-                },
-                brewWrapper: brewRect ? {
-                    renderedWidth: brewRect.width,
-                    renderedHeight: brewRect.height,
-                    fitsInAvailable: brewRect.width <= availableWidth,
-                    overflow: brewRect.width > availableWidth ? (brewRect.width - availableWidth) : 0,
-                } : { status: 'not yet rendered' },
-            });
-
             setScale((current) => (Math.abs(current - nextScale) > 0.01 ? nextScale : current));
         });
 
         observer.observe(node);
-        console.log('[StatblockPage] ResizeObserver active');
-
         return () => observer.disconnect();
     }, [baseWidthPx, baseHeightPx, layout.plan?.pages.length]); // Re-run when page count changes
 
     // Measure the VISIBLE monster frame (not the measurement layer) for accurate pagination
     useLayoutEffect(() => {
-        if (process.env.NODE_ENV !== 'production') {
-            // eslint-disable-next-line no-console
-            console.debug('[StatblockPage] useLayoutEffect for monster frame measurement triggered', {
-                hasLayoutPlan: !!layout.plan,
-                pageCount: layout.plan?.pages.length ?? 0,
-            });
-        }
-
         // Wait for layout to render before measuring
         if (!layout.plan || layout.plan.pages.length === 0) {
-            if (process.env.NODE_ENV !== 'production') {
-                // eslint-disable-next-line no-console
-                console.debug('[StatblockPage] No layout plan yet, skipping frame measurement');
-            }
             return undefined;
         }
 
         if (typeof ResizeObserver === 'undefined') {
-            if (process.env.NODE_ENV !== 'production') {
-                // eslint-disable-next-line no-console
-                console.warn('[StatblockPage] ResizeObserver not available');
-            }
             return undefined;
         }
 
@@ -260,62 +202,39 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         const visibleColumn = visibleFrame.querySelector('.canvas-column');
         if (visibleColumn) {
             const colWidth = visibleColumn.getBoundingClientRect().width;
-            setMeasuredColumnWidth(colWidth);
+            // CRITICAL: Divide by scale to get pre-transform width
+            // The visible layer is scaled down (e.g., 0.777x), so we measure 233px
+            // But measurement layer needs to lay out at PRE-TRANSFORM width (300px)
+            // to match the text wrapping and get accurate heights
+            setMeasuredColumnWidth(colWidth / scale);
             if (process.env.NODE_ENV !== 'production') {
                 // eslint-disable-next-line no-console
-                console.debug('[StatblockPage] Measured visible column width:', colWidth);
+                console.debug('[StatblockPage] Measured visible column width:', {
+                    postTransform: colWidth,
+                    scale,
+                    preTransform: colWidth / scale,
+                });
             }
         }
 
         let lastMeasuredHeight = 0;
 
         const updateRegionHeight = () => {
-            // NEW: Measure the COLUMN, not the frame!
+            // Measure the COLUMN, not the frame
             const column = visibleFrame.querySelector('.canvas-column');
             if (!column) {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.warn('[updateRegionHeight] ⚠️ canvas-column not found inside frame');
-                }
                 return;
             }
 
-            const rect = visibleFrame.getBoundingClientRect();
             const columnRect = column.getBoundingClientRect();
-            const computedStyle = window.getComputedStyle(visibleFrame);
-            const columnStyle = window.getComputedStyle(column);
 
-            if (process.env.NODE_ENV !== 'production') {
-                // eslint-disable-next-line no-console
-                console.debug('[updateRegionHeight] 🔍 Measuring frame AND column:', {
-                    frameHeight: rect.height,
-                    columnHeight: columnRect.height,
-                    framePadding: {
-                        top: computedStyle.paddingTop,
-                        bottom: computedStyle.paddingBottom
-                    },
-                    columnGap: columnStyle.gap,
-                    scrollHeight: (visibleFrame as HTMLElement).scrollHeight,
-                    lastMeasured: lastMeasuredHeight,
-                    heightDiff: Math.abs(columnRect.height - lastMeasuredHeight),
-                    willUpdate: columnRect.height > 0 && Math.abs(columnRect.height - lastMeasuredHeight) > 1,
-                });
-            }
-
-            // Use COLUMN height, not frame height!
-            const usableHeight = columnRect.height;
+            // CRITICAL: Divide by scale to get pre-transform height
+            // The visible layer is scaled down (e.g., 0.777x), so we measure 764px
+            // But pagination needs PRE-TRANSFORM height (983px) to match measurement layer
+            const usableHeight = columnRect.height / scale;
 
             if (usableHeight > 0 && Math.abs(usableHeight - lastMeasuredHeight) > 1) {
                 lastMeasuredHeight = usableHeight;
-                if (process.env.NODE_ENV !== 'production') {
-                    // eslint-disable-next-line no-console
-                    console.debug('[updateRegionHeight] ✅ ACTUAL COLUMN HEIGHT MEASURED:', {
-                        actualColumnHeight: usableHeight,
-                        frameHeight: rect.height,
-                        overhead: rect.height - usableHeight,
-                        previousHeight: lastMeasuredHeight,
-                        message: '🎯 Using COLUMN height (actual usable area) - calling setRegionHeight()'
-                    });
-                }
                 layout.setRegionHeight(usableHeight);
             }
         };
@@ -368,29 +287,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const columnGapPx = COMPONENT_VERTICAL_SPACING_PX;
 
     const totalScaledHeightPx = pageCount * scaledHeightPx + (pageCount - 1) * PAGE_GAP_PX * scale;
-
-    // Debug height calculations
-    if (process.env.NODE_ENV !== 'production') {
-        // Use effect to measure after render
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useEffect(() => {
-            const brewWrapper = containerRef.current?.querySelector('.brewRenderer-wrapper');
-            if (brewWrapper) {
-                const actualHeight = brewWrapper.getBoundingClientRect().height;
-                console.log('[HEIGHT CALC]', {
-                    baseHeightPx,
-                    scale,
-                    scaledHeightPx,
-                    pageCount,
-                    gapContribution: (pageCount - 1) * PAGE_GAP_PX * scale,
-                    calculatedTotalHeight: totalScaledHeightPx,
-                    actualWrapperHeight: actualHeight,
-                    heightDifference: Math.abs(totalScaledHeightPx - actualHeight),
-                    isWithinTolerance: Math.abs(totalScaledHeightPx - actualHeight) < 5,
-                });
-            }
-        }, [totalScaledHeightPx, scale, pageCount]);
-    }
 
     const containerStyle = useMemo<React.CSSProperties>(() => ({
         width: '100%',
