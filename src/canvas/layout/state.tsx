@@ -115,6 +115,16 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
         const hasComponents = base.components.length > 0;
         const shouldWaitForMeasurements = hasNoMeasurements && hasComponents;
 
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[measure-first] Check:', {
+                hasNoMeasurements,
+                measurementCount: base.measurements.size,
+                hasComponents,
+                componentCount: base.components.length,
+                shouldWaitForMeasurements,
+            });
+        }
+
         if (shouldWaitForMeasurements) {
             // Create measurement entries from RAW components (no buckets yet)
             const measurementEntries = createInitialMeasurementEntries({
@@ -126,8 +136,11 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
             });
 
             if (process.env.NODE_ENV !== 'production') {
-                console.debug('[measure-first] Creating measurement entries for', base.components.length, 'components (no buckets yet)');
-                console.debug('[measure-first] Waiting for initial measurements...');
+                console.log('[measure-first] Generated measurement entries:', {
+                    totalEntries: measurementEntries.length,
+                    componentCount: base.components.length,
+                    entryKeys: measurementEntries.map(e => e.measurementKey),
+                });
             }
 
             return {
@@ -152,16 +165,6 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
         });
 
         const allMeasured = checkAllComponentsMeasured(base.components, base.measurements);
-
-        if (process.env.NODE_ENV !== 'production') {
-            console.debug('[recomputeEntries]', {
-                componentCount: base.components.length,
-                measurementEntryCount: measurementEntries.length,
-                existingMeasurementCount: base.measurements.size,
-                allMeasured,
-                bucketCount: buckets.size,
-            });
-        }
 
         return {
             ...base,
@@ -270,17 +273,6 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
             action.payload.measurements.forEach(({ key, height, measuredAt }) => {
                 const previous = state.measurements.get(key);
 
-                // Debug component-0 specifically
-                if (process.env.NODE_ENV !== 'production' && key === 'component-0:block') {
-                    console.debug('[MEASUREMENTS_UPDATED] component-0:', {
-                        key,
-                        newHeight: height,
-                        previousHeight: previous?.height,
-                        heightDiff: previous ? Math.abs(previous.height - height) : 'N/A',
-                        willUpdate: !previous || Math.abs(previous.height - height) > EPSILON,
-                    });
-                }
-
                 // Height of 0 is treated as explicit deletion
                 if (height <= 0) {
                     if (measurements.has(key)) {
@@ -308,29 +300,9 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
             const wasWaiting = state.waitingForInitialMeasurements;
             const nowComplete = wasWaiting && allMeasured;
 
-            const newMeasurements = action.payload.measurements.filter(
-                m => m.height > 0 && !state.measurements.has(m.key)
-            );
-            const updatedMeasurements = action.payload.measurements.filter(
-                m => m.height > 0 && state.measurements.has(m.key)
-            );
-
-            if (nowComplete && process.env.NODE_ENV !== 'production') {
-                console.debug('[measure-first] All initial measurements complete, will build buckets and paginate');
-            }
-
             logLayoutDirty('MEASUREMENTS_UPDATED', {
-                updates: action.payload.measurements.length,
                 measurementVersion: nextVersion,
-                deletions: action.payload.measurements.filter(m => m.height <= 0).length,
-                additions: action.payload.measurements.filter(m => m.height > 0).length,
-                newKeys: newMeasurements.length,
-                updatedKeys: updatedMeasurements.length,
                 allComponentsMeasured: allMeasured,
-                wasWaiting,
-                nowComplete,
-                willRebuildEntries: hasAdditions || nowComplete,
-                willTriggerRepagination: true,
             });
 
             // Update state with new measurements first
@@ -368,9 +340,6 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
         case 'RECALCULATE_LAYOUT': {
             // Don't paginate if we're waiting for initial measurements
             if (state.waitingForInitialMeasurements) {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.debug('[measure-first] Skipping pagination - waiting for initial measurements');
-                }
                 return state;
             }
 
@@ -448,18 +417,6 @@ export const CanvasLayoutProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [state, dispatch] = useReducer(layoutReducer, undefined, createInitialState);
 
     const value = useMemo(() => state, [state]);
-
-    if (process.env.NODE_ENV !== 'production') {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        React.useEffect(() => {
-            // eslint-disable-next-line no-console
-            console.debug('[CanvasLayoutProvider] MOUNTED - new context instance created');
-            return () => {
-                // eslint-disable-next-line no-console
-                console.debug('[CanvasLayoutProvider] UNMOUNTED - context instance destroyed');
-            };
-        }, []);
-    }
 
     return (
         <CanvasLayoutDispatchContext.Provider value={dispatch} >

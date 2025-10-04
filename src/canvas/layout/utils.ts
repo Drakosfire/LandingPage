@@ -387,29 +387,6 @@ export const buildBuckets = ({
         const measurementKey = computeMeasurementKey(instance.id);
         const record = measurements.get(measurementKey);
 
-        // Add debug logging for first few components and component-12
-        if (process.env.NODE_ENV !== 'production' &&
-            (instance.id === 'component-0' || instance.id === 'component-1' ||
-                instance.id === 'component-2' || instance.id === 'component-12')) {
-            console.debug('[buildBuckets] Template vs Measurement:', {
-                instanceId: instance.id,
-                componentType: instance.type,
-                dataRef: instance.dataRef,
-                slotId: instance.layout.slotId,
-                templateSlotHeight: slotDimensions?.heightPx,
-                templateSlotWidth: slotDimensions?.widthPx,
-                measuredHeight: record?.height,
-                fallbackHeight: DEFAULT_COMPONENT_HEIGHT_PX,
-                finalEstimatedHeight: record?.height ?? DEFAULT_COMPONENT_HEIGHT_PX,
-                conflict: slotDimensions?.heightPx && record?.height &&
-                    Math.abs(slotDimensions.heightPx - record.height) > 5 ?
-                    `Template wants ${slotDimensions.heightPx}px, content measured ${record.height}px` :
-                    'No conflict',
-                isAbnormal: record?.height && record.height > 1500 ?
-                    `⚠️ Abnormally large: ${record.height}px` : false,
-            });
-        }
-
         const entry: CanvasLayoutEntry = {
             instance,
             slotIndex,
@@ -479,14 +456,6 @@ const collectMeasurementEntries = (buckets: RegionBuckets): MeasurementEntry[] =
         });
     });
 
-    // Log duplicates
-    if (process.env.NODE_ENV !== 'production') {
-        const duplicates = Array.from(duplicateCheck.entries()).filter(([_, count]) => count > 1);
-        if (duplicates.length > 0) {
-            console.warn('[collectMeasurementEntries] Found duplicate keys in buckets:', duplicates);
-        }
-    }
-
     // Clean up cache entries that are no longer needed
     const currentKeys = new Set(unique.keys());
     measurementEntryCache.forEach((_, key) => {
@@ -501,7 +470,10 @@ const collectMeasurementEntries = (buckets: RegionBuckets): MeasurementEntry[] =
 /**
  * Create measurement entries from raw components BEFORE buckets are built.
  * This enables measure-first flow where we measure all components upfront.
- * Only creates essential measurements (block components + full lists), not all possible splits.
+ * 
+ * For list components (actions, spells, etc.), generates split measurements for
+ * all possible split points (1 item, 2 items, ..., N items). This enables
+ * accurate pagination without proportional estimation.
  */
 export const createInitialMeasurementEntries = ({
     instances,
@@ -532,23 +504,115 @@ export const createInitialMeasurementEntries = ({
             column: toColumnType(resolvedHomeRaw.column),
         };
 
-        // Create basic measurement entry for block component
-        // We'll measure all components as blocks first
-        const measurementKey = computeMeasurementKey(instance.id);
+        const homeKey = regionKey(homeRegion.page, homeRegion.column);
+        const listKind = REGION_KIND_MAP[instance.type];
 
-        entries.push({
-            instance,
-            slotIndex,
-            orderIndex: index,
-            sourceRegionKey: regionKey(homeRegion.page, homeRegion.column),
-            region: homeRegion,
-            homeRegion,
-            homeRegionKey: regionKey(homeRegion.page, homeRegion.column),
-            estimatedHeight: DEFAULT_COMPONENT_HEIGHT_PX,
-            measurementKey,
-            needsMeasurement: true,
-            slotDimensions,
-        });
+        // For list components, generate split measurements (including full list)
+        // For non-list components, create basic block measurement
+        if (listKind) {
+            const statblock = getPrimaryStatblock(dataSources);
+            const resolved = resolveDataReference(dataSources, instance.dataRef);
+
+            // Extract items using same logic as buildBuckets
+            const itemsSource: Action[] = (() => {
+                switch (instance.type) {
+                    case 'action-section':
+                        return normalizeActionArray(resolved ?? statblock?.actions);
+                    case 'trait-list':
+                        return normalizeActionArray(resolved ?? statblock?.specialAbilities);
+                    case 'bonus-action-section':
+                        return normalizeActionArray(resolved ?? statblock?.bonusActions);
+                    case 'reaction-section':
+                        return normalizeActionArray(resolved ?? statblock?.reactions);
+                    case 'legendary-actions': {
+                        const legendary = (resolved as { actions?: Action[] }) ?? statblock?.legendaryActions;
+                        return normalizeActionArray(legendary?.actions);
+                    }
+                    case 'lair-actions': {
+                        const lair = (resolved as { actions?: Action[] }) ?? statblock?.lairActions;
+                        return normalizeActionArray(lair?.actions);
+                    }
+                    case 'spellcasting-block': {
+                        const spellcasting = (resolved as { cantrips?: unknown[]; knownSpells?: unknown[] }) ?? statblock?.spells;
+                        const cantrips = (spellcasting?.cantrips ?? []).map((spell: any) => ({
+                            name: spell.name,
+                            desc: spell.description ?? '',
+                            level: spell.level ?? 0,
+                            school: spell.school,
+                            usage: spell.usage,
+                        }));
+                        const knownSpells = (spellcasting?.knownSpells ?? []).map((spell: any) => ({
+                            name: spell.name,
+                            desc: spell.description ?? '',
+                            level: spell.level,
+                            school: spell.school,
+                            usage: spell.usage,
+                        }));
+                        return normalizeActionArray([...cantrips, ...knownSpells] as Action[]);
+                    }
+                    default:
+                        return [];
+                }
+            })();
+
+            const totalCount = itemsSource.length;
+
+            if (totalCount === 0) {
+                return; // Skip this instance, move to next
+            }
+
+            // Generate split measurements for each possible split point
+            // Example: For 14 spells, generate measurements for 1, 2, 3, ..., 14 items
+            // IMPORTANT: Generate ALL splits including the full list (splitAt === totalCount)
+            // because pagination needs the full list measurement key (e.g., "component-12:spell-list:0:14:14")
+            for (let splitAt = 1; splitAt <= totalCount; splitAt++) {
+                const items = itemsSource.slice(0, splitAt);
+                const isContinuation = false; // Initial splits are never continuations
+
+                const regionContent = toRegionContent(
+                    listKind,
+                    items,
+                    0, // startIndex
+                    totalCount,
+                    isContinuation,
+                    undefined // metadata only for full component
+                );
+
+                const splitMeasurementKey = computeMeasurementKey(instance.id, regionContent);
+
+                entries.push({
+                    instance,
+                    slotIndex,
+                    orderIndex: index,
+                    sourceRegionKey: homeKey,
+                    region: homeRegion,
+                    homeRegion,
+                    homeRegionKey: homeKey,
+                    regionContent,
+                    estimatedHeight: estimateListHeight(items, isContinuation),
+                    measurementKey: splitMeasurementKey,
+                    needsMeasurement: true,
+                    slotDimensions,
+                });
+            }
+        } else {
+            // Non-list component: create basic block measurement
+            const measurementKey = computeMeasurementKey(instance.id);
+
+            entries.push({
+                instance,
+                slotIndex,
+                orderIndex: index,
+                sourceRegionKey: homeKey,
+                region: homeRegion,
+                homeRegion,
+                homeRegionKey: homeKey,
+                estimatedHeight: DEFAULT_COMPONENT_HEIGHT_PX,
+                measurementKey,
+                needsMeasurement: true,
+                slotDimensions,
+            });
+        }
     });
 
     return entries;
@@ -574,8 +638,19 @@ export const buildCanvasEntries = ({
     assignedRegions,
 }: BuildCanvasEntriesArgs): CanvasEntriesResult => {
     const buckets = buildBuckets({ instances, template, columnCount, pageWidthPx, dataSources, measurements, assignedRegions });
-    const measurementEntries = collectMeasurementEntries(buckets);
-    return { buckets, measurementEntries };
+
+    // CRITICAL: Always regenerate ALL split measurements, not just the ones used in pagination
+    // This ensures all split variations remain available for future pagination runs
+    // (e.g., after zoom, resize, or data updates)
+    const allMeasurementEntries = createInitialMeasurementEntries({
+        instances,
+        template,
+        columnCount,
+        pageWidthPx,
+        dataSources,
+    });
+
+    return { buckets, measurementEntries: allMeasurementEntries };
 };
 
 const slotDimensionLookup = (template: TemplateConfig, slotId: string | undefined) => {
