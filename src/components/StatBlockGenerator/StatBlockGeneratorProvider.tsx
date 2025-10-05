@@ -1,7 +1,7 @@
 // StatBlockGeneratorProvider.tsx - Context Provider for StatBlock Generator
 // Following CardGeneratorProvider patterns adapted for StatBlock workflow
 
-import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { DUNGEONMIND_API_URL } from '../../config';
 import {
@@ -16,6 +16,8 @@ import {
     CRCalculationResult
 } from '../../types/statblock.types';
 import { defaultStatblockDetails } from '../../fixtures/statblockTemplates';
+import { MeasurementCoordinator } from '../../canvas/layout/measurement';
+import { normalizeStatblock } from '../../utils/statblockNormalization';
 
 // Context interface for StatBlockGenerator
 export interface StatBlockGeneratorContextType {
@@ -55,6 +57,13 @@ export interface StatBlockGeneratorContextType {
     setGenerationLock: (lockType: keyof StatBlockGeneratorContextType['generationLocks'], isLocked: boolean) => void;
     isAnyGenerationInProgress: boolean;
 
+    // Component Edit Lock System (Phase 1: Dynamic locking during editing)
+    componentLocks: Set<string>;
+    requestComponentLock: (componentId: string) => void;
+    releaseComponentLock: (componentId: string) => void;
+    isAnyComponentLocked: boolean;
+    measurementCoordinator: MeasurementCoordinator;
+
     // State Updates
     updateCreatureDetails: (updates: Partial<StatBlockDetails>) => void;
     replaceCreatureDetails: (next: StatBlockDetails) => void;
@@ -89,6 +98,7 @@ export interface StatBlockGeneratorContextType {
     autoSaveEnabled: boolean;
     saveSession: () => Promise<void>;
     loadSession: () => Promise<void>;
+    saveNow: () => Promise<void>; // Phase 3: Manual save function
 
     // Export Functions
     exportAsHTML: () => Promise<string>;
@@ -112,15 +122,51 @@ interface StatBlockGeneratorProviderProps {
 }
 
 export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProps> = ({ children }) => {
-    useAuth(); // Will use this later for user-specific functionality
+    const { userId, isLoggedIn } = useAuth();
+
+    // Phase 1: Create measurement coordinator (singleton per provider instance)
+    const measurementCoordinator = useRef(new MeasurementCoordinator()).current;
+
+    // Phase 3: Debounced save timer ref
+    const debouncedSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Core state
     const [currentStepId, setCurrentStepId] = useState<string>('creature-description');
     const [stepCompletion, setStepCompletion] = useState<Record<string, boolean>>({});
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('demo-monster-template');
     const [isCanvasEditMode, setIsCanvasEditMode] = useState<boolean>(false);
-    // Start with Dustwalker demo data for testing/demo purposes
-    const [creatureDetails, setCreatureDetails] = useState<StatBlockDetails>(defaultStatblockDetails);
+
+    // DEBUG: Log when edit mode changes
+    useEffect(() => {
+        console.log('🔧 [Provider] isCanvasEditMode state changed to:', isCanvasEditMode);
+    }, [isCanvasEditMode]);
+
+    // Phase 3: Initialize state from localStorage (lazy initialization)
+    // This runs ONCE on mount, before any effects
+    const [creatureDetails, setCreatureDetails] = useState<StatBlockDetails>(() => {
+        try {
+            const saved = localStorage.getItem('statblockGenerator_state');
+            if (saved) {
+                const { creatureDetails: savedDetails, timestamp } = JSON.parse(saved);
+                const ageMinutes = (Date.now() - timestamp) / 1000 / 60;
+
+                // Only restore if recent (within last 24 hours)
+                if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+                    console.log(`🔄 [Provider] Lazy init: Restoring "${savedDetails.name}" (${ageMinutes.toFixed(1)}m old)`);
+                    return normalizeStatblock(savedDetails);
+                } else {
+                    console.log('🔄 [Provider] Lazy init: Data too old, using template');
+                }
+            } else {
+                console.log('🔄 [Provider] Lazy init: No saved data, using template');
+            }
+        } catch (err) {
+            console.error('🔄 [Provider] Lazy init failed:', err);
+        }
+
+        // Fallback to default template
+        return defaultStatblockDetails;
+    });
 
     // Assets and generated content
     const [selectedAssets, setSelectedAssets] = useState({
@@ -144,6 +190,10 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         exportGeneration: false,
     });
 
+    // Component edit lock system (Phase 1: Dynamic Component Locking)
+    const [componentLocks, setComponentLocks] = useState<Set<string>>(new Set());
+    const [isMeasurementInProgress, setIsMeasurementInProgress] = useState(false);
+
     // Validation and CR calculation state
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
     const [crCalculationResult, setCRCalculationResult] = useState<CRCalculationResult | null>(null);
@@ -160,6 +210,11 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const isAnyGenerationInProgress = useMemo(() =>
         Object.values(generationLocks).some(lock => lock),
         [generationLocks]
+    );
+
+    const isAnyComponentLocked = useMemo(() =>
+        componentLocks.size > 0 || isMeasurementInProgress,
+        [componentLocks, isMeasurementInProgress]
     );
 
     const isCanvasPreviewReady = useMemo(() => {
@@ -226,21 +281,42 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         }));
     }, []);
 
+    // Component lock management (Phase 1: Dynamic Component Locking)
+    const requestComponentLock = useCallback((componentId: string) => {
+        setComponentLocks(prev => {
+            const next = new Set(prev);
+            next.add(componentId);
+            return next;
+        });
+        // Phase 1: Lock measurements for this component
+        measurementCoordinator.lockComponent(componentId);
+    }, [measurementCoordinator]);
+
+    const releaseComponentLock = useCallback((componentId: string) => {
+        setComponentLocks(prev => {
+            const next = new Set(prev);
+            next.delete(componentId);
+            return next;
+        });
+        // Phase 1: Unlock measurements (will trigger deferred measurement if changed)
+        measurementCoordinator.unlockComponent(componentId);
+    }, [measurementCoordinator]);
+
     // State update functions
     const updateCreatureDetails = useCallback((updates: Partial<StatBlockDetails>) => {
-        setCreatureDetails(prev => ({ ...prev, ...updates }));
-        if (autoSaveEnabled) {
-            // Debounced save will be implemented here
-        }
-    }, [autoSaveEnabled]);
+        console.log('🔄 [Provider] updateCreatureDetails called with:', Object.keys(updates));
+        setCreatureDetails(prev => {
+            const next = { ...prev, ...updates };
+            console.log('🔄 [Provider] New creature name:', next.name);
+            return next;
+        });
+        // Auto-save will be triggered by useEffect watching creatureDetails
+    }, []);
 
     const replaceCreatureDetails = useCallback((next: StatBlockDetails) => {
         setCreatureDetails(next);
-        // Trigger auto-save if enabled
-        if (autoSaveEnabled) {
-            // Debounced save will be implemented here
-        }
-    }, [autoSaveEnabled]);
+        // Auto-save will be triggered by useEffect watching creatureDetails
+    }, []);
 
     const loadDemoData = useCallback(() => {
         // Import demo data dynamically to avoid circular deps
@@ -348,18 +424,89 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         return [];
     }, []);
 
-    // Session management functions (stubs - to be implemented)
-    const saveSession = useCallback(async (): Promise<void> => {
+    // Phase 3: Manual "Save Now" function
+    const saveNow = useCallback(async (): Promise<void> => {
+        if (!isLoggedIn || !userId) {
+            console.warn('💾 [Provider] Cannot save: User not logged in');
+            setError('Please log in to save to cloud');
+            return;
+        }
+
+        // Clear any pending debounced save
+        if (debouncedSaveTimerRef.current) {
+            clearTimeout(debouncedSaveTimerRef.current);
+            debouncedSaveTimerRef.current = null;
+        }
+
         setSaveStatus('saving');
         try {
-            // TODO: Implement session saving
-            setSaveStatus('saved');
+            console.log('💾 [Provider] Manual save triggered');
+
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/save-project`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    projectId: currentProject?.id,
+                    statblock: creatureDetails,
+                    userId: userId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Save failed: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('💾 [Provider] Manual save successful:', result);
+
+            // Update current project with server response
+            if (result.projectId) {
+                setCurrentProject({
+                    id: result.projectId,
+                    name: creatureDetails.name || 'Untitled Creature',
+                    description: creatureDetails.description || '',
+                    createdBy: userId,
+                    createdAt: result.createdAt,
+                    updatedAt: result.updatedAt,
+                    lastModified: result.updatedAt,
+                    state: {
+                        currentStepId,
+                        stepCompletion,
+                        creatureDetails,
+                        selectedAssets,
+                        generatedContent,
+                        autoSaveEnabled: true,
+                        lastSaved: new Date().toISOString()
+                    },
+                    metadata: {
+                        version: '1.0.0',
+                        platform: 'web'
+                    }
+                });
+            }
+
             setLastSaved(new Date().toISOString());
+            setSaveStatus('saved');
+
+            // Reset to idle after 2 seconds
+            setTimeout(() => setSaveStatus('idle'), 2000);
+
         } catch (err) {
+            console.error('💾 [Provider] Manual save failed:', err);
             setSaveStatus('error');
             setError(err instanceof Error ? err.message : 'Save failed');
+
+            // Reset to idle after 5 seconds
+            setTimeout(() => setSaveStatus('idle'), 5000);
         }
-    }, []);
+    }, [isLoggedIn, userId, currentProject?.id, creatureDetails, currentStepId, stepCompletion, selectedAssets, generatedContent]);
+
+    // Session management functions (stubs - to be implemented)
+    const saveSession = useCallback(async (): Promise<void> => {
+        // Redirect to manual save
+        await saveNow();
+    }, [saveNow]);
 
     const loadSession = useCallback(async (): Promise<void> => {
         // TODO: Implement session loading
@@ -379,6 +526,122 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const exportAsJSON = useCallback((): string => {
         return JSON.stringify(creatureDetails, null, 2);
     }, [creatureDetails]);
+
+    // ============================================================================
+    // Phase 3: localStorage Auto-Save
+    // ============================================================================
+    // NOTE: Restore is handled in lazy state initialization above (lines 144-169)
+
+    // Auto-save to localStorage on every change (immediate)
+    useEffect(() => {
+        try {
+            console.log('💾 [Provider] localStorage save triggered - Creature:', creatureDetails.name);
+            const stateSnapshot = {
+                creatureDetails,
+                currentProject: currentProject?.id,
+                timestamp: Date.now()
+            };
+            const serialized = JSON.stringify(stateSnapshot);
+            localStorage.setItem('statblockGenerator_state', serialized);
+            console.log('💾 [Provider] ✅ Auto-saved to localStorage (' + (serialized.length / 1024).toFixed(2) + ' KB)');
+        } catch (err) {
+            console.error('💾 [Provider] ❌ Failed to save to localStorage:', err);
+        }
+    }, [creatureDetails, currentProject]);
+
+    // Debounced save to Firestore (auth required, 2 second delay)
+    useEffect(() => {
+        // Don't save to Firestore if not logged in
+        if (!isLoggedIn || !userId) {
+            console.log('💾 [Provider] Skipping Firestore save: not logged in');
+            return;
+        }
+
+        // Don't save empty creatures
+        if (!creatureDetails.name?.trim()) {
+            console.log('💾 [Provider] Skipping Firestore save: no creature name');
+            return;
+        }
+
+        // Clear existing timer
+        if (debouncedSaveTimerRef.current) {
+            clearTimeout(debouncedSaveTimerRef.current);
+        }
+
+        // Set up new debounced save (2 seconds)
+        debouncedSaveTimerRef.current = setTimeout(async () => {
+            setSaveStatus('saving');
+            try {
+                console.log('💾 [Provider] Debounced Firestore save triggered');
+
+                // TODO: Call backend save endpoint (Phase 3, task 6)
+                const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/save-project`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        projectId: currentProject?.id,
+                        statblock: creatureDetails,
+                        userId: userId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Save failed: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('💾 [Provider] Firestore save successful:', result);
+
+                // Update current project with server response
+                if (result.projectId) {
+                    setCurrentProject({
+                        id: result.projectId,
+                        name: creatureDetails.name || 'Untitled Creature',
+                        description: creatureDetails.description || '',
+                        createdBy: userId,
+                        createdAt: result.createdAt,
+                        updatedAt: result.updatedAt,
+                        lastModified: result.updatedAt,
+                        state: {
+                            currentStepId,
+                            stepCompletion,
+                            creatureDetails,
+                            selectedAssets,
+                            generatedContent,
+                            autoSaveEnabled: true,
+                            lastSaved: new Date().toISOString()
+                        },
+                        metadata: {
+                            version: '1.0.0',
+                            platform: 'web'
+                        }
+                    });
+                }
+
+                setLastSaved(new Date().toISOString());
+                setSaveStatus('saved');
+
+                // Reset to idle after 2 seconds
+                setTimeout(() => setSaveStatus('idle'), 2000);
+
+            } catch (err) {
+                console.error('💾 [Provider] Firestore save failed:', err);
+                setSaveStatus('error');
+                setError(err instanceof Error ? err.message : 'Save failed');
+
+                // Reset to idle after 5 seconds
+                setTimeout(() => setSaveStatus('idle'), 5000);
+            }
+        }, 2000);
+
+        // Cleanup function
+        return () => {
+            if (debouncedSaveTimerRef.current) {
+                clearTimeout(debouncedSaveTimerRef.current);
+            }
+        };
+    }, [creatureDetails, currentProject?.id, isLoggedIn, userId]);
 
     // Context value
     const contextValue: StatBlockGeneratorContextType = {
@@ -403,6 +666,13 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         generationLocks,
         setGenerationLock,
         isAnyGenerationInProgress,
+
+        // Component Edit Lock System
+        componentLocks,
+        requestComponentLock,
+        releaseComponentLock,
+        isAnyComponentLocked,
+        measurementCoordinator,
 
         // State Updates
         updateCreatureDetails,
@@ -438,6 +708,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         autoSaveEnabled,
         saveSession,
         loadSession,
+        saveNow, // Phase 3: Manual save function
 
         // Export Functions
         exportAsHTML,
