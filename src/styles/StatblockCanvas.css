@@ -1,444 +1,538 @@
- .dm-statblock-responsive {
-     width: 100%;
-     max-width: 100%;
-     margin: 0 auto;
-     padding: 0 1rem;
-     box-sizing: border-box;
-     overflow: hidden;
-     display: flex;
-     justify-content: center;
-     align-items: flex-start;
-     --dm-page-scale: 1;
- }
-
- .brewRenderer-wrapper {
-     margin: 0;
-     position: relative;
-     overflow: visible;
-     transition: transform 0.2s ease-out;
-     /* Transform and origin are set via inline styles for precise control */
- }
-
- .brewRenderer {
-     margin: 0;
-     position: relative;
-     overflow: visible;
-     /* Width and height are set via inline styles for precise control */
- }
-
- .pages {
-     width: var(--dm-page-width);
-     position: relative;
- }
-
- .pages-content {
-     width: var(--dm-page-width);
-     display: flex;
-     flex-direction: column;
-     gap: 48px;
- }
-
- .page.phb {
-     width: var(--dm-page-width);
-     height: var(--dm-page-height);
-     column-count: var(--dm-column-count, 1);
-     column-gap: var(--dm-column-gap, 12px);
-     column-fill: balance;
- }
-
- .dm-statblock-measurement-layer {
-     --dm-page-scale: 1;
- }
-
- .dm-statblock-measurement-layer .page.phb {
-     transform: none !important;
-     margin: 0;
- }
-
- .dm-statblock-page {
-     position: relative;
-     background-repeat: no-repeat;
-     background-position: center center;
-     background-size: cover;
-     border-radius: 6px;
-     color: #2b1d0f;
- }
-
- .dm-statblock-page::before {
-     content: '';
-     position: absolute;
-     inset: 0;
-     background: rgba(255, 255, 255, 0.15);
-     pointer-events: none;
- }
-
- .dm-column-layout {
-     position: relative;
-     width: 100%;
-     height: 100%;
- }
-
- .dm-component-wrapper {
-     font-family: inherit;
- }
-
- .dm-portrait-panel {
-     width: 100%;
-     height: 100%;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     background: rgba(255, 255, 255, 0.55);
-     border: 3px solid rgba(0, 0, 0, 0.6);
-     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.25);
-     overflow: hidden;
- }
-
- .dm-portrait-image {
-     width: 100%;
-     height: 100%;
-     object-fit: cover;
-     mix-blend-mode: multiply;
- }
-
- .dm-portrait-placeholder {
-     font-family: 'NodestoCapsCondensed', serif;
-     font-size: 1.4rem;
-     text-transform: uppercase;
-     color: rgba(88, 24, 13, 0.8);
- }
-
- .dm-pagination-marker {
-     font-family: 'BookInsanityRemake', serif;
-     font-size: 0.95rem;
-     text-transform: uppercase;
-     letter-spacing: 0.05em;
-     color: rgba(88, 24, 13, 0.8);
-     text-align: right;
-     margin-bottom: 0.75rem;
- }
-
- .monster-portrait {
-     text-align: center;
-     margin: 0.35cm auto;
-     max-width: 100%;
- }
-
- .monster-portrait__image {
-     display: inline-block;
-     max-width: 100%;
-     height: auto;
-     border: 2px solid rgba(34, 20, 12, 0.4);
-     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-     mix-blend-mode: multiply;
- }
-
- .monster-portrait__placeholder {
-     display: inline-block;
-     padding: 0.5rem 1rem;
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-     font-size: 0.95rem;
-     color: rgba(34, 20, 12, 0.75);
-     border: 1px dashed rgba(34, 20, 12, 0.35);
-     background-color: rgba(255, 249, 237, 0.65);
- }
-
- .dm-identity-header {
-     text-align: left;
-     color: #58180d;
- }
-
- .dm-monster-name {
-     font-family: 'BookInsanityRemake', 'NodestoCapsCondensed', serif;
-     font-size: 2.2rem;
-     letter-spacing: 0.02em;
-     margin: 0;
-     line-height: 1.1;
- }
-
- .dm-monster-meta {
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-     font-size: 1rem;
-     margin: 0.3rem 0 0;
-     color: #2b1d0f;
- }
-
- .dm-stat-summary {
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-     font-size: 0.95rem;
-     background: rgba(255, 255, 255, 0.65);
-     padding: 0.75rem 1rem;
-     border-radius: 4px;
-     border-left: 4px solid #a11d18;
-     box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
- }
-
- .dm-stat-summary dt {
-     font-weight: 700;
-     color: #58180d;
- }
-
- .dm-stat-summary dd {
-     font-weight: 600;
-     margin-bottom: 0.4rem;
- }
-
- .dm-quickfacts {
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-     font-size: 0.95rem;
-     background: rgba(255, 249, 237, 0.8);
-     padding: 0.5rem 0.8rem;
-     border-radius: 4px;
-     border-left: 4px solid rgba(161, 29, 24, 0.8);
-     box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
- }
-
- .dm-quickfacts-row {
-     display: flex;
-     gap: 0.3rem;
-     margin-bottom: 0.25rem;
- }
-
- .dm-quickfacts-row strong {
-     color: #58180d;
-     font-weight: 700;
- }
-
- .dm-quickfacts-row span {
-     font-weight: 600;
- }
-
- .dm-action-section,
- .dm-trait-section,
- .dm-bonus-action-section,
- .dm-reaction-section,
- .dm-legendary-section,
- .dm-lair-section,
- .dm-spellcasting-section {
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-     background: rgba(255, 255, 255, 0.7);
-     padding: 0.8rem 1rem;
-     border-radius: 4px;
-     box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-     margin-bottom: 0.6rem;
- }
-
- .dm-section-heading {
-     font-family: 'BookInsanityRemake', serif;
-     color: #a11d18;
-     text-transform: uppercase;
-     letter-spacing: 0.05em;
-     margin: 0 0 0.6rem;
- }
-
- .dm-action-list {
-     margin: 0;
-     padding: 0;
- }
-
- .dm-action-term {
-     font-family: 'BookInsanityRemake', serif;
-     font-size: 1.05rem;
-     margin: 0;
-     color: #58180d;
- }
-
- .dm-action-term strong {
-     font-weight: 700;
- }
-
- .dm-action-description {
-     margin: 0.25rem 0 0.5rem;
-     color: #2b1d0f;
-     line-height: 1.35;
- }
-
- .dm-action-divider {
-     height: 1px;
-     width: 100%;
-     background: rgba(88, 24, 13, 0.25);
-     margin: 0.4rem 0 0.6rem;
- }
-
- .dm-legendary-summary,
- .dm-lair-summary,
- .dm-spellcasting-summary {
-     margin: 0.4rem 0 0.6rem;
-     font-style: italic;
-     color: rgba(43, 29, 15, 0.9);
- }
-
- .dm-spellcasting-table {
-     width: 100%;
-     border-collapse: collapse;
-     margin-top: 0.4rem;
- }
-
- .dm-spellcasting-table th,
- .dm-spellcasting-table td {
-     text-align: left;
-     padding: 0.3rem 0.4rem;
-     border-bottom: 1px solid rgba(88, 24, 13, 0.2);
- }
-
- .dm-spellcasting-table th {
-     background: rgba(161, 29, 24, 0.12);
-     font-weight: 700;
-     color: #58180d;
- }
-
- .dm-spellcasting-list-section {
-     margin-top: 0.75rem;
- }
-
- .dm-spellcasting-subheading {
-     font-family: 'BookInsanityRemake', serif;
-     color: #58180d;
-     margin: 0 0 0.4rem;
-     font-size: 1rem;
-     text-transform: uppercase;
-     letter-spacing: 0.04em;
- }
-
- .dm-spellcasting-deflist {
-     margin: 0;
-     padding: 0;
- }
-
- .dm-spellcasting-term {
-     display: flex;
-     flex-direction: column;
-     font-family: 'BookInsanityRemake', serif;
-     color: #58180d;
- }
-
- .dm-spellcasting-term strong {
-     font-size: 1.05rem;
- }
-
- .dm-spellcasting-meta {
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-     font-size: 0.85rem;
-     color: rgba(43, 29, 15, 0.75);
-     margin-top: 0.15rem;
- }
-
- .dm-spellcasting-description {
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-     font-size: 0.9rem;
-     line-height: 1.35;
-     margin: 0.25rem 0 0.6rem;
-     color: #2b1d0f;
- }
-
- .dm-ability-table {
-     width: 100%;
-     border-collapse: collapse;
-     text-align: center;
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
-     font-size: 0.95rem;
-     background: rgba(247, 235, 215, 0.85);
-     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
- }
-
- .dm-ability-table th {
-     background: linear-gradient(180deg, rgba(143, 36, 28, 0.9) 0%, rgba(90, 22, 18, 0.9) 100%);
-     color: #fdf6ea;
-     padding: 0.4rem 0;
-     font-weight: 700;
- }
-
- .dm-ability-table td {
-     padding: 0.5rem 0;
-     color: #2b1d0f;
- }
-
- .dm-ability-value {
-     display: flex;
-     flex-direction: column;
-     align-items: center;
-     gap: 0.2rem;
-     font-weight: 700;
- }
-
- .dm-ability-value span:last-child {
-     font-size: 0.85rem;
-     font-weight: 600;
-     color: #58180d;
- }
-
- .dm-canvas-fallback .mantine-Text-root {
-     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
- }
-
- .dm-statblock-responsive .columnWrapper {
-     display: flex;
-     gap: var(--dm-column-gap, 12px);
-     width: 100%;
-     height: 100%;
- }
-
- .dm-statblock-responsive .monster.frame.wide {
-     flex: 1 1 auto;
-     display: flex;
-     width: 100%;
-     height: 100%;
-     max-width: 100%;
-     box-sizing: border-box;
- }
-
- .dm-statblock-responsive .canvas-column {
-     flex: 1 1 0;
-     display: flex;
-     flex-direction: column;
-     gap: var(--dm-column-gap, 12px);
- }
-
- .portrait-wrapper {
-     display: inline-block;
-     max-width: 100%;
- }
-
- .portrait-wrapper--sized {
-     width: 100%;
-     height: 100%;
- }
-
- .dm-statblock-measurement-layer .monster.frame.wide {
-     transform: none !important;
- }
-
- .dm-statblock-measurement-layer .monster-portrait {
-     margin: 0;
- }
-
- .dm-statblock-measurement-layer .portrait-wrapper {
-     display: block;
-     overflow: hidden;
- }
-
- .dm-statblock-measurement-layer .portrait-wrapper img {
-     width: 100%;
-     height: 100%;
-     max-width: 100%;
-     max-height: 100%;
-     object-fit: cover;
- }
-
- .dm-statblock-measurement-layer .dm-portrait-panel {
-     min-height: 0;
- }
-
- .dm-statblock-measurement-layer .portrait-measurement-wrapper {
-     position: relative;
-     overflow: hidden;
-     display: block;
- }
-
- .dm-statblock-measurement-layer .portrait-measurement-wrapper img {
-     width: 100%;
-     height: 100%;
-     max-width: 100%;
-     max-height: 100%;
-     object-fit: cover;
- }
+/* Editable Component Styling - Clean, No Individual Outlines */
+[contenteditable="true"] {
+    /* Remove browser default outline completely */
+    outline: none !important;
+    /* Show text cursor */
+    cursor: text;
+    /* No visual styling on individual elements */
+    box-shadow: none !important;
+    border: none !important;
+    /* Prevent individual elements from creating their own stacking context */
+    position: static !important;
+    transform: none !important;
+    z-index: auto !important;
+}
+
+/* Pop-Out Effect - Applied to Container Sections */
+.dm-action-section,
+.dm-trait-section,
+.dm-bonus-action-section,
+.dm-reaction-section,
+.dm-legendary-section,
+.dm-lair-section,
+.dm-spellcasting-section,
+.dm-identity-header,
+.dm-stat-summary,
+.dm-ability-table,
+.dm-quickfacts,
+.block.descriptive,
+h2#user-monster-name,
+.dm-monster-name {
+    /* Smooth transitions for pop-out effect */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s;
+    position: relative;
+    z-index: 1;
+}
+
+/* Pop-out entire section when any child is being edited */
+.dm-identity-header:focus-within,
+.dm-stat-summary:focus-within,
+.dm-ability-table:focus-within,
+.dm-quick-facts:focus-within,
+.dm-flavor-summary:focus-within,
+.dm-action-section:focus-within,
+.dm-trait-section:focus-within,
+.dm-bonus-action-section:focus-within,
+.dm-reaction-section:focus-within,
+.dm-legendary-section:focus-within,
+.dm-lair-section:focus-within,
+.dm-spellcasting-section:focus-within {
+    /* Elevate above other content */
+    z-index: 1000 !important;
+    /* Dramatic shadow for depth */
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4),
+        0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    /* Scale up the entire section (8% increase as per design) */
+    transform: scale(1.08) translateZ(0);
+    /* Brighten background */
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    /* Add subtle border */
+    border: 2px solid rgba(34, 139, 230, 0.4) !important;
+    border-radius: 6px !important;
+    /* Ensure padding is maintained */
+    padding: 1rem !important;
+    /* Smooth animation */
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out,
+        background-color 0.2s ease-out, border 0.2s ease-out;
+}
+
+/* Backdrop overlay to dim other content when editing */
+.dm-statblock-page:has([contenteditable="true"]:focus)::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    pointer-events: none;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.dm-statblock-responsive {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    --dm-page-scale: 1;
+}
+
+.brewRenderer-wrapper {
+    margin: 0;
+    position: relative;
+    overflow: visible;
+    transition: transform 0.2s ease-out;
+    /* Transform and origin are set via inline styles for precise control */
+}
+
+.brewRenderer {
+    margin: 0;
+    position: relative;
+    overflow: visible;
+    /* Width and height are set via inline styles for precise control */
+}
+
+.pages {
+    width: var(--dm-page-width);
+    position: relative;
+}
+
+.pages-content {
+    width: var(--dm-page-width);
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
+.page.phb {
+    width: var(--dm-page-width);
+    height: var(--dm-page-height);
+    column-count: var(--dm-column-count, 1);
+    column-gap: var(--dm-column-gap, 12px);
+    column-fill: balance;
+}
+
+.dm-statblock-measurement-layer {
+    --dm-page-scale: 1;
+}
+
+.dm-statblock-measurement-layer .page.phb {
+    transform: none !important;
+    margin: 0;
+}
+
+.dm-statblock-page {
+    position: relative;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    border-radius: 6px;
+    color: #2b1d0f;
+}
+
+.dm-statblock-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.15);
+    pointer-events: none;
+}
+
+.dm-column-layout {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.dm-component-wrapper {
+    font-family: inherit;
+}
+
+.dm-portrait-panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.55);
+    border: 3px solid rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.dm-portrait-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: multiply;
+}
+
+.dm-portrait-placeholder {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    color: rgba(88, 24, 13, 0.8);
+}
+
+.dm-pagination-marker {
+    font-family: 'BookInsanityRemake', serif;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(88, 24, 13, 0.8);
+    text-align: right;
+    margin-bottom: 0.75rem;
+}
+
+.monster-portrait {
+    text-align: center;
+    margin: 0.35cm auto;
+    max-width: 100%;
+}
+
+.monster-portrait__image {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+    border: 2px solid rgba(34, 20, 12, 0.4);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    mix-blend-mode: multiply;
+}
+
+.monster-portrait__placeholder {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    color: rgba(34, 20, 12, 0.75);
+    border: 1px dashed rgba(34, 20, 12, 0.35);
+    background-color: rgba(255, 249, 237, 0.65);
+}
+
+.dm-identity-header {
+    text-align: left;
+    color: #58180d;
+    /* Ensure wrapper is positioned for z-index to work */
+    position: relative !important;
+}
+
+.dm-monster-name {
+    font-family: 'BookInsanityRemake', 'NodestoCapsCondensed', serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.02em;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.dm-monster-meta {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 1rem;
+    margin: 0.3rem 0 0;
+    color: #2b1d0f;
+}
+
+.dm-stat-summary {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.65);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    border-left: 4px solid #a11d18;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.dm-stat-summary dt {
+    font-weight: 700;
+    color: #58180d;
+}
+
+.dm-stat-summary dd {
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.dm-quickfacts {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    background: rgba(255, 249, 237, 0.8);
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    border-left: 4px solid rgba(161, 29, 24, 0.8);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.dm-quickfacts-row {
+    display: flex;
+    gap: 0.3rem;
+    margin-bottom: 0.25rem;
+}
+
+.dm-quickfacts-row strong {
+    color: #58180d;
+    font-weight: 700;
+}
+
+.dm-quickfacts-row span {
+    font-weight: 600;
+}
+
+.dm-action-section,
+.dm-trait-section,
+.dm-bonus-action-section,
+.dm-reaction-section,
+.dm-legendary-section,
+.dm-lair-section,
+.dm-spellcasting-section {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 0.8rem 1rem;
+    border-radius: 4px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0.6rem;
+}
+
+.dm-section-heading {
+    font-family: 'BookInsanityRemake', serif;
+    color: #a11d18;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.6rem;
+}
+
+.dm-action-list {
+    margin: 0;
+    padding: 0;
+}
+
+.dm-action-term {
+    font-family: 'BookInsanityRemake', serif;
+    font-size: 1.05rem;
+    margin: 0;
+    color: #58180d;
+}
+
+.dm-action-term strong {
+    font-weight: 700;
+}
+
+.dm-action-description {
+    margin: 0.25rem 0 0.5rem;
+    color: #2b1d0f;
+    line-height: 1.35;
+}
+
+.dm-action-divider {
+    height: 1px;
+    width: 100%;
+    background: rgba(88, 24, 13, 0.25);
+    margin: 0.4rem 0 0.6rem;
+}
+
+.dm-legendary-summary,
+.dm-lair-summary,
+.dm-spellcasting-summary {
+    margin: 0.4rem 0 0.6rem;
+    font-style: italic;
+    color: rgba(43, 29, 15, 0.9);
+}
+
+.dm-spellcasting-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.4rem;
+}
+
+.dm-spellcasting-table th,
+.dm-spellcasting-table td {
+    text-align: left;
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid rgba(88, 24, 13, 0.2);
+}
+
+.dm-spellcasting-table th {
+    background: rgba(161, 29, 24, 0.12);
+    font-weight: 700;
+    color: #58180d;
+}
+
+.dm-spellcasting-list-section {
+    margin-top: 0.75rem;
+}
+
+.dm-spellcasting-subheading {
+    font-family: 'BookInsanityRemake', serif;
+    color: #58180d;
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dm-spellcasting-deflist {
+    margin: 0;
+    padding: 0;
+}
+
+.dm-spellcasting-term {
+    display: flex;
+    flex-direction: column;
+    font-family: 'BookInsanityRemake', serif;
+    color: #58180d;
+}
+
+.dm-spellcasting-term strong {
+    font-size: 1.05rem;
+}
+
+.dm-spellcasting-meta {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.85rem;
+    color: rgba(43, 29, 15, 0.75);
+    margin-top: 0.15rem;
+}
+
+.dm-spellcasting-description {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    margin: 0.25rem 0 0.6rem;
+    color: #2b1d0f;
+}
+
+.dm-ability-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    background: rgba(247, 235, 215, 0.85);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.dm-ability-table th {
+    background: linear-gradient(180deg, rgba(143, 36, 28, 0.9) 0%, rgba(90, 22, 18, 0.9) 100%);
+    color: #fdf6ea;
+    padding: 0.4rem 0;
+    font-weight: 700;
+}
+
+.dm-ability-table td {
+    padding: 0.5rem 0;
+    color: #2b1d0f;
+}
+
+.dm-ability-value {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    font-weight: 700;
+}
+
+.dm-ability-value span:last-child {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #58180d;
+}
+
+.dm-canvas-fallback .mantine-Text-root {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+}
+
+.dm-statblock-responsive .columnWrapper {
+    display: flex;
+    gap: var(--dm-column-gap, 12px);
+    width: 100%;
+    height: 100%;
+}
+
+.dm-statblock-responsive .monster.frame.wide {
+    flex: 1 1 auto;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.dm-statblock-responsive .canvas-column {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--dm-column-gap, 12px);
+}
+
+.portrait-wrapper {
+    display: inline-block;
+    max-width: 100%;
+}
+
+.portrait-wrapper--sized {
+    width: 100%;
+    height: 100%;
+}
+
+.dm-statblock-measurement-layer .monster.frame.wide {
+    transform: none !important;
+}
+
+.dm-statblock-measurement-layer .monster-portrait {
+    margin: 0;
+}
+
+.dm-statblock-measurement-layer .portrait-wrapper {
+    display: block;
+    overflow: hidden;
+}
+
+.dm-statblock-measurement-layer .portrait-wrapper img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.dm-statblock-measurement-layer .dm-portrait-panel {
+    min-height: 0;
+}
+
+.dm-statblock-measurement-layer .portrait-measurement-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: block;
+}
+
+.dm-statblock-measurement-layer .portrait-measurement-wrapper img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
