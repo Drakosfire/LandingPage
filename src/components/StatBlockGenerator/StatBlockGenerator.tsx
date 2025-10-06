@@ -33,7 +33,7 @@ import StatBlockCanvas from './shared/StatBlockCanvas';
 
 // Main component content (wrapped by provider)
 const StatBlockGeneratorContent: React.FC = () => {
-    const { authState } = useAuth();
+    const { authState, isLoggedIn } = useAuth();
     // user available via authState.user when needed for save operations
     const {
         currentStepId,
@@ -157,6 +157,7 @@ const StatBlockGeneratorContent: React.FC = () => {
                     onLoadDemo={loadDemoData}
                     saveStatus={saveStatus}
                     error={error}
+                    isLoggedIn={isLoggedIn}
                 />
 
                 {/* Step Navigation */}

@@ -201,6 +201,12 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     // Phase 3: Flag to prevent auto-save during generation (fix race condition)
     const [isGenerating, setIsGenerating] = useState(false);
 
+    // Phase 4: Flag to prevent auto-save after deletion (prevents unwanted project creation)
+    const skipAutoSaveRef = useRef(false);
+
+    // Phase 4: Track last saved content to prevent duplicate saves
+    const lastSavedContentHashRef = useRef<string>('');
+
     // Validation and CR calculation state
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
     const [crCalculationResult, setCRCalculationResult] = useState<CRCalculationResult | null>(null);
@@ -227,6 +233,37 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const isCanvasPreviewReady = useMemo(() => {
         return ['creature-description', 'statblock-customization', 'export-finalization'].includes(currentStepId);
     }, [currentStepId]);
+
+    // Phase 4: Initialize content hash on mount to prevent duplicate save after page load
+    // This runs once after initial render to set hash matching restored/initial content
+    useEffect(() => {
+        // Get project ID from localStorage if it was restored
+        let restoredProjectId: string | undefined;
+        try {
+            const saved = localStorage.getItem('statblockGenerator_state');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                restoredProjectId = parsed.currentProject;
+            }
+        } catch (err) {
+            // Ignore errors
+        }
+
+        // Set initial hash to match current state (prevents first auto-save on mount)
+        const initialHash = JSON.stringify({
+            projectId: restoredProjectId,
+            name: creatureDetails.name,
+            type: creatureDetails.type,
+            actions: creatureDetails.actions?.length,
+            traits: creatureDetails.specialAbilities?.length,
+            challengeRating: creatureDetails.challengeRating,
+            hp: creatureDetails.hitPoints
+        });
+        lastSavedContentHashRef.current = initialHash;
+        console.log('🔒 [Provider] Initial content hash set on mount for:', creatureDetails.name);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Note: Empty deps array is intentional - this should only run once on mount
+    // We access creatureDetails in the initial state, which is fine
 
     // Step navigation logic
     const canGoNext = useCallback(() => {
@@ -423,30 +460,11 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         }
     }, [creatureDetails]);
 
-    // Project management functions (stubs - to be implemented)
-    const createProject = useCallback(async (name: string, description?: string): Promise<string> => {
-        // TODO: Implement project creation
-        return 'project-id';
-    }, []);
-
-    const saveProject = useCallback(async (): Promise<void> => {
-        // TODO: Implement project saving
-    }, []);
-
-    const loadProject = useCallback(async (projectId: string): Promise<void> => {
-        // TODO: Implement project loading
-    }, []);
-
-    const deleteProject = useCallback(async (projectId: string): Promise<void> => {
-        // TODO: Implement project deletion
-    }, []);
-
-    const listProjects = useCallback(async (): Promise<StatBlockProjectSummary[]> => {
-        // TODO: Implement project listing
-        return [];
-    }, []);
-
+    // ============================================================================
     // Phase 3: Manual "Save Now" function
+    // ============================================================================
+    // NOTE: Defined here (before Phase 4) because saveProject() depends on it
+
     const saveNow = useCallback(async (): Promise<void> => {
         if (!isLoggedIn || !userId) {
             console.warn('💾 [Provider] Cannot save: User not logged in');
@@ -524,7 +542,246 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         }
     }, [isLoggedIn, userId, currentProject?.id, creatureDetails, currentStepId, stepCompletion, selectedAssets, generatedContent]);
 
-    // Session management functions (stubs - to be implemented)
+    // ============================================================================
+    // Phase 4: Project Management Functions
+    // ============================================================================
+
+    const createProject = useCallback(async (name: string, description?: string): Promise<string> => {
+        if (!isLoggedIn || !userId) {
+            throw new Error('Authentication required to create projects');
+        }
+
+        console.log('📁 [Provider] Creating new project:', name);
+
+        // Re-enable auto-save (in case it was disabled after deletion)
+        skipAutoSaveRef.current = false;
+        // Clear saved content hash to allow first save of new project
+        lastSavedContentHashRef.current = '';
+
+        // Create a new empty project by triggering a save
+        const newProject: StatBlockProject = {
+            id: '', // Will be generated by backend
+            name,
+            description: description || '',
+            createdBy: userId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastModified: new Date().toISOString(),
+            state: {
+                currentStepId: 'creature-description',
+                stepCompletion: {},
+                creatureDetails: defaultStatblockDetails,
+                selectedAssets: {
+                    generatedImages: []
+                },
+                generatedContent: {
+                    images: [],
+                    models: [],
+                    exports: []
+                },
+                autoSaveEnabled: true,
+                lastSaved: new Date().toISOString()
+            },
+            metadata: {
+                version: '1.0.0',
+                platform: 'web'
+            }
+        };
+
+        try {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/save-project`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    projectId: null, // New project
+                    statblock: defaultStatblockDetails,
+                    userId: userId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Create project failed: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('📁 [Provider] Project created:', result.projectId);
+
+            // Update current project state
+            newProject.id = result.projectId;
+            newProject.createdAt = result.createdAt;
+            newProject.updatedAt = result.updatedAt;
+            setCurrentProject(newProject);
+
+            // Reset to default creature
+            replaceCreatureDetails(defaultStatblockDetails);
+            setCurrentStepId('creature-description');
+            setStepCompletion({});
+
+            return result.projectId;
+        } catch (err) {
+            console.error('📁 [Provider] Failed to create project:', err);
+            throw err;
+        }
+    }, [isLoggedIn, userId, replaceCreatureDetails]);
+
+    const saveProject = useCallback(async (): Promise<void> => {
+        // Redirect to manual save (already implemented)
+        await saveNow();
+    }, [saveNow]);
+
+    const loadProject = useCallback(async (projectId: string): Promise<void> => {
+        if (!isLoggedIn || !userId) {
+            throw new Error('Authentication required to load projects');
+        }
+
+        console.log('📁 [Provider] Loading project:', projectId);
+        setIsLoading(true);
+
+        // Re-enable auto-save (in case it was disabled after deletion)
+        skipAutoSaveRef.current = false;
+        // Clear saved content hash to allow first save after load
+        lastSavedContentHashRef.current = '';
+
+        try {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/project/${projectId}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Load project failed: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            const projectData = result.data.project;
+
+            console.log('📁 [Provider] Project loaded:', projectData.name);
+
+            // Update all state from loaded project
+            setCurrentProject({
+                id: projectData.id,
+                name: projectData.name,
+                description: projectData.description || '',
+                createdBy: projectData.createdBy,
+                createdAt: projectData.createdAt,
+                updatedAt: projectData.updatedAt,
+                lastModified: projectData.lastModified,
+                state: projectData.state,
+                metadata: projectData.metadata
+            });
+
+            // Load creature details from project state
+            if (projectData.state?.creatureDetails) {
+                replaceCreatureDetails(normalizeStatblock(projectData.state.creatureDetails));
+            }
+
+            // Restore other state
+            if (projectData.state?.currentStepId) {
+                setCurrentStepId(projectData.state.currentStepId);
+            }
+            if (projectData.state?.stepCompletion) {
+                setStepCompletion(projectData.state.stepCompletion);
+            }
+            if (projectData.state?.selectedAssets) {
+                setSelectedAssets(projectData.state.selectedAssets);
+            }
+            if (projectData.state?.generatedContent) {
+                setGeneratedContent(projectData.state.generatedContent);
+            }
+
+            setError(null);
+        } catch (err) {
+            console.error('📁 [Provider] Failed to load project:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load project');
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [isLoggedIn, userId, replaceCreatureDetails]);
+
+    const deleteProject = useCallback(async (projectId: string): Promise<void> => {
+        if (!isLoggedIn || !userId) {
+            throw new Error('Authentication required to delete projects');
+        }
+
+        console.log('📁 [Provider] Deleting project:', projectId);
+
+        try {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/project/${projectId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Delete project failed: ${response.statusText}`);
+            }
+
+            console.log('📁 [Provider] Project deleted:', projectId);
+
+            // If deleting current project, reset to default
+            if (currentProject?.id === projectId) {
+                setCurrentProject(null);
+                // Disable auto-save temporarily to prevent creating a new project from default template
+                skipAutoSaveRef.current = true;
+                // Clear saved content hash
+                lastSavedContentHashRef.current = '';
+                replaceCreatureDetails(defaultStatblockDetails);
+                setCurrentStepId('creature-description');
+                setStepCompletion({});
+
+                // Re-enable auto-save after 5 seconds (in case user wants to start editing)
+                setTimeout(() => {
+                    skipAutoSaveRef.current = false;
+                    console.log('📁 [Provider] Auto-save re-enabled after deletion cooldown');
+                }, 5000);
+            }
+        } catch (err) {
+            console.error('📁 [Provider] Failed to delete project:', err);
+            throw err;
+        }
+    }, [isLoggedIn, userId, currentProject, replaceCreatureDetails]);
+
+    const listProjects = useCallback(async (): Promise<StatBlockProjectSummary[]> => {
+        if (!isLoggedIn || !userId) {
+            console.log('📁 [Provider] Not logged in, returning empty project list');
+            return [];
+        }
+
+        console.log('📁 [Provider] Fetching project list');
+
+        try {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/list-projects`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`List projects failed: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            const projects = result.data.projects;
+
+            console.log('📁 [Provider] Projects fetched:', projects.length);
+
+            // Transform to StatBlockProjectSummary format
+            return projects.map((p: any) => ({
+                id: p.id,
+                name: p.name || 'Untitled Creature',
+                description: p.description || '',
+                creatureType: p.metadata?.creatureType || p.state?.creatureDetails?.type || 'Unknown',
+                challengeRating: p.metadata?.challengeRating || p.state?.creatureDetails?.challengeRating || 'N/A',
+                updatedAt: p.updatedAt || p.lastModified,
+                createdAt: p.createdAt
+            }));
+        } catch (err) {
+            console.error('📁 [Provider] Failed to list projects:', err);
+            return [];
+        }
+    }, [isLoggedIn, userId]);
+
+    // Session management functions
     const saveSession = useCallback(async (): Promise<void> => {
         // Redirect to manual save
         await saveNow();
@@ -597,6 +854,30 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             return;
         }
 
+        // Don't auto-save if explicitly disabled (e.g., right after deleting a project)
+        if (skipAutoSaveRef.current) {
+            console.log('💾 [Provider] Skipping Firestore save: auto-save temporarily disabled');
+            return;
+        }
+
+        // Deduplication: Create content hash from statblock + project ID
+        const contentToHash = JSON.stringify({
+            projectId: currentProject?.id,
+            name: creatureDetails.name,
+            type: creatureDetails.type,
+            actions: creatureDetails.actions?.length,
+            traits: creatureDetails.specialAbilities?.length,
+            // Add key fields that indicate meaningful changes
+            challengeRating: creatureDetails.challengeRating,
+            hp: creatureDetails.hitPoints
+        });
+
+        // Skip if content hasn't changed since last save
+        if (contentToHash === lastSavedContentHashRef.current) {
+            console.log('💾 [Provider] Skipping Firestore save: content unchanged since last save');
+            return;
+        }
+
         // Clear existing timer
         if (debouncedSaveTimerRef.current) {
             clearTimeout(debouncedSaveTimerRef.current);
@@ -626,6 +907,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
 
                 const result = await response.json();
                 console.log('💾 [Provider] Firestore save successful:', result);
+
+                // Update last saved content hash to prevent duplicate saves
+                lastSavedContentHashRef.current = contentToHash;
 
                 // Update current project with server response
                 if (result.projectId) {

@@ -256,12 +256,15 @@ export interface StatBlockProjectSummary {
     id: string;
     name: string;
     description: string;
-    createdBy: string;
-    lastModified: string;
+    createdBy?: string;
+    createdAt?: string;
+    lastModified?: string;
     updatedAt: string;
-    creatureCount: number;
-    averageCR: number;
-    totalCR: number;
+    creatureType?: string;        // Phase 4: For display in project list
+    challengeRating?: string;     // Phase 4: For display in project list
+    creatureCount?: number;       // For multi-creature projects (future)
+    averageCR?: number;           // For multi-creature projects (future)
+    totalCR?: number;             // For multi-creature projects (future)
 }
 
 export interface CreateStatBlockProjectData {

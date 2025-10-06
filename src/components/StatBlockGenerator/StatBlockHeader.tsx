@@ -8,13 +8,15 @@ interface StatBlockHeaderProps {
     onLoadDemo?: () => void;
     saveStatus: 'idle' | 'saving' | 'saved' | 'error';
     error: string | null;
+    isLoggedIn?: boolean;  // Phase 4: Hide Projects button if not logged in
 }
 
 const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
     onOpenProjects,
     onLoadDemo,
     saveStatus,
-    error
+    error,
+    isLoggedIn = false
 }) => {
     const getSaveStatusBadge = () => {
         switch (saveStatus) {
@@ -53,13 +55,15 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                         Load Demo (Dustwalker)
                     </Button>
                 )}
-                <Button
-                    leftSection={<IconFolder size={16} />}
-                    variant="outline"
-                    onClick={onOpenProjects}
-                >
-                    Projects
-                </Button>
+                {isLoggedIn && (
+                    <Button
+                        leftSection={<IconFolder size={16} />}
+                        variant="outline"
+                        onClick={onOpenProjects}
+                    >
+                        Projects
+                    </Button>
+                )}
             </Group>
         </Group>
     );
