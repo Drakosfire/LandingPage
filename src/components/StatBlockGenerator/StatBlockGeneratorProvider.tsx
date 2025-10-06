@@ -57,6 +57,10 @@ export interface StatBlockGeneratorContextType {
     setGenerationLock: (lockType: keyof StatBlockGeneratorContextType['generationLocks'], isLocked: boolean) => void;
     isAnyGenerationInProgress: boolean;
 
+    // Phase 3: Generation flag to prevent auto-save race condition
+    isGenerating: boolean;
+    setIsGenerating: (isGenerating: boolean) => void;
+
     // Component Edit Lock System (Phase 1: Dynamic locking during editing)
     componentLocks: Set<string>;
     requestComponentLock: (componentId: string) => void;
@@ -194,6 +198,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const [componentLocks, setComponentLocks] = useState<Set<string>>(new Set());
     const [isMeasurementInProgress, setIsMeasurementInProgress] = useState(false);
 
+    // Phase 3: Flag to prevent auto-save during generation (fix race condition)
+    const [isGenerating, setIsGenerating] = useState(false);
+
     // Validation and CR calculation state
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
     const [crCalculationResult, setCRCalculationResult] = useState<CRCalculationResult | null>(null);
@@ -314,7 +321,22 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     }, []);
 
     const replaceCreatureDetails = useCallback((next: StatBlockDetails) => {
-        setCreatureDetails(next);
+        console.log('🔄 [Provider] replaceCreatureDetails called with:', next.name);
+        console.log('🔄 [Provider] New creature data:', {
+            name: next.name,
+            actions: next.actions?.map(a => a.name),
+            bonusActions: next.bonusActions?.map(a => a.name),
+            traits: next.specialAbilities?.map(a => a.name),
+            legendary: next.legendaryActions?.actions?.map(a => a.name),
+            lair: next.lairActions?.actions?.map(a => a.name),
+            spells: next.spells?.knownSpells?.map(s => s.name)
+        });
+
+        // CRITICAL: Deep clone to ensure NO object references are shared with old state
+        // This prevents React from thinking it's the same object and skipping re-renders
+        const deepClone = JSON.parse(JSON.stringify(next));
+        setCreatureDetails(deepClone);
+        console.log('✅ [Provider] setCreatureDetails called with DEEP CLONED object');
         // Auto-save will be triggered by useEffect watching creatureDetails
     }, []);
 
@@ -534,6 +556,12 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
 
     // Auto-save to localStorage on every change (immediate)
     useEffect(() => {
+        // Skip auto-save during generation to prevent race condition
+        if (isGenerating) {
+            console.log('⏸️ [Provider] Skipping auto-save during generation');
+            return;
+        }
+
         try {
             console.log('💾 [Provider] localStorage save triggered - Creature:', creatureDetails.name);
             const stateSnapshot = {
@@ -547,10 +575,16 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         } catch (err) {
             console.error('💾 [Provider] ❌ Failed to save to localStorage:', err);
         }
-    }, [creatureDetails, currentProject]);
+    }, [creatureDetails, currentProject, isGenerating]);
 
     // Debounced save to Firestore (auth required, 2 second delay)
     useEffect(() => {
+        // Skip auto-save during generation to prevent race condition
+        if (isGenerating) {
+            console.log('⏸️ [Provider] Skipping Firestore save during generation');
+            return;
+        }
+
         // Don't save to Firestore if not logged in
         if (!isLoggedIn || !userId) {
             console.log('💾 [Provider] Skipping Firestore save: not logged in');
@@ -641,7 +675,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 clearTimeout(debouncedSaveTimerRef.current);
             }
         };
-    }, [creatureDetails, currentProject?.id, isLoggedIn, userId]);
+    }, [creatureDetails, currentProject?.id, isLoggedIn, userId, currentStepId, stepCompletion, selectedAssets, generatedContent, isGenerating]);
 
     // Context value
     const contextValue: StatBlockGeneratorContextType = {
@@ -666,6 +700,10 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         generationLocks,
         setGenerationLock,
         isAnyGenerationInProgress,
+
+        // Phase 3: Generation flag to prevent auto-save race condition
+        isGenerating,
+        setIsGenerating,
 
         // Component Edit Lock System
         componentLocks,

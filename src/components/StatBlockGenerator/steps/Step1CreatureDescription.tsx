@@ -7,6 +7,7 @@ import { Card, Text, Stack, Group, Title, Alert, Button, Textarea, Checkbox, Loa
 import { IconInfoCircle, IconWand } from '@tabler/icons-react';
 import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import { StatBlockStepProps, StatBlockDetails } from '../../../types/statblock.types';
+import { normalizeStatblock } from '../../../utils/statblockNormalization';
 import '../../../styles/DesignSystem.css';
 
 interface Step1CreatureDescriptionProps extends StatBlockStepProps { }
@@ -25,7 +26,8 @@ const Step1CreatureDescription: React.FC<Step1CreatureDescriptionProps> = ({
         updateCreatureDetails,
         replaceCreatureDetails,
         generationLocks,
-        isAnyGenerationInProgress
+        isAnyGenerationInProgress,
+        setIsGenerating
     } = useStatBlockGenerator();
 
     // Local state for generation options
@@ -39,6 +41,8 @@ const Step1CreatureDescription: React.FC<Step1CreatureDescriptionProps> = ({
         if (!generationPrompt.trim()) return;
 
         try {
+            // Phase 3: Set flag to prevent auto-save during generation
+            setIsGenerating(true);
             onGenerationLockChange?.(true);
 
             // Prepare generation request
@@ -53,7 +57,7 @@ const Step1CreatureDescription: React.FC<Step1CreatureDescriptionProps> = ({
             };
 
             // Call backend API
-            const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/generate-creature`, {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/generate-statblock`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -72,68 +76,79 @@ const Step1CreatureDescription: React.FC<Step1CreatureDescriptionProps> = ({
                 throw new Error('Unexpected response from StatBlock Generator');
             }
 
-            const normalizedStatblock: StatBlockDetails = {
-                name: payload.data.statblock.name,
-                size: payload.data.statblock.size,
-                type: payload.data.statblock.type,
-                subtype: payload.data.statblock.subtype ?? undefined,
-                alignment: payload.data.statblock.alignment,
-                armorClass: payload.data.statblock.armor_class,
-                hitPoints: payload.data.statblock.hit_points,
-                hitDice: payload.data.statblock.hit_dice,
-                speed: {
-                    walk: payload.data.statblock.speed?.walk ?? undefined,
-                    fly: payload.data.statblock.speed?.fly ?? undefined,
-                    swim: payload.data.statblock.speed?.swim ?? undefined,
-                    climb: payload.data.statblock.speed?.climb ?? undefined,
-                    burrow: payload.data.statblock.speed?.burrow ?? undefined
-                },
-                abilities: {
-                    str: payload.data.statblock.abilities?.str ?? 0,
-                    dex: payload.data.statblock.abilities?.dex ?? 0,
-                    con: payload.data.statblock.abilities?.con ?? 0,
-                    int: payload.data.statblock.abilities?.intelligence ?? 0,
-                    wis: payload.data.statblock.abilities?.wis ?? 0,
-                    cha: payload.data.statblock.abilities?.cha ?? 0
-                },
-                savingThrows: payload.data.statblock.saving_throws ?? undefined,
-                skills: payload.data.statblock.skills ?? undefined,
-                damageResistance: payload.data.statblock.damage_resistance ?? undefined,
-                damageImmunity: payload.data.statblock.damage_immunity ?? undefined,
-                conditionImmunity: payload.data.statblock.condition_immunity ?? undefined,
-                damageVulnerability: payload.data.statblock.damage_vulnerability ?? undefined,
-                senses: {
-                    blindsight: payload.data.statblock.senses?.blindsight ?? undefined,
-                    darkvision: payload.data.statblock.senses?.darkvision ?? undefined,
-                    tremorsense: payload.data.statblock.senses?.tremorsense ?? undefined,
-                    truesight: payload.data.statblock.senses?.truesight ?? undefined,
-                    passivePerception: payload.data.statblock.senses?.passive_perception ?? 10
-                },
-                languages: payload.data.statblock.languages ?? '',
-                challengeRating: payload.data.statblock.challenge_rating,
-                xp: payload.data.statblock.xp ?? 0,
-                proficiencyBonus: payload.data.statblock.proficiency_bonus ?? undefined,
-                actions: payload.data.statblock.actions ?? [],
-                bonusActions: payload.data.statblock.bonus_actions ?? undefined,
-                reactions: payload.data.statblock.reactions ?? undefined,
-                spells: payload.data.statblock.spells ?? undefined,
-                legendaryActions: payload.data.statblock.legendary_actions ?? undefined,
-                lairActions: payload.data.statblock.lair_actions ?? undefined,
-                specialAbilities: payload.data.statblock.special_abilities ?? undefined,
-                description: payload.data.statblock.description ?? '',
-                sdPrompt: payload.data.statblock.sd_prompt ?? '',
-                projectId: payload.data.statblock.project_id ?? undefined,
-                createdAt: payload.data.statblock.created_at ?? undefined,
-                lastModified: payload.data.statblock.last_modified ?? undefined,
-                tags: payload.data.statblock.tags ?? []
-            };
+            // Backend now sends camelCase (via model_dump(by_alias=True))
+            // Just normalize IDs and pass through
+            const statblock = payload.data.statblock;
 
+            // DEBUG: Log what backend sent
+            console.log('📥 [Step1] Backend response:', {
+                name: statblock.name,
+                hasActions: !!statblock.actions,
+                actionsCount: statblock.actions?.length,
+                actionNames: statblock.actions?.map((a: any) => a.name),
+                hasTraits: !!statblock.specialAbilities,
+                traitsCount: statblock.specialAbilities?.length,
+                hasBonusActions: !!statblock.bonusActions,
+                bonusActionsCount: statblock.bonusActions?.length,
+                bonusActionNames: statblock.bonusActions?.map((a: any) => a.name),
+                hasLegendary: !!statblock.legendaryActions,
+                legendaryCount: statblock.legendaryActions?.actions?.length,
+                legendaryNames: statblock.legendaryActions?.actions?.map((a: any) => a.name),
+                hasLair: !!statblock.lairActions,
+                lairCount: statblock.lairActions?.actions?.length,
+                lairNames: statblock.lairActions?.actions?.map((a: any) => a.name),
+                hasSpells: !!statblock.spells,
+                spellsCount: statblock.spells?.knownSpells?.length
+            });
+
+            // CRITICAL: Normalize with explicit null→undefined conversion
+            // Backend sends `null` for optional fields, we need to ensure they're undefined
+            const normalizedStatblock: StatBlockDetails = normalizeStatblock({
+                ...statblock,  // Backend already sends correct camelCase
+                // Ensure senses has passivePerception default
+                senses: {
+                    ...statblock.senses,
+                    passivePerception: statblock.senses?.passivePerception ?? 10
+                },
+                // Ensure abilities has intelligence mapped correctly
+                abilities: {
+                    str: statblock.abilities?.str ?? 0,
+                    dex: statblock.abilities?.dex ?? 0,
+                    con: statblock.abilities?.con ?? 0,
+                    int: statblock.abilities?.int ?? 0,  // Backend sends 'int' not 'intelligence'
+                    wis: statblock.abilities?.wis ?? 0,
+                    cha: statblock.abilities?.cha ?? 0
+                },
+                // Explicitly handle null→undefined for special features
+                spells: statblock.spells || undefined,
+                legendaryActions: statblock.legendaryActions || undefined,
+                lairActions: statblock.lairActions || undefined,
+                bonusActions: statblock.bonusActions || undefined
+            });
+
+            console.log('✨ [Step1] After normalize:', {
+                name: normalizedStatblock.name,
+                actionsCount: normalizedStatblock.actions?.length,
+                actionNames: normalizedStatblock.actions?.map(a => a.name),
+                bonusActionsCount: normalizedStatblock.bonusActions?.length,
+                bonusActionNames: normalizedStatblock.bonusActions?.map(a => a.name),
+                traitsCount: normalizedStatblock.specialAbilities?.length,
+                traitNames: normalizedStatblock.specialAbilities?.map(a => a.name),
+                legendaryCount: normalizedStatblock.legendaryActions?.actions?.length,
+                legendaryNames: normalizedStatblock.legendaryActions?.actions?.map(a => a.name),
+                lairCount: normalizedStatblock.lairActions?.actions?.length,
+                lairNames: normalizedStatblock.lairActions?.actions?.map(a => a.name)
+            });
+
+            // Clear existing state and replace with fresh data
             replaceCreatureDetails(normalizedStatblock);
 
         } catch (error) {
             console.error('Creature generation failed:', error);
             // TODO: Show error notification
         } finally {
+            // Phase 3: Resume auto-save after generation completes
+            setIsGenerating(false);
             onGenerationLockChange?.(false);
         }
     }, [
@@ -145,7 +160,9 @@ const Step1CreatureDescription: React.FC<Step1CreatureDescriptionProps> = ({
         creatureDetails.type,
         creatureDetails.alignment,
         updateCreatureDetails,
-        onGenerationLockChange
+        onGenerationLockChange,
+        setIsGenerating,
+        replaceCreatureDetails
     ]);
 
     // Quick fill suggestions
