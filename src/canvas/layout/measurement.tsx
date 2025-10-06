@@ -118,6 +118,41 @@ export const useIdleMeasurementDispatcher = (
 };
 
 /**
+ * Phase 1: Coordinator for managing measurement locks across multiple observers
+ * Provides a central interface for components to lock/unlock their measurements
+ */
+export class MeasurementCoordinator {
+    private observers: Map<string, MeasurementObserver> = new Map();
+
+    registerObserver(key: string, observer: MeasurementObserver): void {
+        this.observers.set(key, observer);
+    }
+
+    unregisterObserver(key: string): void {
+        this.observers.delete(key);
+    }
+
+    lockComponent(componentId: string): void {
+        // Lock all observers that match this component ID pattern
+        // Component IDs like "action-section" should lock observers with keys starting with that pattern
+        this.observers.forEach((observer, key) => {
+            if (key.includes(componentId)) {
+                observer.lock();
+            }
+        });
+    }
+
+    unlockComponent(componentId: string): void {
+        // Unlock all observers that match this component ID pattern
+        this.observers.forEach((observer, key) => {
+            if (key.includes(componentId)) {
+                observer.unlock();
+            }
+        });
+    }
+}
+
+/**
  * Encapsulates DOM observation for a single measurement entry.
  * Manages ResizeObserver, requestAnimationFrame, and image load listeners.
  */
@@ -127,11 +162,37 @@ class MeasurementObserver {
     private imageCleanup: (() => void) | null = null;
     private hasLogged = false; // Track if we've logged this component
 
+    // Phase 1: Dynamic Component Locking
+    private isLocked: boolean = false;
+    private pendingMeasurement: number | null = null;
+
     constructor(
         private key: string,
         private node: HTMLDivElement,
         private onMeasure: (key: string, height: number) => void
     ) { }
+
+    /**
+     * Lock this observer - measurements will be stored but not dispatched
+     * Used during component editing to prevent layout thrashing
+     */
+    lock(): void {
+        this.isLocked = true;
+    }
+
+    /**
+     * Unlock this observer - dispatch any pending measurement
+     * Called after editing completes to trigger layout update
+     */
+    unlock(): void {
+        this.isLocked = false;
+
+        // Dispatch pending measurement if it changed while locked
+        if (this.pendingMeasurement !== null) {
+            this.onMeasure(this.key, this.pendingMeasurement);
+            this.pendingMeasurement = null;
+        }
+    }
 
     attach(): void {
         this.measure();
@@ -175,7 +236,14 @@ class MeasurementObserver {
             });
         }
 
-        this.onMeasure(this.key, height);
+        // Phase 1: Check lock state before dispatching
+        if (this.isLocked) {
+            // Store but don't dispatch yet
+            this.pendingMeasurement = height;
+        } else {
+            // Dispatch immediately
+            this.onMeasure(this.key, height);
+        }
     };
 
     private attachResizeObserver(): void {
@@ -257,9 +325,10 @@ interface MeasurementLayerProps {
     entries: MeasurementEntry[];
     renderComponent: (entry: MeasurementEntry) => React.ReactNode;
     onMeasurements: MeasurementDispatcher;
+    coordinator?: MeasurementCoordinator; // Phase 1: Optional coordinator for locking
 }
 
-export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, renderComponent, onMeasurements }) => {
+export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, renderComponent, onMeasurements, coordinator }) => {
     const dispatcher = useIdleMeasurementDispatcher((updates) => {
         onMeasurements(updates);
     });
@@ -277,6 +346,8 @@ export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, ren
                 if (existingObserver) {
                     existingObserver.detach();
                     observers.current.delete(key);
+                    // Phase 1: Unregister from coordinator
+                    coordinator?.unregisterObserver(key);
                     dispatcher(key, null);
                 }
                 return;
@@ -291,16 +362,21 @@ export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, ren
             const observer = new MeasurementObserver(key, node, dispatcher);
             observer.attach();
             observers.current.set(key, observer);
+
+            // Phase 1: Register with coordinator if available
+            coordinator?.registerObserver(key, observer);
         },
-        [dispatcher]
+        [dispatcher, coordinator]
     );
 
     useEffect(() => () => {
-        observers.current.forEach((observer) => {
+        observers.current.forEach((observer, key) => {
             observer.detach();
+            // Phase 1: Unregister from coordinator
+            coordinator?.unregisterObserver(key);
         });
         observers.current.clear();
-    }, []);
+    }, [coordinator]);
 
     return (
         <>

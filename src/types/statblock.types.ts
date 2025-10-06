@@ -71,6 +71,7 @@ export interface Skills {
 }
 
 export interface Action {
+    id: string; // Backend-generated on creation, required for stable keys
     name: string;
     desc: string;
     attackBonus?: number;
@@ -86,6 +87,7 @@ export interface Action {
 }
 
 export interface Spell {
+    id: string; // Backend-generated on creation, required for stable keys
     name: string;
     level: number;
     school?: string;

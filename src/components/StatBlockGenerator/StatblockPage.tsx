@@ -13,7 +13,7 @@ import type { CanvasLayoutEntry } from '../../canvas/layout/types';
 import { CanvasLayoutProvider } from '../../canvas/layout/state';
 import { useCanvasLayout } from '../../canvas/hooks/useCanvasLayout';
 import { CanvasPage } from '../../canvas/components/CanvasPage';
-import { MeasurementLayer } from '../../canvas/layout/measurement';
+import { MeasurementLayer, MeasurementCoordinator } from '../../canvas/layout/measurement';
 import type { BasePageDimensions } from '../../canvas/layout/utils';
 import { COMPONENT_VERTICAL_SPACING_PX } from '../../canvas/layout/utils';
 
@@ -23,6 +23,7 @@ interface StatblockPageProps {
     componentRegistry: Record<string, ComponentRegistryEntry>;
     isEditMode?: boolean;
     onUpdateData?: (updates: Partial<import('../../types/statblock.types').StatBlockDetails>) => void;
+    measurementCoordinator?: MeasurementCoordinator; // Phase 1: Optional coordinator for dynamic locking
 }
 
 const MIN_SCALE = 0.35;
@@ -67,11 +68,14 @@ const renderEntry = (
     );
 };
 
-const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, componentRegistry, isEditMode, onUpdateData }) => {
+const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, componentRegistry, isEditMode, onUpdateData, measurementCoordinator }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
     const [fontsReady, setFontsReady] = useState(false);
     const [measuredColumnWidth, setMeasuredColumnWidth] = useState<number | null>(null);
+
+    // DEBUG: Log edit mode prop
+    console.log('📄 [StatblockPage] Received isEditMode prop:', isEditMode);
 
     // Wait for custom fonts to load before measuring
     useLayoutEffect(() => {
@@ -415,6 +419,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                                         }, isEditMode, onUpdateData)
                                     }
                                     onMeasurements={layout.onMeasurements}
+                                    coordinator={measurementCoordinator}
                                 />
                             </div>
                         </div>

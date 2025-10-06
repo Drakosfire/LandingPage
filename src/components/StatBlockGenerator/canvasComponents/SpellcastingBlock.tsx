@@ -11,7 +11,7 @@ const formatSpellSlots = (slots: SpellcastingBlockType['spellSlots']) => {
     const entries = Object.entries(slots || {})
         .filter(([, value]) => value && value > 0)
         .map(([key, value]) => ({
-            level: Number(key.replace('slot', '')),
+            level: Number(key.replace('level', '')),  // Backend sends 'level1', 'level2', etc.
             value,
         }))
         .sort((a, b) => a.level - b.level);

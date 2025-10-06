@@ -348,7 +348,7 @@ const DnDStatblockWorkspace: React.FC<DnDStatblockWorkspaceProps> = ({ height = 
                                     <h4 id='actions'>Actions</h4>
                                     <dl>
                                         {creatureDetails.actions.map((a, idx) => (
-                                            <React.Fragment key={idx}>
+                                            <React.Fragment key={a.id}>
                                                 <dt><em><strong>
                                                     <EditableText
                                                         value={a.name}
@@ -383,7 +383,7 @@ const DnDStatblockWorkspace: React.FC<DnDStatblockWorkspaceProps> = ({ height = 
                                     <h4 id='legendary actions'>Legendary Actions</h4>
                                     <dl>
                                         {creatureDetails.legendaryActions.actions.map((la, idx) => (
-                                            <React.Fragment key={idx}>
+                                            <React.Fragment key={la.id}>
                                                 <dt><em><strong>
                                                     <EditableText
                                                         value={la.name}

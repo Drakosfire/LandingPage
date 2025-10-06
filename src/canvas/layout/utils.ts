@@ -248,6 +248,7 @@ export const buildBuckets = ({
                         // Combine cantrips and known spells into a single list for splitting
                         // Preserve ALL spell properties (level, school, usage) for proper rendering
                         const cantrips = (spellcasting?.cantrips ?? []).map((spell: any) => ({
+                            id: spell.id ?? `cantrip-${spell.name?.toLowerCase().replace(/\s+/g, '-')}`,
                             name: spell.name,
                             desc: spell.description ?? '',
                             level: spell.level ?? 0,
@@ -255,6 +256,7 @@ export const buildBuckets = ({
                             usage: spell.usage,
                         }));
                         const knownSpells = (spellcasting?.knownSpells ?? []).map((spell: any) => ({
+                            id: spell.id ?? `spell-${spell.name?.toLowerCase().replace(/\s+/g, '-')}`,
                             name: spell.name,
                             desc: spell.description ?? '',
                             level: spell.level,
@@ -485,6 +487,7 @@ export const createInitialMeasurementEntries = ({
                     case 'spellcasting-block': {
                         const spellcasting = (resolved as { cantrips?: unknown[]; knownSpells?: unknown[] }) ?? statblock?.spells;
                         const cantrips = (spellcasting?.cantrips ?? []).map((spell: any) => ({
+                            id: spell.id ?? `cantrip-${spell.name?.toLowerCase().replace(/\s+/g, '-')}`,
                             name: spell.name,
                             desc: spell.description ?? '',
                             level: spell.level ?? 0,
@@ -492,6 +495,7 @@ export const createInitialMeasurementEntries = ({
                             usage: spell.usage,
                         }));
                         const knownSpells = (spellcasting?.knownSpells ?? []).map((spell: any) => ({
+                            id: spell.id ?? `spell-${spell.name?.toLowerCase().replace(/\s+/g, '-')}`,
                             name: spell.name,
                             desc: spell.description ?? '',
                             level: spell.level,
