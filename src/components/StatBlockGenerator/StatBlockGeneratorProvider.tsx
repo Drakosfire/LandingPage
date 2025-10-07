@@ -19,10 +19,9 @@ import { defaultStatblockDetails } from '../../fixtures/statblockTemplates';
 import { MeasurementCoordinator } from '../../canvas/layout/measurement';
 import { normalizeStatblock } from '../../utils/statblockNormalization';
 
-// Context interface for StatBlockGenerator
+// Context interface for StatBlockGenerator (Phase 5: Step navigation removed)
 export interface StatBlockGeneratorContextType {
     // Core State
-    currentStepId: string;
     isCanvasPreviewReady: boolean;
     selectedTemplateId: string;
     isCanvasEditMode: boolean;
@@ -39,15 +38,7 @@ export interface StatBlockGeneratorContextType {
         exports: GeneratedExport[];
     };
 
-    // Step Management
-    stepCompletion: Record<string, boolean>;
-    canGoNext: () => boolean;
-    canGoPrevious: () => boolean;
-    nextStep: () => void;
-    previousStep: () => void;
-    goToStep: (stepId: string) => void;
-
-    // Generation Lock System (prevent navigation during async operations)
+    // Generation Lock System (prevent concurrent async operations)
     generationLocks: {
         creatureGeneration: boolean;
         imageGeneration: boolean;
@@ -112,15 +103,6 @@ export interface StatBlockGeneratorContextType {
 
 const StatBlockGeneratorContext = createContext<StatBlockGeneratorContextType | undefined>(undefined);
 
-// Step definitions for 5-step workflow
-const STEPS = [
-    { id: 'creature-description', label: 'Creature Description', order: 1 },
-    { id: 'creature-image', label: 'Creature Image', order: 2 },
-    { id: 'statblock-customization', label: 'Statblock Customization', order: 3 },
-    { id: 'model-generation', label: '3D Model Generation', order: 4 },
-    { id: 'export-finalization', label: 'Export & Finalization', order: 5 }
-];
-
 interface StatBlockGeneratorProviderProps {
     children: React.ReactNode;
 }
@@ -134,9 +116,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     // Phase 3: Debounced save timer ref
     const debouncedSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Core state
-    const [currentStepId, setCurrentStepId] = useState<string>('creature-description');
-    const [stepCompletion, setStepCompletion] = useState<Record<string, boolean>>({});
+    // Core state (step navigation removed in Phase 5)
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('demo-monster-template');
     const [isCanvasEditMode, setIsCanvasEditMode] = useState<boolean>(false);
 
@@ -231,8 +211,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     );
 
     const isCanvasPreviewReady = useMemo(() => {
-        return ['creature-description', 'statblock-customization', 'export-finalization'].includes(currentStepId);
-    }, [currentStepId]);
+        // Canvas is always ready in single-page mode (Phase 5)
+        return true;
+    }, []);
 
     // Phase 4: Initialize content hash on mount to prevent duplicate save after page load
     // This runs once after initial render to set hash matching restored/initial content
@@ -265,57 +246,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     // Note: Empty deps array is intentional - this should only run once on mount
     // We access creatureDetails in the initial state, which is fine
 
-    // Step navigation logic
-    const canGoNext = useCallback(() => {
-        if (isAnyGenerationInProgress) return false;
-
-        const currentStep = STEPS.find(step => step.id === currentStepId);
-        if (!currentStep || currentStep.order >= STEPS.length) return false;
-
-        // Add step-specific validation logic here
-        return true;
-    }, [currentStepId, isAnyGenerationInProgress]);
-
-    const canGoPrevious = useCallback(() => {
-        if (isAnyGenerationInProgress) return false;
-
-        const currentStep = STEPS.find(step => step.id === currentStepId);
-        return currentStep ? currentStep.order > 1 : false;
-    }, [currentStepId, isAnyGenerationInProgress]);
-
-    const nextStep = useCallback(() => {
-        if (!canGoNext()) return;
-
-        const currentStep = STEPS.find(step => step.id === currentStepId);
-        if (currentStep && currentStep.order < STEPS.length) {
-            const nextStepData = STEPS.find(step => step.order === currentStep.order + 1);
-            if (nextStepData) {
-                setCurrentStepId(nextStepData.id);
-                setStepCompletion(prev => ({ ...prev, [currentStepId]: true }));
-            }
-        }
-    }, [currentStepId, canGoNext]);
-
-    const previousStep = useCallback(() => {
-        if (!canGoPrevious()) return;
-
-        const currentStep = STEPS.find(step => step.id === currentStepId);
-        if (currentStep && currentStep.order > 1) {
-            const prevStepData = STEPS.find(step => step.order === currentStep.order - 1);
-            if (prevStepData) {
-                setCurrentStepId(prevStepData.id);
-            }
-        }
-    }, [currentStepId, canGoPrevious]);
-
-    const goToStep = useCallback((stepId: string) => {
-        if (isAnyGenerationInProgress) return;
-
-        const targetStep = STEPS.find(step => step.id === stepId);
-        if (targetStep) {
-            setCurrentStepId(stepId);
-        }
-    }, [isAnyGenerationInProgress]);
+    // Step navigation logic removed in Phase 5 (single-page drawer architecture)
 
     // Generation lock management
     const setGenerationLock = useCallback((lockType: keyof typeof generationLocks, isLocked: boolean) => {
@@ -380,7 +311,19 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const loadDemoData = useCallback(() => {
         // Import demo data dynamically to avoid circular deps
         import('../../fixtures/statblockTemplates').then(({ defaultStatblockDetails }) => {
+            // CRITICAL: Clear ALL state when loading demo (prevents mixing with previous data)
             replaceCreatureDetails(defaultStatblockDetails);
+            setSelectedAssets({
+                creatureImage: undefined,
+                selectedImageIndex: undefined,
+                generatedImages: [],
+                modelFile: undefined
+            });
+            setGeneratedContent({
+                images: [],
+                models: [],
+                exports: []
+            });
         });
     }, [replaceCreatureDetails]);
 
@@ -511,8 +454,6 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                     updatedAt: result.updatedAt,
                     lastModified: result.updatedAt,
                     state: {
-                        currentStepId,
-                        stepCompletion,
                         creatureDetails,
                         selectedAssets,
                         generatedContent,
@@ -540,7 +481,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             // Reset to idle after 5 seconds
             setTimeout(() => setSaveStatus('idle'), 5000);
         }
-    }, [isLoggedIn, userId, currentProject?.id, creatureDetails, currentStepId, stepCompletion, selectedAssets, generatedContent]);
+    }, [isLoggedIn, userId, currentProject?.id, creatureDetails, selectedAssets, generatedContent]);
 
     // ============================================================================
     // Phase 4: Project Management Functions
@@ -568,8 +509,6 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             updatedAt: new Date().toISOString(),
             lastModified: new Date().toISOString(),
             state: {
-                currentStepId: 'creature-description',
-                stepCompletion: {},
                 creatureDetails: defaultStatblockDetails,
                 selectedAssets: {
                     generatedImages: []
@@ -615,8 +554,6 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
 
             // Reset to default creature
             replaceCreatureDetails(defaultStatblockDetails);
-            setCurrentStepId('creature-description');
-            setStepCompletion({});
 
             return result.projectId;
         } catch (err) {
@@ -671,24 +608,24 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 metadata: projectData.metadata
             });
 
-            // Load creature details from project state
-            if (projectData.state?.creatureDetails) {
-                replaceCreatureDetails(normalizeStatblock(projectData.state.creatureDetails));
-            }
+            // CRITICAL: Always replace ALL state to prevent mixing with previous data
+            // Use defaults if project doesn't have data (prevents old state from persisting)
+            replaceCreatureDetails(
+                normalizeStatblock(projectData.state?.creatureDetails || defaultStatblockDetails)
+            );
 
-            // Restore other state
-            if (projectData.state?.currentStepId) {
-                setCurrentStepId(projectData.state.currentStepId);
-            }
-            if (projectData.state?.stepCompletion) {
-                setStepCompletion(projectData.state.stepCompletion);
-            }
-            if (projectData.state?.selectedAssets) {
-                setSelectedAssets(projectData.state.selectedAssets);
-            }
-            if (projectData.state?.generatedContent) {
-                setGeneratedContent(projectData.state.generatedContent);
-            }
+            setSelectedAssets(projectData.state?.selectedAssets || {
+                creatureImage: undefined,
+                selectedImageIndex: undefined,
+                generatedImages: [],
+                modelFile: undefined
+            });
+
+            setGeneratedContent(projectData.state?.generatedContent || {
+                images: [],
+                models: [],
+                exports: []
+            });
 
             setError(null);
         } catch (err) {
@@ -727,8 +664,6 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 // Clear saved content hash
                 lastSavedContentHashRef.current = '';
                 replaceCreatureDetails(defaultStatblockDetails);
-                setCurrentStepId('creature-description');
-                setStepCompletion({});
 
                 // Re-enable auto-save after 5 seconds (in case user wants to start editing)
                 setTimeout(() => {
@@ -922,8 +857,6 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                         updatedAt: result.updatedAt,
                         lastModified: result.updatedAt,
                         state: {
-                            currentStepId,
-                            stepCompletion,
                             creatureDetails,
                             selectedAssets,
                             generatedContent,
@@ -959,26 +892,17 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 clearTimeout(debouncedSaveTimerRef.current);
             }
         };
-    }, [creatureDetails, currentProject?.id, isLoggedIn, userId, currentStepId, stepCompletion, selectedAssets, generatedContent, isGenerating]);
+    }, [creatureDetails, currentProject?.id, isLoggedIn, userId, selectedAssets, generatedContent, isGenerating]);
 
     // Context value
     const contextValue: StatBlockGeneratorContextType = {
         // Core State
-        currentStepId,
         isCanvasPreviewReady,
         selectedTemplateId,
         isCanvasEditMode,
         creatureDetails,
         selectedAssets,
         generatedContent,
-
-        // Step Management
-        stepCompletion,
-        canGoNext,
-        canGoPrevious,
-        nextStep,
-        previousStep,
-        goToStep,
 
         // Generation Lock System
         generationLocks,
