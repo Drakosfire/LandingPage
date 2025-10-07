@@ -9,13 +9,13 @@ import { useAuth } from '../../context/AuthContext';
 import { StatBlockProjectSummary } from '../../types/statblock.types';
 
 interface StatBlockProjectsDrawerProps {
-    forceExpanded: boolean;
-    onExpandedChange: (expanded: boolean) => void;
+    opened: boolean;  // Phase 5: Updated to match Drawer pattern
+    onClose: () => void;  // Phase 5: Updated to match Drawer pattern
 }
 
 const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
-    forceExpanded,
-    onExpandedChange
+    opened,
+    onClose
 }) => {
     const { isLoggedIn } = useAuth();
     const {
@@ -60,11 +60,11 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
 
     // Refresh list when drawer opens (in case projects changed elsewhere)
     useEffect(() => {
-        if (isLoggedIn && forceExpanded) {
-            console.log('📁 [ProjectsDrawer] Refreshing on drawer expand');
+        if (isLoggedIn && opened) {
+            console.log('📁 [ProjectsDrawer] Refreshing on drawer open');
             loadProjectsList();
         }
-    }, [isLoggedIn, forceExpanded, loadProjectsList]);
+    }, [isLoggedIn, opened, loadProjectsList]);
 
     // Refresh list when current project changes (after save/create/delete)
     useEffect(() => {
@@ -152,6 +152,8 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
     return (
         <>
             <ProjectsDrawer
+                opened={opened}
+                onClose={onClose}
                 projects={projects}
                 currentProjectId={currentProject?.id}
                 currentCreatureName={creatureDetails.name}
@@ -163,7 +165,6 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
                 onDeleteProject={handleDeleteProject}
                 onRefresh={loadProjectsList}
                 isGenerationInProgress={isGenerating}
-                forceExpanded={forceExpanded}
             />
 
             {/* New Project Modal */}

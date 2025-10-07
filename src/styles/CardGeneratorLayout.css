@@ -1,61 +1,50 @@
-/* CardGenerator Layout - Responsive Z-Index and Positioning */
+/* Generator Layout - Responsive Z-Index and Positioning */
+/* Phase 5: Simplified, semantic class names */
 
-/* Ensure proper z-index hierarchy:
-   Nav Bar: 600+
-   Header: 400
-   Projects Panel: 300
-   Main Content: 100
+/* Z-Index Hierarchy:
+   Nav Bar: 1000 (DesignSystem.css)
+   Drawers: 200
+   Header: 100
+   Content: 1
 */
 
-.card-generator-header {
-    /* Desktop: Account for nav bar */
-    left: 80px;
+/* Main Generator Container */
+.generator-layout {
+    position: relative;
+    min-height: 100vh;
 }
 
-.main-content {
-    /* Desktop: Account for nav bar and projects panel */
+/* Main Content Area - Accounts for nav bar */
+.generator-main-content {
     margin-left: 80px;
-    margin-right: 60px;
+    /* Nav bar width */
+    min-height: 100vh;
+}
+
+/* Canvas Container */
+.generator-canvas-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
-    .card-generator-header {
-        /* Mobile: Full width, no nav bar offset */
-        left: 0 !important;
+    .generator-main-content {
+        /* Mobile: No nav bar offset */
+        margin-left: 0;
     }
 
-    .main-content {
-        /* Mobile: No nav bar or projects panel offset */
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+    .generator-canvas-container {
+        padding: 1rem;
     }
-
-    /* Hide projects panel on mobile or make it overlay */
-    .projects-panel {
-        display: none;
-    }
-}
-
-/* Ensure projects panel doesn't interfere with main content flow */
-.projects-panel {
-    pointer-events: auto;
-}
-
-.projects-panel.collapsed {
-    pointer-events: none;
-}
-
-.projects-panel.collapsed .toggle-button {
-    pointer-events: auto;
 }
 
 /* Smooth transitions for responsive changes */
 @media (prefers-reduced-motion: no-preference) {
-
-    .card-generator-header,
-    .main-content {
-        transition: margin-left 0.3s ease, margin-right 0.3s ease, left 0.3s ease;
+    .generator-main-content {
+        transition: margin-left 0.3s ease;
     }
 }
 
@@ -106,4 +95,16 @@
         margin: var(--space-4) auto;
         padding: 0 var(--space-2);
     }
+}
+
+/* ============================================================================
+   Legacy Statblock Layout (for backwards compatibility)
+   ============================================================================ */
+
+/* Old statblock grid layout - kept for existing pages */
+.statblock-canvas-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }

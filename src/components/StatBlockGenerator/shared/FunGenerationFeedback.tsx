@@ -5,13 +5,27 @@ import { IconSparkles } from '@tabler/icons-react';
 
 interface FunGenerationFeedbackProps {
     isVisible: boolean;
-    currentStep: string;
+    currentStep?: string;  // Phase 5: Optional - for backwards compatibility
+    message?: string;      // Phase 5: NEW - custom message option
 }
 
 const FunGenerationFeedback: React.FC<FunGenerationFeedbackProps> = ({
     isVisible,
-    currentStep
+    currentStep,
+    message  // Phase 5: NEW
 }) => {
+    // Phase 5: Use custom message if provided
+    if (message) {
+        return isVisible ? (
+            <div className="generation-feedback-overlay">
+                <div className="generation-feedback-content">
+                    <div className="generation-spinner" />
+                    <p className="generation-message">{message}</p>
+                </div>
+            </div>
+        ) : null;
+    }
+
     const getStepMessage = () => {
         switch (currentStep) {
             case 'creature-description':

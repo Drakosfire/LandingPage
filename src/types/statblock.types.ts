@@ -213,10 +213,8 @@ export interface GeneratedExport {
     timestamp: string;
 }
 
-// StatBlock Generator State (following CardGeneratorState patterns)
+// StatBlock Generator State (Phase 5: Step navigation removed)
 export interface StatBlockGeneratorState {
-    currentStepId: string;
-    stepCompletion: Record<string, boolean>;
     creatureDetails: StatBlockDetails;
     selectedAssets: {
         creatureImage?: string;
@@ -292,16 +290,8 @@ export interface StatBlockPreviewProps {
     showImage?: boolean;
 }
 
-// Step component prop interfaces
-export interface StatBlockStepProps {
-    onNext?: () => void;
-    onPrevious?: () => void;
-    canGoNext?: boolean;
-    canGoPrevious?: boolean;
-    currentStepIndex?: number;
-    totalSteps?: number;
-    onGenerationLockChange?: (isLocked: boolean) => void;
-}
+// Phase 5: Step navigation removed - StatBlockStepProps interface deprecated
+// Components now use drawer-based generation tools instead of step progression
 
 // Validation types
 export interface ValidationError {
@@ -365,8 +355,6 @@ export const createInitialStatBlockDetails = (): StatBlockDetails => ({
 });
 
 export const createInitialStatBlockState = (): StatBlockGeneratorState => ({
-    currentStepId: 'creature-description',
-    stepCompletion: {},
     creatureDetails: createInitialStatBlockDetails(),
     selectedAssets: {
         generatedImages: []
