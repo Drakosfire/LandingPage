@@ -17,6 +17,7 @@ import RulesLawyer from './components/RulesLawyer';
 import './styles/App.css';
 import CardGenerator from './components/CardGenerator/CardGenerator';
 import StatBlockGenerator from './components/StatBlockGenerator/StatBlockGenerator';
+import { StatBlockGeneratorProvider } from './components/StatBlockGenerator/StatBlockGeneratorProvider';
 
 // Component to conditionally render Footer
 const ConditionalFooter: React.FC = () => {
@@ -51,32 +52,34 @@ const App: React.FC = () => {
     <MantineProvider theme={dungeonMindTheme}>
       <AuthProvider>
         <Router>
-          <div className="App">
-            <NavBar />
-            <div className="main-content">
-              <Routes>
-                <Route path="/" element={
-                  <div>
-                    <section id="app-links">
-                      <AppLinks />
-                    </section>
-                    <section id="about-me">
-                      <AboutMe />
-                    </section>
-                    <section id="about-dungeonmind">
-                      <AboutDungeonMind />
-                    </section>
-                  </div>
-                } />
-                <Route path="/blog" element={<BlogList />} />
-                <Route path="/blog/:id" element={<BlogPost />} />
-                <Route path="/ruleslawyer" element={<RulesLawyer />} />
-                <Route path="/cardgenerator" element={<CardGenerator />} />
-                <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
-              </Routes>
-              <ConditionalFooter />
+          <StatBlockGeneratorProvider>
+            <div className="App">
+              <NavBar />
+              <div className="main-content">
+                <Routes>
+                  <Route path="/" element={
+                    <div>
+                      <section id="app-links">
+                        <AppLinks />
+                      </section>
+                      <section id="about-me">
+                        <AboutMe />
+                      </section>
+                      <section id="about-dungeonmind">
+                        <AboutDungeonMind />
+                      </section>
+                    </div>
+                  } />
+                  <Route path="/blog" element={<BlogList />} />
+                  <Route path="/blog/:id" element={<BlogPost />} />
+                  <Route path="/ruleslawyer" element={<RulesLawyer />} />
+                  <Route path="/cardgenerator" element={<CardGenerator />} />
+                  <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
+                </Routes>
+                <ConditionalFooter />
+              </div>
             </div>
-          </div>
+          </StatBlockGeneratorProvider>
         </Router>
       </AuthProvider>
     </MantineProvider>

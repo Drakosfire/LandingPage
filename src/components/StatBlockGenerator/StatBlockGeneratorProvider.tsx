@@ -113,6 +113,10 @@ interface StatBlockGeneratorProviderProps {
 export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProps> = ({ children }) => {
     const { userId, isLoggedIn } = useAuth();
 
+    // DEBUG: Instance tracking
+    const instanceIdRef = useRef(`Provider-${Math.random().toString(36).substr(2, 9)}`);
+    const instanceId = instanceIdRef.current;
+
     // Phase 1: Create measurement coordinator (singleton per provider instance)
     const measurementCoordinator = useRef(new MeasurementCoordinator()).current;
 
@@ -127,6 +131,21 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     useEffect(() => {
         console.log('🔧 [Provider] isCanvasEditMode state changed to:', isCanvasEditMode);
     }, [isCanvasEditMode]);
+
+    // DEBUG: Lifecycle tracking
+    useEffect(() => {
+        console.log(`🟢 [${instanceId}] MOUNTED at ${new Date().toISOString()}`);
+        console.trace(`🔍 [${instanceId}] Mount stack trace`);
+
+        return () => {
+            console.log(`🔴 [${instanceId}] UNMOUNTED at ${new Date().toISOString()}`);
+            // Cleanup timers
+            if (debouncedSaveTimerRef.current) {
+                clearTimeout(debouncedSaveTimerRef.current);
+                debouncedSaveTimerRef.current = null;
+            }
+        };
+    }, [instanceId]);
 
     // Phase 3: Initialize state from localStorage (lazy initialization)
     // This runs ONCE on mount, before any effects
@@ -160,7 +179,13 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         return null;
     };
 
-    const initialState = getInitialStateFromLocalStorage();
+    // CRITICAL FIX: Use ref to ensure getInitialStateFromLocalStorage only runs ONCE
+    // Previously this was called outside useState, causing it to run on EVERY RENDER
+    const initialStateRef = useRef<ReturnType<typeof getInitialStateFromLocalStorage> | undefined>(undefined);
+    if (initialStateRef.current === undefined) {
+        initialStateRef.current = getInitialStateFromLocalStorage();
+    }
+    const initialState = initialStateRef.current;
 
     const [creatureDetails, setCreatureDetails] = useState<StatBlockDetails>(() => {
         if (initialState?.creatureDetails) {
@@ -850,7 +875,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         } catch (err) {
             console.error('💾 [Provider] ❌ Failed to save to localStorage:', err);
         }
-    }, [creatureDetails, selectedAssets, generatedContent, imagePrompt, currentProject, isGenerating]);
+        // CRITICAL: Only depend on currentProject?.id, not the whole object
+        // Otherwise setCurrentProject() creates new object reference → triggers this effect again → loop!
+    }, [creatureDetails, selectedAssets, generatedContent, imagePrompt, currentProject?.id, isGenerating]);
 
     // Debounced save to Firestore (auth required, 2 second delay)
     useEffect(() => {

@@ -3,14 +3,12 @@
 
 import React, { useState } from 'react';
 import "@mantine/core/styles.css";
-import { MantineProvider } from "@mantine/core";
-import dungeonMindTheme from '../../config/mantineTheme';
 import '../../styles/mantineOverrides.css';
 import '../../styles/DesignSystem.css';
 import '../../styles/CardGeneratorLayout.css';
 import '../../styles/CardGeneratorPolish.css';
 
-import { StatBlockGeneratorProvider, useStatBlockGenerator } from './StatBlockGeneratorProvider';
+import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { useAuth } from '../../context/AuthContext';
 
 // Import components
@@ -21,9 +19,9 @@ import StatBlockProjectsDrawer from './StatBlockProjectsDrawer';
 import StatBlockGenerationDrawer from './StatBlockGenerationDrawer';
 import StatBlockCanvas from './shared/StatBlockCanvas';
 
-// Main component content (wrapped by provider)
+// Main component (provider now in App.tsx)
 // Phase 5: Simple single-page layout with drawers
-const StatBlockGeneratorContent: React.FC = () => {
+const StatBlockGenerator: React.FC = () => {
     const { isLoggedIn } = useAuth();
     const {
         isAnyGenerationInProgress,
@@ -79,17 +77,6 @@ const StatBlockGeneratorContent: React.FC = () => {
                 <Footer />
             </div>
         </div>
-    );
-};
-
-// Main exported component with provider wrapper
-const StatBlockGenerator: React.FC = () => {
-    return (
-        <MantineProvider theme={dungeonMindTheme}>
-            <StatBlockGeneratorProvider>
-                <StatBlockGeneratorContent />
-            </StatBlockGeneratorProvider>
-        </MantineProvider>
     );
 };
 
