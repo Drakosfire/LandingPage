@@ -37,6 +37,7 @@ export interface StatBlockGeneratorContextType {
         models: Generated3DModel[];
         exports: GeneratedExport[];
     };
+    imagePrompt: string;  // Persistent image generation prompt
 
     // Generation Lock System (prevent concurrent async operations)
     generationLocks: {
@@ -66,8 +67,10 @@ export interface StatBlockGeneratorContextType {
     setIsCanvasEditMode: (isEditMode: boolean) => void;
     setSelectedCreatureImage: (image: string, index?: number) => void;
     addGeneratedImage: (image: GeneratedImage) => void;
+    removeGeneratedImage: (imageId: string) => Promise<void>;
     addGenerated3DModel: (model: Generated3DModel) => void;
     addGeneratedExport: (exportItem: GeneratedExport) => void;
+    setImagePrompt: (prompt: string) => void;  // Update image prompt
     loadDemoData: () => void;
 
     // Validation & CR Calculation
@@ -127,25 +130,41 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
 
     // Phase 3: Initialize state from localStorage (lazy initialization)
     // This runs ONCE on mount, before any effects
-    const [creatureDetails, setCreatureDetails] = useState<StatBlockDetails>(() => {
+    const getInitialStateFromLocalStorage = () => {
         try {
             const saved = localStorage.getItem('statblockGenerator_state');
             if (saved) {
-                const { creatureDetails: savedDetails, timestamp } = JSON.parse(saved);
-                const ageMinutes = (Date.now() - timestamp) / 1000 / 60;
+                const parsed = JSON.parse(saved);
+                const ageMinutes = (Date.now() - parsed.timestamp) / 1000 / 60;
 
                 // Only restore if recent (within last 24 hours)
-                if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-                    console.log(`🔄 [Provider] Lazy init: Restoring "${savedDetails.name}" (${ageMinutes.toFixed(1)}m old)`);
-                    return normalizeStatblock(savedDetails);
+                if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+                    console.log(`🔄 [Provider] Lazy init: Restoring "${parsed.creatureDetails?.name}" (${ageMinutes.toFixed(1)}m old)`);
+                    console.log(`🔄 [Provider] Restored ${parsed.generatedContent?.images?.length || 0} images from localStorage`);
+                    return {
+                        creatureDetails: normalizeStatblock(parsed.creatureDetails),
+                        generatedContent: parsed.generatedContent || { images: [], models: [], exports: [] },
+                        selectedAssets: parsed.selectedAssets || { creatureImage: undefined, selectedImageIndex: undefined, generatedImages: [], modelFile: undefined },
+                        currentProject: parsed.currentProject,
+                        imagePrompt: parsed.imagePrompt || ''
+                    };
                 } else {
-                    console.log('🔄 [Provider] Lazy init: Data too old, using template');
+                    console.log('🔄 [Provider] Lazy init: Data too old, using defaults');
                 }
             } else {
-                console.log('🔄 [Provider] Lazy init: No saved data, using template');
+                console.log('🔄 [Provider] Lazy init: No saved data, using defaults');
             }
         } catch (err) {
             console.error('🔄 [Provider] Lazy init failed:', err);
+        }
+        return null;
+    };
+
+    const initialState = getInitialStateFromLocalStorage();
+
+    const [creatureDetails, setCreatureDetails] = useState<StatBlockDetails>(() => {
+        if (initialState?.creatureDetails) {
+            return initialState.creatureDetails;
         }
 
         // Fallback to default template
@@ -153,17 +172,35 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     });
 
     // Assets and generated content
-    const [selectedAssets, setSelectedAssets] = useState({
-        creatureImage: undefined as string | undefined,
-        selectedImageIndex: undefined as number | undefined,
-        generatedImages: [] as string[],
-        modelFile: undefined as string | undefined,
+    const [selectedAssets, setSelectedAssets] = useState(() => {
+        if (initialState?.selectedAssets) {
+            return initialState.selectedAssets;
+        }
+        return {
+            creatureImage: undefined as string | undefined,
+            selectedImageIndex: undefined as number | undefined,
+            generatedImages: [] as string[],
+            modelFile: undefined as string | undefined,
+        };
     });
 
-    const [generatedContent, setGeneratedContent] = useState({
-        images: [] as GeneratedImage[],
-        models: [] as Generated3DModel[],
-        exports: [] as GeneratedExport[],
+    const [generatedContent, setGeneratedContent] = useState(() => {
+        if (initialState?.generatedContent) {
+            return initialState.generatedContent;
+        }
+        return {
+            images: [] as GeneratedImage[],
+            models: [] as Generated3DModel[],
+            exports: [] as GeneratedExport[],
+        };
+    });
+
+    // Image generation prompt (persistent across sessions)
+    const [imagePrompt, setImagePrompt] = useState<string>(() => {
+        if (initialState?.imagePrompt) {
+            return initialState.imagePrompt;
+        }
+        return '';
     });
 
     // Generation lock system
@@ -328,7 +365,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     }, [replaceCreatureDetails]);
 
     const setSelectedCreatureImage = useCallback((image: string, index?: number) => {
-        setSelectedAssets(prev => ({
+        setSelectedAssets((prev: typeof selectedAssets) => ({
             ...prev,
             creatureImage: image,
             selectedImageIndex: index
@@ -336,25 +373,63 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     }, []);
 
     const addGeneratedImage = useCallback((image: GeneratedImage) => {
-        setGeneratedContent(prev => ({
+        setGeneratedContent((prev: typeof generatedContent) => ({
             ...prev,
             images: [...prev.images, image]
         }));
-        setSelectedAssets(prev => ({
+        setSelectedAssets((prev: typeof selectedAssets) => ({
             ...prev,
             generatedImages: [...prev.generatedImages, image.url]
         }));
     }, []);
 
+    const removeGeneratedImage = useCallback(async (imageId: string): Promise<void> => {
+        // Remove from local state immediately (optimistic update)
+        setGeneratedContent((prev: typeof generatedContent) => ({
+            ...prev,
+            images: prev.images.filter((img: GeneratedImage) => img.id !== imageId)
+        }));
+
+        const imageToRemove = generatedContent.images.find((img: GeneratedImage) => img.id === imageId);
+        if (imageToRemove) {
+            setSelectedAssets((prev: typeof selectedAssets) => ({
+                ...prev,
+                generatedImages: prev.generatedImages.filter((url: string) => url !== imageToRemove.url),
+                // Clear selected image if it was the one being deleted
+                creatureImage: prev.creatureImage === imageToRemove.url ? undefined : prev.creatureImage
+            }));
+        }
+
+        // If logged in and have a project, sync to backend
+        if (isLoggedIn && userId && currentProject?.id) {
+            try {
+                const response = await fetch(
+                    `${DUNGEONMIND_API_URL}/api/statblockgenerator/project/${currentProject.id}/image/${imageId}`,
+                    {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    }
+                );
+
+                if (!response.ok) {
+                    console.error('Failed to delete image from backend:', response.statusText);
+                    // Optimistic update already applied, don't revert
+                }
+            } catch (error) {
+                console.error('Error deleting image:', error);
+            }
+        }
+    }, [isLoggedIn, userId, currentProject?.id, generatedContent.images]);
+
     const addGenerated3DModel = useCallback((model: Generated3DModel) => {
-        setGeneratedContent(prev => ({
+        setGeneratedContent((prev: typeof generatedContent) => ({
             ...prev,
             models: [...prev.models, model]
         }));
     }, []);
 
     const addGeneratedExport = useCallback((exportItem: GeneratedExport) => {
-        setGeneratedContent(prev => ({
+        setGeneratedContent((prev: typeof generatedContent) => ({
             ...prev,
             exports: [...prev.exports, exportItem]
         }));
@@ -432,7 +507,10 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 body: JSON.stringify({
                     projectId: currentProject?.id,
                     statblock: creatureDetails,
-                    userId: userId
+                    userId: userId,
+                    selectedAssets: selectedAssets,
+                    generatedContent: generatedContent,
+                    imagePrompt: imagePrompt
                 })
             });
 
@@ -627,6 +705,8 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 exports: []
             });
 
+            setImagePrompt(projectData.state?.imagePrompt || '');
+
             setError(null);
         } catch (err) {
             console.error('📁 [Provider] Failed to load project:', err);
@@ -758,16 +838,19 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             console.log('💾 [Provider] localStorage save triggered - Creature:', creatureDetails.name);
             const stateSnapshot = {
                 creatureDetails,
+                selectedAssets,
+                generatedContent,
+                imagePrompt,
                 currentProject: currentProject?.id,
                 timestamp: Date.now()
             };
             const serialized = JSON.stringify(stateSnapshot);
             localStorage.setItem('statblockGenerator_state', serialized);
-            console.log('💾 [Provider] ✅ Auto-saved to localStorage (' + (serialized.length / 1024).toFixed(2) + ' KB)');
+            console.log(`💾 [Provider] ✅ Auto-saved to localStorage (${(serialized.length / 1024).toFixed(2)} KB, ${generatedContent.images.length} images)`);
         } catch (err) {
             console.error('💾 [Provider] ❌ Failed to save to localStorage:', err);
         }
-    }, [creatureDetails, currentProject, isGenerating]);
+    }, [creatureDetails, selectedAssets, generatedContent, imagePrompt, currentProject, isGenerating]);
 
     // Debounced save to Firestore (auth required, 2 second delay)
     useEffect(() => {
@@ -824,7 +907,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             try {
                 console.log('💾 [Provider] Debounced Firestore save triggered');
 
-                // TODO: Call backend save endpoint (Phase 3, task 6)
+                // Call backend save endpoint with full project state
                 const response = await fetch(`${DUNGEONMIND_API_URL}/api/statblockgenerator/save-project`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -832,7 +915,10 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                     body: JSON.stringify({
                         projectId: currentProject?.id,
                         statblock: creatureDetails,
-                        userId: userId
+                        userId: userId,
+                        selectedAssets: selectedAssets,
+                        generatedContent: generatedContent,
+                        imagePrompt: imagePrompt
                     })
                 });
 
@@ -892,7 +978,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 clearTimeout(debouncedSaveTimerRef.current);
             }
         };
-    }, [creatureDetails, currentProject?.id, isLoggedIn, userId, selectedAssets, generatedContent, isGenerating]);
+    }, [creatureDetails, currentProject?.id, isLoggedIn, userId, selectedAssets, generatedContent, imagePrompt, isGenerating]);
 
     // Context value
     const contextValue: StatBlockGeneratorContextType = {
@@ -903,6 +989,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         creatureDetails,
         selectedAssets,
         generatedContent,
+        imagePrompt,
 
         // Generation Lock System
         generationLocks,
@@ -927,8 +1014,10 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         setIsCanvasEditMode,
         setSelectedCreatureImage,
         addGeneratedImage,
+        removeGeneratedImage,
         addGenerated3DModel,
         addGeneratedExport,
+        setImagePrompt,
         loadDemoData,
 
         // Validation & CR Calculation

@@ -292,6 +292,16 @@ export interface StatBlockPreviewProps {
 
 // Phase 5: Step navigation removed - StatBlockStepProps interface deprecated
 // Components now use drawer-based generation tools instead of step progression
+// Keeping interface for backwards compatibility with legacy step components
+export interface StatBlockStepProps {
+    onNext?: () => void;
+    onPrevious?: () => void;
+    canGoNext?: boolean;
+    canGoPrevious?: boolean;
+    currentStepIndex?: number;
+    totalSteps?: number;
+    onGenerationLockChange?: (isLocked: boolean) => void;
+}
 
 // Validation types
 export interface ValidationError {
