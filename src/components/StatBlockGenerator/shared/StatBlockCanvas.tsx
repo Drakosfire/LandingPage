@@ -16,13 +16,16 @@ const StatBlockCanvas: React.FC = () => {
         updateCreatureDetails,
         selectedAssets,
         measurementCoordinator,
-        isGenerating
+        isGenerating,
+        isLoading,  // Add isLoading to detect project switching
+        currentProject  // Add currentProject for key prop
     } = useStatBlockGenerator();
 
     // Phase 5: Simplified canvas - controls moved to header
 
     const canvasContent = useMemo(() => {
-        // Phase 3: Show loading during generation to force canvas rebuild
+        // CRITICAL: Show loading during generation AND project loading
+        // This forces complete unmount/remount, preventing old component state from lingering
         if (isGenerating) {
             return (
                 <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -30,6 +33,20 @@ const StatBlockCanvas: React.FC = () => {
                         <Text fw={500} size="lg">🎲 Generating Creature...</Text>
                         <Text size="sm" c="dimmed">
                             Creating your custom D&D creature with AI
+                        </Text>
+                    </Stack>
+                </Card>
+            );
+        }
+
+        // CRITICAL FIX: Force unmount during project load to prevent old components from persisting
+        if (isLoading) {
+            return (
+                <Card shadow="sm" padding="lg" radius="md" withBorder>
+                    <Stack gap="sm" align="center" style={{ minHeight: '400px', justifyContent: 'center' }}>
+                        <Text fw={500} size="lg">📁 Loading Project...</Text>
+                        <Text size="sm" c="dimmed">
+                            Switching to new statblock data
                         </Text>
                     </Stack>
                 </Card>
@@ -54,6 +71,7 @@ const StatBlockCanvas: React.FC = () => {
             return (
                 <Card shadow="sm" padding="sm" radius="md" withBorder>
                     <StatblockPage
+                        key={currentProject?.id || 'no-project'}  // Force remount on project change
                         page={livePage}
                         template={template}
                         componentRegistry={CANVAS_COMPONENT_REGISTRY}
@@ -83,7 +101,9 @@ const StatBlockCanvas: React.FC = () => {
         isCanvasEditMode,
         updateCreatureDetails,
         measurementCoordinator,
-        isGenerating
+        isGenerating,
+        isLoading,  // Add to dependencies to rebuild on load state change
+        currentProject?.id  // Force rebuild when project changes
     ]);
 
     return (
