@@ -13,7 +13,7 @@ export const compactTemplate: TemplateConfig = {
     description: 'Space-efficient layout for quick reference sheets with minimal whitespace',
     defaultMode: 'locked',
     defaultPageVariables: {
-        dimensions: { width: 210, height: 297, unit: 'mm' },
+        dimensions: { width: 215.9, height: 279.4, unit: 'mm' }, // US Letter
         background: {
             type: 'solid',
             color: '#ffffff',

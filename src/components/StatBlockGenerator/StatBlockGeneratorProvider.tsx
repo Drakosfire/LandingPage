@@ -38,6 +38,8 @@ export interface StatBlockGeneratorContextType {
         exports: GeneratedExport[];
     };
     imagePrompt: string;  // Persistent image generation prompt
+    imageStyle: string;   // Selected image style
+    imageModel: string;   // Selected AI model
 
     // Generation Lock System (prevent concurrent async operations)
     generationLocks: {
@@ -71,6 +73,8 @@ export interface StatBlockGeneratorContextType {
     addGenerated3DModel: (model: Generated3DModel) => void;
     addGeneratedExport: (exportItem: GeneratedExport) => void;
     setImagePrompt: (prompt: string) => void;  // Update image prompt
+    setImageStyle: (style: string) => void;    // Update image style
+    setImageModel: (model: string) => void;    // Update AI model
     loadDemoData: () => void;
 
     // Validation & CR Calculation
@@ -149,7 +153,26 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
 
     // Phase 3: Initialize state from localStorage (lazy initialization)
     // This runs ONCE on mount, before any effects
-    const getInitialStateFromLocalStorage = () => {
+    type InitialStateType = {
+        creatureDetails: StatBlockDetails;
+        generatedContent: {
+            images: GeneratedImage[];
+            models: Generated3DModel[];
+            exports: GeneratedExport[];
+        };
+        selectedAssets: {
+            creatureImage?: string;
+            selectedImageIndex?: number;
+            generatedImages: string[];
+            modelFile?: string;
+        };
+        currentProject: string | null;
+        imagePrompt: string;
+        imageStyle: string;
+        imageModel: string;
+    } | null;
+
+    const getInitialStateFromLocalStorage = (): InitialStateType => {
         try {
             const saved = localStorage.getItem('statblockGenerator_state');
             if (saved) {
@@ -165,7 +188,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                         generatedContent: parsed.generatedContent || { images: [], models: [], exports: [] },
                         selectedAssets: parsed.selectedAssets || { creatureImage: undefined, selectedImageIndex: undefined, generatedImages: [], modelFile: undefined },
                         currentProject: parsed.currentProject,
-                        imagePrompt: parsed.imagePrompt || ''
+                        imagePrompt: parsed.imagePrompt || '',
+                        imageStyle: parsed.imageStyle || 'classic_dnd',
+                        imageModel: parsed.imageModel || 'flux-pro'
                     };
                 } else {
                     console.log('🔄 [Provider] Lazy init: Data too old, using defaults');
@@ -220,12 +245,26 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         };
     });
 
-    // Image generation prompt (persistent across sessions)
+    // Image generation settings (persistent across sessions)
     const [imagePrompt, setImagePrompt] = useState<string>(() => {
         if (initialState?.imagePrompt) {
             return initialState.imagePrompt;
         }
         return '';
+    });
+
+    const [imageStyle, setImageStyle] = useState<string>(() => {
+        if (initialState?.imageStyle) {
+            return initialState.imageStyle;
+        }
+        return 'classic_dnd'; // Default style
+    });
+
+    const [imageModel, setImageModel] = useState<string>(() => {
+        if (initialState?.imageModel) {
+            return initialState.imageModel;
+        }
+        return 'flux-pro'; // Default model
     });
 
     // Generation lock system
@@ -535,7 +574,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                     userId: userId,
                     selectedAssets: selectedAssets,
                     generatedContent: generatedContent,
-                    imagePrompt: imagePrompt
+                    imagePrompt: imagePrompt,
+                    imageStyle: imageStyle,
+                    imageModel: imageModel
                 })
             });
 
@@ -866,6 +907,8 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 selectedAssets,
                 generatedContent,
                 imagePrompt,
+                imageStyle,
+                imageModel,
                 currentProject: currentProject?.id,
                 timestamp: Date.now()
             };
@@ -877,7 +920,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         }
         // CRITICAL: Only depend on currentProject?.id, not the whole object
         // Otherwise setCurrentProject() creates new object reference → triggers this effect again → loop!
-    }, [creatureDetails, selectedAssets, generatedContent, imagePrompt, currentProject?.id, isGenerating]);
+    }, [creatureDetails, selectedAssets, generatedContent, imagePrompt, imageStyle, imageModel, currentProject?.id, isGenerating]);
 
     // Debounced save to Firestore (auth required, 2 second delay)
     useEffect(() => {
@@ -1017,6 +1060,8 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         selectedAssets,
         generatedContent,
         imagePrompt,
+        imageStyle,
+        imageModel,
 
         // Generation Lock System
         generationLocks,
@@ -1045,6 +1090,8 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         addGenerated3DModel,
         addGeneratedExport,
         setImagePrompt,
+        setImageStyle,
+        setImageModel,
         loadDemoData,
 
         // Validation & CR Calculation

@@ -259,7 +259,7 @@ export const demoTemplate: TemplateConfig = {
     description: 'Simplified Monster Manual-inspired layout for prototyping.',
     defaultMode: 'locked',
     defaultPageVariables: {
-        dimensions: { width: 210, height: 297, unit: 'mm' },
+        dimensions: { width: 215.9, height: 279.4, unit: 'mm' }, // US Letter
         background: {
             type: 'parchment',
             color: '#f8f2e4',

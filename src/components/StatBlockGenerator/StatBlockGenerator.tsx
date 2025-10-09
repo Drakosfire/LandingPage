@@ -26,8 +26,7 @@ const StatBlockGenerator: React.FC = () => {
     const {
         isAnyGenerationInProgress,
         saveStatus,
-        error,
-        loadDemoData
+        error
     } = useStatBlockGenerator();
 
     // Drawer state
@@ -54,7 +53,6 @@ const StatBlockGenerator: React.FC = () => {
                 <StatBlockHeader
                     onOpenProjects={() => setProjectsDrawerOpen(true)}
                     onOpenGeneration={() => setGenerationDrawerOpen(true)}
-                    onLoadDemo={loadDemoData}
                     saveStatus={saveStatus}
                     error={error}
                     isLoggedIn={isLoggedIn}

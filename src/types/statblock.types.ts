@@ -227,6 +227,12 @@ export interface StatBlockGeneratorState {
         models: Generated3DModel[];
         exports: GeneratedExport[];
     };
+    imageGeneration?: {
+        prompt: string;
+        style: string; // ImageStyle enum value
+        model: string; // Model name (flux-pro, imagen4, etc.)
+        lastGenerated?: string; // ISO timestamp
+    };
     autoSaveEnabled: boolean;
     lastSaved?: string;
 }

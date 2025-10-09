@@ -123,7 +123,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
             {/* Quick Fill Suggestions */}
             <div>
                 <Text size="sm" fw={500} mb="xs">Quick Start Ideas</Text>
-                <Group gap="xs">
+                <Group gap="xs" wrap="wrap">
                     {quickFillSuggestions.map((suggestion) => (
                         <Button
                             key={suggestion.label}
@@ -154,7 +154,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
             <Card withBorder padding="sm">
                 <Stack gap="xs">
                     <Text size="sm" fw={500}>Advanced Options</Text>
-                    <Group gap="lg">
+                    <Group gap="sm" wrap="wrap">
                         <Checkbox
                             label="Spellcasting"
                             checked={includeSpellcasting}
@@ -185,6 +185,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                 loading={isLocalGenerating}
                 size="md"
                 fullWidth
+                style={{ minHeight: 44 }}
             >
                 {isLocalGenerating ? 'Generating Creature...' : 'Generate Creature with AI'}
             </Button>

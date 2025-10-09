@@ -177,6 +177,8 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
                 }}
                 title="Create New Project"
                 centered
+                size="md"
+                fullScreen={typeof window !== 'undefined' && window.innerWidth < 480}
             >
                 <Stack gap="md">
                     <TextInput
@@ -185,17 +187,27 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
                         value={newProjectName}
                         onChange={(e) => setNewProjectName(e.currentTarget.value)}
                         required
+                        size="md"
+                        styles={{
+                            input: { minHeight: 44 }
+                        }}
                     />
                     <TextInput
                         label="Description (Optional)"
                         placeholder="Brief description..."
                         value={newProjectDescription}
                         onChange={(e) => setNewProjectDescription(e.currentTarget.value)}
+                        size="md"
+                        styles={{
+                            input: { minHeight: 44 }
+                        }}
                     />
                     <Button
                         onClick={handleConfirmNewProject}
                         disabled={!newProjectName.trim()}
                         fullWidth
+                        size="md"
+                        style={{ minHeight: 44 }}
                     >
                         Create Project
                     </Button>

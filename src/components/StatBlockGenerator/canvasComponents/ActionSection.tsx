@@ -16,23 +16,24 @@ const ActionSection: React.FC<CanvasComponentProps> = ({ regionContent, regionOv
     const editTimerRef = useRef<NodeJS.Timeout | null>(null);
     const componentId = 'action-section'; // Stable ID for this component
 
-    if (!regionContent || regionContent.items.length === 0) {
-        return null;
-    }
-
-    const { items, startIndex, totalCount, isContinuation } = toRegionContent('action-list', regionContent.items, regionContent.startIndex, regionContent.totalCount, regionContent.isContinuation);
-
-    const showHeading = startIndex === 0;
-    const headingText = isContinuation ? 'Actions (cont.)' : 'Actions';
-
-    const updateAction = (actionIndex: number, updates: Partial<Action>) => {
+    const updateAction = useCallback((actionIndex: number, updates: Partial<Action>) => {
         if (!statblock?.actions) return;
         const newActions = [...statblock.actions];
         newActions[actionIndex] = { ...newActions[actionIndex], ...updates };
         onUpdateData?.({ actions: newActions });
-    };
+    }, [statblock?.actions, onUpdateData]);
 
     // Phase 1: Edit handlers
+    const handleEditComplete = useCallback(() => {
+        if (hasChanges) {
+            // Data already saved to local state via updateAction
+            // Now release lock to trigger measurements
+            releaseComponentLock(componentId);
+            setIsEditing(false);
+            setHasChanges(false);
+        }
+    }, [hasChanges, releaseComponentLock]);
+
     const handleEditStart = useCallback(() => {
         if (!isEditing && isEditMode) {
             setIsEditing(true);
@@ -52,17 +53,7 @@ const ActionSection: React.FC<CanvasComponentProps> = ({ regionContent, regionOv
         editTimerRef.current = setTimeout(() => {
             handleEditComplete();
         }, 2000);
-    }, []);
-
-    const handleEditComplete = useCallback(() => {
-        if (hasChanges) {
-            // Data already saved to local state via updateAction
-            // Now release lock to trigger measurements
-            releaseComponentLock(componentId);
-            setIsEditing(false);
-            setHasChanges(false);
-        }
-    }, [hasChanges, releaseComponentLock]);
+    }, [handleEditComplete]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -75,6 +66,15 @@ const ActionSection: React.FC<CanvasComponentProps> = ({ regionContent, regionOv
             }
         };
     }, [isEditing, releaseComponentLock]);
+
+    if (!regionContent || regionContent.items.length === 0) {
+        return null;
+    }
+
+    const { items, startIndex, totalCount, isContinuation } = toRegionContent('action-list', regionContent.items, regionContent.startIndex, regionContent.totalCount, regionContent.isContinuation);
+
+    const showHeading = startIndex === 0;
+    const headingText = isContinuation ? 'Actions (cont.)' : 'Actions';
 
     return (
         <section className={`dm-action-section${regionOverflow ? ' dm-section-overflow' : ''}`}>

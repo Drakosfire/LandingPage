@@ -1,8 +1,8 @@
 // StatBlockHeader.tsx - Header Component for StatBlock Generator
 // Phase 5: Added Generation drawer button + canvas controls
-import React, { useCallback } from 'react';
-import { Group, Button, Text, Badge, ActionIcon, Title, Switch } from '@mantine/core';
-import { IconFolder, IconAlertCircle, IconTestPipe, IconWand, IconDeviceFloppy, IconDownload, IconEdit, IconLock } from '@tabler/icons-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Group, Button, Text, Badge, ActionIcon, Title, Switch, Menu } from '@mantine/core';
+import { IconFolder, IconAlertCircle, IconWand, IconDeviceFloppy, IconDownload, IconEdit, IconLock, IconPrinter, IconFileText } from '@tabler/icons-react';
 import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../fixtures/templates';
 import { buildPageDocument, extractCustomData } from '../../canvas/data';
@@ -10,17 +10,15 @@ import { exportPageToHTMLFile } from '../../canvas/export';
 
 interface StatBlockHeaderProps {
     onOpenProjects: () => void;
-    onOpenGeneration: () => void;  // Phase 5: NEW
-    onLoadDemo?: () => void;
+    onOpenGeneration: () => void;
     saveStatus: 'idle' | 'saving' | 'saved' | 'error';
     error: string | null;
-    isLoggedIn?: boolean;  // Phase 4: Hide Projects button if not logged in
+    isLoggedIn?: boolean;
 }
 
 const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
     onOpenProjects,
-    onOpenGeneration,  // Phase 5: NEW
-    onLoadDemo,
+    onOpenGeneration,
     saveStatus,
     error,
     isLoggedIn = false
@@ -33,6 +31,17 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
         selectedAssets,
         saveNow
     } = useStatBlockGenerator();
+
+    // Track scroll state for enhanced visual feedback
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleToggleEditMode = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setIsCanvasEditMode(event.currentTarget.checked);
@@ -53,6 +62,30 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
         exportPageToHTMLFile(livePage, template);
     }, [selectedTemplateId, creatureDetails, selectedAssets]);
 
+    const handleExportPDF = useCallback(() => {
+        // Use browser's native print dialog
+        // For best results, users should use Firefox and select "Save as PDF"
+        // Future enhancement: Server-side PDF generation with Playwright (see backlog)
+
+        const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+
+        if (!isFirefox) {
+            // Warn non-Firefox users about potential rendering issues
+            const proceed = window.confirm(
+                'For best PDF results, we recommend using Firefox.\n\n' +
+                'Firefox provides the most accurate rendering of the statblock layout.\n\n' +
+                'Click OK to continue with browser print, or Cancel to switch browsers.'
+            );
+
+            if (!proceed) {
+                return;
+            }
+        }
+
+        console.log('📄 Opening browser print dialog...');
+        window.print();
+    }, []);
+
     const getSaveStatusBadge = () => {
         switch (saveStatus) {
             case 'saving':
@@ -67,10 +100,14 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
     };
 
     return (
-        <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+        <Group
+            justify="space-between"
+            p="md"
+            className={`statblock-header-sticky ${isScrolled ? 'scrolled' : ''}`}
+            style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}
+        >
             <Group>
                 <Title order={2}>StatBlock Generator</Title>
-                <Text size="sm" c="dimmed">Create D&D 5e Creatures</Text>
             </Group>
 
             <Group gap="md">
@@ -87,11 +124,22 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                             <IconLock size={12} stroke={3} />
                         )
                     }
+                    styles={{
+                        track: {
+                            minHeight: 28,
+                            cursor: 'pointer'
+                        }
+                    }}
                 />
 
                 {getSaveStatusBadge()}
                 {error && (
-                    <ActionIcon color="red" variant="light">
+                    <ActionIcon
+                        color="red"
+                        variant="light"
+                        size="md"
+                        style={{ minWidth: 36, minHeight: 36 }}
+                    >
                         <IconAlertCircle size={16} />
                     </ActionIcon>
                 )}
@@ -103,18 +151,38 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                     onClick={saveNow}
                     loading={saveStatus === 'saving'}
                     color={saveStatus === 'error' ? 'red' : saveStatus === 'saved' ? 'green' : 'blue'}
+                    style={{ minHeight: 38 }}
                 >
                     Save Now
                 </Button>
 
-                <Button
-                    leftSection={<IconDownload size={16} />}
-                    variant="light"
-                    size="sm"
-                    onClick={handleExportHTML}
-                >
-                    Export
-                </Button>
+                <Menu shadow="md" width={200}>
+                    <Menu.Target>
+                        <Button
+                            leftSection={<IconDownload size={16} />}
+                            variant="light"
+                            size="sm"
+                            style={{ minHeight: 38 }}
+                        >
+                            Export
+                        </Button>
+                    </Menu.Target>
+
+                    <Menu.Dropdown>
+                        <Menu.Item
+                            leftSection={<IconFileText size={14} />}
+                            onClick={handleExportHTML}
+                        >
+                            Export as HTML
+                        </Menu.Item>
+                        <Menu.Item
+                            leftSection={<IconPrinter size={14} />}
+                            onClick={handleExportPDF}
+                        >
+                            Export as PDF
+                        </Menu.Item>
+                    </Menu.Dropdown>
+                </Menu>
 
                 {/* Phase 5: Prominent Generation Button */}
                 <Button
@@ -122,27 +190,17 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                     variant="gradient"
                     gradient={{ from: 'violet', to: 'cyan' }}
                     onClick={onOpenGeneration}
+                    style={{ minHeight: 44 }}
                 >
-                    AI Generation
+                    Generation
                 </Button>
-
-                {onLoadDemo && (
-                    <Button
-                        leftSection={<IconTestPipe size={16} />}
-                        variant="light"
-                        color="violet"
-                        onClick={onLoadDemo}
-                        size="sm"
-                    >
-                        Load Demo
-                    </Button>
-                )}
                 {isLoggedIn && (
                     <Button
                         leftSection={<IconFolder size={16} />}
                         variant="outline"
                         onClick={onOpenProjects}
                         size="sm"
+                        style={{ minHeight: 38 }}
                     >
                         Projects
                     </Button>

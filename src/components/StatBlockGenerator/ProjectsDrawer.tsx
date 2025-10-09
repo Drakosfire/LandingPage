@@ -175,10 +175,11 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                             <ActionIcon
                                 variant="subtle"
                                 color="blue"
-                                size="sm"
+                                size="md"
                                 loading={isLoadingProjects}
                                 onClick={onRefresh}
                                 title="Refresh projects list"
+                                style={{ minWidth: 36, minHeight: 36 }}
                             >
                                 <IconRefresh size={16} />
                             </ActionIcon>
@@ -194,6 +195,8 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                             fullWidth
                             disabled={isGenerationInProgress}
                             title={isGenerationInProgress ? "Project creation disabled during generation" : ""}
+                            size="md"
+                            style={{ minHeight: 44 }}
                         >
                             New Project
                         </Button>
@@ -212,7 +215,7 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
 
                     {/* Projects List */}
                     <ScrollArea flex={1} type="scroll">
-                        <Stack gap="xs">
+                        <Stack gap="xs" style={{ paddingRight: '8px' }}>
                             {isLoadingProjects ? (
                                 <Text c="dimmed" ta="center" size="sm">Loading...</Text>
                             ) : sortedProjects.length === 0 ? (
@@ -230,31 +233,32 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                             key={project.id}
                                             withBorder
                                             radius="sm"
-                                            padding="sm"
+                                            padding="xs"
                                             style={{
                                                 cursor: 'pointer',
                                                 borderColor: isCurrentProject ? 'var(--mantine-color-blue-4)' : undefined,
-                                                backgroundColor: isCurrentProject ? 'var(--mantine-color-blue-0)' : undefined
+                                                backgroundColor: isCurrentProject ? 'var(--mantine-color-blue-0)' : undefined,
+                                                width: '100%',
+                                                maxWidth: '100%',
+                                                overflow: 'hidden'
                                             }}
                                         >
-                                            <Stack gap="sm">
-                                                <Group justify="space-between">
-                                                    <Stack gap="xs" style={{ flex: 1 }}>
+                                            <Stack gap="xs">
+                                                <Group justify="space-between" wrap="nowrap" gap="xs">
+                                                    <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
                                                         <Text fw={500} size="sm" truncate>
                                                             {project.name || 'Untitled Project'}
                                                         </Text>
-                                                        <Group gap="xs">
-                                                            <Text size="xs" c="dimmed">
-                                                                {project.creatureType} • CR {project.challengeRating}
-                                                            </Text>
-                                                        </Group>
+                                                        <Text size="xs" c="dimmed" truncate>
+                                                            {project.creatureType} • CR {project.challengeRating}
+                                                        </Text>
                                                         <Text size="xs" c="dimmed">
                                                             {new Date(project.updatedAt).toLocaleDateString()}
                                                         </Text>
                                                     </Stack>
 
                                                     {/* Load Button and Actions */}
-                                                    <Group gap="xs">
+                                                    <Group gap={4} wrap="nowrap">
                                                         {isBeingLoaded ? (
                                                             <Badge
                                                                 color="blue"
@@ -293,7 +297,7 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                         <ActionIcon
                                                             variant="subtle"
                                                             color="red"
-                                                            size="sm"
+                                                            size="md"
                                                             disabled={isDisabled}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -308,7 +312,11 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                             }
                                                             style={{
                                                                 opacity: isDisabled ? 0.5 : 1,
-                                                                cursor: isDisabled ? 'not-allowed' : 'pointer'
+                                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                                minWidth: 36,
+                                                                minHeight: 36,
+                                                                position: 'relative',
+                                                                zIndex: 10
                                                             }}
                                                         >
                                                             <IconTrash size={16} />

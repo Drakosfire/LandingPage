@@ -8,6 +8,7 @@ import { Stack, Textarea, Button, Tabs, Loader, Image, Text, SimpleGrid, Card, A
 import { IconPhoto, IconSparkles, IconLock, IconLogin, IconFolderOpen, IconLibraryPhoto, IconTrash, IconUpload } from '@tabler/icons-react';
 import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import { useAuth } from '../../../context/AuthContext';
+import { buildFullPrompt, getStyleOptions, ImageStyle } from '../../../constants/imageStyles';
 
 interface ImageGenerationTabProps {
     onGenerationStart?: () => void;
@@ -40,6 +41,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
         // setIsGenerating removed - don't use it for image generation
     } = useStatBlockGenerator();
     const [selectedModel, setSelectedModel] = useState<string>('flux-pro');
+    const [selectedStyle, setSelectedStyle] = useState<ImageStyle>('classic_dnd');
     const [activeTab, setActiveTab] = useState<'generate' | 'upload' | 'project' | 'library'>('generate');
     const [isLocalGenerating, setIsLocalGenerating] = useState(false);
     const [libraryImages, setLibraryImages] = useState<LibraryImage[]>([]);
@@ -50,22 +52,6 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Auto-generate prompt from creature details
-    const handleAutoFillPrompt = useCallback(() => {
-        const parts = [];
-        if (creatureDetails.name) parts.push(creatureDetails.name);
-        if (creatureDetails.type) parts.push(creatureDetails.type);
-        if (creatureDetails.size) parts.push(creatureDetails.size);
-
-        // Use description if available
-        if (creatureDetails.description) {
-            parts.push(creatureDetails.description);
-        }
-
-        const prompt = parts.join(', ') + ', fantasy art, detailed portrait, dramatic lighting, high quality';
-        setImagePrompt(prompt);
-    }, [creatureDetails]);
 
     const handleGenerateImage = useCallback(async () => {
         if (!imagePrompt.trim()) return;
@@ -85,8 +71,11 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
             setIsLocalGenerating(true);
             onGenerationStart?.();
 
-            console.log(`🎨 Starting image generation with ${selectedModel}...`);
+            console.log(`🎨 Starting image generation with ${selectedModel} in ${selectedStyle} style...`);
             const startTime = Date.now();
+
+            // Build full prompt with style suffix
+            const fullPrompt = buildFullPrompt(imagePrompt, selectedStyle);
 
             const response = await fetch(
                 `${DUNGEONMIND_API_URL}/api/statblockgenerator/generate-image`,
@@ -96,7 +85,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                     credentials: 'include',
                     signal: abortController.signal,
                     body: JSON.stringify({
-                        sd_prompt: imagePrompt,
+                        sd_prompt: fullPrompt,
                         model: selectedModel,
                         num_images: 4
                     })
@@ -409,6 +398,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                     leftSection={<IconLogin size={16} />}
                                     variant="filled"
                                     size="sm"
+                                    style={{ minHeight: 38 }}
                                 >
                                     Login or Sign Up
                                 </Button>
@@ -422,22 +412,23 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                 </Alert>
                             )}
 
-                            <Button
-                                variant="light"
-                                size="sm"
-                                onClick={handleAutoFillPrompt}
-                                disabled={isLocalGenerating || !creatureDetails.name}
-                            >
-                                Auto-fill from creature
-                            </Button>
-
                             <Textarea
                                 label="Image Prompt"
+                                description="Describe the creature's appearance"
                                 placeholder="Describe the creature image you want to generate..."
                                 value={imagePrompt}
                                 onChange={(e) => setImagePrompt(e.target.value)}
                                 minRows={3}
                                 maxRows={6}
+                                disabled={isLocalGenerating}
+                            />
+
+                            <Select
+                                label="Art Style"
+                                description="Choose a visual style for the image"
+                                data={getStyleOptions()}
+                                value={selectedStyle}
+                                onChange={(value) => setSelectedStyle(value as ImageStyle)}
                                 disabled={isLocalGenerating}
                             />
 
@@ -447,6 +438,8 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                 disabled={!imagePrompt.trim() || isLocalGenerating}
                                 loading={isLocalGenerating}
                                 fullWidth
+                                size="md"
+                                style={{ minHeight: 44 }}
                             >
                                 {isLocalGenerating ? 'Generating Images...' : 'Generate Images (4x)'}
                             </Button>
@@ -496,6 +489,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                     leftSection={<IconLogin size={16} />}
                                     variant="filled"
                                     size="sm"
+                                    style={{ minHeight: 38 }}
                                 >
                                     Login or Sign Up
                                 </Button>
@@ -594,7 +588,11 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                             No images generated yet. Switch to the Generate tab to create some.
                         </Text>
                     ) : (
-                        <SimpleGrid cols={2} spacing="sm">
+                        <SimpleGrid
+                            cols={{ base: 1, xs: 1, sm: 2, md: 2, lg: 2 }}
+                            spacing={{ base: 'xs', sm: 'sm' }}
+                            verticalSpacing={{ base: 'xs', sm: 'sm' }}
+                        >
                             {generatedContent.images.map((img, index) => (
                                 <Card
                                     key={img.id}
@@ -612,16 +610,18 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                     <ActionIcon
                                         color="red"
                                         variant="filled"
-                                        size="sm"
+                                        size="md"
                                         style={{
                                             position: 'absolute',
                                             top: 8,
                                             right: 8,
-                                            zIndex: 10
+                                            zIndex: 10,
+                                            minWidth: 36,
+                                            minHeight: 36
                                         }}
                                         onClick={(e) => handleDeleteFromProject(img.id, e)}
                                     >
-                                        <IconTrash size={14} />
+                                        <IconTrash size={16} />
                                     </ActionIcon>
                                     <Image
                                         src={img.url}
@@ -647,6 +647,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                 variant="subtle"
                                 onClick={loadLibraryImages}
                                 loading={isLoadingLibrary}
+                                style={{ minHeight: 32 }}
                             >
                                 Refresh
                             </Button>
@@ -665,7 +666,11 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                             </Text>
                         </Alert>
                     ) : (
-                        <SimpleGrid cols={2} spacing="sm">
+                        <SimpleGrid
+                            cols={{ base: 1, xs: 1, sm: 2, md: 2, lg: 2 }}
+                            spacing={{ base: 'xs', sm: 'sm' }}
+                            verticalSpacing={{ base: 'xs', sm: 'sm' }}
+                        >
                             {libraryImages.map((img) => {
                                 const isInCurrentProject = generatedContent.images.some(
                                     projectImg => projectImg.url === img.url

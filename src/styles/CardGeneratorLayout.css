@@ -16,9 +16,114 @@
 
 /* Main Content Area - Accounts for nav bar */
 .generator-main-content {
-    margin-left: 80px;
-    /* Nav bar width */
+    padding-left: 80px;
+    /* Nav bar width - use padding to allow header to extend full width */
     min-height: 100vh;
+}
+
+/* Sticky Header */
+.statblock-header-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: calc(100% + 80px);
+    /* Extend to parent width plus nav bar offset */
+    margin-left: -80px;
+    /* Extend to left edge (compensate for parent padding) */
+    margin-right: 0;
+    padding-left: calc(80px + var(--mantine-spacing-md));
+    /* Account for nav bar + normal padding */
+    padding-right: var(--mantine-spacing-md);
+    background-color: var(--mantine-color-body);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+/* Enhanced shadow when scrolled */
+.statblock-header-sticky.scrolled {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Dark mode support for scrolled state */
+[data-mantine-color-scheme="dark"] .statblock-header-sticky.scrolled {
+    background-color: rgba(26, 27, 30, 0.95);
+}
+
+/* Mobile-Friendly Header */
+@media (max-width: 768px) {
+    .statblock-header-sticky {
+        padding: 0.5rem !important;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        /* Header naturally respects parent margin from .generator-main-content */
+    }
+
+    .statblock-header-sticky>div {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .statblock-header-sticky h2 {
+        font-size: 1.2rem !important;
+    }
+
+    .statblock-header-sticky button {
+        font-size: 0.75rem !important;
+        padding: 0.375rem 0.625rem !important;
+    }
+
+    .statblock-header-sticky .mantine-Button-label {
+        font-size: 0.75rem !important;
+    }
+
+    .statblock-header-sticky .mantine-Switch-root {
+        font-size: 0.75rem !important;
+    }
+
+    .statblock-header-sticky .mantine-Switch-label {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* Compact Header for Small Mobile */
+@media (max-width: 480px) {
+    .statblock-header-sticky {
+        padding: 0.5rem !important;
+    }
+
+    .statblock-header-sticky h2 {
+        font-size: 1rem !important;
+    }
+
+    /* Hide less critical text on very small screens */
+    .statblock-header-sticky .mantine-Text-root {
+        display: none;
+    }
+
+    /* Stack buttons vertically in groups */
+    .statblock-header-sticky>div:last-child {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .statblock-header-sticky button {
+        flex: 1 1 auto;
+        min-width: 40px;
+        font-size: 0.7rem !important;
+        padding: 0.5rem !important;
+    }
+
+    /* Make icon-only versions for some buttons - target Mantine's structure */
+    .statblock-header-sticky .mantine-Button-label {
+        display: none !important;
+    }
+
+    .statblock-header-sticky .mantine-Button-section {
+        margin: 0 !important;
+    }
 }
 
 /* Canvas Container */
@@ -32,8 +137,16 @@
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .generator-main-content {
-        /* Mobile: No nav bar offset */
-        margin-left: 0;
+        /* Mobile: Collapsed nav bar offset (20px) */
+        padding-left: 20px;
+    }
+
+    .statblock-header-sticky {
+        width: calc(100% + 20px);
+        /* Extend to parent width plus collapsed nav bar offset */
+        margin-left: -20px;
+        /* Adjust for collapsed nav bar */
+        padding-left: calc(20px + var(--mantine-spacing-md));
     }
 
     .generator-canvas-container {
@@ -44,7 +157,38 @@
 /* Smooth transitions for responsive changes */
 @media (prefers-reduced-motion: no-preference) {
     .generator-main-content {
-        transition: margin-left 0.3s ease;
+        transition: padding-left 0.3s ease;
+    }
+
+    /* Smooth drawer transitions */
+    .mantine-Drawer-content {
+        transition: transform 0.3s ease, opacity 0.2s ease;
+    }
+
+    /* Smooth button transitions */
+    .mantine-Button-root {
+        transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .mantine-Button-root:active {
+        transform: scale(0.98);
+    }
+
+    /* Card hover effects */
+    .mantine-Card-root {
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 
@@ -107,4 +251,314 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+}
+
+/* ============================================================================
+   Generation Drawer Mobile Optimization (Phase 6)
+   ============================================================================ */
+
+/* Drawer responsive adjustments */
+@media (max-width: 768px) {
+
+    /* Adjust drawer size for tablets */
+    .mantine-Drawer-content {
+        margin-left: 20px !important;
+        /* Collapsed nav bar */
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* Full width drawer on mobile */
+    .mantine-Drawer-content {
+        margin-left: 0 !important;
+        margin-top: 60px !important;
+        /* Keep below header */
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Mobile-friendly tabs - icon-only on small screens */
+@media (max-width: 768px) {
+    .mantine-Tabs-tab {
+        font-size: 0.75rem !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+
+    /* Still show text on tablets */
+    .mantine-Tabs-tabLabel {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* Icon-only tabs for phones */
+@media (max-width: 480px) {
+    .mantine-Tabs-list {
+        justify-content: space-evenly;
+    }
+
+    .mantine-Tabs-tab {
+        flex: 1;
+        min-width: auto;
+        padding: 0.5rem 0.25rem !important;
+    }
+
+    /* Hide text labels, show only icons */
+    .mantine-Tabs-tabLabel {
+        display: none !important;
+    }
+
+    .mantine-Tabs-tabSection {
+        margin: 0 !important;
+    }
+}
+
+/* Upload zone mobile sizing */
+@media (max-width: 768px) {
+    .drag-drop-zone {
+        min-height: 150px !important;
+        padding: 1rem !important;
+    }
+
+    .drag-drop-zone p {
+        font-size: 0.875rem !important;
+    }
+
+    .drag-drop-zone svg {
+        width: 36px !important;
+        height: 36px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .drag-drop-zone {
+        min-height: 120px !important;
+        padding: 0.75rem !important;
+    }
+
+    .drag-drop-zone p {
+        font-size: 0.75rem !important;
+    }
+
+    .drag-drop-zone svg {
+        width: 32px !important;
+        height: 32px !important;
+    }
+}
+
+/* ============================================================================
+   Print Styles - PDF Export Support
+   Pattern: Matches proven StoreGenerator implementation
+   ============================================================================ */
+
+/* Page setup for print - minimal margins, let content handle layout */
+@page {
+    size: letter portrait;
+    margin: 0.25in;
+    /* Small margin to prevent printer edge clipping */
+}
+
+@media print {
+
+    /* CRITICAL: Explicitly hide fixed navigation bar first (before general rules) */
+    nav {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        z-index: -9999 !important;
+    }
+
+    /* CRITICAL: Two-phase visibility approach (hides UI chrome perfectly) */
+
+    /* Phase 1: Hide everything by default */
+    body,
+    body * {
+        visibility: hidden !important;
+        overflow: visible !important;
+    }
+
+    /* Phase 2: Show ONLY the brewRenderer and its children */
+    .brewRenderer,
+    .brewRenderer * {
+        visibility: visible !important;
+    }
+
+    /* Position brewRenderer centered in print area */
+    .brewRenderer {
+        position: absolute !important;
+        top: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        /* Center horizontally */
+        width: 8in !important;
+        /* Match page width */
+        height: auto !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Remove wrapper transform that scales content for screen */
+    .brewRenderer-wrapper {
+        transform: none !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Reset body and main container for print */
+    body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Hide layout wrappers completely */
+    .generator-layout,
+    .generator-main-content,
+    .generator-canvas-container,
+    .statblock-canvas-area {
+        all: unset !important;
+        display: block !important;
+        visibility: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Clean up container elements */
+    .dm-statblock-responsive,
+    .pages,
+    .pages-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        position: static !important;
+        transform: none !important;
+    }
+
+    /* CRITICAL: Hide Mantine Card wrapper completely */
+    .mantine-Card-root {
+        all: unset !important;
+        display: block !important;
+        visibility: hidden !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* CRITICAL: Hide measurement layer completely (it's off-screen but still renders) */
+    .dm-statblock-measurement-layer,
+    .dm-statblock-measurement-layer * {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -99999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* Hide pagination markers (Page 1, Page 2, etc.) */
+    .dm-pagination-marker {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* CRITICAL: Each .page div maps to exactly ONE print page */
+    .page {
+        /* Don't use break-after - causes extra blank page at end */
+        /* Instead use break-before on subsequent pages */
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+
+        /* Force each page to exactly fill the printable area */
+        width: 8in !important;
+        /* 8.5in - (2 × 0.25in margins) */
+        height: auto !important;
+        /* Let content determine height */
+        /* 11in - (2 × 0.25in margins) */
+        max-width: 8in !important;
+        max-height: 10.5in !important;
+        /* Remove min-height - was forcing pages to be full height even when empty */
+
+        /* Remove all spacing */
+        margin: 0 !important;
+        padding: 0 !important;
+
+        /* Position each page independently */
+        position: relative !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        /* Prevent content overflow creating extra pages */
+    }
+
+    /* First page: no page break before */
+    .page:first-child {
+        break-before: avoid !important;
+        page-break-before: avoid !important;
+    }
+
+    /* All pages after the first: page break BEFORE them */
+    .page:not(:first-child) {
+        break-before: page !important;
+        page-break-before: always !important;
+    }
+
+    /* Last page: absolutely no page breaks after */
+    .page:last-child {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Ensure pages container has no spacing and doesn't create extra pages */
+    .pages {
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Prevent any element after pages from creating new page */
+    .pages::after,
+    .brewRenderer::after,
+    .pages-content::after {
+        display: none !important;
+        content: none !important;
+    }
+
+    /* Ensure content within pages doesn't break across print pages */
+    .page .columnWrapper,
+    .page .monster,
+    .page .canvas-column {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Force hide ALL Mantine components except what's in brewRenderer */
+    .mantine-AppShell-root,
+    .mantine-AppShell-navbar,
+    .mantine-AppShell-main,
+    .mantine-Drawer-root,
+    .mantine-Modal-root,
+    .mantine-Notification-root,
+    nav,
+    header,
+    footer,
+    button,
+    .statblock-header-sticky {
+        display: none !important;
+        visibility: hidden !important;
+    }
 }

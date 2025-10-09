@@ -13,7 +13,7 @@ export const classicTemplate: TemplateConfig = {
     description: 'Traditional two-column layout matching official D&D 5e Monster Manual style',
     defaultMode: 'locked',
     defaultPageVariables: {
-        dimensions: { width: 210, height: 297, unit: 'mm' }, // A4
+        dimensions: { width: 215.9, height: 279.4, unit: 'mm' }, // US Letter
         background: {
             type: 'parchment',
             color: '#f8f2e4',
