@@ -124,7 +124,9 @@ export interface LegendaryActionsBlock {
 }
 
 export interface LairActionsBlock {
-    description: string;
+    lairName?: string; // Name of the creature's lair
+    lairDescription?: string; // Sensory description of the lair environment
+    description: string; // Mechanics text (initiative count 20 rules)
     actions: Action[];
     initiative?: number; // Initiative count for lair actions (usually 20)
 }

@@ -98,16 +98,71 @@ const LairActionsSection: React.FC<CanvasComponentProps> = ({ regionContent, reg
         });
     };
 
+    const updateLairName = (name: string) => {
+        if (!statblock?.lairActions) return;
+        onUpdateData?.({
+            lairActions: {
+                ...statblock.lairActions,
+                lairName: name
+            }
+        });
+    };
+
+    const updateLairDescription = (description: string) => {
+        if (!statblock?.lairActions) return;
+        onUpdateData?.({
+            lairActions: {
+                ...statblock.lairActions,
+                lairDescription: description
+            }
+        });
+    };
+
+    // Extract lair name and description from statblock
+    const lairName = statblock?.lairActions?.lairName;
+    const lairDescription = statblock?.lairActions?.lairDescription;
+
     return (
         <section className={`dm-lair-section${regionOverflow ? ' dm-section-overflow' : ''}`}>
             <h4 className="dm-section-heading" id="lair-actions">{heading}</h4>
+
+            {/* Lair Name - Only show on first page */}
+            {startIndex === 0 && lairName && (
+                <p className="dm-lair-name" style={{ fontStyle: 'italic', fontWeight: 600, marginTop: '0.5em' }}>
+                    <EditableText
+                        value={lairName}
+                        onChange={updateLairName}
+                        isEditMode={isEditMode}
+                        placeholder="Name of the lair"
+                        onEditStart={handleEditStart}
+                        onEditChange={handleEditChange}
+                    />
+                </p>
+            )}
+
+            {/* Lair Description (Sensory Flavor) - Only show on first page */}
+            {startIndex === 0 && lairDescription && (
+                <p className="dm-lair-flavor" style={{ fontStyle: 'italic', marginTop: '0.5em', marginBottom: '0.75em' }}>
+                    <EditableText
+                        value={lairDescription}
+                        onChange={updateLairDescription}
+                        isEditMode={isEditMode}
+                        placeholder="Describe the lair atmosphere and environment..."
+                        multiline
+                        onEditStart={handleEditStart}
+                        onEditChange={handleEditChange}
+                    />
+                </p>
+            )}
+
+            {/* Lair Mechanics Summary */}
             {showSummary ? (
                 <p className="dm-lair-summary">
                     <EditableText
                         value={regionContent.metadata?.lairSummary as string}
                         onChange={updateLairSummary}
                         isEditMode={isEditMode}
-                        placeholder="Lair actions summary"
+                        placeholder="Lair actions mechanics (initiative count 20 rules)"
                         multiline
                         onEditStart={handleEditStart}
                         onEditChange={handleEditChange}

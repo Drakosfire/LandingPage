@@ -153,8 +153,9 @@ const drJupiter: StatBlockDetails = {
         actions: [
             {
                 id: "c93b3338-0e09-413e-8253-5905e8fdee7b",
-                name: "Detect",
-                desc: "Dr. Jupiter makes a Wisdom (Perception) check.",
+                name: "Medical Assessment",
+                desc: "Dr. Jupiter examines a creature within 30 feet, diagnosing its condition. The target gains advantage on its next saving throw against disease or poison.",
+                range: "30 ft",
             },
             {
                 id: "face17e4-3c23-4d21-88ff-2c9eb4e51953",
@@ -170,6 +171,8 @@ const drJupiter: StatBlockDetails = {
         ]
     },
     lairActions: {
+        lairName: "The Healing Sanctuary",
+        lairDescription: "Dr. Jupiter's medical sanctuary is a warm, well-lit space filled with the scent of antiseptic and fresh bandages. Gentle chimes tinkle from crystalline medical instruments hanging from the ceiling, and soft padding covers the floors to prevent injury. Healing herbs grow in neat pots along the walls, their leaves glowing faintly with restorative magic.",
         description: "On initiative count 20 (losing initiative ties), Dr. Jupiter takes a lair action to cause one of the following effects. Dr. Jupiter can't use the same effect two rounds in a row.",
         actions: [
             {
@@ -351,8 +354,9 @@ const empressHermione: StatBlockDetails = {
         actions: [
             {
                 id: "dc721034-7782-4583-9dba-45ef8bd8d315",
-                name: "Detect",
-                desc: "Empress Hermione makes a Wisdom (Perception) check.",
+                name: "Arcane Awareness",
+                desc: "Empress Hermione's magical senses flare. She knows the location of all creatures within 30 feet until the end of her next turn, including invisible creatures.",
+                range: "30 ft",
             },
             {
                 id: "adf729f4-187c-46ae-8167-90b55a9e4efa",
@@ -367,6 +371,8 @@ const empressHermione: StatBlockDetails = {
         ]
     },
     lairActions: {
+        lairName: "The Temporal Throne Room",
+        lairDescription: "The throne room exists slightly out of sync with normal time, causing the walls to shimmer and shift between different decorative eras. Floating timepieces of various designs tick at different rates, their chimes creating an otherworldly symphony. The air tastes of ozone and possibility, and visitors often experience brief glimpses of past and future moments overlapping with the present.",
         description: "On initiative count 20 (losing initiative ties), Empress Hermione takes a lair action to cause one of the following effects. She can't use the same effect two rounds in a row.",
         actions: [
             {
@@ -547,6 +553,8 @@ const madameLoaf: StatBlockDetails = {
         ]
     },
     lairActions: {
+        lairName: "The Supreme Napping Chambers",
+        lairDescription: "Madame Loaf's domain is an impossibly cozy space with sunbeams that seem to follow the softest cushions throughout the day. The air is heavy with the scent of catnip and contentment, and every surface is padded with plush fabrics in various states of cat-hair coverage. A throne of stacked pillows dominates the center, radiating an aura of supreme laziness that makes visitors want to curl up and nap.",
         description: "On initiative count 20 (losing initiative ties), Madame Loaf takes a lair action to cause one of the following effects. She can't use the same effect two rounds in a row.",
         actions: [
             {
