@@ -15,9 +15,9 @@ import {
     ValidationResult,
     CRCalculationResult
 } from '../../types/statblock.types';
-import { defaultStatblockDetails } from '../../fixtures/statblockTemplates';
 import { MeasurementCoordinator } from '../../canvas/layout/measurement';
-import { normalizeStatblock } from '../../utils/statblockNormalization';
+import { normalizeStatblock, createDefaultStatblock } from '../../utils/statblockNormalization';
+import { getRandomDemo } from '../../fixtures/demoStatblocks';
 
 // Context interface for StatBlockGenerator (Phase 5: Step navigation removed)
 export interface StatBlockGeneratorContextType {
@@ -25,6 +25,7 @@ export interface StatBlockGeneratorContextType {
     isCanvasPreviewReady: boolean;
     selectedTemplateId: string;
     isCanvasEditMode: boolean;
+    isDemo: boolean;  // Flag indicating if current statblock is a demo
     creatureDetails: StatBlockDetails;
     selectedAssets: {
         creatureImage?: string;
@@ -40,6 +41,15 @@ export interface StatBlockGeneratorContextType {
     imagePrompt: string;  // Persistent image generation prompt
     imageStyle: string;   // Selected image style
     imageModel: string;   // Selected AI model
+
+    // Generation Drawer Control
+    generationDrawerState: {
+        opened: boolean;
+        initialTab?: 'text' | 'image';
+        initialPrompt?: string;
+    };
+    openGenerationDrawer: (options?: { tab?: 'text' | 'image'; prompt?: string }) => void;
+    closeGenerationDrawer: () => void;
 
     // Generation Lock System (prevent concurrent async operations)
     generationLocks: {
@@ -130,6 +140,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     // Core state (step navigation removed in Phase 5)
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('demo-monster-template');
     const [isCanvasEditMode, setIsCanvasEditMode] = useState<boolean>(false);
+    const [isDemo, setIsDemo] = useState<boolean>(false);
 
     // DEBUG: Log when edit mode changes
     useEffect(() => {
@@ -150,6 +161,20 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             }
         };
     }, [instanceId]);
+
+    // Auto-load demo if no saved data exists
+    useEffect(() => {
+        // Only run once on mount
+        const hasInitialState = initialState !== null;
+
+        if (!hasInitialState) {
+            console.log('🎲 [Provider] No saved state found - loading random demo');
+            loadDemoData();
+        } else {
+            console.log('🎲 [Provider] Saved state found - skipping demo load');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run only once on mount
 
     // Phase 3: Initialize state from localStorage (lazy initialization)
     // This runs ONCE on mount, before any effects
@@ -183,20 +208,27 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
                     console.log(`🔄 [Provider] Lazy init: Restoring "${parsed.creatureDetails?.name}" (${ageMinutes.toFixed(1)}m old)`);
                     console.log(`🔄 [Provider] Restored ${parsed.generatedContent?.images?.length || 0} images from localStorage`);
+
+                    // Fallback to creature's sdPrompt if no imagePrompt was saved
+                    const normalizedCreature = normalizeStatblock(parsed.creatureDetails);
+                    const restoredPrompt = parsed.imagePrompt || normalizedCreature.sdPrompt || '';
+
+                    console.log(`📝 [Provider] Restored image prompt: ${restoredPrompt ? restoredPrompt.substring(0, 50) + '...' : '(empty)'}`);
+
                     return {
-                        creatureDetails: normalizeStatblock(parsed.creatureDetails),
+                        creatureDetails: normalizedCreature,
                         generatedContent: parsed.generatedContent || { images: [], models: [], exports: [] },
                         selectedAssets: parsed.selectedAssets || { creatureImage: undefined, selectedImageIndex: undefined, generatedImages: [], modelFile: undefined },
                         currentProject: parsed.currentProject,
-                        imagePrompt: parsed.imagePrompt || '',
+                        imagePrompt: restoredPrompt,
                         imageStyle: parsed.imageStyle || 'classic_dnd',
                         imageModel: parsed.imageModel || 'flux-pro'
                     };
                 } else {
-                    console.log('🔄 [Provider] Lazy init: Data too old, using defaults');
+                    console.log('🔄 [Provider] Lazy init: Data too old, will load demo');
                 }
             } else {
-                console.log('🔄 [Provider] Lazy init: No saved data, using defaults');
+                console.log('🔄 [Provider] Lazy init: No saved data, will load demo');
             }
         } catch (err) {
             console.error('🔄 [Provider] Lazy init failed:', err);
@@ -217,8 +249,8 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             return initialState.creatureDetails;
         }
 
-        // Fallback to default template
-        return defaultStatblockDetails;
+        // Fallback to random demo (will be loaded in useEffect)
+        return getRandomDemo();
     });
 
     // Assets and generated content
@@ -266,6 +298,29 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         }
         return 'flux-pro'; // Default model
     });
+
+    // Generation Drawer Control
+    const [generationDrawerState, setGenerationDrawerState] = useState<{
+        opened: boolean;
+        initialTab?: 'text' | 'image';
+        initialPrompt?: string;
+    }>({
+        opened: false,
+        initialTab: 'text',
+        initialPrompt: ''
+    });
+
+    const openGenerationDrawer = useCallback((options?: { tab?: 'text' | 'image'; prompt?: string }) => {
+        setGenerationDrawerState({
+            opened: true,
+            initialTab: options?.tab || 'text',
+            initialPrompt: options?.prompt || ''
+        });
+    }, []);
+
+    const closeGenerationDrawer = useCallback(() => {
+        setGenerationDrawerState(prev => ({ ...prev, opened: false }));
+    }, []);
 
     // Generation lock system
     const [generationLocks, setGenerationLocksState] = useState({
@@ -410,22 +465,38 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     }, []);
 
     const loadDemoData = useCallback(() => {
-        // Import demo data dynamically to avoid circular deps
-        import('../../fixtures/statblockTemplates').then(({ defaultStatblockDetails }) => {
-            // CRITICAL: Clear ALL state when loading demo (prevents mixing with previous data)
-            replaceCreatureDetails(defaultStatblockDetails);
-            setSelectedAssets({
-                creatureImage: undefined,
-                selectedImageIndex: undefined,
-                generatedImages: [],
-                modelFile: undefined
-            });
-            setGeneratedContent({
-                images: [],
-                models: [],
-                exports: []
-            });
+        console.log('🎲 [Provider] Loading random demo statblock...');
+
+        // Get a random demo from our collection
+        const demoStatblock = getRandomDemo();
+
+        console.log(`🎲 [Provider] Selected demo: "${demoStatblock.name}"`);
+
+        // CRITICAL: Clear ALL state when loading demo (prevents mixing with previous data)
+        replaceCreatureDetails(demoStatblock);
+        setSelectedAssets({
+            creatureImage: undefined,
+            selectedImageIndex: undefined,
+            generatedImages: [],
+            modelFile: undefined
         });
+        setGeneratedContent({
+            images: [],
+            models: [],
+            exports: []
+        });
+
+        // Extract image prompt from demo statblock
+        if (demoStatblock.sdPrompt) {
+            console.log('🎲 [Provider] Setting image prompt from demo:', demoStatblock.sdPrompt);
+            setImagePrompt(demoStatblock.sdPrompt);
+        } else {
+            setImagePrompt('');
+        }
+        setIsDemo(true);  // Mark as demo
+        setCurrentProject(null);  // Clear current project
+
+        console.log('✅ [Provider] Demo loaded successfully');
     }, [replaceCreatureDetails]);
 
     const setSelectedCreatureImage = useCallback((image: string, index?: number) => {
@@ -636,14 +707,15 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             throw new Error('Authentication required to create projects');
         }
 
-        console.log('📁 [Provider] Creating new project:', name);
+        console.log('📁 [Provider] Creating new project:', name, description ? `with description: ${description}` : '');
 
         // Re-enable auto-save (in case it was disabled after deletion)
         skipAutoSaveRef.current = false;
         // Clear saved content hash to allow first save of new project
         lastSavedContentHashRef.current = '';
 
-        // Create a new empty project by triggering a save
+        // Create a new empty project with default statblock (no demo template)
+        const initialCreature = createDefaultStatblock();
         const newProject: StatBlockProject = {
             id: '', // Will be generated by backend
             name,
@@ -653,7 +725,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             updatedAt: new Date().toISOString(),
             lastModified: new Date().toISOString(),
             state: {
-                creatureDetails: defaultStatblockDetails,
+                creatureDetails: initialCreature,
                 selectedAssets: {
                     generatedImages: []
                 },
@@ -678,7 +750,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 credentials: 'include',
                 body: JSON.stringify({
                     projectId: null, // New project
-                    statblock: defaultStatblockDetails,
+                    statblock: initialCreature,
                     userId: userId
                 })
             });
@@ -696,15 +768,67 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             newProject.updatedAt = result.updatedAt;
             setCurrentProject(newProject);
 
-            // Reset to default creature
-            replaceCreatureDetails(defaultStatblockDetails);
+            // Keep the initial creature (already set above)
+            replaceCreatureDetails(initialCreature);
+
+            // CRITICAL FIX: Clear all state to prevent carryover from previous project
+            console.log('🧹 [Provider] Clearing state for new project');
+
+            // Clear selected assets (images, models)
+            setSelectedAssets({
+                creatureImage: undefined,
+                selectedImageIndex: undefined,
+                generatedImages: [],
+                modelFile: undefined
+            });
+
+            // Clear generated content library
+            setGeneratedContent({
+                images: [],
+                models: [],
+                exports: []
+            });
+
+            // Clear image prompt (or use creature's sdPrompt if available)
+            const newPrompt = initialCreature.sdPrompt || '';
+            setImagePrompt(newPrompt);
+            console.log('📝 [Provider] Image prompt reset:', newPrompt ? newPrompt.substring(0, 50) + '...' : '(empty)');
+
+            // CRITICAL FIX: Update content hash to prevent duplicate save
+            const contentToHash = JSON.stringify({
+                creatureDetails: initialCreature,
+                selectedAssets: {
+                    creatureImage: undefined,
+                    selectedImageIndex: undefined,
+                    generatedImages: [],
+                    modelFile: undefined
+                },
+                generatedContent: {
+                    images: [],
+                    models: [],
+                    exports: []
+                },
+                imagePrompt: newPrompt
+            });
+            lastSavedContentHashRef.current = contentToHash;
+            console.log('🔒 [Provider] Content hash updated after project creation');
+
+            // Clear demo flag when creating new project
+            setIsDemo(false);
+
+            // FEATURE: Open generation drawer with text tab and project description
+            console.log('🎨 [Provider] Opening generation drawer with project description');
+            openGenerationDrawer({
+                tab: 'text',
+                prompt: description || ''
+            });
 
             return result.projectId;
         } catch (err) {
             console.error('📁 [Provider] Failed to create project:', err);
             throw err;
         }
-    }, [isLoggedIn, userId, replaceCreatureDetails]);
+    }, [isLoggedIn, userId, replaceCreatureDetails, openGenerationDrawer]);
 
     const saveProject = useCallback(async (): Promise<void> => {
         // Redirect to manual save (already implemented)
@@ -753,10 +877,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             });
 
             // CRITICAL: Always replace ALL state to prevent mixing with previous data
-            // Use defaults if project doesn't have data (prevents old state from persisting)
-            replaceCreatureDetails(
-                normalizeStatblock(projectData.state?.creatureDetails || defaultStatblockDetails)
-            );
+            // Use random demo if project doesn't have data (prevents old state from persisting)
+            const loadedCreature = normalizeStatblock(projectData.state?.creatureDetails || getRandomDemo());
+            replaceCreatureDetails(loadedCreature);
 
             setSelectedAssets(projectData.state?.selectedAssets || {
                 creatureImage: undefined,
@@ -771,7 +894,13 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 exports: []
             });
 
-            setImagePrompt(projectData.state?.imagePrompt || '');
+            // Use saved imagePrompt, or fallback to creature's sdPrompt
+            const promptToLoad = projectData.state?.imagePrompt || loadedCreature.sdPrompt || '';
+            setImagePrompt(promptToLoad);
+            console.log('📝 [Provider] Image prompt loaded:', promptToLoad ? promptToLoad.substring(0, 50) + '...' : '(empty)');
+
+            // Clear demo flag when loading existing project
+            setIsDemo(false);
 
             setError(null);
         } catch (err) {
@@ -802,14 +931,15 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
 
             console.log('📁 [Provider] Project deleted:', projectId);
 
-            // If deleting current project, reset to default
+            // If deleting current project, reset to random demo
             if (currentProject?.id === projectId) {
                 setCurrentProject(null);
-                // Disable auto-save temporarily to prevent creating a new project from default template
+                // Disable auto-save temporarily to prevent creating a new project from demo
                 skipAutoSaveRef.current = true;
                 // Clear saved content hash
                 lastSavedContentHashRef.current = '';
-                replaceCreatureDetails(defaultStatblockDetails);
+                // Load a new random demo
+                loadDemoData();
 
                 // Re-enable auto-save after 5 seconds (in case user wants to start editing)
                 setTimeout(() => {
@@ -1056,12 +1186,18 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         isCanvasPreviewReady,
         selectedTemplateId,
         isCanvasEditMode,
+        isDemo,
         creatureDetails,
         selectedAssets,
         generatedContent,
         imagePrompt,
         imageStyle,
         imageModel,
+
+        // Generation Drawer Control
+        generationDrawerState,
+        openGenerationDrawer,
+        closeGenerationDrawer,
 
         // Generation Lock System
         generationLocks,

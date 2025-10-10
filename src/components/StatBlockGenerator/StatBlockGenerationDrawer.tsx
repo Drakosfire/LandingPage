@@ -8,11 +8,15 @@ import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 interface StatBlockGenerationDrawerProps {
     opened: boolean;
     onClose: () => void;
+    initialTab?: 'text' | 'image';
+    initialPrompt?: string;
 }
 
 const StatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = ({
     opened,
-    onClose
+    onClose,
+    initialTab,
+    initialPrompt
 }) => {
     const { isGenerating } = useStatBlockGenerator();
 
@@ -21,6 +25,8 @@ const StatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = ({
             opened={opened}
             onClose={onClose}
             isGenerationInProgress={isGenerating}
+            initialTab={initialTab}
+            initialPrompt={initialPrompt}
         />
     );
 };

@@ -29,7 +29,8 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
         selectedTemplateId,
         creatureDetails,
         selectedAssets,
-        saveNow
+        saveNow,
+        isDemo
     } = useStatBlockGenerator();
 
     // Track scroll state for enhanced visual feedback
@@ -108,6 +109,17 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
         >
             <Group>
                 <Title order={2}>StatBlock Generator</Title>
+                {isDemo && (
+                    <Badge
+                        color="blue"
+                        variant="light"
+                        size="lg"
+                        style={{ cursor: 'help' }}
+                        title="This is a demo creature. Click 'Projects' → 'New Project' to create your own!"
+                    >
+                        Demo
+                    </Badge>
+                )}
             </Group>
 
             <Group gap="md">

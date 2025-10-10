@@ -126,6 +126,7 @@ export interface LegendaryActionsBlock {
 export interface LairActionsBlock {
     description: string;
     actions: Action[];
+    initiative?: number; // Initiative count for lair actions (usually 20)
 }
 
 // Main StatBlock interface - matches backend Pydantic model

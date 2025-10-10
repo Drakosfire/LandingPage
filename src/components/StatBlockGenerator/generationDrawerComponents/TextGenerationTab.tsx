@@ -1,7 +1,7 @@
 // TextGenerationTab.tsx - Text Generation for Drawer (refactored from Step1)
 // Simplified component without step navigation props
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { Stack, Textarea, Checkbox, Button, Loader, Text, Group, Alert, Card } from '@mantine/core';
 import { IconInfoCircle, IconWand } from '@tabler/icons-react';
@@ -12,23 +12,33 @@ import { StatBlockDetails } from '../../../types/statblock.types';
 interface TextGenerationTabProps {
     onGenerationStart?: () => void;
     onGenerationComplete?: () => void;
+    initialPrompt?: string; // Pre-populate the prompt field
 }
 
 const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
     onGenerationStart,
-    onGenerationComplete
+    onGenerationComplete,
+    initialPrompt = ''
 }) => {
     const {
         creatureDetails,
         replaceCreatureDetails,
-        setIsGenerating
+        setIsGenerating,
+        setImagePrompt
     } = useStatBlockGenerator();
 
     const [includeSpellcasting, setIncludeSpellcasting] = useState(false);
     const [includeLegendaryActions, setIncludeLegendaryActions] = useState(false);
     const [includeLairActions, setIncludeLairActions] = useState(false);
-    const [generationPrompt, setGenerationPrompt] = useState('');
+    const [generationPrompt, setGenerationPrompt] = useState(initialPrompt);
     const [isLocalGenerating, setIsLocalGenerating] = useState(false);
+
+    // Update prompt when initialPrompt changes (e.g., from new project creation)
+    useEffect(() => {
+        if (initialPrompt && initialPrompt !== generationPrompt) {
+            setGenerationPrompt(initialPrompt);
+        }
+    }, [initialPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleGenerateCreature = useCallback(async () => {
         if (!generationPrompt.trim()) return;
@@ -46,6 +56,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                     credentials: 'include',
                     body: JSON.stringify({
                         description: generationPrompt,
+                        // NO challengeRatingTarget - let LLM decide based on description
                         includeSpellcasting,
                         includeLegendaryActions,
                         includeLairActions,
@@ -68,6 +79,21 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
 
             const statblock = payload.data.statblock;
 
+            // DEBUG: Log what we received from backend
+            console.log('🔍 [TextGen] Received statblock from backend:', {
+                name: statblock.name,
+                challengeRating: statblock.challengeRating,
+                challenge_rating: statblock.challenge_rating,
+                xp: statblock.xp,
+                keys: Object.keys(statblock)
+            });
+
+            // Extract and set image prompt if present
+            if (statblock.sdPrompt) {
+                console.log('📝 Setting image prompt from generated statblock:', statblock.sdPrompt);
+                setImagePrompt(statblock.sdPrompt);
+            }
+
             // Normalize statblock with explicit null→undefined conversion
             const normalizedStatblock: StatBlockDetails = normalizeStatblock({
                 ...statblock,
@@ -89,6 +115,13 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                 bonusActions: statblock.bonusActions || undefined
             });
 
+            // DEBUG: Log after normalization
+            console.log('🔍 [TextGen] After normalization:', {
+                name: normalizedStatblock.name,
+                challengeRating: normalizedStatblock.challengeRating,
+                xp: normalizedStatblock.xp
+            });
+
             replaceCreatureDetails(normalizedStatblock);
 
             onGenerationComplete?.();
@@ -106,6 +139,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
         creatureDetails,
         replaceCreatureDetails,
         setIsGenerating,
+        setImagePrompt,
         onGenerationStart,
         onGenerationComplete
     ]);

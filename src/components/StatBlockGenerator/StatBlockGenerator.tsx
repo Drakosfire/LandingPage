@@ -26,12 +26,14 @@ const StatBlockGenerator: React.FC = () => {
     const {
         isAnyGenerationInProgress,
         saveStatus,
-        error
+        error,
+        generationDrawerState,
+        openGenerationDrawer,
+        closeGenerationDrawer
     } = useStatBlockGenerator();
 
     // Drawer state
     const [projectsDrawerOpen, setProjectsDrawerOpen] = useState(false);
-    const [generationDrawerOpen, setGenerationDrawerOpen] = useState(false);
 
     return (
         <div className="generator-layout">
@@ -41,10 +43,12 @@ const StatBlockGenerator: React.FC = () => {
                 onClose={() => setProjectsDrawerOpen(false)}
             />
 
-            {/* Generation Drawer - Phase 5 NEW */}
+            {/* Generation Drawer - Phase 5 NEW - Now controlled by provider */}
             <StatBlockGenerationDrawer
-                opened={generationDrawerOpen}
-                onClose={() => setGenerationDrawerOpen(false)}
+                opened={generationDrawerState.opened}
+                onClose={closeGenerationDrawer}
+                initialTab={generationDrawerState.initialTab}
+                initialPrompt={generationDrawerState.initialPrompt}
             />
 
             {/* Main Content - Accounts for nav bar (80px left) */}
@@ -52,7 +56,7 @@ const StatBlockGenerator: React.FC = () => {
                 {/* Header - Fixed at top, right of nav bar */}
                 <StatBlockHeader
                     onOpenProjects={() => setProjectsDrawerOpen(true)}
-                    onOpenGeneration={() => setGenerationDrawerOpen(true)}
+                    onOpenGeneration={() => openGenerationDrawer()}
                     saveStatus={saveStatus}
                     error={error}
                     isLoggedIn={isLoggedIn}

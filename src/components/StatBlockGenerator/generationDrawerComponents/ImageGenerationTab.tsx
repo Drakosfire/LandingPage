@@ -5,10 +5,11 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { Stack, Textarea, Button, Tabs, Loader, Image, Text, SimpleGrid, Card, Alert, Badge, Tooltip, Group, ActionIcon, Modal, Select, Box, Center } from '@mantine/core';
-import { IconPhoto, IconSparkles, IconLock, IconLogin, IconFolderOpen, IconLibraryPhoto, IconTrash, IconUpload } from '@tabler/icons-react';
+import { IconSparkles, IconLock, IconLogin, IconFolderOpen, IconLibraryPhoto, IconTrash, IconUpload, IconMaximize, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import { useAuth } from '../../../context/AuthContext';
 import { buildFullPrompt, getStyleOptions, ImageStyle } from '../../../constants/imageStyles';
+import { ImageGenerationProgress } from './ImageGenerationProgress';
 
 interface ImageGenerationTabProps {
     onGenerationStart?: () => void;
@@ -30,7 +31,6 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
 }) => {
     const { isLoggedIn } = useAuth();
     const {
-        creatureDetails,
         selectedAssets,
         generatedContent,
         setSelectedCreatureImage,
@@ -51,7 +51,13 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [generationStartTime, setGenerationStartTime] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
+    const [expandedImagePrompt, setExpandedImagePrompt] = useState<string>('');
+    const [expandedImageId, setExpandedImageId] = useState<string | null>(null);
+    const [expandedImageIndex, setExpandedImageIndex] = useState<number>(0);
+    const [expandedImageContext, setExpandedImageContext] = useState<'project' | 'library'>('project');
 
     const handleGenerateImage = useCallback(async () => {
         if (!imagePrompt.trim()) return;
@@ -69,10 +75,14 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
             // Don't use setIsGenerating(true) - it causes canvas to hide the statblock
             // setIsGenerating(true);  // Only needed for TEXT generation, not images
             setIsLocalGenerating(true);
+
+            // Track generation start time for progress bar
+            const startTime = Date.now();
+            setGenerationStartTime(startTime);
+
             onGenerationStart?.();
 
             console.log(`🎨 Starting image generation with ${selectedModel} in ${selectedStyle} style...`);
-            const startTime = Date.now();
 
             // Build full prompt with style suffix
             const fullPrompt = buildFullPrompt(imagePrompt, selectedStyle);
@@ -140,8 +150,9 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
             clearTimeout(timeoutId);
             // setIsGenerating(false);  // Not needed since we don't set it to true
             setIsLocalGenerating(false);
+            setGenerationStartTime(null); // Clear progress tracking
         }
-    }, [imagePrompt, selectedModel, addGeneratedImage, onGenerationStart, onGenerationComplete]);
+    }, [imagePrompt, selectedModel, selectedStyle, addGeneratedImage, onGenerationStart, onGenerationComplete]);
 
     const handleSelectImage = useCallback((imageUrl: string, index: number) => {
         setSelectedCreatureImage(imageUrl, index);
@@ -234,23 +245,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
         e.stopPropagation();
     }, []);
 
-    const handleDrop = useCallback(async (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-
-        const files = Array.from(e.dataTransfer.files);
-        const imageFiles = files.filter(file => file.type.startsWith('image/'));
-
-        if (imageFiles.length === 0) {
-            setErrorMessage('Please drop image files only (PNG, JPEG, WebP, etc.)');
-            return;
-        }
-
-        await handleUploadImages(imageFiles);
-    }, []);
-
-    // File upload handler
+    // File upload handler (defined before handleDrop to avoid forward reference)
     const handleUploadImages = useCallback(async (files: File[]) => {
         if (files.length === 0) return;
 
@@ -319,6 +314,22 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
         }
     }, [addGeneratedImage]);
 
+    const handleDrop = useCallback(async (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        const files = Array.from(e.dataTransfer.files);
+        const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+        if (imageFiles.length === 0) {
+            setErrorMessage('Please drop image files only (PNG, JPEG, WebP, etc.)');
+            return;
+        }
+
+        await handleUploadImages(imageFiles);
+    }, [handleUploadImages]);
+
     // File input change handler
     const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
@@ -330,6 +341,139 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
             fileInputRef.current.value = '';
         }
     }, [handleUploadImages]);
+
+    // Image expansion handlers
+    const handleExpandImage = useCallback((
+        imageUrl: string,
+        prompt: string,
+        imageId: string,
+        index: number,
+        context: 'project' | 'library',
+        event: React.MouseEvent
+    ) => {
+        event.stopPropagation(); // Prevent card click from selecting image
+        setExpandedImageUrl(imageUrl);
+        setExpandedImagePrompt(prompt);
+        setExpandedImageId(imageId);
+        setExpandedImageIndex(index);
+        setExpandedImageContext(context);
+    }, []);
+
+    const handleCloseExpandedImage = useCallback(() => {
+        setExpandedImageUrl(null);
+        setExpandedImagePrompt('');
+        setExpandedImageId(null);
+        setExpandedImageIndex(0);
+    }, []);
+
+    // Navigation handlers for modal
+    const handlePreviousImage = useCallback(() => {
+        const imageList = expandedImageContext === 'project'
+            ? generatedContent.images
+            : libraryImages;
+
+        if (imageList.length === 0) return;
+
+        const newIndex = expandedImageIndex > 0
+            ? expandedImageIndex - 1
+            : imageList.length - 1;
+
+        const newImage = imageList[newIndex];
+        setExpandedImageIndex(newIndex);
+        setExpandedImageUrl(newImage.url);
+        setExpandedImagePrompt(newImage.prompt || 'Image');
+        setExpandedImageId(newImage.id);
+    }, [expandedImageIndex, expandedImageContext, generatedContent.images, libraryImages]);
+
+    const handleNextImage = useCallback(() => {
+        const imageList = expandedImageContext === 'project'
+            ? generatedContent.images
+            : libraryImages;
+
+        if (imageList.length === 0) return;
+
+        const newIndex = expandedImageIndex < imageList.length - 1
+            ? expandedImageIndex + 1
+            : 0;
+
+        const newImage = imageList[newIndex];
+        setExpandedImageIndex(newIndex);
+        setExpandedImageUrl(newImage.url);
+        setExpandedImagePrompt(newImage.prompt || 'Image');
+        setExpandedImageId(newImage.id);
+    }, [expandedImageIndex, expandedImageContext, generatedContent.images, libraryImages]);
+
+    // Delete from modal (project context)
+    const handleDeleteFromModal = useCallback(async () => {
+        if (!expandedImageId) return;
+
+        if (expandedImageContext === 'project') {
+            // Navigate to next/previous image before deleting
+            const imageList = generatedContent.images;
+            if (imageList.length > 1) {
+                // Show next image, or previous if we're at the end
+                if (expandedImageIndex < imageList.length - 1) {
+                    handleNextImage();
+                } else {
+                    handlePreviousImage();
+                }
+            } else {
+                // No more images, close modal
+                handleCloseExpandedImage();
+            }
+
+            // Delete the image
+            await removeGeneratedImage(expandedImageId);
+        }
+    }, [expandedImageId, expandedImageContext, expandedImageIndex, generatedContent.images, handleNextImage, handlePreviousImage, handleCloseExpandedImage, removeGeneratedImage]);
+
+    // Delete from library (permanent deletion)
+    const handleDeleteFromLibrary = useCallback(async () => {
+        if (!expandedImageUrl || !expandedImageId) return;
+
+        // Navigate to next/previous image before deleting
+        const imageList = libraryImages;
+        if (imageList.length > 1) {
+            // Show next image, or previous if we're at the end
+            if (expandedImageIndex < imageList.length - 1) {
+                handleNextImage();
+            } else {
+                handlePreviousImage();
+            }
+        } else {
+            // No more images, close modal
+            handleCloseExpandedImage();
+        }
+
+        try {
+            // Delete image from storage (permanent deletion)
+            const response = await fetch(
+                `${DUNGEONMIND_API_URL}/api/statblockgenerator/delete-image?image_url=${encodeURIComponent(expandedImageUrl)}`,
+                {
+                    method: 'DELETE',
+                    credentials: 'include'
+                }
+            );
+
+            if (!response.ok) {
+                console.error('Failed to delete image from library:', response.statusText);
+            }
+
+            // Remove from library state
+            setLibraryImages(prev => prev.filter(img => img.id !== expandedImageId));
+
+            // If this image is in the current project, remove it there too
+            const isInProject = generatedContent.images.some(img => img.url === expandedImageUrl);
+            if (isInProject) {
+                const projectImage = generatedContent.images.find(img => img.url === expandedImageUrl);
+                if (projectImage) {
+                    await removeGeneratedImage(projectImage.id);
+                }
+            }
+        } catch (error) {
+            console.error('Error deleting image from library:', error);
+        }
+    }, [expandedImageUrl, expandedImageId, expandedImageIndex, libraryImages, generatedContent.images, handleNextImage, handlePreviousImage, handleCloseExpandedImage, removeGeneratedImage]);
 
     return (
         <>
@@ -350,6 +494,102 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                         </Button>
                         <Button color="red" onClick={confirmDelete}>
                             Remove
+                        </Button>
+                    </Group>
+                </Stack>
+            </Modal>
+
+            {/* Image Expansion Modal */}
+            <Modal
+                opened={expandedImageUrl !== null}
+                onClose={handleCloseExpandedImage}
+                title={
+                    <Badge size="md" variant="light">
+                        {expandedImageIndex + 1} / {expandedImageContext === 'project' ? generatedContent.images.length : libraryImages.length}
+                    </Badge>
+                }
+                size="xl"
+                centered
+            >
+                <Stack gap="md">
+                    {/* Image Container with Navigation */}
+                    <Box style={{ position: 'relative' }}>
+                        {expandedImageUrl && (
+                            <Image
+                                src={expandedImageUrl}
+                                alt={expandedImagePrompt || 'Expanded image'}
+                                fit="contain"
+                                radius="md"
+                                style={{
+                                    maxHeight: '70vh',
+                                    width: '100%',
+                                    objectFit: 'contain'
+                                }}
+                            />
+                        )}
+
+                        {/* Previous Button */}
+                        <ActionIcon
+                            size="xl"
+                            variant="filled"
+                            color="blue"
+                            style={{
+                                position: 'absolute',
+                                left: 16,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                zIndex: 10
+                            }}
+                            onClick={handlePreviousImage}
+                            title="Previous image"
+                        >
+                            <IconChevronLeft size={24} />
+                        </ActionIcon>
+
+                        {/* Next Button */}
+                        <ActionIcon
+                            size="xl"
+                            variant="filled"
+                            color="blue"
+                            style={{
+                                position: 'absolute',
+                                right: 16,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                zIndex: 10
+                            }}
+                            onClick={handleNextImage}
+                            title="Next image"
+                        >
+                            <IconChevronRight size={24} />
+                        </ActionIcon>
+                    </Box>
+
+                    {/* Action Buttons */}
+                    <Group justify="space-between">
+                        <Group gap="xs">
+                            {expandedImageContext === 'project' ? (
+                                <Button
+                                    leftSection={<IconTrash size={16} />}
+                                    color="red"
+                                    variant="light"
+                                    onClick={handleDeleteFromModal}
+                                >
+                                    Remove from Project
+                                </Button>
+                            ) : (
+                                <Button
+                                    leftSection={<IconTrash size={16} />}
+                                    color="red"
+                                    variant="filled"
+                                    onClick={handleDeleteFromLibrary}
+                                >
+                                    Remove from Library
+                                </Button>
+                            )}
+                        </Group>
+                        <Button variant="default" onClick={handleCloseExpandedImage}>
+                            Close
                         </Button>
                     </Group>
                 </Stack>
@@ -419,7 +659,8 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                 value={imagePrompt}
                                 onChange={(e) => setImagePrompt(e.target.value)}
                                 minRows={3}
-                                maxRows={6}
+                                maxRows={10}
+                                autosize
                                 disabled={isLocalGenerating}
                             />
 
@@ -465,6 +706,14 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                 ]}
                                 disabled={isLocalGenerating}
                             />
+
+                            {/* Progress bar during generation */}
+                            {isLocalGenerating && generationStartTime && (
+                                <ImageGenerationProgress
+                                    model={selectedModel}
+                                    startTime={generationStartTime}
+                                />
+                            )}
                         </Stack>
                     )}
                 </Tabs.Panel>
@@ -607,6 +856,26 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                     }}
                                     onClick={() => handleSelectImage(img.url, index)}
                                 >
+                                    {/* Expand button - top left */}
+                                    <ActionIcon
+                                        color="blue"
+                                        variant="filled"
+                                        size="md"
+                                        style={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            left: 8,
+                                            zIndex: 10,
+                                            minWidth: 36,
+                                            minHeight: 36
+                                        }}
+                                        onClick={(e) => handleExpandImage(img.url, img.prompt || 'Generated image', img.id, index, 'project', e)}
+                                        title="View full size"
+                                    >
+                                        <IconMaximize size={16} />
+                                    </ActionIcon>
+
+                                    {/* Delete button - top right */}
                                     <ActionIcon
                                         color="red"
                                         variant="filled"
@@ -620,9 +889,11 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                             minHeight: 36
                                         }}
                                         onClick={(e) => handleDeleteFromProject(img.id, e)}
+                                        title="Remove from project"
                                     >
                                         <IconTrash size={16} />
                                     </ActionIcon>
+
                                     <Image
                                         src={img.url}
                                         alt={`Generated ${index + 1}`}
@@ -671,7 +942,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                             spacing={{ base: 'xs', sm: 'sm' }}
                             verticalSpacing={{ base: 'xs', sm: 'sm' }}
                         >
-                            {libraryImages.map((img) => {
+                            {libraryImages.map((img, index) => {
                                 const isInCurrentProject = generatedContent.images.some(
                                     projectImg => projectImg.url === img.url
                                 );
@@ -692,16 +963,35 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                         onClick={() => {
                                             if (isInCurrentProject) {
                                                 // If already in project, just select it
-                                                const index = generatedContent.images.findIndex(
+                                                const projectIndex = generatedContent.images.findIndex(
                                                     projectImg => projectImg.url === img.url
                                                 );
-                                                handleSelectImage(img.url, index);
+                                                handleSelectImage(img.url, projectIndex);
                                             } else {
                                                 // Add from library to current project
                                                 handleAddFromLibrary(img);
                                             }
                                         }}
                                     >
+                                        {/* Expand button - top left */}
+                                        <ActionIcon
+                                            color="blue"
+                                            variant="filled"
+                                            size="md"
+                                            style={{
+                                                position: 'absolute',
+                                                top: 8,
+                                                left: 8,
+                                                zIndex: 10,
+                                                minWidth: 36,
+                                                minHeight: 36
+                                            }}
+                                            onClick={(e) => handleExpandImage(img.url, img.prompt || 'Library image', img.id, index, 'library', e)}
+                                            title="View full size"
+                                        >
+                                            <IconMaximize size={16} />
+                                        </ActionIcon>
+
                                         <Image
                                             src={img.url}
                                             alt={img.prompt || 'Library image'}

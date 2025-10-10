@@ -11,14 +11,25 @@ interface GenerationDrawerProps {
     opened: boolean;
     onClose: () => void;
     isGenerationInProgress?: boolean;
+    initialTab?: 'text' | 'image'; // Control which tab opens initially
+    initialPrompt?: string; // Pre-populate text generation prompt
 }
 
 const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
     opened,
     onClose,
-    isGenerationInProgress = false
+    isGenerationInProgress = false,
+    initialTab = 'text',
+    initialPrompt = ''
 }) => {
-    const [activeTab, setActiveTab] = useState<'text' | 'image'>('text');
+    const [activeTab, setActiveTab] = useState<'text' | 'image'>(initialTab);
+
+    // Update active tab when initialTab changes (e.g., from createProject)
+    React.useEffect(() => {
+        if (opened && initialTab) {
+            setActiveTab(initialTab);
+        }
+    }, [opened, initialTab]);
 
     return (
         <Drawer
@@ -62,7 +73,7 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
                     </Tabs.List>
 
                     <Tabs.Panel value="text" pt="md">
-                        <TextGenerationTab />
+                        <TextGenerationTab initialPrompt={initialPrompt} />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="image" pt="md">
