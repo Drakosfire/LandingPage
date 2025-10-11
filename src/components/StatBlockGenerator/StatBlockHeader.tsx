@@ -1,8 +1,9 @@
 // StatBlockHeader.tsx - Header Component for StatBlock Generator
 // Phase 5: Added Generation drawer button + canvas controls
 import React, { useCallback, useEffect, useState } from 'react';
-import { Group, Button, Text, Badge, ActionIcon, Title, Switch, Menu } from '@mantine/core';
-import { IconFolder, IconAlertCircle, IconWand, IconDeviceFloppy, IconDownload, IconEdit, IconLock, IconPrinter, IconFileText } from '@tabler/icons-react';
+import { Group, Button, Text, Badge, ActionIcon, Title, Switch, Menu, Box } from '@mantine/core';
+import { IconFolder, IconAlertCircle, IconWand, IconDeviceFloppy, IconDownload, IconEdit, IconLock, IconPrinter, IconFileText, IconHelp } from '@tabler/icons-react';
+import { HelpButton } from './HelpButton';
 import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../fixtures/templates';
 import { buildPageDocument, extractCustomData } from '../../canvas/data';
@@ -11,6 +12,7 @@ import { exportPageToHTMLFile } from '../../canvas/export';
 interface StatBlockHeaderProps {
     onOpenProjects: () => void;
     onOpenGeneration: () => void;
+    onOpenHelpTutorial?: () => void;
     saveStatus: 'idle' | 'saving' | 'saved' | 'error';
     error: string | null;
     isLoggedIn?: boolean;
@@ -19,6 +21,7 @@ interface StatBlockHeaderProps {
 const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
     onOpenProjects,
     onOpenGeneration,
+    onOpenHelpTutorial,
     saveStatus,
     error,
     isLoggedIn = false
@@ -124,25 +127,27 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
 
             <Group gap="md">
                 {/* Canvas Controls - Phase 5: Moved from canvas */}
-                <Switch
-                    checked={isCanvasEditMode}
-                    onChange={handleToggleEditMode}
-                    label="Edit Mode"
-                    size="sm"
-                    thumbIcon={
-                        isCanvasEditMode ? (
-                            <IconEdit size={12} stroke={3} />
-                        ) : (
-                            <IconLock size={12} stroke={3} />
-                        )
-                    }
-                    styles={{
-                        track: {
-                            minHeight: 28,
-                            cursor: 'pointer'
+                <Box data-tutorial="edit-mode-toggle">
+                    <Switch
+                        checked={isCanvasEditMode}
+                        onChange={handleToggleEditMode}
+                        label="Edit Mode"
+                        size="sm"
+                        thumbIcon={
+                            isCanvasEditMode ? (
+                                <IconEdit size={12} stroke={3} />
+                            ) : (
+                                <IconLock size={12} stroke={3} />
+                            )
                         }
-                    }}
-                />
+                        styles={{
+                            track: {
+                                minHeight: 28,
+                                cursor: 'pointer'
+                            }
+                        }}
+                    />
+                </Box>
 
                 {getSaveStatusBadge()}
                 {error && (
@@ -164,6 +169,7 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                     loading={saveStatus === 'saving'}
                     color={saveStatus === 'error' ? 'red' : saveStatus === 'saved' ? 'green' : 'blue'}
                     style={{ minHeight: 38 }}
+                    data-tutorial="save-button"
                 >
                     Save Now
                 </Button>
@@ -175,6 +181,7 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                             variant="light"
                             size="sm"
                             style={{ minHeight: 38 }}
+                            data-tutorial="export-menu"
                         >
                             Export
                         </Button>
@@ -203,6 +210,7 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                     gradient={{ from: 'violet', to: 'cyan' }}
                     onClick={onOpenGeneration}
                     style={{ minHeight: 44 }}
+                    data-tutorial="generation-button"
                 >
                     Generation
                 </Button>
@@ -213,9 +221,14 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                         onClick={onOpenProjects}
                         size="sm"
                         style={{ minHeight: 38 }}
+                        data-tutorial="projects-button"
                     >
                         Projects
                     </Button>
+                )}
+                {/* Help Button for Tutorial */}
+                {onOpenHelpTutorial && (
+                    <HelpButton onClick={onOpenHelpTutorial} />
                 )}
             </Group>
         </Group>

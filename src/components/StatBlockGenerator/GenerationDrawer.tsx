@@ -2,7 +2,7 @@
 // Pattern: Follow Mantine Drawer with tabbed content
 
 import React, { useState } from 'react';
-import { Drawer, Tabs, Title, Stack } from '@mantine/core';
+import { Drawer, Tabs, Title, Stack, Box } from '@mantine/core';
 import { IconWand, IconPhoto } from '@tabler/icons-react';
 import TextGenerationTab from './generationDrawerComponents/TextGenerationTab';
 import ImageGenerationTab from './generationDrawerComponents/ImageGenerationTab';
@@ -13,6 +13,7 @@ interface GenerationDrawerProps {
     isGenerationInProgress?: boolean;
     initialTab?: 'text' | 'image'; // Control which tab opens initially
     initialPrompt?: string; // Pre-populate text generation prompt
+    isTutorialMode?: boolean; // Tutorial mode flag to prevent real generation
 }
 
 const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
@@ -20,7 +21,8 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
     onClose,
     isGenerationInProgress = false,
     initialTab = 'text',
-    initialPrompt = ''
+    initialPrompt = '',
+    isTutorialMode = false
 }) => {
     const [activeTab, setActiveTab] = useState<'text' | 'image'>(initialTab);
 
@@ -38,9 +40,11 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
             position="left"
             size="lg"
             title={
-                <Title order={4}>
-                    AI Generation
-                </Title>
+                <Box data-tutorial="generation-drawer-title">
+                    <Title order={4}>
+                        AI Generation
+                    </Title>
+                </Box>
             }
             closeButtonProps={{ 'aria-label': 'Close generation drawer' }}
             overlayProps={{ opacity: 0.3, blur: 2 }}
@@ -52,6 +56,7 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
                     width: 'calc(100% - 80px)' // Account for nav bar width
                 }
             }}
+            data-tutorial="generation-drawer"
         >
             <Stack gap="md" h="100%">
                 <Tabs value={activeTab} onChange={(val) => setActiveTab(val as any)}>
@@ -60,6 +65,7 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
                             value="text"
                             leftSection={<IconWand size={16} />}
                             disabled={isGenerationInProgress}
+                            data-tutorial="text-generation-tab"
                         >
                             Text Generation
                         </Tabs.Tab>
@@ -67,13 +73,17 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
                             value="image"
                             leftSection={<IconPhoto size={16} />}
                             disabled={isGenerationInProgress}
+                            data-tutorial="image-generation-tab"
                         >
                             Image Generation
                         </Tabs.Tab>
                     </Tabs.List>
 
                     <Tabs.Panel value="text" pt="md">
-                        <TextGenerationTab initialPrompt={initialPrompt} />
+                        <TextGenerationTab
+                            initialPrompt={initialPrompt}
+                            isTutorialMode={isTutorialMode}
+                        />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="image" pt="md">

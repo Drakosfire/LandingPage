@@ -53,7 +53,11 @@ const StatBlockCanvas: React.FC = () => {
             );
         }
 
-        if (isCanvasPreviewReady) {
+        // Check if canvas is truly empty (no creature name)
+        // This handles the blank canvas state for first-time users
+        const hasCreature = creatureDetails?.name?.trim().length > 0;
+
+        if (isCanvasPreviewReady && hasCreature) {
             // Get selected template or fall back to default
             const template = getTemplate(selectedTemplateId) ?? DEFAULT_TEMPLATE;
 

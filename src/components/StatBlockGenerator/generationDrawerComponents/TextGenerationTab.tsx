@@ -13,12 +13,14 @@ interface TextGenerationTabProps {
     onGenerationStart?: () => void;
     onGenerationComplete?: () => void;
     initialPrompt?: string; // Pre-populate the prompt field
+    isTutorialMode?: boolean; // Prevent real generation during tutorial
 }
 
 const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
     onGenerationStart,
     onGenerationComplete,
-    initialPrompt = ''
+    initialPrompt = '',
+    isTutorialMode = false
 }) => {
     const {
         creatureDetails,
@@ -42,6 +44,13 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
 
     const handleGenerateCreature = useCallback(async () => {
         if (!generationPrompt.trim()) return;
+
+        // CRITICAL: Prevent real generation during tutorial
+        if (isTutorialMode) {
+            console.log('🎓 [Tutorial] Skipping real generation - tutorial mode active');
+            onGenerationComplete?.(); // Notify that "generation" is complete (demo will be loaded elsewhere)
+            return;
+        }
 
         try {
             setIsGenerating(true);
@@ -141,7 +150,8 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
         setIsGenerating,
         setImagePrompt,
         onGenerationStart,
-        onGenerationComplete
+        onGenerationComplete,
+        isTutorialMode
     ]);
 
     const quickFillSuggestions = [
@@ -182,6 +192,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                 maxRows={8}
                 disabled={isLocalGenerating}
                 required
+                data-tutorial="text-generation-input"
             />
 
             {/* Advanced Options */}
@@ -194,18 +205,21 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                             checked={includeSpellcasting}
                             onChange={(e) => setIncludeSpellcasting(e.target.checked)}
                             disabled={isLocalGenerating}
+                            data-tutorial="spellcasting-checkbox"
                         />
                         <Checkbox
                             label="Legendary Actions"
                             checked={includeLegendaryActions}
                             onChange={(e) => setIncludeLegendaryActions(e.target.checked)}
                             disabled={isLocalGenerating}
+                            data-tutorial="legendary-checkbox"
                         />
                         <Checkbox
                             label="Lair Actions"
                             checked={includeLairActions}
                             onChange={(e) => setIncludeLairActions(e.target.checked)}
                             disabled={isLocalGenerating}
+                            data-tutorial="lair-checkbox"
                         />
                     </Group>
                 </Stack>
@@ -220,6 +234,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                 size="md"
                 fullWidth
                 style={{ minHeight: 44 }}
+                data-tutorial="generate-button"
             >
                 {isLocalGenerating ? 'Generating Creature...' : 'Generate Creature with AI'}
             </Button>

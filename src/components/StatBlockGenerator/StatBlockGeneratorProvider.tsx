@@ -18,6 +18,8 @@ import {
 import { MeasurementCoordinator } from '../../canvas/layout/measurement';
 import { normalizeStatblock, createDefaultStatblock } from '../../utils/statblockNormalization';
 import { getRandomDemo } from '../../fixtures/demoStatblocks';
+import { tutorialCookies } from '../../utils/tutorialCookies';
+import { EMPTY_STATBLOCK } from '../../constants/demoStatblock';
 
 // Context interface for StatBlockGenerator (Phase 5: Step navigation removed)
 export interface StatBlockGeneratorContextType {
@@ -47,8 +49,9 @@ export interface StatBlockGeneratorContextType {
         opened: boolean;
         initialTab?: 'text' | 'image';
         initialPrompt?: string;
+        isTutorialMode?: boolean;
     };
-    openGenerationDrawer: (options?: { tab?: 'text' | 'image'; prompt?: string }) => void;
+    openGenerationDrawer: (options?: { tab?: 'text' | 'image'; prompt?: string; isTutorialMode?: boolean }) => void;
     closeGenerationDrawer: () => void;
 
     // Generation Lock System (prevent concurrent async operations)
@@ -166,10 +169,18 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     useEffect(() => {
         // Only run once on mount
         const hasInitialState = initialState !== null;
+        const hasTutorialCompleted = tutorialCookies.hasCompletedTutorial();
 
         if (!hasInitialState) {
-            console.log('🎲 [Provider] No saved state found - loading random demo');
-            loadDemoData();
+            // For first-time users (tutorial not completed), don't load a demo
+            // Let the tutorial control what loads on the canvas
+            if (!hasTutorialCompleted) {
+                console.log('🎓 [Provider] First-time user - starting with empty canvas for tutorial');
+                // Already initialized with empty/demo statblock, no action needed
+            } else {
+                console.log('🎲 [Provider] No saved state found - loading random demo');
+                loadDemoData();
+            }
         } else {
             console.log('🎲 [Provider] Saved state found - skipping demo load');
         }
@@ -198,6 +209,14 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     } | null;
 
     const getInitialStateFromLocalStorage = (): InitialStateType => {
+        // CRITICAL: Don't restore saved state for first-time users
+        // This ensures tutorial starts with a blank canvas
+        const hasTutorialCompleted = tutorialCookies.hasCompletedTutorial();
+        if (!hasTutorialCompleted) {
+            console.log('🎓 [Provider] Tutorial not completed - skipping localStorage restore, will start with empty canvas');
+            return null;
+        }
+
         try {
             const saved = localStorage.getItem('statblockGenerator_state');
             if (saved) {
@@ -249,7 +268,15 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             return initialState.creatureDetails;
         }
 
-        // Fallback to random demo (will be loaded in useEffect)
+        // For first-time users (tutorial not completed), start with empty canvas
+        // For returning users, load a random demo
+        const hasTutorialCompleted = tutorialCookies.hasCompletedTutorial();
+        if (!hasTutorialCompleted) {
+            console.log('🎓 [Provider] Initializing with empty canvas for first-time user');
+            return EMPTY_STATBLOCK;
+        }
+
+        // Fallback to random demo (will be loaded in useEffect for returning users)
         return getRandomDemo();
     });
 
@@ -304,17 +331,20 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         opened: boolean;
         initialTab?: 'text' | 'image';
         initialPrompt?: string;
+        isTutorialMode?: boolean;
     }>({
         opened: false,
         initialTab: 'text',
-        initialPrompt: ''
+        initialPrompt: '',
+        isTutorialMode: false
     });
 
-    const openGenerationDrawer = useCallback((options?: { tab?: 'text' | 'image'; prompt?: string }) => {
+    const openGenerationDrawer = useCallback((options?: { tab?: 'text' | 'image'; prompt?: string; isTutorialMode?: boolean }) => {
         setGenerationDrawerState({
             opened: true,
             initialTab: options?.tab || 'text',
-            initialPrompt: options?.prompt || ''
+            initialPrompt: options?.prompt || '',
+            isTutorialMode: options?.isTutorialMode || false
         });
     }, []);
 

@@ -595,7 +595,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                 </Stack>
             </Modal>
 
-            <Tabs value={activeTab} onChange={(val) => setActiveTab(val as any)}>
+            <Tabs value={activeTab} onChange={(val) => setActiveTab(val as any)} data-tutorial="image-generation">
                 <Tabs.List grow>
                     <Tabs.Tab value="generate" leftSection={<IconSparkles size={16} />}>
                         Generate

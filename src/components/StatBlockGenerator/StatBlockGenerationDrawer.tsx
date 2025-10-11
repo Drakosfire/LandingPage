@@ -10,13 +10,15 @@ interface StatBlockGenerationDrawerProps {
     onClose: () => void;
     initialTab?: 'text' | 'image';
     initialPrompt?: string;
+    isTutorialMode?: boolean;
 }
 
 const StatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = ({
     opened,
     onClose,
     initialTab,
-    initialPrompt
+    initialPrompt,
+    isTutorialMode
 }) => {
     const { isGenerating } = useStatBlockGenerator();
 
@@ -27,6 +29,7 @@ const StatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = ({
             isGenerationInProgress={isGenerating}
             initialTab={initialTab}
             initialPrompt={initialPrompt}
+            isTutorialMode={isTutorialMode}
         />
     );
 };

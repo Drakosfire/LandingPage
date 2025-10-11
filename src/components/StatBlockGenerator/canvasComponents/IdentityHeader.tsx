@@ -192,7 +192,7 @@ const IdentityHeader: React.FC<CanvasComponentProps> = ({ dataRef, dataSources, 
 
         return (
             <div className="dm-identity-header">
-                <h2 id="user-monster-name" className="dm-monster-name">
+                <h2 id="user-monster-name" className="dm-monster-name" data-tutorial="creature-name">
                     {statblock.name || 'Unnamed Creature'}
                 </h2>
                 <p className="dm-monster-meta">
@@ -208,7 +208,7 @@ const IdentityHeader: React.FC<CanvasComponentProps> = ({ dataRef, dataSources, 
     console.log('🔍 [IdentityHeader] statblock:', statblock);
 
     return (
-        <div className="dm-identity-header">
+        <div className="dm-identity-header" data-tutorial="creature-name">
             <EditableText
                 value={identityValue}
                 onChange={parseIdentityString}
