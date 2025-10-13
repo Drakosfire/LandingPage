@@ -600,23 +600,26 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                     <Tabs.Tab value="generate" leftSection={<IconSparkles size={16} />}>
                         Generate
                     </Tabs.Tab>
-                    <Tabs.Tab
-                        value="upload"
-                        leftSection={<IconUpload size={16} />}
-                        disabled={!isLoggedIn}
-                    >
-                        Upload
-                    </Tabs.Tab>
+                    {isLoggedIn && (
+                        <Tabs.Tab
+                            value="upload"
+                            leftSection={<IconUpload size={16} />}
+                            data-tutorial="upload-tab"
+                        >
+                            Upload
+                        </Tabs.Tab>
+                    )}
                     <Tabs.Tab value="project" leftSection={<IconFolderOpen size={16} />}>
                         Project ({generatedContent.images.length})
                     </Tabs.Tab>
-                    <Tabs.Tab
-                        value="library"
-                        leftSection={<IconLibraryPhoto size={16} />}
-                        disabled={!isLoggedIn}
-                    >
-                        Library
-                    </Tabs.Tab>
+                    {isLoggedIn && (
+                        <Tabs.Tab
+                            value="library"
+                            leftSection={<IconLibraryPhoto size={16} />}
+                        >
+                            Library
+                        </Tabs.Tab>
+                    )}
                 </Tabs.List>
 
                 <Tabs.Panel value="generate" pt="md">
@@ -718,19 +721,18 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                     )}
                 </Tabs.Panel>
 
-                {/* Upload Tab - Drag & Drop or Browse */}
+                {/* Upload Tab - Drag & Drop or Browse (Login Required) */}
                 <Tabs.Panel value="upload" pt="md">
                     {!isLoggedIn ? (
                         <Alert
                             icon={<IconLock size={16} />}
-                            color="orange"
+                            color="yellow"
                             variant="light"
-                            title="Login Required for Image Upload"
+                            title="Login Required"
                         >
                             <Stack gap="sm">
                                 <Text size="sm">
-                                    Image uploads require an account to save images to the CDN
-                                    and associate them with your projects.
+                                    Image upload requires an account.
                                 </Text>
                                 <Button
                                     component={Link}
@@ -738,7 +740,6 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                     leftSection={<IconLogin size={16} />}
                                     variant="filled"
                                     size="sm"
-                                    style={{ minHeight: 38 }}
                                 >
                                     Login or Sign Up
                                 </Button>
@@ -764,6 +765,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
 
                             {/* Drag & Drop Zone */}
                             <Box
+                                data-tutorial="upload-zone"
                                 onDragEnter={handleDragEnter}
                                 onDragLeave={handleDragLeave}
                                 onDragOver={handleDragOver}
