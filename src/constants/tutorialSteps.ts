@@ -9,13 +9,13 @@ export const tutorialSteps: Step[] = [
     },
     {
         target: '[data-tutorial="generation-drawer-title"]',
-        content: '🎨 This is the Generation Drawer - your AI creation hub! Here you can generate creatures and their artwork.',
+        content: '🎨 This is the Generation Drawer - your AI creation hub! Generate creatures and upload your own images (we\'ll host them free for 1 week). Log in to save everything permanently!',
         placement: 'bottom-start',
         offset: 0,
         styles: {
             tooltip: {
                 marginTop: '10px',
-                maxWidth: '320px',
+                maxWidth: '340px',
             },
         },
     },
@@ -53,8 +53,38 @@ export const tutorialSteps: Step[] = [
         placement: 'left',
     },
     {
+        target: '[data-tutorial="creature-name"]',
+        content: '✍️ With Edit Mode enabled, you can click any text to change it. Watch as we demonstrate by editing the creature name!',
+        placement: 'right',
+        styles: {
+            tooltip: {
+                maxWidth: '300px',
+            },
+        },
+    },
+    {
+        target: '[data-tutorial="edit-mode-toggle"]',
+        content: '🔒 Great! You can click on any text in Edit Mode to change it. Now we\'ll turn Edit Mode OFF to lock your changes and prevent accidental edits.',
+        placement: 'left',
+        styles: {
+            tooltip: {
+                maxWidth: '320px',
+            },
+        },
+    },
+    {
+        target: '[data-tutorial="upload-zone"]',
+        content: '📤 Upload your own images to customize your statblock! Images are stored permanently in your library when logged in. (Note: This step is only shown for logged-in users)',
+        placement: 'top',
+        styles: {
+            tooltip: {
+                maxWidth: '340px',
+            },
+        },
+    },
+    {
         target: '[data-tutorial="save-button"]',
-        content: '💾 Save your changes to persist your creature. Auto-save keeps your work safe every 30 seconds.',
+        content: '💾 Log in to save your creatures permanently and access projects! Without an account, you can still export to HTML/PDF to keep your work.',
         placement: 'bottom',
     },
     {
@@ -64,7 +94,7 @@ export const tutorialSteps: Step[] = [
     },
     {
         target: '[data-tutorial="projects-button"]',
-        content: '📁 All your creatures are saved here. Load, delete, or manage your projects anytime.',
+        content: '📁 Projects let you save and manage all your creatures permanently. Log in to unlock this feature!',
         placement: 'bottom',
     },
     {

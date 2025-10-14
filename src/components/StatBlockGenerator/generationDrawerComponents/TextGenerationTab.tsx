@@ -8,6 +8,8 @@ import { IconInfoCircle, IconWand } from '@tabler/icons-react';
 import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import { normalizeStatblock } from '../../../utils/statblockNormalization';
 import { StatBlockDetails } from '../../../types/statblock.types';
+import { TextGenerationProgress } from './TextGenerationProgress';
+import { getComplexityLevel } from '../../../constants/textGenerationTiming';
 
 interface TextGenerationTabProps {
     onGenerationStart?: () => void;
@@ -34,6 +36,13 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
     const [includeLairActions, setIncludeLairActions] = useState(false);
     const [generationPrompt, setGenerationPrompt] = useState(initialPrompt);
     const [isLocalGenerating, setIsLocalGenerating] = useState(false);
+    const [generationStartTime, setGenerationStartTime] = useState<number | null>(null);
+    const [generationComplexity, setGenerationComplexity] = useState<string>('base');
+    const [errorAlert, setErrorAlert] = useState<{
+        type: 'error' | 'warning';
+        title: string;
+        message: string;
+    } | null>(null);
 
     // Update prompt when initialPrompt changes (e.g., from new project creation)
     useEffect(() => {
@@ -52,10 +61,33 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
             return;
         }
 
+        // Clear any previous errors
+        setErrorAlert(null);
+
+        // Create AbortController for timeout handling
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => {
+            abortController.abort();
+        }, 150000); // 150 second timeout (2.5 minutes - longer than nginx/backend)
+
         try {
+            // Determine complexity level for progress tracking
+            const complexity = getComplexityLevel(
+                includeSpellcasting,
+                includeLegendaryActions,
+                includeLairActions
+            );
+            setGenerationComplexity(complexity);
+
+            // Track generation start time for progress bar
+            const startTime = Date.now();
+            setGenerationStartTime(startTime);
+
             setIsGenerating(true);
             setIsLocalGenerating(true);
             onGenerationStart?.();
+
+            console.log(`🎲 Starting text generation with complexity: ${complexity}...`);
 
             const response = await fetch(
                 `${DUNGEONMIND_API_URL}/api/statblockgenerator/generate-statblock`,
@@ -63,6 +95,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
+                    signal: abortController.signal,
                     body: JSON.stringify({
                         description: generationPrompt,
                         // NO challengeRatingTarget - let LLM decide based on description
@@ -76,8 +109,14 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                 }
             );
 
+            clearTimeout(timeoutId);
+
             if (!response.ok) {
-                throw new Error(`Generation failed: ${response.statusText}`);
+                if (response.status === 504) {
+                    throw new Error('GATEWAY_TIMEOUT');
+                }
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `Server returned ${response.status}: ${response.statusText}`);
             }
 
             const payload = await response.json();
@@ -133,12 +172,44 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
 
             replaceCreatureDetails(normalizedStatblock);
 
+            // Log completion time
+            const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+            console.log(`✅ Text generation completed in ${duration}s`);
+
             onGenerationComplete?.();
-        } catch (error) {
-            console.error('Creature generation failed:', error);
+        } catch (error: any) {
+            console.error('❌ Creature generation failed:', error);
+
+            // Handle different error types with user-friendly messages
+            if (error.name === 'AbortError') {
+                setErrorAlert({
+                    type: 'warning',
+                    title: 'Generation Timeout',
+                    message: 'The AI took longer than expected to respond (over 2 minutes). Your creature may still be processing. Please try again with a simpler description, or wait a moment and check your Projects tab.'
+                });
+            } else if (error.message === 'GATEWAY_TIMEOUT') {
+                setErrorAlert({
+                    type: 'error',
+                    title: 'Server Timeout',
+                    message: 'The AI generation took too long (over 2 minutes). This usually happens with very complex creatures. Try simplifying your description or reducing optional features (spellcasting, legendary actions, lair actions).'
+                });
+            } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                setErrorAlert({
+                    type: 'error',
+                    title: 'Network Error',
+                    message: 'Unable to connect to the server. Please check your internet connection and try again.'
+                });
+            } else {
+                setErrorAlert({
+                    type: 'error',
+                    title: 'Generation Failed',
+                    message: error.message || 'An unexpected error occurred. Please try again or contact support if the problem persists.'
+                });
+            }
         } finally {
             setIsGenerating(false);
             setIsLocalGenerating(false);
+            setGenerationStartTime(null); // Clear progress tracking
         }
     }, [
         generationPrompt,
@@ -164,6 +235,19 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
 
     return (
         <Stack gap="md">
+            {/* Error Alert */}
+            {errorAlert && (
+                <Alert
+                    color={errorAlert.type === 'error' ? 'red' : 'yellow'}
+                    variant="light"
+                    title={errorAlert.title}
+                    withCloseButton
+                    onClose={() => setErrorAlert(null)}
+                >
+                    <Text size="sm">{errorAlert.message}</Text>
+                </Alert>
+            )}
+
             {/* Quick Fill Suggestions */}
             <div>
                 <Text size="sm" fw={500} mb="xs">Quick Start Ideas</Text>
@@ -239,15 +323,25 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                 {isLocalGenerating ? 'Generating Creature...' : 'Generate Creature with AI'}
             </Button>
 
+            {/* Text Generation Progress */}
+            {isLocalGenerating && generationStartTime && (
+                <TextGenerationProgress
+                    complexity={generationComplexity}
+                    startTime={generationStartTime}
+                />
+            )}
+
             {/* Help Tips */}
-            <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
-                <Text size="xs">
-                    • Be descriptive about appearance and abilities<br />
-                    • Mention habitat or environment<br />
-                    • Include special powers or unique traits<br />
-                    • Reference challenge level if you have a preference
-                </Text>
-            </Alert>
+            {!isLocalGenerating && (
+                <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+                    <Text size="xs">
+                        • Be descriptive about appearance and abilities<br />
+                        • Mention habitat or environment<br />
+                        • Include special powers or unique traits<br />
+                        • Reference challenge level if you have a preference
+                    </Text>
+                </Alert>
+            )}
         </Stack>
     );
 };
