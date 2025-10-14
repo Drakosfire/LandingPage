@@ -5,7 +5,7 @@
  * Styled to look like plain text but becomes editable on focus.
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, forwardRef } from 'react';
 
 interface EditableTextProps {
     value: string | number | undefined;
@@ -22,7 +22,7 @@ interface EditableTextProps {
     onEditChange?: () => void;
 }
 
-const EditableText: React.FC<EditableTextProps> = ({
+const EditableText = forwardRef<HTMLElement, EditableTextProps>(({
     value,
     onChange,
     isEditMode,
@@ -34,11 +34,20 @@ const EditableText: React.FC<EditableTextProps> = ({
     children,
     onEditStart,
     onEditChange,
-}) => {
+}, forwardedRef) => {
     const [localValue, setLocalValue] = useState(String(value ?? ''));
     const [isFocused, setIsFocused] = useState(false);
     const contentRef = useRef<HTMLElement>(null);
     const autoCommitTimerRef = useRef<NodeJS.Timeout | null>(null); // Phase 3: Auto-commit timer
+
+    // Merge forwarded ref with internal ref
+    useEffect(() => {
+        if (typeof forwardedRef === 'function') {
+            forwardedRef(contentRef.current);
+        } else if (forwardedRef) {
+            forwardedRef.current = contentRef.current;
+        }
+    }, [forwardedRef]);
 
     // Sync with external value changes
     useEffect(() => {
@@ -159,7 +168,9 @@ const EditableText: React.FC<EditableTextProps> = ({
             {children ?? (localValue || (!isFocused && placeholder) || '\u00A0')}
         </Component>
     );
-};
+});
+
+EditableText.displayName = 'EditableText';
 
 export default EditableText;
 

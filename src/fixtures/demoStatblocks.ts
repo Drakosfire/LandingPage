@@ -577,6 +577,45 @@ const madameLoaf: StatBlockDetails = {
 };
 
 /**
+ * Empty statblock for blank canvas state
+ */
+export const EMPTY_STATBLOCK: StatBlockDetails = {
+    name: "",
+    size: "Medium",
+    type: "beast",
+    alignment: "unaligned",
+    armorClass: 10,
+    hitPoints: 1,
+    hitDice: "1d8",
+    speed: {
+        walk: 30,
+    },
+    abilities: {
+        str: 10,
+        dex: 10,
+        con: 10,
+        int: 10,
+        wis: 10,
+        cha: 10,
+    },
+    senses: {
+        passivePerception: 10,
+    },
+    languages: "",
+    challengeRating: 0,
+    xp: 0,
+    actions: [],
+    description: "",
+    sdPrompt: "",
+};
+
+/**
+ * Tutorial demo - Empress Hermione (CR1 celestial with full features)
+ * Alias for empressHermione used in tutorial system
+ */
+export const HERMIONE_DEMO_STATBLOCK = empressHermione;
+
+/**
  * Array of all demo statblocks for random selection
  */
 export const DEMO_STATBLOCKS: StatBlockDetails[] = [

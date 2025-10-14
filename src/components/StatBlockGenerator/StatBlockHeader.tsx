@@ -149,30 +149,34 @@ const StatBlockHeader: React.FC<StatBlockHeaderProps> = ({
                     />
                 </Box>
 
-                {getSaveStatusBadge()}
-                {error && (
-                    <ActionIcon
-                        color="red"
-                        variant="light"
-                        size="md"
-                        style={{ minWidth: 36, minHeight: 36 }}
-                    >
-                        <IconAlertCircle size={16} />
-                    </ActionIcon>
-                )}
+                {isLoggedIn && (
+                    <>
+                        {getSaveStatusBadge()}
+                        {error && (
+                            <ActionIcon
+                                color="red"
+                                variant="light"
+                                size="md"
+                                style={{ minWidth: 36, minHeight: 36 }}
+                            >
+                                <IconAlertCircle size={16} />
+                            </ActionIcon>
+                        )}
 
-                <Button
-                    leftSection={<IconDeviceFloppy size={16} />}
-                    variant="light"
-                    size="sm"
-                    onClick={saveNow}
-                    loading={saveStatus === 'saving'}
-                    color={saveStatus === 'error' ? 'red' : saveStatus === 'saved' ? 'green' : 'blue'}
-                    style={{ minHeight: 38 }}
-                    data-tutorial="save-button"
-                >
-                    Save Now
-                </Button>
+                        <Button
+                            leftSection={<IconDeviceFloppy size={16} />}
+                            variant="light"
+                            size="sm"
+                            onClick={saveNow}
+                            loading={saveStatus === 'saving'}
+                            color={saveStatus === 'error' ? 'red' : saveStatus === 'saved' ? 'green' : 'blue'}
+                            style={{ minHeight: 38 }}
+                            data-tutorial="save-button"
+                        >
+                            Save Now
+                        </Button>
+                    </>
+                )}
 
                 <Menu shadow="md" width={200}>
                     <Menu.Target>

@@ -38,6 +38,16 @@ export const DUNGEONMIND_API_URL = (() => {
 export const DND_CSS_BASE_URL = (() => {
     const envUrl = process.env.REACT_APP_DND_CSS_BASE_URL?.replace(/\/$/, '');
     if (envUrl) return envUrl;
+
+    // Auto-detect based on domain for production
+    if (currentDomain === 'dungeonmind.net' || currentDomain === 'www.dungeonmind.net') {
+        return 'https://www.dungeonmind.net/dnd-static';
+    }
+    if (currentDomain === 'dev.dungeonmind.net') {
+        return 'https://dev.dungeonmind.net/dnd-static';
+    }
+
+    // Local development - use relative path
     return '/dnd-static';
 })();
 

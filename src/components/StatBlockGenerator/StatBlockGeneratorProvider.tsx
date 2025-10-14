@@ -17,9 +17,8 @@ import {
 } from '../../types/statblock.types';
 import { MeasurementCoordinator } from '../../canvas/layout/measurement';
 import { normalizeStatblock, createDefaultStatblock } from '../../utils/statblockNormalization';
-import { getRandomDemo } from '../../fixtures/demoStatblocks';
+import { getRandomDemo, EMPTY_STATBLOCK } from '../../fixtures/demoStatblocks';
 import { tutorialCookies } from '../../utils/tutorialCookies';
-import { EMPTY_STATBLOCK } from '../../constants/demoStatblock';
 
 // Context interface for StatBlockGenerator (Phase 5: Step navigation removed)
 export interface StatBlockGeneratorContextType {

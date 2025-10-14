@@ -342,32 +342,10 @@ h2#user-monster-name,
     color: #2b1d0f;
 }
 
-/* Unified edit mode - single contentEditable with styled lines */
-.dm-identity-unified-edit {
-    white-space: pre-wrap;
-    /* Preserve newlines */
-    font-family: 'BookInsanityRemake', 'NodestoCapsCondensed', serif;
-    font-size: 1rem;
-    /* Base font size for subtitle lines */
-    margin: 0;
-    line-height: 1.4;
-    /* Slightly increased for multiline readability */
-    color: #58180d;
-    background: transparent;
-    /* Ensure no white background covering text */
-    min-height: 3em;
-    /* Ensure field is visible even when empty */
-}
-
-/* First line (creature name) styled larger */
-.dm-identity-unified-edit::first-line {
-    font-size: 2.2rem;
-    letter-spacing: 0.02em;
-    font-weight: 600;
-}
-
-/* Note: CSS ::first-line has limitations - subtitle lines will be slightly smaller */
-/* This is acceptable UX - edit mode appearance can differ from view mode */
+/* Option D: Separate editable fields maintain visual consistency
+ * No special CSS needed - view mode styles apply to edit mode too
+ * EditableText component renders as <span> inside existing <h2> and <p> tags
+ */
 
 .dm-stat-summary {
     font-family: 'ScalySansRemake', 'Open Sans', sans-serif;

@@ -44,7 +44,7 @@ const MAX_PAGES = 10; // Circuit breaker to prevent infinite pagination loops
 
 let debugRunId = 0;
 
-const shouldLogPaginationDecisions = process.env.NODE_ENV !== 'production';
+const shouldLogPaginationDecisions = false; // Toggle to true for pagination debugging
 
 // Track statistics for optimization analysis
 interface PaginationStats {
@@ -982,7 +982,8 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
     }
 
     // Report stats for observability (development only)
-    if (process.env.NODE_ENV !== 'production' && paginationStats.componentsPlaced > 0) {
+    // Disabled by default - toggle shouldLogPaginationDecisions to enable
+    if (shouldLogPaginationDecisions && paginationStats.componentsPlaced > 0) {
         const total = paginationStats.heightSources.measured +
             paginationStats.heightSources.proportional +
             paginationStats.heightSources.estimate;
