@@ -29,7 +29,7 @@ export const DUNGEONMIND_API_URL = (() => {
     if (currentDomain === 'localhost') {
         return 'http://localhost:7860'; // Use local server for development
     } else {
-        return 'https://dungeonmind.net'; // Production
+        return 'https://www.dungeonmind.net'; // Production - use www to avoid Cloudflare redirect
     }
 })();
 
