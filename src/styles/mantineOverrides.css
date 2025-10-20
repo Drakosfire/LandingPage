@@ -102,3 +102,49 @@
 .mantine-Grid-col {
     transition: all 0.3s ease;
 }
+
+/* NavigationDrawer - Override Mantine's default drawer content padding */
+/* This fixes the X button alignment issue with the header DungeonMind button */
+
+/* Use highly specific selectors to beat inline styles */
+html body .mantine-Drawer-root .mantine-Drawer-inner .mantine-Drawer-content {
+    padding: 0.5rem !important;
+    max-height: none !important;
+    min-height: 100% !important;
+    /* Force full height */
+}
+
+/* Even more specific for stubborn cases */
+.mantine-Drawer-root .mantine-Drawer-inner .mantine-Drawer-content.mantine-Paper-root {
+    padding-top: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 0.5rem !important;
+    max-height: none !important;
+    min-height: 100% !important;
+}
+
+/* Ensure drawer inner container doesn't constrain height */
+html body .mantine-Drawer-root .mantine-Drawer-inner {
+    max-height: none !important;
+    min-height: 100% !important;
+    height: 100% !important;
+}
+
+/* Remove focus outlines from navigation drawer elements */
+.mantine-Drawer-root *:focus,
+.mantine-Drawer-root *:focus-visible {
+    outline: none !important;
+}
+
+/* Remove focus styles from images in drawer */
+.mantine-Drawer-root img {
+    outline: none !important;
+}
+
+/* Remove focus styles from links in drawer */
+.mantine-Drawer-root a,
+.mantine-Drawer-root a:focus,
+.mantine-Drawer-root a:focus-visible {
+    outline: none !important;
+}

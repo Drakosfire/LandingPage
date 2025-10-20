@@ -23,6 +23,7 @@ interface NavItem {
  * TODO: Put images on CDN and use the CDN URL instead of the local URL.
  */
 const NAV_ITEMS: NavItem[] = [
+    { id: 0, link: '/', icon: 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/c73e6012-aa0b-4c6f-802c-c5c81f55d100/public', label: 'Home' },
     { id: 1, link: '/#app-links', icon: 'WorldBuildingAppsButton3.png', label: 'World Building Apps' },
     { id: 2, link: '/#about-me', icon: 'AboutMeButtonv2.png', label: 'About Me' },
     { id: 3, link: '/#contact', icon: 'ContactMeButton.png', label: 'Contact Me' },
@@ -35,6 +36,7 @@ const NAV_ITEMS: NavItem[] = [
 interface NavigationDrawerProps {
     opened: boolean;
     onClose: () => void;
+    headerHeight?: string;  // Height of UnifiedHeader to position drawer correctly
 }
 
 /**
@@ -57,19 +59,23 @@ interface NavigationDrawerProps {
  */
 export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
     opened,
-    onClose
+    onClose,
+    headerHeight: propHeaderHeight
 }) => {
     // Responsive breakpoints
     const isMobile = useMediaQuery('(max-width: 768px)');
     const isTablet = useMediaQuery('(max-width: 1024px)');
 
-    // Responsive sizing
+    // Responsive sizing (matches UnifiedHeader exactly)
     const drawerWidth = isMobile ? '70px' : isTablet ? '80px' : '90px';
-    const iconSize = isMobile ? '50px' : isTablet ? '60px' : '80px';
-    const closeButtonSize = isMobile ? '32px' : '40px';
+    const iconSize = isMobile ? '60px' : isTablet ? '70px' : '80px';
+    const closeButtonSize = isMobile ? '60px' : isTablet ? '70px' : '80px';  // Match iconSize for alignment
     const closeButtonFontSize = isMobile ? '20px' : '28px';
-    const stackGap = isMobile ? 4 : 8;
-    const stackPadding = isMobile ? '2px 0' : '4px 0';
+    const stackGap = isMobile ? 2 : 2;  // Reduced gap: 0.5rem = 8px
+    const stackPadding = '0';  // No padding - icons start at top edge
+
+    // Use prop headerHeight if provided, otherwise fall back to responsive default
+    const headerHeight = propHeaderHeight || (isMobile ? '72px' : isTablet ? '82px' : '88px');
 
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
         e.currentTarget.style.display = 'none';
@@ -84,14 +90,36 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
             overlayProps={{ opacity: 0.5, blur: 4 }}
             withCloseButton={false}
             styles={{
+                inner: {
+                    // Override inner container constraints
+                    maxHeight: 'none',
+                    minHeight: '100%',
+                    height: '100%'
+                },
                 content: {
                     backgroundColor: 'var(--mantine-color-dark-7)',
                     color: 'var(--mantine-color-gray-0)',
                     borderRight: '1px solid var(--mantine-color-gray-3)',
                     boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
-                    top: '88px',
+                    top: headerHeight,
                     left: '0',
-                    height: 'calc(100vh - 88px)'
+                    height: `calc(100vh - ${headerHeight})`,
+                    maxHeight: 'none',  // Override Mantine's max-height constraint
+                    minHeight: '100%',   // Force full height
+                    // Override each padding property individually (more specific than shorthand)
+                    paddingTop: '0.5rem',
+                    paddingRight: '0.5rem',
+                    paddingBottom: '0.5rem',
+                    paddingLeft: '0.5rem'
+                },
+                body: {
+                    // Remove ALL Mantine's default padding (explicitly set each side)
+                    padding: 0,
+                    paddingTop: 0,
+                    paddingRight: 0,
+                    paddingBottom: 0,
+                    paddingLeft: 0,
+                    height: '100%'
                 }
             }}
             transitionProps={{
@@ -116,38 +144,52 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        width: '100%',
-                        marginBottom: isMobile ? '2px' : '4px'
+                        width: '100%'
                     }}
                 >
                     <Box
                         onClick={onClose}
                         style={{
                             cursor: 'pointer',
-                            color: 'var(--mantine-color-gray-0)',
-                            fontSize: closeButtonFontSize,
-                            fontWeight: 300,
-                            width: closeButtonSize,
-                            height: closeButtonSize,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             borderRadius: 'var(--mantine-radius-md)',
                             transition: 'all 0.2s ease',
-                            backgroundColor: 'transparent'
+                            outline: 'none'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
                             e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.filter = 'brightness(1.2)';
                         }}
                         onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
                             e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.filter = 'brightness(1)';
                         }}
                         aria-label="Close navigation"
                         title="Close navigation"
                     >
-                        ✕
+                        <img
+                            src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/6ea6baa9-07b3-419e-a52d-38602d360200/public"
+                            alt="Close"
+                            style={{
+                                height: closeButtonSize,
+                                objectFit: 'contain',
+                                display: 'block',
+                                cursor: 'pointer',
+                                outline: 'none'
+                            }}
+                            crossOrigin="anonymous"
+                            onLoad={() => console.log('✅ Close button image loaded successfully')}
+                            onError={(e) => {
+                                console.error('❌ Close button image failed to load, using fallback text');
+                                // Replace image with text fallback
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                    parent.innerHTML = `<span style="color: var(--mantine-color-gray-0); font-size: ${closeButtonFontSize}; font-weight: 300;">✕</span>`;
+                                }
+                            }}
+                        />
                     </Box>
                 </Box>
 
@@ -178,7 +220,8 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         borderRadius: 'var(--mantine-radius-md)',
-                                        transition: 'all 0.2s ease'
+                                        transition: 'all 0.2s ease',
+                                        outline: 'none'
                                     }
                                 }}
                                 onMouseEnter={(e) => {
@@ -192,14 +235,16 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
                                 aria-label={item.label}
                             >
                                 <img
-                                    src={`${process.env.PUBLIC_URL}/images/${item.icon}`}
+                                    src={item.icon.startsWith('http') ? item.icon : `${process.env.PUBLIC_URL}/images/${item.icon}`}
                                     alt={item.label}
                                     onError={handleImageError}
+                                    crossOrigin={item.icon.startsWith('http') ? 'anonymous' : undefined}
                                     style={{
                                         height: iconSize,
                                         objectFit: 'contain',
                                         display: 'block',
-                                        cursor: 'pointer'
+                                        cursor: 'pointer',
+                                        outline: 'none'
                                     }}
                                 />
                             </Anchor>
