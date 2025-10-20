@@ -1,7 +1,8 @@
 // StatBlockGenerator.tsx - Main StatBlock Generator Component
 // Phase 5: Single-page canvas-first layout with drawer-based generation tools
+// Phase 6 (Phase 1 of Unified Navigation): Integrated with UnifiedHeader
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import "@mantine/core/styles.css";
 import '../../styles/mantineOverrides.css';
 import '../../styles/DesignSystem.css';
@@ -10,9 +11,14 @@ import '../../styles/CardGeneratorPolish.css';
 
 import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { useAuth } from '../../context/AuthContext';
+import { STATBLOCK_APP } from '../../context/AppContext';
+import { getTemplate, DEFAULT_TEMPLATE } from '../../fixtures/templates';
+import { buildPageDocument, extractCustomData } from '../../canvas/data';
+import { exportPageToHTMLFile } from '../../canvas/export';
 
 // Import components
-import StatBlockHeader from './StatBlockHeader';
+import { UnifiedHeader } from '../UnifiedHeader';
+import { createStatBlockToolboxSections } from './statblockToolboxConfig';
 import Footer from '../Footer';
 import FunGenerationFeedback from './shared/FunGenerationFeedback';
 import StatBlockProjectsDrawer from './StatBlockProjectsDrawer';
@@ -26,12 +32,17 @@ const StatBlockGenerator: React.FC = () => {
     const { isLoggedIn } = useAuth();
     const {
         isAnyGenerationInProgress,
+        isCanvasEditMode,
         saveStatus,
         error,
         generationDrawerState,
         openGenerationDrawer,
         closeGenerationDrawer,
-        setIsCanvasEditMode
+        setIsCanvasEditMode,
+        selectedTemplateId,
+        creatureDetails,
+        selectedAssets,
+        saveNow
     } = useStatBlockGenerator();
 
     // Drawer state
@@ -47,6 +58,43 @@ const StatBlockGenerator: React.FC = () => {
     const handleTutorialComplete = () => {
         setForceTutorialRun(false);
     };
+
+    // Export handlers (moved from StatBlockHeader for UnifiedHeader integration)
+    const handleExportHTML = useCallback(() => {
+        const template = getTemplate(selectedTemplateId) ?? DEFAULT_TEMPLATE;
+        const customData = extractCustomData(selectedAssets);
+
+        const livePage = buildPageDocument({
+            template,
+            statblockData: creatureDetails,
+            customData,
+            projectId: creatureDetails.projectId,
+            ownerId: 'current-user',
+        });
+
+        exportPageToHTMLFile(livePage, template);
+    }, [selectedTemplateId, creatureDetails, selectedAssets]);
+
+    const handleExportPDF = useCallback(() => {
+        // Use browser's native print dialog
+        // For best results, users should use Firefox and select "Save as PDF"
+        const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+
+        if (!isFirefox) {
+            const proceed = window.confirm(
+                'For best PDF results, we recommend using Firefox.\n\n' +
+                'Firefox provides the most accurate rendering of the statblock layout.\n\n' +
+                'Click OK to continue with browser print, or Cancel to switch browsers.'
+            );
+
+            if (!proceed) {
+                return;
+            }
+        }
+
+        console.log('📄 Opening browser print dialog...');
+        window.print();
+    }, []);
 
     const handleTutorialOpenDrawer = () => {
         openGenerationDrawer({ tab: 'text', isTutorialMode: true });
@@ -254,6 +302,20 @@ const StatBlockGenerator: React.FC = () => {
         console.log('🎉 [Tutorial Edit] Text editing complete!');
     };
 
+    // Create toolbox sections for UnifiedHeader
+    const toolboxSections = createStatBlockToolboxSections({
+        isCanvasEditMode,
+        setIsCanvasEditMode,
+        isLoggedIn,
+        saveNow,
+        saveStatus,
+        handleExportHTML,
+        handleExportPDF,
+        openGenerationDrawer,
+        openProjectsDrawer: () => setProjectsDrawerOpen(true),
+        handleHelpTutorial
+    });
+
     return (
         <div className="generator-layout">
             {/* Tutorial Tour */}
@@ -284,18 +346,21 @@ const StatBlockGenerator: React.FC = () => {
                 initialTab={generationDrawerState.initialTab}
                 initialPrompt={generationDrawerState.initialPrompt}
                 isTutorialMode={generationDrawerState.isTutorialMode}
+                onGenerationComplete={generationDrawerState.isTutorialMode ? undefined : closeGenerationDrawer}
             />
 
-            {/* Main Content - Accounts for nav bar (80px left) */}
-            <div className="generator-main-content">
-                {/* Header - Fixed at top, right of nav bar */}
-                <StatBlockHeader
-                    onOpenProjects={() => setProjectsDrawerOpen(true)}
-                    onOpenGeneration={() => openGenerationDrawer()}
-                    onOpenHelpTutorial={handleHelpTutorial}
+            {/* Main Content - Full width with UnifiedHeader */}
+            <div className="generator-main-content" style={{ paddingLeft: 0, marginLeft: 0 }}>
+                {/* Header - UnifiedHeader with toolbox */}
+                <UnifiedHeader
+                    app={STATBLOCK_APP}
+                    toolboxSections={toolboxSections}
                     saveStatus={saveStatus}
-                    error={error}
-                    isLoggedIn={isLoggedIn}
+                    saveError={error}
+                    showProjects={true}
+                    onProjectsClick={() => setProjectsDrawerOpen(!projectsDrawerOpen)}
+                    showAuth={true}
+                    showHelp={false}
                 />
 
                 {/* Canvas - Primary Interface */}

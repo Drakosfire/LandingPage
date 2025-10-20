@@ -163,8 +163,8 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                 overlayProps={{ opacity: 0.3, blur: 2 }}
                 styles={{
                     content: {
-                        marginTop: '60px', // Below header
-                        height: 'calc(100vh - 60px)'
+                        marginTop: '88px', // Below UnifiedHeader (88px desktop height)
+                        height: 'calc(100vh - 88px)'
                     }
                 }}
             >

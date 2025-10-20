@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { Drawer, Tabs, Title, Stack, Box } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconWand, IconPhoto } from '@tabler/icons-react';
 import TextGenerationTab from './generationDrawerComponents/TextGenerationTab';
 import ImageGenerationTab from './generationDrawerComponents/ImageGenerationTab';
@@ -14,6 +15,7 @@ interface GenerationDrawerProps {
     initialTab?: 'text' | 'image'; // Control which tab opens initially
     initialPrompt?: string; // Pre-populate text generation prompt
     isTutorialMode?: boolean; // Tutorial mode flag to prevent real generation
+    onGenerationComplete?: () => void; // Callback when text generation completes
 }
 
 const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
@@ -22,9 +24,11 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
     isGenerationInProgress = false,
     initialTab = 'text',
     initialPrompt = '',
-    isTutorialMode = false
+    isTutorialMode = false,
+    onGenerationComplete
 }) => {
     const [activeTab, setActiveTab] = useState<'text' | 'image'>(initialTab);
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     // Update active tab when initialTab changes (e.g., from createProject)
     React.useEffect(() => {
@@ -42,7 +46,7 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
             title={
                 <Box data-tutorial="generation-drawer-title">
                     <Title order={4}>
-                        AI Generation
+                        {isMobile ? 'Generation' : 'AI Generation'}
                     </Title>
                 </Box>
             }
@@ -50,10 +54,10 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
             overlayProps={{ opacity: 0.3, blur: 2 }}
             styles={{
                 content: {
-                    marginTop: '60px', // Below header
-                    marginLeft: '80px', // Right of nav bar
-                    height: 'calc(100vh - 60px)',
-                    width: 'calc(100% - 80px)' // Account for nav bar width
+                    marginTop: '88px', // Below UnifiedHeader (88px desktop height)
+                    marginLeft: '0', // Full width with UnifiedHeader
+                    height: 'calc(100vh - 88px)',
+                    width: '100%' // Full width
                 }
             }}
             data-tutorial="generation-drawer"
@@ -83,6 +87,7 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
                         <TextGenerationTab
                             initialPrompt={initialPrompt}
                             isTutorialMode={isTutorialMode}
+                            onGenerationComplete={onGenerationComplete}
                         />
                     </Tabs.Panel>
 
