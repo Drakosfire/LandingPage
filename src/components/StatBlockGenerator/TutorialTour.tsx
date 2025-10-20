@@ -321,8 +321,8 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     }
 
                     // Simulate loading time
-                    console.log('⏳ [Tutorial] Simulating generation (2s)...');
-                    await new Promise(r => setTimeout(r, 2000));
+                    console.log('⏳ [Tutorial] Simulating generation (7s)...');
+                    await new Promise(r => setTimeout(r, 7000));
 
                     // Load demo statblock
                     console.log('📜 [Tutorial] Loading Hermione demo statblock');
@@ -396,9 +396,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                         console.log('✍️ [Tutorial] Editing creature name');
                         await onTutorialEditText('[data-tutorial="creature-name"]', 'Hermione the Divine Protector');
 
-                        // Wait to show the result (1 second "processing time")
-                        console.log('⏳ [Tutorial] Processing edit (1s)...');
-                        await new Promise(r => setTimeout(r, 1000));
+                        // Wait to show the result (300ms "processing time")
+                        console.log('⏳ [Tutorial] Processing edit (300ms)...');
+                        await new Promise(r => setTimeout(r, 300));
 
                         // Turn off edit mode
                         console.log('🔒 [Tutorial] Turning off edit mode');
@@ -425,17 +425,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // When user clicks "Next" on step 7 (edit mode OFF), handle image upload step
+        // When user clicks "Next" on step 7 (edit mode OFF), show image generation tab explanation
         if (index === 7 && action === 'next' && type === 'step:after') {
-            // GUEST USERS: Skip upload step (requires login) and go directly to save button (step 9)
-            if (!isLoggedIn) {
-                console.log('⏩ [Tutorial] Guest user - skipping upload step, moving to step 9');
-                setStepIndex(9);
-                return;
-            }
-
-            // LOGGED-IN USERS: Show image upload demonstration
-            console.log('📤 [Tutorial] Logged-in user - showing image upload');
+            console.log('🖼️ [Tutorial] Moving to image generation explanation');
             setRun(false); // Pause tour while opening drawer
 
             (async () => {
@@ -453,6 +445,41 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Wait for tab transition
                     await new Promise(r => setTimeout(r, 300));
 
+                    // Move to step 8 (image generation tab explanation)
+                    console.log('➡️ [Tutorial] Moving to image generation tab step');
+                    setStepIndex(8);
+                    setRun(true);
+                } catch (error) {
+                    console.error('❌ [Tutorial] Image generation step error:', error);
+                    setStepIndex(8);
+                    setRun(true);
+                }
+            })();
+            return;
+        }
+
+        // When user clicks "Next" on step 8 (image generation tab), handle upload step
+        if (index === 8 && action === 'next' && type === 'step:after') {
+            // GUEST USERS: Skip upload step (requires login) and go directly to save button (step 10)
+            if (!isLoggedIn) {
+                console.log('⏩ [Tutorial] Guest user - skipping upload step, moving to step 10');
+                setRun(false);
+
+                (async () => {
+                    onCloseGenerationDrawer?.();
+                    await new Promise(r => setTimeout(r, 300));
+                    setStepIndex(10);
+                    setRun(true);
+                })();
+                return;
+            }
+
+            // LOGGED-IN USERS: Show image upload demonstration
+            console.log('📤 [Tutorial] Logged-in user - showing image upload');
+            setRun(false);
+
+            (async () => {
+                try {
                     // Switch to upload sub-tab
                     console.log('📤 [Tutorial] Switching to Upload tab');
                     onSwitchImageTab?.('upload');
@@ -460,13 +487,12 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Wait for upload tab to render
                     await new Promise(r => setTimeout(r, 300));
 
-                    // Move to step 8 (upload zone)
+                    // Move to step 9 (upload zone)
                     console.log('➡️ [Tutorial] Moving to upload zone step');
-                    setStepIndex(8);
-                    setRun(true);
+                    setStepIndex(9);
                 } catch (error) {
-                    console.error('❌ [Tutorial] Image upload demo error:', error);
-                    setStepIndex(8);
+                    console.error('❌ [Tutorial] Upload step error:', error);
+                    setStepIndex(9);
                     setRun(true);
                 }
             })();
@@ -489,15 +515,22 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                 console.log('⬅️ [Tutorial] Back: resetting typing/checkbox demos');
                 setIsTypingDemoTriggered(false);
                 setIsCheckboxDemoTriggered(false);
-            } else if (index === 9 && !isLoggedIn) {
-                // GUEST USERS: Going back from save button (step 9) - skip step 8 and go to step 7
-                console.log('⬅️ [Tutorial] Guest user back from step 9 - skipping to step 7');
-                setStepIndex(7);
+            } else if (index === 10 && !isLoggedIn) {
+                // GUEST USERS: Going back from save button (step 10) - skip step 9 and go to step 8 (image tab), then back to step 7
+                console.log('⬅️ [Tutorial] Guest user back from step 10 - going to step 8');
+                setStepIndex(8);
+                return;
+            } else if (index === 9) {
+                // Going back from upload zone to image generation tab
+                console.log('⬅️ [Tutorial] Back: returning to image generation tab');
+                setStepIndex(8);
                 return;
             } else if (index === 8) {
-                // Going back from upload zone to edit OFF - close drawer
+                // Going back from image generation tab to edit OFF - close drawer
                 console.log('⬅️ [Tutorial] Back: closing drawer');
                 onCloseGenerationDrawer?.();
+                setStepIndex(7);
+                return;
             } else if (index === 7) {
                 // Going back from edit OFF explanation to creature name - turn edit mode ON, reset animation flag
                 console.log('⬅️ [Tutorial] Back: re-enabling edit mode');
@@ -538,9 +571,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // Update step index for normal navigation
-        // Skip steps with custom handlers: 0 (drawer open), 2 (animations), 3 (generation trigger), 4 (canvas), 6 (edit demo), 7 (image upload)
-        // Steps using normal navigation: 1, 5, 8, 9, 10...
-        if (type === 'step:after' && action === 'next' && index !== 0 && index !== 2 && index !== 3 && index !== 4 && index !== 6 && index !== 7) {
+        // Skip steps with custom handlers: 0 (drawer open), 2 (animations), 3 (generation trigger), 4 (canvas), 6 (edit demo), 7 (image generation), 8 (upload handling)
+        // Steps using normal navigation: 1, 5, 9, 10, 11, 12...
+        if (type === 'step:after' && action === 'next' && index !== 0 && index !== 2 && index !== 3 && index !== 4 && index !== 6 && index !== 7 && index !== 8) {
             console.log(`➡️ [Tutorial] Normal next: ${index} → ${index + 1}`);
             setStepIndex(index + 1);
         } else if (type === 'step:after' && action === 'prev') {

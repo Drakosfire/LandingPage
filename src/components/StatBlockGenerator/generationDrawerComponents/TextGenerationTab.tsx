@@ -4,6 +4,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { Stack, Textarea, Checkbox, Button, Loader, Text, Group, Alert, Card } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconInfoCircle, IconWand } from '@tabler/icons-react';
 import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import { normalizeStatblock } from '../../../utils/statblockNormalization';
@@ -30,6 +31,8 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
         setIsGenerating,
         setImagePrompt
     } = useStatBlockGenerator();
+
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     const [includeSpellcasting, setIncludeSpellcasting] = useState(false);
     const [includeLegendaryActions, setIncludeLegendaryActions] = useState(false);
@@ -320,7 +323,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
                 style={{ minHeight: 44 }}
                 data-tutorial="generate-button"
             >
-                {isLocalGenerating ? 'Generating Creature...' : 'Generate Creature with AI'}
+                {isLocalGenerating ? 'Generating...' : (isMobile ? 'Generate' : 'Generate Creature with AI')}
             </Button>
 
             {/* Text Generation Progress */}

@@ -2,7 +2,7 @@
 // Centralizes toolbox section definitions for UnifiedHeader integration
 
 import React from 'react';
-import { IconDeviceFloppy, IconDownload, IconFileText, IconPrinter, IconWand, IconFolder, IconHelp } from '@tabler/icons-react';
+import { IconDeviceFloppy, IconDownload, IconFileText, IconPrinter, IconHelp } from '@tabler/icons-react';
 import { ToolboxSection } from '../AppToolbox';
 import { EditModeSwitch } from './EditModeSwitch';
 
@@ -21,10 +21,6 @@ export interface StatBlockToolboxConfigProps {
     handleExportHTML: () => void;
     handleExportPDF: () => void;
 
-    // Generation & Projects
-    openGenerationDrawer: () => void;
-    openProjectsDrawer: () => void;
-
     // Help
     handleHelpTutorial: () => void;
 }
@@ -35,8 +31,9 @@ export interface StatBlockToolboxConfigProps {
  * Returns a ToolboxSection array configured with all StatBlock controls:
  * - Editing: Edit Mode toggle
  * - Actions: Save, Export (HTML/PDF)
- * - Generation: Generate, Projects
  * - Help: Tutorial
+ * 
+ * Note: Generation and Projects are now separate header buttons (not in toolbox)
  * 
  * Usage:
  * ```typescript
@@ -48,8 +45,6 @@ export interface StatBlockToolboxConfigProps {
  *   saveStatus,
  *   handleExportHTML,
  *   handleExportPDF,
- *   openGenerationDrawer,
- *   openProjectsDrawer,
  *   handleHelpTutorial
  * });
  * 
@@ -65,8 +60,6 @@ export const createStatBlockToolboxSections = (props: StatBlockToolboxConfigProp
         saveStatus,
         handleExportHTML,
         handleExportPDF,
-        openGenerationDrawer,
-        openProjectsDrawer,
         handleHelpTutorial
     } = props;
 
@@ -126,23 +119,7 @@ export const createStatBlockToolboxSections = (props: StatBlockToolboxConfigProp
             ]
         },
 
-        // Section 3: Generation
-        {
-            id: 'generation',
-            label: 'Generation',
-            controls: [
-                {
-                    id: 'generation',
-                    type: 'menu-item',
-                    label: 'Generation',
-                    icon: <IconWand size={16} />,
-                    onClick: openGenerationDrawer,
-                    color: 'violet'
-                }
-            ]
-        },
-
-        // Section 4: Help
+        // Section 3: Help
         {
             id: 'help',
             label: 'Help',

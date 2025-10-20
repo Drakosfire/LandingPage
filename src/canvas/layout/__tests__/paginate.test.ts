@@ -51,6 +51,7 @@ const runPaginate = (entries: CanvasLayoutEntry[], columnCount = 1, regionHeight
         columnCount,
         regionHeightPx,
         requestedPageCount,
+        measurements: new Map(),
     });
 };
 

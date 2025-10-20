@@ -44,7 +44,7 @@ export const tutorialSteps: Step[] = [
     },
     {
         target: '[data-tutorial="canvas-area"]',
-        content: '📜 Here\'s Hermione the All Cat! Your generated statblock appears here, fully formatted with all the legendary actions, lair actions, and spells we requested.',
+        content: '📜 Here\'s Hermione the All Cat! Your generated statblock appears here, fully formatted with all the legendary actions, lair actions, and spells we requested. Complex creatures may span multiple pages - scroll down to see everything!',
         placement: 'center',
     },
     {
@@ -69,6 +69,16 @@ export const tutorialSteps: Step[] = [
         styles: {
             tooltip: {
                 maxWidth: '320px',
+            },
+        },
+    },
+    {
+        target: '[data-tutorial="image-generation-tab"]',
+        content: '🖼️ Image Generation creates custom creature portraits using AI! Login is required to save images permanently. The placeholder image shows what your creature could look like - click the Image Generation tab to create your own!',
+        placement: 'bottom',
+        styles: {
+            tooltip: {
+                maxWidth: '360px',
             },
         },
     },

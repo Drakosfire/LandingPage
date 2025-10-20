@@ -34,7 +34,7 @@ export interface ComplexityTiming {
 export const COMPLEXITY_TIMINGS: Record<string, ComplexityTiming> = {
     'base': {
         name: 'Base Creature',
-        estimatedTime: 14114,  // Average from benchmarks: 14.1s
+        estimatedTime: 19114,  // Average from benchmarks: 14.1s + 5s buffer
         stages: [
             {
                 name: 'initializing',
@@ -55,7 +55,7 @@ export const COMPLEXITY_TIMINGS: Record<string, ComplexityTiming> = {
     },
     'legendary': {
         name: 'Legendary Creature',
-        estimatedTime: 17929,  // Average from benchmarks: 17.9s
+        estimatedTime: 22929,  // Average from benchmarks: 17.9s + 5s buffer
         stages: [
             {
                 name: 'initializing',
@@ -81,7 +81,7 @@ export const COMPLEXITY_TIMINGS: Record<string, ComplexityTiming> = {
     },
     'lair': {
         name: 'Lair Creature',
-        estimatedTime: 21677,  // Average from benchmarks: 21.7s
+        estimatedTime: 26677,  // Average from benchmarks: 21.7s + 5s buffer
         stages: [
             {
                 name: 'initializing',
@@ -112,7 +112,7 @@ export const COMPLEXITY_TIMINGS: Record<string, ComplexityTiming> = {
     },
     'spellcasting': {
         name: 'Spellcasting Creature',
-        estimatedTime: 28675,  // Average from benchmarks: 28.7s
+        estimatedTime: 33675,  // Average from benchmarks: 28.7s + 5s buffer
         stages: [
             {
                 name: 'initializing',
@@ -138,7 +138,7 @@ export const COMPLEXITY_TIMINGS: Record<string, ComplexityTiming> = {
     },
     'full': {
         name: 'Full Complexity Creature',
-        estimatedTime: 41650,  // Average from benchmarks: 41.6s
+        estimatedTime: 46650,  // Average from benchmarks: 41.6s + 5s buffer
         stages: [
             {
                 name: 'initializing',

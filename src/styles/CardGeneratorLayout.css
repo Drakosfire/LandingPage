@@ -257,11 +257,13 @@
    Generation Drawer Mobile Optimization (Phase 6)
    ============================================================================ */
 
-/* Drawer responsive adjustments */
+/* Drawer responsive adjustments - SCOPED to CardGenerator/StatBlock only */
+/* These rules DO NOT apply to NavigationDrawer */
 @media (max-width: 768px) {
 
-    /* Adjust drawer size for tablets */
-    .mantine-Drawer-content {
+    /* Adjust drawer size for tablets - only within generator layouts */
+    .card-generator-page .mantine-Drawer-content,
+    .generator-layout .mantine-Drawer-content {
         margin-left: 20px !important;
         /* Collapsed nav bar */
     }
@@ -269,8 +271,9 @@
 
 @media (max-width: 480px) {
 
-    /* Full width drawer on mobile */
-    .mantine-Drawer-content {
+    /* Full width drawer on mobile - only within generator layouts */
+    .card-generator-page .mantine-Drawer-content,
+    .generator-layout .mantine-Drawer-content {
         margin-left: 0 !important;
         margin-top: 60px !important;
         /* Keep below header */

@@ -1,6 +1,6 @@
 {
   "name": "dungeonmind",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "homepage": "",
   "private": true,
   "dependencies": {
@@ -17,8 +17,10 @@
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.7.7",
     "html2pdf.js": "^0.12.1",
+    "js-cookie": "^3.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-joyride": "^2.9.3",
     "react-markdown": "^9.0.1",
     "react-router-dom": "^6.27.0",
     "react-scripts": "^5.0.1",
@@ -66,6 +68,7 @@
     "@storybook/react": "^8.4.7",
     "@storybook/react-webpack5": "^8.4.7",
     "@storybook/test": "^8.4.7",
+    "@types/js-cookie": "^3.0.6",
     "@types/uuid": "^11.0.0",
     "eslint-plugin-storybook": "^0.11.1",
     "postcss-preset-mantine": "^1.17.0",

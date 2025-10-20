@@ -147,7 +147,7 @@ export const AppToolbox: React.FC<AppToolboxProps> = ({
     const isTablet = useMediaQuery('(max-width: 1024px)');
 
     // Responsive icon sizing - match header icon scale exactly
-    const iconSize = isMobile ? '60px' : isTablet ? '70px' : '80px';
+    const iconSize = isMobile ? '40px' : isTablet ? '70px' : '80px'; // Match UnifiedHeader sizing
 
     return (
         <Menu

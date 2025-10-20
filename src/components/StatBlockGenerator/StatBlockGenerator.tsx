@@ -311,8 +311,6 @@ const StatBlockGenerator: React.FC = () => {
         saveStatus,
         handleExportHTML,
         handleExportPDF,
-        openGenerationDrawer,
-        openProjectsDrawer: () => setProjectsDrawerOpen(true),
         handleHelpTutorial
     });
 
@@ -359,6 +357,8 @@ const StatBlockGenerator: React.FC = () => {
                     saveError={error}
                     showProjects={true}
                     onProjectsClick={() => setProjectsDrawerOpen(!projectsDrawerOpen)}
+                    showGeneration={true}
+                    onGenerationClick={() => generationDrawerState.opened ? closeGenerationDrawer() : openGenerationDrawer()}
                     showAuth={true}
                     showHelp={false}
                 />

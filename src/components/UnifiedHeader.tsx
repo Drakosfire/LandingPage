@@ -1,7 +1,7 @@
 // src/components/UnifiedHeader.tsx
 // Unified horizontal navigation header for all DungeonMind apps
 import React, { useState, useEffect, ReactNode } from 'react';
-import { Group, ActionIcon, Box, Badge } from '@mantine/core';
+import { Group, ActionIcon, Box, Badge, Title } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { IconHelp } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
@@ -32,6 +32,11 @@ export interface UnifiedHeaderProps {
     showProjects?: boolean;             // Show projects button (default: false)
     onProjectsClick?: () => void;       // Projects button click handler
     projectsIconUrl?: string;           // Custom projects icon URL
+
+    // Generation Button (optional)
+    showGeneration?: boolean;           // Show generation button (default: false)
+    onGenerationClick?: () => void;     // Generation button click handler
+    generationIconUrl?: string;         // Custom generation icon URL
 
     // Feature flags
     showAuth?: boolean;                // Show login/logout button (default: true)
@@ -102,6 +107,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
     showProjects = false,
     onProjectsClick,
     projectsIconUrl,
+    showGeneration = false,
+    onGenerationClick,
+    generationIconUrl,
     showAuth = true,
     showHelp = false,
     onHelpClick,
@@ -119,11 +127,12 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
     const isTablet = useMediaQuery('(max-width: 1024px)');
 
     // Responsive sizing (larger icons for better visibility)
-    const iconSize = isMobile ? '60px' : isTablet ? '70px' : '80px';
-    const headerHeight = isMobile ? '72px' : isTablet ? '82px' : '88px';
+    const iconSize = isMobile ? '40px' : isTablet ? '70px' : '80px'; // Much smaller on mobile
+    const centerIconSize = isMobile ? '35px' : isTablet ? '70px' : '80px'; // Even smaller center icon on mobile
+    const headerHeight = isMobile ? '60px' : isTablet ? '82px' : '88px'; // More compact on mobile
     const horizontalPadding = isMobile ? 'xs' : 'md';
     const verticalPadding = isMobile ? 2 : 4;
-    const controlGap = isMobile ? 'xs' : 'md';
+    const controlGap = isMobile ? 4 : 'md'; // Tighter spacing on mobile
 
     // Use provided app or fall back to AppContext
     const activeApp = app || currentApp;
@@ -182,7 +191,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                     borderRight: '5px solid black',
                     boxShadow: isScrolled ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none',
                     transition: 'box-shadow 0.2s ease',
-                    minHeight: headerHeight
+                    minHeight: headerHeight,
+                    display: 'flex',
+                    alignItems: 'center'
                 }}
             >
                 {/* Left Section: DM Logo → Auth Icon */}
@@ -237,22 +248,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                     )}
                 </Group>
 
-                {/* Center Section: App Icon (title text used as alt fallback) */}
+                {/* Center Section: App Icon + Name */}
                 {activeApp && (
-                    <Box
-                        style={{
-                            position: 'absolute',
-                            left: '50%',
-                            top: '0',
-                            transform: 'translateX(-50%)',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            justifyContent: 'center',
-                            paddingTop: verticalPadding
-                        }}
-                        aria-label={activeApp.name}
-                        title={activeApp.name}
-                    >
+                    <Group gap="xs" style={{ flex: 1, justifyContent: 'center' }}>
                         {activeApp.iconFallback ? (
                             activeApp.iconFallback
                         ) : (
@@ -261,12 +259,25 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                                 alt={activeApp.name}
                                 onError={handleImageError}
                                 style={{
-                                    height: iconSize,
+                                    height: centerIconSize,
                                     objectFit: 'contain'
                                 }}
                             />
                         )}
-                    </Box>
+                        {isTablet && !isMobile && (
+                            <Title
+                                order={4}
+                                style={{
+                                    color: 'white',
+                                    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+                                    fontWeight: 600,
+                                    fontSize: '16px'
+                                }}
+                            >
+                                {activeApp.name}
+                            </Title>
+                        )}
+                    </Group>
                 )}
 
                 {/* Right Section: Save Badge + Projects + App Toolbox + Right Controls + Help Button */}
@@ -309,6 +320,33 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                             <img
                                 src={projectsIconUrl || 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/6290ebea-258f-40b1-9b9b-10c29796c900/public'}
                                 alt="Projects"
+                                onError={handleImageError}
+                                style={{
+                                    height: iconSize,
+                                    objectFit: 'contain',
+                                    cursor: 'pointer'
+                                }}
+                            />
+                        </Box>
+                    )}
+
+                    {/* Generation Button (if enabled) */}
+                    {showGeneration && onGenerationClick && (
+                        <Box
+                            onClick={onGenerationClick}
+                            style={{
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'opacity 0.2s ease, filter 0.2s ease'
+                            }}
+                            aria-label="AI Generation"
+                            title="Open AI Generation"
+                        >
+                            <img
+                                src={generationIconUrl || 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/08bd0df7-2c6b-4a96-028e-b91bf1935c00/public'}
+                                alt="AI Generation"
                                 onError={handleImageError}
                                 style={{
                                     height: iconSize,

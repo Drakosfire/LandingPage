@@ -2,7 +2,6 @@
 // Adapted from CardGenerator/CoreImageGallery.tsx for creature images
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { Stack, Textarea, Button, Tabs, Loader, Image, Text, SimpleGrid, Card, Alert, Badge, Tooltip, Group, ActionIcon, Modal, Select, Box, Center } from '@mantine/core';
 import { IconSparkles, IconLock, IconLogin, IconFolderOpen, IconLibraryPhoto, IconTrash, IconUpload, IconMaximize, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
@@ -29,7 +28,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
     onGenerationStart,
     onGenerationComplete
 }) => {
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, login } = useAuth();
     const {
         selectedAssets,
         generatedContent,
@@ -636,8 +635,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                     to the CDN and associate them with your projects.
                                 </Text>
                                 <Button
-                                    component={Link}
-                                    to="/login"
+                                    onClick={login}
                                     leftSection={<IconLogin size={16} />}
                                     variant="filled"
                                     size="sm"
@@ -735,8 +733,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                     Image upload requires an account.
                                 </Text>
                                 <Button
-                                    component={Link}
-                                    to="/login"
+                                    onClick={login}
                                     leftSection={<IconLogin size={16} />}
                                     variant="filled"
                                     size="sm"
