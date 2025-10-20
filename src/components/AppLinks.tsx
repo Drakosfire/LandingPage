@@ -35,7 +35,7 @@ const AppLinks: React.FC = () => {
             </a>
             <Link to="/statblockgenerator" className="app-card">
                 <img
-                    src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/2b57f794-35fc-4380-5330-c020dd6cf200/public"
+                    src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/03b709db-7da7-42cf-a0a0-f82b40deb300/public"
                     alt="Stat Block Generator"
                     className="app-logo"
                 />
