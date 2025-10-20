@@ -1,11 +1,12 @@
 // src/App.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import '@mantine/core/styles.css';
 import { MantineProvider } from '@mantine/core';
 import { DUNGEONMIND_API_URL } from './config';
 import dungeonMindTheme from './config/mantineTheme';
 import { AuthProvider } from './context/AuthContext';
+import { AppProvider } from './context/AppContext';
 import NavBar from './components/NavBar';
 import AppLinks from './components/AppLinks';
 import AboutMe from './components/AboutMe';
@@ -18,6 +19,7 @@ import './styles/App.css';
 import CardGenerator from './components/CardGenerator/CardGenerator';
 import StatBlockGenerator from './components/StatBlockGenerator/StatBlockGenerator';
 import { StatBlockGeneratorProvider } from './components/StatBlockGenerator/StatBlockGeneratorProvider';
+import UnifiedHeaderTest from './pages/UnifiedHeaderTest';
 
 // Component to conditionally render Footer
 const ConditionalFooter: React.FC = () => {
@@ -31,6 +33,36 @@ const ConditionalFooter: React.FC = () => {
   }
 
   return <Footer />;
+};
+
+// Component to conditionally render NavBar
+const ConditionalNavBar: React.FC = () => {
+  const location = useLocation();
+  const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
+  const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
+
+  // Don't render NavBar on UnifiedHeader routes
+  if (isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute) {
+    return null;
+  }
+
+  return <NavBar />;
+};
+
+// Wrapper component to handle main-content class
+const MainContent: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
+  const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
+
+  // Remove margin-left when NavBar is hidden (UnifiedHeader routes)
+  const noMargin = isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute;
+
+  return (
+    <div className="main-content" style={noMargin ? { marginLeft: 0 } : undefined}>
+      {children}
+    </div>
+  );
 };
 
 const App: React.FC = () => {
@@ -51,36 +83,39 @@ const App: React.FC = () => {
   return (
     <MantineProvider theme={dungeonMindTheme}>
       <AuthProvider>
-        <Router>
-          <StatBlockGeneratorProvider>
-            <div className="App">
-              <NavBar />
-              <div className="main-content">
-                <Routes>
-                  <Route path="/" element={
-                    <div>
-                      <section id="app-links">
-                        <AppLinks />
-                      </section>
-                      <section id="about-me">
-                        <AboutMe />
-                      </section>
-                      <section id="about-dungeonmind">
-                        <AboutDungeonMind />
-                      </section>
-                    </div>
-                  } />
-                  <Route path="/blog" element={<BlogList />} />
-                  <Route path="/blog/:id" element={<BlogPost />} />
-                  <Route path="/ruleslawyer" element={<RulesLawyer />} />
-                  <Route path="/cardgenerator" element={<CardGenerator />} />
-                  <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
-                </Routes>
-                <ConditionalFooter />
+        <AppProvider>
+          <Router>
+            <StatBlockGeneratorProvider>
+              <div className="App">
+                <ConditionalNavBar />
+                <MainContent>
+                  <Routes>
+                    <Route path="/" element={
+                      <div>
+                        <section id="app-links">
+                          <AppLinks />
+                        </section>
+                        <section id="about-me">
+                          <AboutMe />
+                        </section>
+                        <section id="about-dungeonmind">
+                          <AboutDungeonMind />
+                        </section>
+                      </div>
+                    } />
+                    <Route path="/blog" element={<BlogList />} />
+                    <Route path="/blog/:id" element={<BlogPost />} />
+                    <Route path="/ruleslawyer" element={<RulesLawyer />} />
+                    <Route path="/cardgenerator" element={<CardGenerator />} />
+                    <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
+                    <Route path="/test-unified-header" element={<UnifiedHeaderTest />} />
+                  </Routes>
+                  <ConditionalFooter />
+                </MainContent>
               </div>
-            </div>
-          </StatBlockGeneratorProvider>
-        </Router>
+            </StatBlockGeneratorProvider>
+          </Router>
+        </AppProvider>
       </AuthProvider>
     </MantineProvider>
   );
