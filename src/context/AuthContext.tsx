@@ -60,9 +60,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error: null
     });
 
-    // Login function - redirects to OAuth
+    // Login function - redirects to OAuth with return URL
     const login = () => {
-        window.location.href = `${DUNGEONMIND_API_URL}/api/auth/login`;
+        // Store current URL to return after login
+        const currentPath = window.location.pathname + window.location.search;
+        const redirectUrl = encodeURIComponent(currentPath);
+        window.location.href = `${DUNGEONMIND_API_URL}/api/auth/login?redirect=${redirectUrl}`;
     };
 
     // Logout function
