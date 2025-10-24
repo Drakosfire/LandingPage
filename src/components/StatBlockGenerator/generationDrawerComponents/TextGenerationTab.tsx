@@ -10,6 +10,7 @@ import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import { normalizeStatblock } from '../../../utils/statblockNormalization';
 import { StatBlockDetails } from '../../../types/statblock.types';
 import { TextGenerationProgress } from './TextGenerationProgress';
+import { TutorialProgressBarSimulation } from '../TutorialProgressBarSimulation';
 import { getComplexityLevel } from '../../../constants/textGenerationTiming';
 
 interface TextGenerationTabProps {
@@ -55,12 +56,30 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
     }, [initialPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleGenerateCreature = useCallback(async () => {
-        if (!generationPrompt.trim()) return;
+        console.log('🎲 [TextGen] Generate clicked, isTutorialMode:', isTutorialMode, 'prompt:', generationPrompt.substring(0, 50));
 
-        // CRITICAL: Prevent real generation during tutorial
+        if (!generationPrompt.trim() && !isTutorialMode) {
+            console.log('⚠️ [TextGen] No prompt provided, aborting');
+            return;
+        }
+
+        // CRITICAL: Prevent real generation during tutorial BUT show progress bar for UX
         if (isTutorialMode) {
-            console.log('🎓 [Tutorial] Skipping real generation - tutorial mode active');
-            onGenerationComplete?.(); // Notify that "generation" is complete (demo will be loaded elsewhere)
+            console.log('🎓 [Tutorial] Tutorial mode ACTIVE - showing simulated progress animation (no API call)');
+            console.log('🎓 [Tutorial] Setting isLocalGenerating = true');
+
+            // Trigger the simulated progress bar
+            // TutorialProgressBarSimulation component will handle timing and completion
+            setIsLocalGenerating(true);
+            onGenerationStart?.();
+
+            console.log('🎓 [Tutorial] Progress bar should render now with data-tutorial="progress-bar"');
+
+            // Note: The TutorialProgressBarSimulation component handles:
+            // - 7 second progress animation
+            // - Setting isLocalGenerating back to false
+            // - Calling onGenerationComplete when done
+
             return;
         }
 
@@ -316,7 +335,7 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
             <Button
                 leftSection={isLocalGenerating ? <Loader size="sm" /> : <IconWand size={16} />}
                 onClick={handleGenerateCreature}
-                disabled={!generationPrompt.trim() || isLocalGenerating}
+                disabled={isTutorialMode ? false : (!generationPrompt.trim() || isLocalGenerating)}
                 loading={isLocalGenerating}
                 size="md"
                 fullWidth
@@ -327,12 +346,23 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
             </Button>
 
             {/* Text Generation Progress */}
-            {isLocalGenerating && generationStartTime && (
+            {isLocalGenerating && isTutorialMode ? (
+                // Tutorial mode: Show simulated progress bar
+                <TutorialProgressBarSimulation
+                    onComplete={() => {
+                        console.log('✅ [Tutorial] Progress animation complete');
+                        setIsLocalGenerating(false);
+                        setGenerationStartTime(null);
+                        onGenerationComplete?.(); // Notify tutorial to load demo
+                    }}
+                />
+            ) : isLocalGenerating && generationStartTime ? (
+                // Real generation: Show actual progress bar
                 <TextGenerationProgress
                     complexity={generationComplexity}
                     startTime={generationStartTime}
                 />
-            )}
+            ) : null}
 
             {/* Help Tips */}
             {!isLocalGenerating && (

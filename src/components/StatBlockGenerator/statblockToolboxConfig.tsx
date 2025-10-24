@@ -73,10 +73,12 @@ export const createStatBlockToolboxSections = (props: StatBlockToolboxConfigProp
                     id: 'edit-mode',
                     type: 'component',
                     component: (
-                        <EditModeSwitch
-                            checked={isCanvasEditMode}
-                            onChange={setIsCanvasEditMode}
-                        />
+                        <div data-tutorial="edit-mode-toggle">
+                            <EditModeSwitch
+                                checked={isCanvasEditMode}
+                                onChange={setIsCanvasEditMode}
+                            />
+                        </div>
                     )
                 }
             ]
@@ -94,13 +96,19 @@ export const createStatBlockToolboxSections = (props: StatBlockToolboxConfigProp
                     icon: <IconDeviceFloppy size={16} />,
                     onClick: saveNow,
                     disabled: !isLoggedIn || saveStatus === 'saving',
-                    color: saveStatus === 'error' ? 'red' : saveStatus === 'saved' ? 'green' : 'blue'
+                    color: saveStatus === 'error' ? 'red' : saveStatus === 'saved' ? 'green' : 'blue',
+                    dataAttributes: {
+                        'data-tutorial': 'save-button'
+                    }
                 },
                 {
                     id: 'export',
                     type: 'submenu',
                     label: 'Export',
                     icon: <IconDownload size={16} />,
+                    dataAttributes: {
+                        'data-tutorial': 'export-menu'
+                    },
                     submenuItems: [
                         {
                             id: 'export-html',
@@ -129,7 +137,13 @@ export const createStatBlockToolboxSections = (props: StatBlockToolboxConfigProp
                     type: 'menu-item',
                     label: 'Tutorial',
                     icon: <IconHelp size={16} />,
-                    onClick: handleHelpTutorial
+                    onClick: () => {
+                        console.log('🖱️ [Toolbox] Tutorial menu item clicked');
+                        handleHelpTutorial();
+                    },
+                    dataAttributes: {
+                        'data-tutorial': 'help-button'
+                    }
                 }
             ]
         }

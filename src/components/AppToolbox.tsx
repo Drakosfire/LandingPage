@@ -39,6 +39,9 @@ export interface ToolboxControl {
     // Common properties
     disabled?: boolean;
     color?: string;
+
+    // Data attributes (for testing/tutorials)
+    dataAttributes?: Record<string, string>;
 }
 
 /**
@@ -160,6 +163,7 @@ export const AppToolbox: React.FC<AppToolboxProps> = ({
         >
             <Menu.Target>
                 <Box
+                    data-tutorial="app-toolbox"
                     style={{
                         cursor: disabled ? 'not-allowed' : 'pointer',
                         display: 'flex',
@@ -231,6 +235,7 @@ export const AppToolbox: React.FC<AppToolboxProps> = ({
                                                     fontSize: isMobile ? '16px' : '14px',
                                                     padding: isMobile ? '12px 16px' : '8px 12px'
                                                 }}
+                                                {...(control.dataAttributes || {})}
                                             >
                                                 {control.label}
                                             </Menu.Item>
@@ -269,6 +274,7 @@ export const AppToolbox: React.FC<AppToolboxProps> = ({
                                             fontSize: isMobile ? '16px' : '14px',
                                             padding: isMobile ? '12px 16px' : '8px 12px'
                                         }}
+                                        {...(control.dataAttributes || {})}
                                     >
                                         {control.label}
                                     </Menu.Item>

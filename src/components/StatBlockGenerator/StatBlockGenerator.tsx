@@ -50,14 +50,24 @@ const StatBlockGenerator: React.FC = () => {
 
     // Tutorial state
     const [forceTutorialRun, setForceTutorialRun] = useState(false);
+    const [tutorialGenerationCompleteCallback, setTutorialGenerationCompleteCallback] = useState<(() => void) | null>(null);
 
     const handleHelpTutorial = () => {
+        console.log('🎓 [Tutorial] Help button clicked, forcing tutorial run');
         setForceTutorialRun(true);
     };
 
     const handleTutorialComplete = () => {
         setForceTutorialRun(false);
     };
+
+    // Tutorial generation completion handler
+    const handleTutorialGenerationComplete = useCallback(() => {
+        console.log('✅ [Tutorial] Generation simulation complete, calling tutorial callback');
+        if (tutorialGenerationCompleteCallback) {
+            tutorialGenerationCompleteCallback();
+        }
+    }, [tutorialGenerationCompleteCallback]);
 
     // Export handlers (moved from StatBlockHeader for UnifiedHeader integration)
     const handleExportHTML = useCallback(() => {
@@ -329,6 +339,7 @@ const StatBlockGenerator: React.FC = () => {
                 onTutorialEditText={handleTutorialEditText}
                 onSwitchDrawerTab={handleTutorialSwitchDrawerTab}
                 onSwitchImageTab={handleTutorialSwitchImageTab}
+                onSetGenerationCompleteCallback={setTutorialGenerationCompleteCallback}
             />
 
             {/* Projects Drawer - Phase 5: Updated to Mantine Drawer */}
@@ -344,7 +355,7 @@ const StatBlockGenerator: React.FC = () => {
                 initialTab={generationDrawerState.initialTab}
                 initialPrompt={generationDrawerState.initialPrompt}
                 isTutorialMode={generationDrawerState.isTutorialMode}
-                onGenerationComplete={generationDrawerState.isTutorialMode ? undefined : closeGenerationDrawer}
+                onGenerationComplete={generationDrawerState.isTutorialMode ? handleTutorialGenerationComplete : closeGenerationDrawer}
             />
 
             {/* Main Content - Full width with UnifiedHeader */}

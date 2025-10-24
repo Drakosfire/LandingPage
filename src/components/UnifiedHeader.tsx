@@ -305,6 +305,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                     {showProjects && (
                         <Box
                             onClick={handleProjectsClick}
+                            data-tutorial="projects-button"
                             style={{
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -334,6 +335,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                     {showGeneration && onGenerationClick && (
                         <Box
                             onClick={onGenerationClick}
+                            data-tutorial="generation-button"
                             style={{
                                 cursor: 'pointer',
                                 display: 'flex',
