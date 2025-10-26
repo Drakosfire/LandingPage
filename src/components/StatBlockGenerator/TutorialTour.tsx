@@ -75,6 +75,8 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
     // Use ref for immediate synchronous updates (no async state delay)
     const justAdvancedToStep4Ref = useRef(false);
+    const initializationStartedRef = useRef(false);
+    const autoStartInitializedRef = useRef(false);
 
     // Filter steps - only remove conditionally rendered elements (like projects button for non-logged-in users)
     const filterAvailableSteps = () => {
@@ -106,50 +108,106 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         return availableSteps;
     };
 
+    /**
+     * TUTORIAL STATE DEFINITION:
+     * ==========================
+     * A "tutorial state" is a clean slate where:
+     * 1. All drawers are closed (generation drawer, projects drawer)
+     * 2. Canvas is cleared to empty statblock (EMPTY_STATBLOCK)
+     * 3. All tutorial flags are reset (no animations triggered yet)
+     * 4. Step index is 0 (first step)
+     * 5. Tour is ready to run (run=true)
+     * 
+     * This ensures a consistent starting point regardless of what state
+     * the user was in when they initiated the tutorial.
+     */
     useEffect(() => {
         console.log('🎓 [Tutorial] useEffect triggered, forceRun:', forceRun);
-        if (forceRun) {
-            // Clear canvas for fresh tutorial start
-            console.log('🧹 [Tutorial] Clearing canvas for tutorial start');
-            replaceCreatureDetails(EMPTY_STATBLOCK);
 
-            // Filter steps when manually triggered
+        // Guard against infinite loops - only initialize once per forceRun trigger
+        if (forceRun && initializationStartedRef.current) {
+            console.log('⏭️ [Tutorial] Already initialized, skipping duplicate initialization');
+            return;
+        }
+
+        if (forceRun) {
+            initializationStartedRef.current = true; // Mark as started
+
+            // TUTORIAL STATE INITIALIZATION
+            // Reset to a clean slate for tutorial start
+            console.log('🧹 [Tutorial] Initializing clean tutorial state...');
+
+            // 1. Close all drawers
+            onCloseGenerationDrawer?.();
+            console.log('🚪 [Tutorial] Closed generation drawer');
+
+            // 2. Clear canvas (blank statblock)
+            replaceCreatureDetails(EMPTY_STATBLOCK);
+            console.log('🎨 [Tutorial] Cleared canvas to blank statblock');
+
+            // 3. Reset all tutorial flags
+            setIsTypingDemoTriggered(false);
+            setIsCheckboxDemoTriggered(false);
+            setIsGenerationDemoTriggered(false);
+            setIsEditDemoTriggered(false);
+            justAdvancedToStep4Ref.current = false;
+            console.log('🔄 [Tutorial] Reset all tutorial flags');
+
+            // 4. Filter steps when manually triggered
             const availableSteps = filterAvailableSteps();
             setSteps(availableSteps);
             setStepIndex(0);
-            setIsTypingDemoTriggered(false); // Reset typing demo flag
-            setIsCheckboxDemoTriggered(false); // Reset checkbox demo flag
-            setIsGenerationDemoTriggered(false); // Reset generation demo flag
-            setIsEditDemoTriggered(false); // Reset edit demo flag
-            justAdvancedToStep4Ref.current = false; // Reset step 4 flag
-            console.log('✅ [Tutorial] Starting tutorial, run=true');
+
+            console.log('✅ [Tutorial] Starting tutorial with clean state, run=true');
             setRun(true);
             return;
         }
 
         // Auto-start for first-time users after a delay
         const hasCompleted = tutorialCookies.hasCompletedTutorial();
-        if (!hasCompleted) {
-            const timer = setTimeout(() => {
-                // Clear canvas for fresh tutorial start
-                console.log('🧹 [Tutorial] Clearing canvas for first-time user');
-                replaceCreatureDetails(EMPTY_STATBLOCK);
+        if (!hasCompleted && !autoStartInitializedRef.current) {
+            autoStartInitializedRef.current = true; // Mark as started to prevent re-triggering
 
-                // Filter steps on auto-start
+            const timer = setTimeout(() => {
+                // TUTORIAL STATE INITIALIZATION (Auto-start)
+                // Reset to a clean slate for first-time tutorial
+                console.log('🧹 [Tutorial] Initializing clean tutorial state for first-time user...');
+
+                // 1. Close all drawers
+                onCloseGenerationDrawer?.();
+                console.log('🚪 [Tutorial] Closed generation drawer (auto-start)');
+
+                // 2. Clear canvas (blank statblock)
+                replaceCreatureDetails(EMPTY_STATBLOCK);
+                console.log('🎨 [Tutorial] Cleared canvas to blank statblock (auto-start)');
+
+                // 3. Reset all tutorial flags
+                setIsTypingDemoTriggered(false);
+                setIsCheckboxDemoTriggered(false);
+                setIsGenerationDemoTriggered(false);
+                setIsEditDemoTriggered(false);
+                justAdvancedToStep4Ref.current = false;
+
+                // 4. Filter steps on auto-start
                 const availableSteps = filterAvailableSteps();
                 setSteps(availableSteps);
                 setStepIndex(0);
-                setIsTypingDemoTriggered(false); // Reset typing demo flag
-                setIsCheckboxDemoTriggered(false); // Reset checkbox demo flag
-                setIsGenerationDemoTriggered(false); // Reset generation demo flag
-                setIsEditDemoTriggered(false); // Reset edit demo flag
-                justAdvancedToStep4Ref.current = false; // Reset step 4 flag
+
+                console.log('✅ [Tutorial] Starting tutorial with clean state (auto-start), run=true');
                 setRun(true);
             }, 1500); // 1.5s delay to let the page settle
 
             return () => clearTimeout(timer);
         }
-    }, [forceRun, replaceCreatureDetails]);
+    }, [forceRun, replaceCreatureDetails, onCloseGenerationDrawer]);
+
+    // Reset initialization flag when forceRun becomes false
+    useEffect(() => {
+        if (!forceRun) {
+            initializationStartedRef.current = false;
+            console.log('🔄 [Tutorial] Reset initialization flag (forceRun=false)');
+        }
+    }, [forceRun]);
 
     // Cleanup effect to ensure beacons are removed when tour stops
     useEffect(() => {
@@ -239,6 +297,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             setIsTutorialMockAuth(false); // DISABLE mock auth
             onSetMockAuthState?.(false); // Notify parent
             justAdvancedToStep4Ref.current = false; // Reset step 4 flag
+            autoStartInitializedRef.current = false; // Reset auto-start flag
             onCloseGenerationDrawer?.();
             onToggleEditMode?.(false); // Turn off edit mode on completion
             tutorialCookies.markTutorialCompleted();
@@ -258,6 +317,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             setIsTutorialMockAuth(false); // DISABLE mock auth
             onSetMockAuthState?.(false); // Notify parent
             justAdvancedToStep4Ref.current = false; // Reset step 4 flag
+            autoStartInitializedRef.current = false; // Reset auto-start flag
             onCloseGenerationDrawer?.();
             onToggleEditMode?.(false); // Turn off edit mode on close
             tutorialCookies.markTutorialCompleted();
@@ -587,54 +647,33 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // IMAGE_GEN_TAB → IMAGE_GEN_PROMPT: Auto-fill image prompt
+        // IMAGE_GEN_TAB → IMAGE_GEN_PROMPT: Skip typing animation (prompt auto-populated from creature sdPrompt)
         if (index === 9 && action === 'next' && type === 'step:after') {
-            console.log('📝 [Tutorial] Image gen tab intro complete, auto-filling prompt');
-            setRun(false);
+            console.log('📝 [Tutorial] Image gen tab intro complete, moving to prompt step (already auto-populated)');
 
-            (async () => {
-                try {
-                    // Auto-type image prompt
-                    const imagePrompt = 'A mystical storm grey British Shorthair cat with divine powers, glowing amber eyes, ethereal aura, fantasy digital art';
-
-                    if (onSimulateTyping) {
-                        console.log('⌨️ [Tutorial] Auto-typing image prompt...');
-                        await onSimulateTyping('[data-tutorial="image-prompt-input"]', imagePrompt);
-                        console.log('✅ [Tutorial] Image prompt typed');
-                    }
-
-                    // Wait a moment
-                    await new Promise(r => setTimeout(r, 500));
-
-                    // Move to IMAGE_GEN_PROMPT step (step 10)
-                    console.log('➡️ [Tutorial] Moving to image prompt step (step 10)');
-                    setStepIndex(10);
-                    setRun(true);
-                } catch (error) {
-                    console.error('❌ [Tutorial] Image prompt error:', error);
-                    setStepIndex(10);
-                    setRun(true);
-                }
-            })();
+            // Move directly to IMAGE_GEN_PROMPT step (step 10) - no typing needed
+            // The image prompt should already be populated from the creature's sdPrompt field
+            console.log('➡️ [Tutorial] Moving to image prompt step (step 10)');
+            setStepIndex(10);
             return;
         }
 
-        // IMAGE_GEN_BUTTON → IMAGE_GEN_RESULTS: Click generate, load mock images, show results
+        // IMAGE_GEN_BUTTON → IMAGE_GEN_RESULTS: Click generate, show progress bar, load mock images, show results
         if (index === 11 && action === 'next' && type === 'step:after') {
             console.log('🎨 [Tutorial] Clicking image generate button');
             setRun(false);
 
             (async () => {
                 try {
-                    // Click the generate button
+                    // Click the generate button (this triggers the progress bar animation)
                     if (onTutorialClickButton) {
                         console.log('🖱️ [Tutorial] Clicking image generate button');
                         await onTutorialClickButton('[data-tutorial="image-generate-button"]');
                     }
 
-                    // Wait for mock images to load and tab to switch to Project
-                    console.log('⏳ [Tutorial] Waiting for mock images to load...');
-                    await new Promise(r => setTimeout(r, 1500));
+                    // Wait for progress bar simulation to complete (~9 seconds) + buffer
+                    console.log('⏳ [Tutorial] Waiting for progress bar simulation to complete...');
+                    await new Promise(r => setTimeout(r, 9500));
 
                     // Move to IMAGE_GEN_RESULTS step (step 12)
                     console.log('➡️ [Tutorial] Moving to image results grid step (step 12)');
@@ -649,17 +688,92 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // IMAGE_SELECT → IMAGE_ON_CANVAS: Click first image to select it
-        if (index === 13 && action === 'next' && type === 'step:after') {
-            console.log('🖼️ [Tutorial] Selecting first image');
+        // IMAGE_GEN_RESULTS → MODAL_NAVIGATION: Click expand button, navigate to 4th image, explain buttons
+        if (index === 12 && action === 'next' && type === 'step:after') {
+            console.log('🔍 [Tutorial] Showing expand button and navigating to 4th image');
             setRun(false);
 
             (async () => {
                 try {
-                    // Click first image to select it
+                    // Click expand button on first image
                     if (onTutorialClickButton) {
-                        console.log('🖱️ [Tutorial] Clicking first image');
-                        await onTutorialClickButton('[data-tutorial="image-result-0"]');
+                        console.log('🖱️ [Tutorial] Clicking expand button');
+                        await onTutorialClickButton('[data-tutorial="image-expand-button"]');
+                    }
+
+                    // Wait for modal to open
+                    await new Promise(r => setTimeout(r, 800));
+
+                    // Navigate to 4th image (click next button 3 times)
+                    console.log('➡️ [Tutorial] Navigating to 4th image in modal');
+                    const nextButton = document.querySelector('[data-tutorial="modal-next-button"]');
+                    if (nextButton) {
+                        // Click next 3 times to reach image 4
+                        for (let i = 0; i < 3; i++) {
+                            await new Promise(r => setTimeout(r, 800));
+                            (nextButton as HTMLElement).click();
+                            console.log(`➡️ [Tutorial] Clicked next button ${i + 1}/3 (now at image ${i + 2})`);
+                        }
+                    }
+
+                    // Wait for user to see the 4th image
+                    await new Promise(r => setTimeout(r, 1000));
+
+                    // Move to MODAL_NAVIGATION_EXPLANATION step (step 13 - inside modal)
+                    console.log('➡️ [Tutorial] Moving to modal navigation explanation step (step 13)');
+                    setStepIndex(13);
+                    setRun(true);
+                } catch (error) {
+                    console.error('❌ [Tutorial] Expand button demo error:', error);
+                    setStepIndex(13);
+                    setRun(true);
+                }
+            })();
+            return;
+        }
+
+        // MODAL_NAVIGATION_EXPLANATION → IMAGE_SELECT: Close modal, proceed to image selection
+        if (index === 13 && action === 'next' && type === 'step:after') {
+            console.log('🚪 [Tutorial] Closing modal and proceeding to image selection');
+            setRun(false);
+
+            (async () => {
+                try {
+                    // Close modal
+                    await new Promise(r => setTimeout(r, 500));
+                    const closeButton = document.querySelector('[data-tutorial="modal-close-button"]');
+                    if (closeButton) {
+                        (closeButton as HTMLElement).click();
+                        console.log('🚪 [Tutorial] Closed modal');
+                    }
+
+                    // Wait for modal to close
+                    await new Promise(r => setTimeout(r, 400));
+
+                    // Move to IMAGE_SELECT step (step 14)
+                    console.log('➡️ [Tutorial] Moving to image select step (step 14)');
+                    setStepIndex(14);
+                    setRun(true);
+                } catch (error) {
+                    console.error('❌ [Tutorial] Modal close error:', error);
+                    setStepIndex(14);
+                    setRun(true);
+                }
+            })();
+            return;
+        }
+
+        // IMAGE_SELECT → IMAGE_ON_CANVAS: Click 3rd image to select it
+        if (index === 14 && action === 'next' && type === 'step:after') {
+            console.log('🖼️ [Tutorial] Selecting 3rd image');
+            setRun(false);
+
+            (async () => {
+                try {
+                    // Click 3rd image to select it
+                    if (onTutorialClickButton) {
+                        console.log('🖱️ [Tutorial] Clicking 3rd image');
+                        await onTutorialClickButton('[data-tutorial="image-result-2"]');
                     }
 
                     // Wait for image to be placed on canvas
@@ -671,13 +785,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
                     await new Promise(r => setTimeout(r, 400));
 
-                    // Move to IMAGE_ON_CANVAS step (step 14)
-                    console.log('➡️ [Tutorial] Moving to image on canvas step (step 14)');
-                    setStepIndex(14);
+                    // Move to IMAGE_ON_CANVAS step (step 15)
+                    console.log('➡️ [Tutorial] Moving to image on canvas step (step 15)');
+                    setStepIndex(15);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Image selection error:', error);
-                    setStepIndex(14);
+                    setStepIndex(15);
                     setRun(true);
                 }
             })();
@@ -685,7 +799,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // IMAGE_ON_CANVAS → IMAGE_DELETE: Reopen drawer to show delete button
-        if (index === 14 && action === 'next' && type === 'step:after') {
+        if (index === 15 && action === 'next' && type === 'step:after') {
             console.log('🗑️ [Tutorial] Showing delete button');
             setRun(false);
 
@@ -701,13 +815,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     onSwitchDrawerTab?.('image');
                     await new Promise(r => setTimeout(r, 300));
 
-                    // Move to IMAGE_DELETE step (step 15)
-                    console.log('➡️ [Tutorial] Moving to delete button step (step 15)');
-                    setStepIndex(15);
+                    // Move to IMAGE_DELETE step (step 16)
+                    console.log('➡️ [Tutorial] Moving to delete button step (step 16)');
+                    setStepIndex(16);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Delete demo error:', error);
-                    setStepIndex(15);
+                    setStepIndex(16);
                     setRun(true);
                 }
             })();
@@ -715,7 +829,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // IMAGE_DELETE → IMAGE_LOGIN_REMINDER: Click delete, show login reminder
-        if (index === 15 && action === 'next' && type === 'step:after') {
+        if (index === 16 && action === 'next' && type === 'step:after') {
             console.log('🗑️ [Tutorial] Clicking delete button');
             setRun(false);
 
@@ -734,9 +848,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     onCloseGenerationDrawer?.();
                     await new Promise(r => setTimeout(r, 300));
 
-                    // Move to IMAGE_LOGIN_REMINDER step (step 16)
-                    console.log('➡️ [Tutorial] Moving to login reminder step (step 16)');
-                    setStepIndex(16);
+                    // Move to IMAGE_LOGIN_REMINDER step (step 17)
+                    console.log('➡️ [Tutorial] Moving to login reminder step (step 17)');
+                    setStepIndex(17);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Delete click error:', error);

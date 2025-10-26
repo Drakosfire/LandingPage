@@ -15,6 +15,7 @@ export const TUTORIAL_STEP_NAMES = {
     IMAGE_GEN_PROMPT: 'image-gen-prompt',
     IMAGE_GEN_BUTTON: 'image-gen-button',
     IMAGE_GEN_RESULTS: 'image-gen-results',
+    MODAL_NAVIGATION: 'modal-navigation',
     IMAGE_SELECT: 'image-select',
     IMAGE_ON_CANVAS: 'image-on-canvas',
     IMAGE_DELETE: 'image-delete',
@@ -161,7 +162,7 @@ export const tutorialSteps: TutorialStep[] = [
     {
         name: TUTORIAL_STEP_NAMES.IMAGE_GEN_RESULTS,
         target: '[data-tutorial="image-results-grid"]',
-        content: '🖼️ Here are your generated images! Each generation creates 4 variations. Click any image to use it on your statblock.',
+        content: '🖼️ Here are your generated images! Each generation creates 4 variations. Watch as we use the expand button to view images full size!',
         placement: 'top',
         styles: {
             tooltip: {
@@ -170,13 +171,24 @@ export const tutorialSteps: TutorialStep[] = [
         },
     },
     {
-        name: TUTORIAL_STEP_NAMES.IMAGE_SELECT,
-        target: '[data-tutorial="image-result-0"]',
-        content: '👆 Let\'s select this image! Click to choose it as Hermione\'s portrait.',
+        name: TUTORIAL_STEP_NAMES.MODAL_NAVIGATION,
+        target: '[data-tutorial="modal-next-button"]',
+        content: '⬅️➡️ Use these navigation buttons to flip through all 4 images in full size! The counter shows which image you\'re viewing (4/4). Close the modal when you\'re done browsing.',
         placement: 'top',
         styles: {
             tooltip: {
-                maxWidth: '320px',
+                maxWidth: '340px',
+            },
+        },
+    },
+    {
+        name: TUTORIAL_STEP_NAMES.IMAGE_SELECT,
+        target: '[data-tutorial="image-result-2"]',
+        content: '🖼️ Watch as we select the 3rd image to use as Hermione\'s portrait. You can choose any image from your generated set!',
+        placement: 'top',
+        styles: {
+            tooltip: {
+                maxWidth: '340px',
             },
         },
     },

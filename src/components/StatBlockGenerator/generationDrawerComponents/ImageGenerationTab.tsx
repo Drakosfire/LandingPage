@@ -75,29 +75,37 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
     const handleGenerateImage = useCallback(async () => {
         if (!imagePrompt.trim() && !isTutorialMode) return;
 
-        // TUTORIAL MODE: Show mock images instantly (no API call)
+        // TUTORIAL MODE: Show mock images with progress bar simulation
         if (isTutorialMode && tutorialMockImages.length > 0) {
-            console.log('🎓 [Tutorial] Tutorial mode - loading mock images (no API call)');
+            console.log('🎓 [Tutorial] Tutorial mode - loading mock images (with progress bar)');
 
             setIsLocalGenerating(true);
+
+            // Track generation start time for progress bar (simulate ~9 seconds like flux-pro)
+            const startTime = Date.now();
+            setGenerationStartTime(startTime);
+
             onGenerationStart?.();
 
-            // Simulate brief loading
-            await new Promise(r => setTimeout(r, 800));
+            // Simulate realistic generation time with progress bar (9000ms to match flux-pro timing)
+            const SIMULATED_GENERATION_TIME = 9000;
+            await new Promise(r => setTimeout(r, SIMULATED_GENERATION_TIME));
 
-            // Add mock images to project
+            // Add mock images to project (marked as tutorial-only, won't persist)
             tutorialMockImages.forEach((img) => {
                 addGeneratedImage({
                     id: img.id,
                     url: img.url,
                     prompt: img.prompt,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    isTutorial: true // Flag to prevent saving to localStorage
                 });
             });
 
             console.log(`✅ [Tutorial] Loaded ${tutorialMockImages.length} mock images`);
 
             setIsLocalGenerating(false);
+            setGenerationStartTime(null); // Clear progress tracking
             setActiveTab('project'); // Switch to project tab to show images
             onGenerationComplete?.();
             return;
@@ -193,7 +201,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
             setIsLocalGenerating(false);
             setGenerationStartTime(null); // Clear progress tracking
         }
-    }, [imagePrompt, selectedModel, selectedStyle, addGeneratedImage, onGenerationStart, onGenerationComplete]);
+    }, [imagePrompt, selectedModel, selectedStyle, addGeneratedImage, onGenerationStart, onGenerationComplete, isTutorialMode, tutorialMockImages]);
 
     const handleSelectImage = useCallback((imageUrl: string, index: number) => {
         setSelectedCreatureImage(imageUrl, index);
@@ -574,6 +582,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                             size="xl"
                             variant="filled"
                             color="blue"
+                            data-tutorial="modal-prev-button"
                             style={{
                                 position: 'absolute',
                                 left: 16,
@@ -592,6 +601,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                             size="xl"
                             variant="filled"
                             color="blue"
+                            data-tutorial="modal-next-button"
                             style={{
                                 position: 'absolute',
                                 right: 16,
@@ -629,7 +639,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                 </Button>
                             )}
                         </Group>
-                        <Button variant="default" onClick={handleCloseExpandedImage}>
+                        <Button variant="default" onClick={handleCloseExpandedImage} data-tutorial="modal-close-button">
                             Close
                         </Button>
                     </Group>
@@ -899,13 +909,14 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                             : undefined
                                     }}
                                     onClick={() => handleSelectImage(img.url, index)}
-                                    data-tutorial={index === 0 ? 'image-result-0' : undefined}
+                                    data-tutorial={index === 0 ? 'image-result-0' : index === 2 ? 'image-result-2' : undefined}
                                 >
                                     {/* Expand button - top left */}
                                     <ActionIcon
                                         color="blue"
                                         variant="filled"
                                         size="md"
+                                        data-tutorial={index === 0 ? 'image-expand-button' : undefined}
                                         style={{
                                             position: 'absolute',
                                             top: 8,

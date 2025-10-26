@@ -1047,6 +1047,15 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     }, [creatureDetails]);
 
     // ============================================================================
+    // Auto-sync image prompt with creature's sdPrompt when creature changes
+    useEffect(() => {
+        // Only sync if imagePrompt is empty and creature has sdPrompt
+        if (!imagePrompt && creatureDetails.sdPrompt) {
+            console.log('🔄 [Provider] Auto-syncing image prompt from creature sdPrompt');
+            setImagePrompt(creatureDetails.sdPrompt);
+        }
+    }, [creatureDetails.sdPrompt, imagePrompt]);
+
     // Phase 3: localStorage Auto-Save
     // ============================================================================
     // NOTE: Restore is handled in lazy state initialization above (lines 144-169)
@@ -1061,10 +1070,17 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
 
         try {
             console.log('💾 [Provider] localStorage save triggered - Creature:', creatureDetails.name);
+
+            // Filter out tutorial images before saving (they shouldn't persist)
+            const imagesToSave = generatedContent.images.filter(img => !img.isTutorial);
+
             const stateSnapshot = {
                 creatureDetails,
                 selectedAssets,
-                generatedContent,
+                generatedContent: {
+                    ...generatedContent,
+                    images: imagesToSave
+                },
                 imagePrompt,
                 imageStyle,
                 imageModel,
@@ -1073,7 +1089,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             };
             const serialized = JSON.stringify(stateSnapshot);
             localStorage.setItem('statblockGenerator_state', serialized);
-            console.log(`💾 [Provider] ✅ Auto-saved to localStorage (${(serialized.length / 1024).toFixed(2)} KB, ${generatedContent.images.length} images)`);
+            console.log(`💾 [Provider] ✅ Auto-saved to localStorage (${(serialized.length / 1024).toFixed(2)} KB, ${imagesToSave.length} images, filtered ${generatedContent.images.length - imagesToSave.length} tutorial images)`);
         } catch (err) {
             console.error('💾 [Provider] ❌ Failed to save to localStorage:', err);
         }

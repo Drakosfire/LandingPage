@@ -199,6 +199,7 @@ export interface GeneratedImage {
     id: string;
     prompt?: string;
     timestamp?: string;
+    isTutorial?: boolean; // Flag to mark tutorial images that shouldn't be persisted
 }
 
 export interface Generated3DModel {
