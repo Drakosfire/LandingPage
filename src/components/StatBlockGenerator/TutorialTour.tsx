@@ -38,6 +38,8 @@ interface TutorialTourProps {
     onSwitchImageTab?: (tab: 'generate' | 'upload' | 'project' | 'library') => void;
     /** Callback to set the generation complete callback for tutorial mode */
     onSetGenerationCompleteCallback?: (callback: (() => void) | null) => void;
+    /** Callback to set mock auth state for tutorial mode */
+    onSetMockAuthState?: (enabled: boolean) => void;
 }
 
 export const TutorialTour: React.FC<TutorialTourProps> = ({
@@ -53,6 +55,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
     onSwitchDrawerTab,
     onSwitchImageTab,
     onSetGenerationCompleteCallback,
+    onSetMockAuthState,
 }) => {
     const theme = useMantineTheme();
     const { isLoggedIn } = useAuth();
@@ -68,6 +71,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
     const [isCheckboxDemoTriggered, setIsCheckboxDemoTriggered] = useState(false);
     const [isGenerationDemoTriggered, setIsGenerationDemoTriggered] = useState(false);
     const [isEditDemoTriggered, setIsEditDemoTriggered] = useState(false);
+    const [isTutorialMockAuth, setIsTutorialMockAuth] = useState(false); // Mock "logged in" state for tutorial
 
     // Use ref for immediate synchronous updates (no async state delay)
     const justAdvancedToStep4Ref = useRef(false);
@@ -232,6 +236,8 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             setIsCheckboxDemoTriggered(false); // Reset checkbox demo flag
             setIsGenerationDemoTriggered(false); // Reset generation demo flag
             setIsEditDemoTriggered(false); // Reset edit demo flag
+            setIsTutorialMockAuth(false); // DISABLE mock auth
+            onSetMockAuthState?.(false); // Notify parent
             justAdvancedToStep4Ref.current = false; // Reset step 4 flag
             onCloseGenerationDrawer?.();
             onToggleEditMode?.(false); // Turn off edit mode on completion
@@ -249,6 +255,8 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             setIsCheckboxDemoTriggered(false); // Reset checkbox demo flag
             setIsGenerationDemoTriggered(false); // Reset generation demo flag
             setIsEditDemoTriggered(false); // Reset edit demo flag
+            setIsTutorialMockAuth(false); // DISABLE mock auth
+            onSetMockAuthState?.(false); // Notify parent
             justAdvancedToStep4Ref.current = false; // Reset step 4 flag
             onCloseGenerationDrawer?.();
             onToggleEditMode?.(false); // Turn off edit mode on close
@@ -547,8 +555,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Wait for menu to close
                     await new Promise(r => setTimeout(r, 300));
 
+                    // ENABLE MOCK AUTH for image generation demo
+                    console.log('🎭 [Tutorial] Enabling mock auth state for image generation demo');
+                    setIsTutorialMockAuth(true);
+                    onSetMockAuthState?.(true);
+
                     console.log('🖼️ [Tutorial] Opening generation drawer for image generation step');
-                    // Open the generation drawer
+                    // Open the generation drawer (now with mock auth enabled)
                     onOpenGenerationDrawer?.();
 
                     // Wait for drawer to open
@@ -574,42 +587,160 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // When user clicks "Next" on step 9 (image generation tab), handle upload step
+        // IMAGE_GEN_TAB → IMAGE_GEN_PROMPT: Auto-fill image prompt
         if (index === 9 && action === 'next' && type === 'step:after') {
-            // GUEST USERS: Skip upload step (requires login) and go directly to save button (step 11)
-            if (!isLoggedIn) {
-                console.log('⏩ [Tutorial] Guest user - skipping upload step, moving to step 11');
-                setRun(false);
-
-                (async () => {
-                    onCloseGenerationDrawer?.();
-                    await new Promise(r => setTimeout(r, 300));
-                    setStepIndex(10);
-                    setRun(true);
-                })();
-                return;
-            }
-
-            // LOGGED-IN USERS: Show image upload demonstration
-            console.log('📤 [Tutorial] Logged-in user - showing image upload');
+            console.log('📝 [Tutorial] Image gen tab intro complete, auto-filling prompt');
             setRun(false);
 
             (async () => {
                 try {
-                    // Switch to upload sub-tab
-                    console.log('📤 [Tutorial] Switching to Upload tab');
-                    onSwitchImageTab?.('upload');
+                    // Auto-type image prompt
+                    const imagePrompt = 'A mystical storm grey British Shorthair cat with divine powers, glowing amber eyes, ethereal aura, fantasy digital art';
 
-                    // Wait for upload tab to render
-                    await new Promise(r => setTimeout(r, 300));
+                    if (onSimulateTyping) {
+                        console.log('⌨️ [Tutorial] Auto-typing image prompt...');
+                        await onSimulateTyping('[data-tutorial="image-prompt-input"]', imagePrompt);
+                        console.log('✅ [Tutorial] Image prompt typed');
+                    }
 
-                    // Move to step 10 (upload zone)
-                    console.log('➡️ [Tutorial] Moving to upload zone step (step 10)');
+                    // Wait a moment
+                    await new Promise(r => setTimeout(r, 500));
+
+                    // Move to IMAGE_GEN_PROMPT step (step 10)
+                    console.log('➡️ [Tutorial] Moving to image prompt step (step 10)');
                     setStepIndex(10);
                     setRun(true);
                 } catch (error) {
-                    console.error('❌ [Tutorial] Upload step error:', error);
+                    console.error('❌ [Tutorial] Image prompt error:', error);
                     setStepIndex(10);
+                    setRun(true);
+                }
+            })();
+            return;
+        }
+
+        // IMAGE_GEN_BUTTON → IMAGE_GEN_RESULTS: Click generate, load mock images, show results
+        if (index === 11 && action === 'next' && type === 'step:after') {
+            console.log('🎨 [Tutorial] Clicking image generate button');
+            setRun(false);
+
+            (async () => {
+                try {
+                    // Click the generate button
+                    if (onTutorialClickButton) {
+                        console.log('🖱️ [Tutorial] Clicking image generate button');
+                        await onTutorialClickButton('[data-tutorial="image-generate-button"]');
+                    }
+
+                    // Wait for mock images to load and tab to switch to Project
+                    console.log('⏳ [Tutorial] Waiting for mock images to load...');
+                    await new Promise(r => setTimeout(r, 1500));
+
+                    // Move to IMAGE_GEN_RESULTS step (step 12)
+                    console.log('➡️ [Tutorial] Moving to image results grid step (step 12)');
+                    setStepIndex(12);
+                    setRun(true);
+                } catch (error) {
+                    console.error('❌ [Tutorial] Image generation error:', error);
+                    setStepIndex(12);
+                    setRun(true);
+                }
+            })();
+            return;
+        }
+
+        // IMAGE_SELECT → IMAGE_ON_CANVAS: Click first image to select it
+        if (index === 13 && action === 'next' && type === 'step:after') {
+            console.log('🖼️ [Tutorial] Selecting first image');
+            setRun(false);
+
+            (async () => {
+                try {
+                    // Click first image to select it
+                    if (onTutorialClickButton) {
+                        console.log('🖱️ [Tutorial] Clicking first image');
+                        await onTutorialClickButton('[data-tutorial="image-result-0"]');
+                    }
+
+                    // Wait for image to be placed on canvas
+                    await new Promise(r => setTimeout(r, 1000));
+
+                    // Close drawer to show canvas
+                    console.log('🚪 [Tutorial] Closing drawer to show canvas');
+                    onCloseGenerationDrawer?.();
+
+                    await new Promise(r => setTimeout(r, 400));
+
+                    // Move to IMAGE_ON_CANVAS step (step 14)
+                    console.log('➡️ [Tutorial] Moving to image on canvas step (step 14)');
+                    setStepIndex(14);
+                    setRun(true);
+                } catch (error) {
+                    console.error('❌ [Tutorial] Image selection error:', error);
+                    setStepIndex(14);
+                    setRun(true);
+                }
+            })();
+            return;
+        }
+
+        // IMAGE_ON_CANVAS → IMAGE_DELETE: Reopen drawer to show delete button
+        if (index === 14 && action === 'next' && type === 'step:after') {
+            console.log('🗑️ [Tutorial] Showing delete button');
+            setRun(false);
+
+            (async () => {
+                try {
+                    // Reopen drawer
+                    console.log('📂 [Tutorial] Reopening drawer for delete demo');
+                    onOpenGenerationDrawer?.();
+
+                    await new Promise(r => setTimeout(r, 400));
+
+                    // Switch to image tab, project subtab
+                    onSwitchDrawerTab?.('image');
+                    await new Promise(r => setTimeout(r, 300));
+
+                    // Move to IMAGE_DELETE step (step 15)
+                    console.log('➡️ [Tutorial] Moving to delete button step (step 15)');
+                    setStepIndex(15);
+                    setRun(true);
+                } catch (error) {
+                    console.error('❌ [Tutorial] Delete demo error:', error);
+                    setStepIndex(15);
+                    setRun(true);
+                }
+            })();
+            return;
+        }
+
+        // IMAGE_DELETE → IMAGE_LOGIN_REMINDER: Click delete, show login reminder
+        if (index === 15 && action === 'next' && type === 'step:after') {
+            console.log('🗑️ [Tutorial] Clicking delete button');
+            setRun(false);
+
+            (async () => {
+                try {
+                    // Click delete button
+                    if (onTutorialClickButton) {
+                        console.log('🖱️ [Tutorial] Clicking delete button');
+                        await onTutorialClickButton('[data-tutorial="image-delete-button"]');
+                    }
+
+                    // Wait for delete to complete
+                    await new Promise(r => setTimeout(r, 500));
+
+                    // Close drawer
+                    onCloseGenerationDrawer?.();
+                    await new Promise(r => setTimeout(r, 300));
+
+                    // Move to IMAGE_LOGIN_REMINDER step (step 16)
+                    console.log('➡️ [Tutorial] Moving to login reminder step (step 16)');
+                    setStepIndex(16);
+                    setRun(true);
+                } catch (error) {
+                    console.error('❌ [Tutorial] Delete click error:', error);
+                    setStepIndex(16);
                     setRun(true);
                 }
             })();
@@ -693,9 +824,12 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // Update step index for normal navigation
-        // Skip steps with custom handlers: 0 (drawer open), 2 (animations), 3 (generation trigger), 4 (progress bar), 5 (canvas→skip step 6), 7 (edit demo→skip step 8), 8 (image generation), 9 (upload handling)
-        // Steps using normal navigation: 1, 6, 10, 11, 12, 13, 14...
-        if (type === 'step:after' && action === 'next' && index !== 0 && index !== 2 && index !== 3 && index !== 4 && index !== 5 && index !== 7 && index !== 8 && index !== 9) {
+        // Skip steps with custom handlers:
+        // 0 (drawer open), 2 (animations), 3 (generation trigger), 4 (progress bar), 5 (canvas→toolbox),
+        // 7 (edit demo), 8 (edit off→image), 9 (image prompt), 11 (image gen), 13 (image select), 14 (image canvas), 15 (delete)
+        // Steps using normal navigation: 1, 6, 10, 12, 16+...
+        const customHandlerSteps = [0, 2, 3, 4, 5, 7, 8, 9, 11, 13, 14, 15];
+        if (type === 'step:after' && action === 'next' && !customHandlerSteps.includes(index)) {
             console.log(`➡️ [Tutorial] Normal next: ${index} → ${index + 1}`);
             setStepIndex(index + 1);
         } else if (type === 'step:after' && action === 'prev') {

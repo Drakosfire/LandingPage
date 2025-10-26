@@ -25,6 +25,7 @@ import StatBlockProjectsDrawer from './StatBlockProjectsDrawer';
 import StatBlockGenerationDrawer from './StatBlockGenerationDrawer';
 import StatBlockCanvas from './shared/StatBlockCanvas';
 import { TutorialTour } from './TutorialTour';
+import { TUTORIAL_HERMIONE_IMAGES } from '../../fixtures/tutorialImages';
 
 // Main component (provider now in App.tsx)
 // Phase 5: Simple single-page layout with drawers
@@ -51,6 +52,7 @@ const StatBlockGenerator: React.FC = () => {
     // Tutorial state
     const [forceTutorialRun, setForceTutorialRun] = useState(false);
     const [tutorialGenerationCompleteCallback, setTutorialGenerationCompleteCallback] = useState<(() => void) | null>(null);
+    const [isTutorialMockAuth, setIsTutorialMockAuth] = useState(false); // Mock "logged in" for image gen demo
 
     const handleHelpTutorial = () => {
         console.log('🎓 [Tutorial] Help button clicked, forcing tutorial run');
@@ -59,6 +61,11 @@ const StatBlockGenerator: React.FC = () => {
 
     const handleTutorialComplete = () => {
         setForceTutorialRun(false);
+    };
+
+    const handleSetMockAuthState = (enabled: boolean) => {
+        console.log(`🎭 [Tutorial] Mock auth state: ${enabled}`);
+        setIsTutorialMockAuth(enabled);
     };
 
     // Tutorial generation completion handler
@@ -340,6 +347,7 @@ const StatBlockGenerator: React.FC = () => {
                 onSwitchDrawerTab={handleTutorialSwitchDrawerTab}
                 onSwitchImageTab={handleTutorialSwitchImageTab}
                 onSetGenerationCompleteCallback={setTutorialGenerationCompleteCallback}
+                onSetMockAuthState={handleSetMockAuthState}
             />
 
             {/* Projects Drawer - Phase 5: Updated to Mantine Drawer */}
@@ -355,6 +363,8 @@ const StatBlockGenerator: React.FC = () => {
                 initialTab={generationDrawerState.initialTab}
                 initialPrompt={generationDrawerState.initialPrompt}
                 isTutorialMode={generationDrawerState.isTutorialMode}
+                isTutorialMockAuth={isTutorialMockAuth}
+                tutorialMockImages={isTutorialMockAuth ? TUTORIAL_HERMIONE_IMAGES : []}
                 onGenerationComplete={generationDrawerState.isTutorialMode ? handleTutorialGenerationComplete : closeGenerationDrawer}
             />
 

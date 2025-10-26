@@ -6,7 +6,7 @@ import { Drawer, Tabs, Title, Stack, Box } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconWand, IconPhoto } from '@tabler/icons-react';
 import TextGenerationTab from './generationDrawerComponents/TextGenerationTab';
-import ImageGenerationTab from './generationDrawerComponents/ImageGenerationTab';
+import ImageGenerationTab, { TutorialMockImage } from './generationDrawerComponents/ImageGenerationTab';
 
 interface GenerationDrawerProps {
     opened: boolean;
@@ -15,6 +15,8 @@ interface GenerationDrawerProps {
     initialTab?: 'text' | 'image'; // Control which tab opens initially
     initialPrompt?: string; // Pre-populate text generation prompt
     isTutorialMode?: boolean; // Tutorial mode flag to prevent real generation
+    isTutorialMockAuth?: boolean; // Mock "logged in" state for tutorial
+    tutorialMockImages?: TutorialMockImage[]; // Pre-loaded images for tutorial
     onGenerationComplete?: () => void; // Callback when text generation completes
 }
 
@@ -25,6 +27,8 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
     initialTab = 'text',
     initialPrompt = '',
     isTutorialMode = false,
+    isTutorialMockAuth = false,
+    tutorialMockImages = [],
     onGenerationComplete
 }) => {
     const [activeTab, setActiveTab] = useState<'text' | 'image'>(initialTab);
@@ -92,7 +96,10 @@ const GenerationDrawer: React.FC<GenerationDrawerProps> = ({
                     </Tabs.Panel>
 
                     <Tabs.Panel value="image" pt="md">
-                        <ImageGenerationTab />
+                        <ImageGenerationTab
+                            isTutorialMockAuth={isTutorialMockAuth}
+                            tutorialMockImages={tutorialMockImages}
+                        />
                     </Tabs.Panel>
                 </Tabs>
             </Stack>

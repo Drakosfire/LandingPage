@@ -11,7 +11,14 @@ export const TUTORIAL_STEP_NAMES = {
     EDIT_TOGGLE_ON: 'edit-toggle-on',
     CREATURE_NAME: 'creature-name',
     EDIT_TOGGLE_OFF: 'edit-toggle-off',
-    IMAGE_GEN: 'image-gen',
+    IMAGE_GEN_TAB: 'image-gen-tab',
+    IMAGE_GEN_PROMPT: 'image-gen-prompt',
+    IMAGE_GEN_BUTTON: 'image-gen-button',
+    IMAGE_GEN_RESULTS: 'image-gen-results',
+    IMAGE_SELECT: 'image-select',
+    IMAGE_ON_CANVAS: 'image-on-canvas',
+    IMAGE_DELETE: 'image-delete',
+    IMAGE_LOGIN_REMINDER: 'image-login-reminder',
     UPLOAD: 'upload',
     SAVE: 'save',
     EXPORT: 'export',
@@ -119,9 +126,9 @@ export const tutorialSteps: TutorialStep[] = [
         },
     },
     {
-        name: TUTORIAL_STEP_NAMES.IMAGE_GEN,
+        name: TUTORIAL_STEP_NAMES.IMAGE_GEN_TAB,
         target: '[data-tutorial="image-generation-tab"]',
-        content: '🖼️ Image Generation creates custom creature portraits using AI! ⚠️ IMPORTANT: You must be logged in to generate and save images. The placeholder shows what your creature could look like - create an account to unlock this feature!',
+        content: '🖼️ Image Generation creates custom creature portraits using AI! Let\'s walk through how it works. For this demo, we\'ll pretend you\'re logged in to show the full process.',
         placement: 'bottom',
         styles: {
             tooltip: {
@@ -130,13 +137,79 @@ export const tutorialSteps: TutorialStep[] = [
         },
     },
     {
-        name: TUTORIAL_STEP_NAMES.UPLOAD,
-        target: '[data-tutorial="upload-zone"]',
-        content: '📤 Upload your own images to customize your statblock! All uploaded images are stored permanently in your library. ⚠️ Login required for this feature. (Note: This step is only shown for logged-in users)',
+        name: TUTORIAL_STEP_NAMES.IMAGE_GEN_PROMPT,
+        target: '[data-tutorial="image-prompt-input"]',
+        content: '✍️ Describe the image you want. We\'ve auto-filled a description based on Hermione! You can include style preferences like "digital art" or "realistic".',
         placement: 'top',
         styles: {
             tooltip: {
                 maxWidth: '360px',
+            },
+        },
+    },
+    {
+        name: TUTORIAL_STEP_NAMES.IMAGE_GEN_BUTTON,
+        target: '[data-tutorial="image-generate-button"]',
+        content: '🎨 Click Generate to create 4 AI images! In the real app, this takes about 30-60 seconds. For the tutorial, we\'ll show instant results.',
+        placement: 'top',
+        styles: {
+            tooltip: {
+                maxWidth: '360px',
+            },
+        },
+    },
+    {
+        name: TUTORIAL_STEP_NAMES.IMAGE_GEN_RESULTS,
+        target: '[data-tutorial="image-results-grid"]',
+        content: '🖼️ Here are your generated images! Each generation creates 4 variations. Click any image to use it on your statblock.',
+        placement: 'top',
+        styles: {
+            tooltip: {
+                maxWidth: '360px',
+            },
+        },
+    },
+    {
+        name: TUTORIAL_STEP_NAMES.IMAGE_SELECT,
+        target: '[data-tutorial="image-result-0"]',
+        content: '👆 Let\'s select this image! Click to choose it as Hermione\'s portrait.',
+        placement: 'top',
+        styles: {
+            tooltip: {
+                maxWidth: '320px',
+            },
+        },
+    },
+    {
+        name: TUTORIAL_STEP_NAMES.IMAGE_ON_CANVAS,
+        target: '[data-tutorial="canvas-area"]',
+        content: '✨ Perfect! The image now appears on your statblock (look for the portrait at the top). You can generate new images anytime or upload your own.',
+        placement: 'right',
+        styles: {
+            tooltip: {
+                maxWidth: '340px',
+            },
+        },
+    },
+    {
+        name: TUTORIAL_STEP_NAMES.IMAGE_DELETE,
+        target: '[data-tutorial="image-delete-button"]',
+        content: '🗑️ See that red delete button in the Project tab? You can click it to remove images. Let\'s click it now to show how easy it is!',
+        placement: 'top',
+        styles: {
+            tooltip: {
+                maxWidth: '340px',
+            },
+        },
+    },
+    {
+        name: TUTORIAL_STEP_NAMES.IMAGE_LOGIN_REMINDER,
+        target: 'body',
+        content: '⚠️ IMPORTANT: Image generation requires a free account! This demo showed the process, but you\'ll need to log in to actually generate and save images. Create your account to unlock this powerful feature!',
+        placement: 'center',
+        styles: {
+            tooltip: {
+                maxWidth: '400px',
             },
         },
     },

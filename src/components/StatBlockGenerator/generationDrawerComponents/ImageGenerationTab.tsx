@@ -10,9 +10,17 @@ import { useAuth } from '../../../context/AuthContext';
 import { buildFullPrompt, getStyleOptions, ImageStyle } from '../../../constants/imageStyles';
 import { ImageGenerationProgress } from './ImageGenerationProgress';
 
+export interface TutorialMockImage {
+    id: string;
+    url: string;
+    prompt: string;
+}
+
 interface ImageGenerationTabProps {
     onGenerationStart?: () => void;
     onGenerationComplete?: () => void;
+    isTutorialMockAuth?: boolean; // Mock "logged in" state for tutorial
+    tutorialMockImages?: TutorialMockImage[]; // Pre-loaded images for tutorial demo
 }
 
 interface LibraryImage {
@@ -26,9 +34,15 @@ interface LibraryImage {
 
 const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
     onGenerationStart,
-    onGenerationComplete
+    onGenerationComplete,
+    isTutorialMockAuth = false,
+    tutorialMockImages = []
 }) => {
     const { isLoggedIn, login } = useAuth();
+
+    // Use mock auth during tutorial to show full UI
+    const effectiveLoggedIn = isLoggedIn || isTutorialMockAuth;
+    const isTutorialMode = isTutorialMockAuth && tutorialMockImages.length > 0;
     const {
         selectedAssets,
         generatedContent,
@@ -59,7 +73,35 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
     const [expandedImageContext, setExpandedImageContext] = useState<'project' | 'library'>('project');
 
     const handleGenerateImage = useCallback(async () => {
-        if (!imagePrompt.trim()) return;
+        if (!imagePrompt.trim() && !isTutorialMode) return;
+
+        // TUTORIAL MODE: Show mock images instantly (no API call)
+        if (isTutorialMode && tutorialMockImages.length > 0) {
+            console.log('🎓 [Tutorial] Tutorial mode - loading mock images (no API call)');
+
+            setIsLocalGenerating(true);
+            onGenerationStart?.();
+
+            // Simulate brief loading
+            await new Promise(r => setTimeout(r, 800));
+
+            // Add mock images to project
+            tutorialMockImages.forEach((img) => {
+                addGeneratedImage({
+                    id: img.id,
+                    url: img.url,
+                    prompt: img.prompt,
+                    timestamp: new Date().toISOString()
+                });
+            });
+
+            console.log(`✅ [Tutorial] Loaded ${tutorialMockImages.length} mock images`);
+
+            setIsLocalGenerating(false);
+            setActiveTab('project'); // Switch to project tab to show images
+            onGenerationComplete?.();
+            return;
+        }
 
         // Clear previous error
         setErrorMessage(null);
@@ -599,7 +641,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                     <Tabs.Tab value="generate" leftSection={<IconSparkles size={16} />}>
                         Generate
                     </Tabs.Tab>
-                    {isLoggedIn && (
+                    {effectiveLoggedIn && (
                         <Tabs.Tab
                             value="upload"
                             leftSection={<IconUpload size={16} />}
@@ -611,7 +653,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                     <Tabs.Tab value="project" leftSection={<IconFolderOpen size={16} />}>
                         Project ({generatedContent.images.length})
                     </Tabs.Tab>
-                    {isLoggedIn && (
+                    {effectiveLoggedIn && (
                         <Tabs.Tab
                             value="library"
                             leftSection={<IconLibraryPhoto size={16} />}
@@ -622,7 +664,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                 </Tabs.List>
 
                 <Tabs.Panel value="generate" pt="md">
-                    {!isLoggedIn ? (
+                    {!effectiveLoggedIn ? (
                         <Alert
                             icon={<IconLock size={16} />}
                             color="orange"
@@ -663,6 +705,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                 maxRows={10}
                                 autosize
                                 disabled={isLocalGenerating}
+                                data-tutorial="image-prompt-input"
                             />
 
                             <Select
@@ -682,6 +725,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                 fullWidth
                                 size="md"
                                 style={{ minHeight: 44 }}
+                                data-tutorial="image-generate-button"
                             >
                                 {isLocalGenerating ? 'Generating Images...' : 'Generate Images (4x)'}
                             </Button>
@@ -720,8 +764,8 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                 </Tabs.Panel>
 
                 {/* Upload Tab - Drag & Drop or Browse (Login Required) */}
-                <Tabs.Panel value="upload" pt="md">
-                    {!isLoggedIn ? (
+                <Tabs.Panel value="upload" pt="md" data-tutorial="upload-zone">
+                    {!effectiveLoggedIn ? (
                         <Alert
                             icon={<IconLock size={16} />}
                             color="yellow"
@@ -840,6 +884,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                             cols={{ base: 1, xs: 1, sm: 2, md: 2, lg: 2 }}
                             spacing={{ base: 'xs', sm: 'sm' }}
                             verticalSpacing={{ base: 'xs', sm: 'sm' }}
+                            data-tutorial="image-results-grid"
                         >
                             {generatedContent.images.map((img, index) => (
                                 <Card
@@ -854,6 +899,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                             : undefined
                                     }}
                                     onClick={() => handleSelectImage(img.url, index)}
+                                    data-tutorial={index === 0 ? 'image-result-0' : undefined}
                                 >
                                     {/* Expand button - top left */}
                                     <ActionIcon
@@ -879,6 +925,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                         color="red"
                                         variant="filled"
                                         size="md"
+                                        data-tutorial={index === 0 ? 'image-delete-button' : undefined}
                                         style={{
                                             position: 'absolute',
                                             top: 8,
