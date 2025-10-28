@@ -222,7 +222,7 @@ export const AppToolbox: React.FC<AppToolboxProps> = ({
                             } else if (control.type === 'submenu' && control.submenuItems) {
                                 // Render as nested submenu
                                 return (
-                                    <Menu key={control.id} trigger="hover" openDelay={100} closeDelay={200}>
+                                    <Menu key={control.id} trigger="click" openDelay={100} closeDelay={200}>
                                         <Menu.Target>
                                             <Menu.Item
                                                 leftSection={control.icon}

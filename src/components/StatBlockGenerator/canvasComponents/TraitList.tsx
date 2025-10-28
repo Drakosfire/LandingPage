@@ -17,6 +17,16 @@ const TraitList: React.FC<CanvasComponentProps> = ({ regionContent, regionOverfl
     const componentId = 'trait-list'; // Stable ID for this component
 
     // Phase 2.5: Edit handlers (must be defined before early return)
+    const handleEditComplete = useCallback(() => {
+        if (hasChanges) {
+            // Data already saved to local state via updateTrait
+            // Now release lock to trigger measurements
+            releaseComponentLock(componentId);
+            setIsEditing(false);
+            setHasChanges(false);
+        }
+    }, [hasChanges, releaseComponentLock]);
+
     const handleEditStart = useCallback(() => {
         if (!isEditing && isEditMode) {
             setIsEditing(true);
@@ -36,17 +46,7 @@ const TraitList: React.FC<CanvasComponentProps> = ({ regionContent, regionOverfl
         editTimerRef.current = setTimeout(() => {
             handleEditComplete();
         }, 2000);
-    }, []);
-
-    const handleEditComplete = useCallback(() => {
-        if (hasChanges) {
-            // Data already saved to local state via updateTrait
-            // Now release lock to trigger measurements
-            releaseComponentLock(componentId);
-            setIsEditing(false);
-            setHasChanges(false);
-        }
-    }, [hasChanges, releaseComponentLock]);
+    }, [handleEditComplete]);
 
     // Cleanup on unmount
     useEffect(() => {

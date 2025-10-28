@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Progress, Stack, Text, Group, Badge } from '@mantine/core';
+import { Progress, Stack, Text, Group } from '@mantine/core';
 import { IconSparkles } from '@tabler/icons-react';
 import { MODEL_TIMINGS, getEstimatedTime } from '../../../constants/generationTiming';
 

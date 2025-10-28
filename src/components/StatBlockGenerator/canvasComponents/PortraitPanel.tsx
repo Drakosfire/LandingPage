@@ -36,6 +36,7 @@ const PortraitPanel: React.FC<CanvasComponentProps> = ({ dataRef, dataSources, l
                 alt={isPlaceholder ? "Portrait placeholder" : "Creature portrait"}
                 onError={handleImageError}
                 style={imageStyle}
+                data-tutorial="creature-portrait"
             />
         </p>
     );

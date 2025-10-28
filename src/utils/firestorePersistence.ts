@@ -1,7 +1,5 @@
-import { CardGeneratorState, RenderedCard, GeneratedImage } from '../types/card.types';
+import { CardGeneratorState } from '../types/card.types';
 import { DUNGEONMIND_API_URL } from '../config';
-
-const STORAGE_VERSION = '1.0.0';
 
 // Generate unique session ID
 export const generateSessionId = (): string => {

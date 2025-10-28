@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Joyride, { CallBackProps, STATUS, Step, Styles } from 'react-joyride';
-import { useMantineTheme } from '@mantine/core';
+import { useMantineTheme, Modal, Button, Text, Group, Stack, ThemeIcon } from '@mantine/core';
+import { IconCheck, IconSparkles, IconArrowRight } from '@tabler/icons-react';
 import {
     tutorialSteps,
+    GUEST_TUTORIAL_STEPS,
+    LOGGEDIN_TUTORIAL_STEPS,
     TUTORIAL_STEP_NAMES,
     getStepIndex,
     getStepName,
@@ -12,7 +15,29 @@ import { tutorialCookies } from '../../utils/tutorialCookies';
 import { HERMIONE_DEMO_STATBLOCK, EMPTY_STATBLOCK } from '../../fixtures/demoStatblocks';
 import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { useAuth } from '../../context/AuthContext';
+import { createChunkHandlerExecutor, getCurrentChunk } from '../../tutorial/utils/chunkUtilities';
+import type { TutorialCallbacks } from '../../tutorial/chunks';
 
+/**
+ * ============================================
+ * TUTORIAL DEBUG UTILITIES (Browser Console)
+ * ============================================
+ * 
+ * Available commands:
+ *   window.__TUTORIAL_DEBUG__.jumpToChunk('IMAGE_GENERATION');  // Jump to image gen chunk
+ *   window.__TUTORIAL_DEBUG__.jumpToChunk('WELCOME');
+ *   window.__TUTORIAL_DEBUG__.jumpToChunk('TEXT_GENERATION');
+ *   window.__TUTORIAL_DEBUG__.jumpToChunk('EDITING');
+ *   window.__TUTORIAL_DEBUG__.jumpToChunk('COMPLETION');
+ * 
+ *   window.__TUTORIAL_DEBUG__.jumpToStep('image-gen-tab');      // Jump to specific step
+ *   window.__TUTORIAL_DEBUG__.currentChunk();                   // Log current chunk
+ *   window.__TUTORIAL_DEBUG__.currentStep();                    // Log current step
+ *   window.__TUTORIAL_DEBUG__.currentTotalSteps();              // Log total steps for current user type
+ *   window.__TUTORIAL_DEBUG__.listChunks();                     // List all chunks
+ *   window.__TUTORIAL_DEBUG__.enableMockAuth();                 // Enable mock auth
+ *   window.__TUTORIAL_DEBUG__.disableMockAuth();                // Disable mock auth
+ */
 interface TutorialTourProps {
     /** Force the tutorial to run (e.g., from help button) */
     forceRun?: boolean;
@@ -72,40 +97,24 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
     const [isGenerationDemoTriggered, setIsGenerationDemoTriggered] = useState(false);
     const [isEditDemoTriggered, setIsEditDemoTriggered] = useState(false);
     const [isTutorialMockAuth, setIsTutorialMockAuth] = useState(false); // Mock "logged in" state for tutorial
+    const [showCompletionModal, setShowCompletionModal] = useState(false); // Completion popup state
 
     // Use ref for immediate synchronous updates (no async state delay)
     const justAdvancedToStep4Ref = useRef(false);
     const initializationStartedRef = useRef(false);
     const autoStartInitializedRef = useRef(false);
+    const onCloseGenerationDrawerRef = useRef(onCloseGenerationDrawer);
 
-    // Filter steps - only remove conditionally rendered elements (like projects button for non-logged-in users)
-    const filterAvailableSteps = () => {
-        // List of selectors that are conditionally rendered and should be checked
-        const conditionalSelectors = [
-            '[data-tutorial="save-button"]', // Only visible when logged in
-            '[data-tutorial="projects-button"]', // Only visible when logged in
-        ];
+    // Update ref when prop changes
+    useEffect(() => {
+        onCloseGenerationDrawerRef.current = onCloseGenerationDrawer;
+    }, [onCloseGenerationDrawer]);
 
-        const availableSteps = tutorialSteps.filter(step => {
-            const target = typeof step.target === 'string' ? step.target : '';
-            if (!target) return true; // Keep steps without specific targets
-
-            // Only check conditionally rendered elements
-            if (!conditionalSelectors.includes(target)) {
-                return true; // Keep all other steps (they'll appear when needed, like drawer content)
-            }
-
-            // For conditional elements, check if they exist
-            const element = document.querySelector(target);
-            const exists = element !== null;
-            if (!exists) {
-                console.log(`⏭️ Skipping step - element not available: ${target}`);
-            }
-            return exists;
-        });
-
-        console.log(`📋 Tutorial: ${availableSteps.length}/${tutorialSteps.length} steps available`);
-        return availableSteps;
+    // Simple list lookup - no more complex filtering!
+    const getTutorialSteps = () => {
+        const tutorialList = isLoggedIn ? LOGGEDIN_TUTORIAL_STEPS : GUEST_TUTORIAL_STEPS;
+        console.log(`📋 Tutorial: ${tutorialList.length} steps for ${isLoggedIn ? 'logged in' : 'guest'} user`);
+        return tutorialList;
     };
 
     /**
@@ -124,21 +133,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
     useEffect(() => {
         console.log('🎓 [Tutorial] useEffect triggered, forceRun:', forceRun);
 
-        // Guard against infinite loops - only initialize once per forceRun trigger
-        if (forceRun && initializationStartedRef.current) {
-            console.log('⏭️ [Tutorial] Already initialized, skipping duplicate initialization');
-            return;
-        }
-
         if (forceRun) {
-            initializationStartedRef.current = true; // Mark as started
-
             // TUTORIAL STATE INITIALIZATION
             // Reset to a clean slate for tutorial start
             console.log('🧹 [Tutorial] Initializing clean tutorial state...');
 
             // 1. Close all drawers
-            onCloseGenerationDrawer?.();
+            onCloseGenerationDrawerRef.current?.();
             console.log('🚪 [Tutorial] Closed generation drawer');
 
             // 2. Clear canvas (blank statblock)
@@ -153,28 +154,41 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             justAdvancedToStep4Ref.current = false;
             console.log('🔄 [Tutorial] Reset all tutorial flags');
 
-            // 4. Filter steps when manually triggered
-            const availableSteps = filterAvailableSteps();
-            setSteps(availableSteps);
+            // 4. Get steps for user type when manually triggered
+            const tutorialSteps = getTutorialSteps();
+            setSteps(tutorialSteps);
+
+            // Initialize at step 0
             setStepIndex(0);
 
             console.log('✅ [Tutorial] Starting tutorial with clean state, run=true');
-            setRun(true);
+
+            // Start the tour
+            setTimeout(() => {
+                setRun(true);
+            }, 100);
             return;
         }
 
         // Auto-start for first-time users after a delay
+        // Only run if tutorial hasn't been manually started
         const hasCompleted = tutorialCookies.hasCompletedTutorial();
-        if (!hasCompleted && !autoStartInitializedRef.current) {
+        if (!forceRun && !hasCompleted && !autoStartInitializedRef.current) {
             autoStartInitializedRef.current = true; // Mark as started to prevent re-triggering
 
             const timer = setTimeout(() => {
+                // Check if tutorial was manually started while we were waiting
+                if (initializationStartedRef.current) {
+                    console.log('⏭️ [Tutorial] Manual start occurred, skipping auto-start initialization');
+                    return;
+                }
+
                 // TUTORIAL STATE INITIALIZATION (Auto-start)
                 // Reset to a clean slate for first-time tutorial
                 console.log('🧹 [Tutorial] Initializing clean tutorial state for first-time user...');
 
                 // 1. Close all drawers
-                onCloseGenerationDrawer?.();
+                onCloseGenerationDrawerRef.current?.();
                 console.log('🚪 [Tutorial] Closed generation drawer (auto-start)');
 
                 // 2. Clear canvas (blank statblock)
@@ -188,26 +202,26 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                 setIsEditDemoTriggered(false);
                 justAdvancedToStep4Ref.current = false;
 
-                // 4. Filter steps on auto-start
-                const availableSteps = filterAvailableSteps();
-                setSteps(availableSteps);
+                // 4. Get steps for user type on auto-start
+                const tutorialSteps = getTutorialSteps();
+                setSteps(tutorialSteps);
                 setStepIndex(0);
 
                 console.log('✅ [Tutorial] Starting tutorial with clean state (auto-start), run=true');
+
+                // Debug: Check if first step target exists
+                const firstStepTarget = document.querySelector('[data-tutorial="generation-button"]');
+                console.log('🎯 [Tutorial] First step target exists? (auto-start)', !!firstStepTarget, firstStepTarget);
+
                 setRun(true);
             }, 1500); // 1.5s delay to let the page settle
 
-            return () => clearTimeout(timer);
+            return () => {
+                console.log('🔄 [Tutorial] Auto-start timer cleanup');
+                clearTimeout(timer);
+            };
         }
-    }, [forceRun, replaceCreatureDetails, onCloseGenerationDrawer]);
-
-    // Reset initialization flag when forceRun becomes false
-    useEffect(() => {
-        if (!forceRun) {
-            initializationStartedRef.current = false;
-            console.log('🔄 [Tutorial] Reset initialization flag (forceRun=false)');
-        }
-    }, [forceRun]);
+    }, [forceRun, replaceCreatureDetails]);
 
     // Cleanup effect to ensure beacons are removed when tour stops
     useEffect(() => {
@@ -244,6 +258,37 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             // Note: The actual animation is triggered by the callback handler when user clicks Next
         }
     }, [stepIndex, run, isEditDemoTriggered]);
+
+    /**
+     * Create a wrapped chunk handler executor with all callbacks available through closure
+     * This allows chunk handlers to call tutorial callbacks without circular dependencies
+     */
+    const chunkCallbacks: TutorialCallbacks = {
+        onOpenGenerationDrawer,
+        onCloseGenerationDrawer,
+        onToggleEditMode,
+        onSimulateTyping,
+        onTutorialCheckbox,
+        onTutorialClickButton,
+        onTutorialEditText,
+        onSwitchDrawerTab,
+        onSwitchImageTab,
+        onSetGenerationCompleteCallback,
+        onSetMockAuthState,
+    };
+
+    /**
+     * Execute a chunk handler if one exists for the current step
+     * This is called from handleJoyrideCallback to delegate to chunk-specific logic
+     */
+    const executeChunkHandler = async (stepName: string | undefined, callbackProps: CallBackProps) => {
+        if (!stepName) {
+            return;
+        }
+
+        const executor = createChunkHandlerExecutor(chunkCallbacks);
+        await executor(stepName, callbackProps);
+    };
 
     const handleJoyrideCallback = (data: CallBackProps) => {
         const { status, index, action, type, lifecycle } = data;
@@ -285,6 +330,14 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
         console.log(`📚 [Tutorial] Callback - Step ${index + 1}, Action: ${action}, Type: ${type}, Status: ${status}`);
 
+        // Debug: Log when tour starts
+        if (type === 'tour:start' && status === 'running') {
+            const target = steps[index]?.target;
+            console.log('🎯 [Tutorial] Tour started! Looking for target:', target);
+            const element = typeof target === 'string' ? document.querySelector(target) : null;
+            console.log('🎯 [Tutorial] Target element exists?', !!element, element);
+        }
+
         // PRIORITY: Check for completion FIRST before any other logic
         if (finishedStatuses.includes(status)) {
             console.log('✅ Tutorial completed! Status:', status);
@@ -298,10 +351,21 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             onSetMockAuthState?.(false); // Notify parent
             justAdvancedToStep4Ref.current = false; // Reset step 4 flag
             autoStartInitializedRef.current = false; // Reset auto-start flag
-            onCloseGenerationDrawer?.();
             onToggleEditMode?.(false); // Turn off edit mode on completion
             tutorialCookies.markTutorialCompleted();
             console.log('🍪 Tutorial cookie set');
+
+            // Clear canvas and open text generation drawer for user to start creating
+            console.log('🧹 [Tutorial] Setting up clean state for user to start creating');
+            replaceCreatureDetails(EMPTY_STATBLOCK);
+
+            // Wait for canvas to clear, then open generation drawer
+            setTimeout(() => {
+                console.log('📝 [Tutorial] Opening text generation drawer - ready to create!');
+                onOpenGenerationDrawer?.();
+                onSwitchDrawerTab?.('text');
+            }, 500);
+
             onComplete?.();
             return;
         }
@@ -318,11 +382,28 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             onSetMockAuthState?.(false); // Notify parent
             justAdvancedToStep4Ref.current = false; // Reset step 4 flag
             autoStartInitializedRef.current = false; // Reset auto-start flag
-            onCloseGenerationDrawer?.();
+            onCloseGenerationDrawerRef.current?.();
             onToggleEditMode?.(false); // Turn off edit mode on close
             tutorialCookies.markTutorialCompleted();
             onComplete?.();
             return;
+        }
+
+        /**
+         * NEW: Chunk Handler Delegation (Phase 3)
+         * =======================================
+         * Execute chunk handlers for the current step
+         * This is the new architecture: delegate to chunks instead of monolithic callback
+         * 
+         * The handler will have access to all callbacks through closure,
+         * and can call them as needed. Current handlers just log, but this
+         * pattern enables sophisticated behavior in the future.
+         */
+        const currentStepName = getStepName(index);
+        if (currentStepName && type === 'step:after' && action === 'next') {
+            executeChunkHandler(currentStepName, data).catch(error => {
+                console.error('❌ Error in chunk handler:', error);
+            });
         }
 
         // WELCOME → DRAWER: User clicked Next, open the generation drawer
@@ -477,7 +558,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
                     // Close drawer
                     console.log('🚪 [Tutorial] Closing generation drawer');
-                    onCloseGenerationDrawer?.();
+                    onCloseGenerationDrawerRef.current?.();
 
                     // Wait for drawer close animation
                     await new Promise(r => setTimeout(r, 300));
@@ -496,6 +577,52 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                 }
             })();
 
+            return;
+        }
+
+        // IMAGE_LOGIN_REMINDER → Tutorial Complete: Execute final completion sequence
+        if (index === 16 && action === 'next' && type === 'step:after') {
+            console.log('🎉 [Tutorial] Congratulations step complete, executing final completion sequence');
+
+            // Pause the tour
+            setRun(false);
+            console.log('⏸️ [Tutorial] Tour paused at final step');
+
+            // Execute completion sequence with delays to ensure proper state transitions
+            setTimeout(() => {
+                console.log('✅ [Tutorial] Executing completion sequence...');
+
+                // 1. Disable mock auth
+                setIsTutorialMockAuth(false);
+                onSetMockAuthState?.(false);
+                console.log('🔓 [Tutorial] Mock auth disabled');
+
+                // 2. Reset step index
+                setStepIndex(0);
+                console.log('🔄 [Tutorial] Step index reset to 0');
+
+                // 3. Reset all tutorial flags
+                setIsTypingDemoTriggered(false);
+                setIsCheckboxDemoTriggered(false);
+                setIsGenerationDemoTriggered(false);
+                setIsEditDemoTriggered(false);
+                justAdvancedToStep4Ref.current = false;
+                autoStartInitializedRef.current = false;
+                onToggleEditMode?.(false);
+                console.log('🔄 [Tutorial] All tutorial flags reset');
+
+                // 4. Mark tutorial as completed
+                tutorialCookies.markTutorialCompleted();
+                console.log('🍪 [Tutorial] Tutorial marked as completed in cookies');
+
+                // 5. Clear canvas and prepare for user to create independently
+                console.log('🧹 [Tutorial] Setting up clean state for independent creation');
+                replaceCreatureDetails(EMPTY_STATBLOCK);
+
+                // 6. Show completion modal
+                console.log('🎊 [Tutorial] Showing completion modal');
+                setShowCompletionModal(true);
+            }, 400);
             return;
         }
 
@@ -719,6 +846,17 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Wait for user to see the 4th image
                     await new Promise(r => setTimeout(r, 1000));
 
+                    // Highlight the previous button since we're at the last image
+                    console.log('🔍 [Tutorial] Highlighting previous button for navigation explanation');
+                    const prevButton = document.querySelector('[data-tutorial="modal-prev-button"]');
+                    if (prevButton) {
+                        // Add highlighting class to make it clear which button to use
+                        (prevButton as HTMLElement).style.border = '2px solid #228be6';
+                        (prevButton as HTMLElement).style.borderRadius = '4px';
+                        (prevButton as HTMLElement).style.backgroundColor = 'rgba(34, 139, 230, 0.1)';
+                        console.log('✨ [Tutorial] Previous button highlighted');
+                    }
+
                     // Move to MODAL_NAVIGATION_EXPLANATION step (step 13 - inside modal)
                     console.log('➡️ [Tutorial] Moving to modal navigation explanation step (step 13)');
                     setStepIndex(13);
@@ -739,6 +877,22 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
             (async () => {
                 try {
+                    // Remove highlighting from navigation buttons before closing
+                    console.log('🧹 [Tutorial] Removing button highlighting before closing modal');
+                    const prevButton = document.querySelector('[data-tutorial="modal-prev-button"]');
+                    const nextButton = document.querySelector('[data-tutorial="modal-next-button"]');
+
+                    if (prevButton) {
+                        (prevButton as HTMLElement).style.border = '';
+                        (prevButton as HTMLElement).style.borderRadius = '';
+                        (prevButton as HTMLElement).style.backgroundColor = '';
+                    }
+                    if (nextButton) {
+                        (nextButton as HTMLElement).style.border = '';
+                        (nextButton as HTMLElement).style.borderRadius = '';
+                        (nextButton as HTMLElement).style.backgroundColor = '';
+                    }
+
                     // Close modal
                     await new Promise(r => setTimeout(r, 500));
                     const closeButton = document.querySelector('[data-tutorial="modal-close-button"]');
@@ -770,6 +924,31 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
             (async () => {
                 try {
+                    // Highlight the 3rd image before selecting it
+                    console.log('🔍 [Tutorial] Highlighting 3rd image for selection');
+                    const thirdImage = document.querySelector('[data-tutorial="image-result-2"]');
+                    if (thirdImage) {
+                        // Scroll the image into view first
+                        thirdImage.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                            inline: 'center'
+                        });
+                        console.log('📜 [Tutorial] Scrolled to 3rd image');
+
+                        // Wait for scroll to complete
+                        await new Promise(r => setTimeout(r, 500));
+
+                        // Then highlight the image
+                        (thirdImage as HTMLElement).style.border = '3px solid #228be6';
+                        (thirdImage as HTMLElement).style.borderRadius = '8px';
+                        (thirdImage as HTMLElement).style.boxShadow = '0 0 0 2px rgba(34, 139, 230, 0.3)';
+                        console.log('✨ [Tutorial] 3rd image highlighted');
+                    }
+
+                    // Wait a moment for user to see the highlighting
+                    await new Promise(r => setTimeout(r, 1000));
+
                     // Click 3rd image to select it
                     if (onTutorialClickButton) {
                         console.log('🖱️ [Tutorial] Clicking 3rd image');
@@ -781,14 +960,70 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
                     // Close drawer to show canvas
                     console.log('🚪 [Tutorial] Closing drawer to show canvas');
-                    onCloseGenerationDrawer?.();
+                    onCloseGenerationDrawerRef.current?.();
 
-                    await new Promise(r => setTimeout(r, 400));
+                    // Wait for drawer close animation AND canvas to settle
+                    await new Promise(r => setTimeout(r, 600));
 
-                    // Move to IMAGE_ON_CANVAS step (step 15)
-                    console.log('➡️ [Tutorial] Moving to image on canvas step (step 15)');
-                    setStepIndex(15);
-                    setRun(true);
+                    // Wait for canvas element to be fully positioned before showing spotlight
+                    const waitForCanvasReady = () => {
+                        const canvasElement = document.querySelector('[data-tutorial="canvas-area"]');
+                        if (canvasElement) {
+                            const rect = canvasElement.getBoundingClientRect();
+                            const height = rect.height;
+                            const width = rect.width;
+                            // Check if element exists AND has been measured (has dimensions)
+                            if (height > 100 && width > 100) {
+                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 15`);
+                                setStepIndex(15);
+                                setTimeout(() => setRun(true), 100);
+                                return;
+                            }
+                        }
+                        // Log detailed diagnostics
+                        if (canvasElement) {
+                            const rect = canvasElement.getBoundingClientRect();
+                            console.log(`⏳ [Tutorial] Canvas exists but not ready yet: ${rect.width}x${rect.height}px`);
+                        } else {
+                            console.log('⏳ [Tutorial] Canvas element not found yet');
+                        }
+                        setTimeout(waitForCanvasReady, 50);
+                    };
+
+                    // Add safety timeout (5 seconds max wait)
+                    const maxWaitTimeout = setTimeout(() => {
+                        console.warn('⚠️ [Tutorial] Canvas positioning timeout - proceeding anyway');
+                        setStepIndex(15);
+                        setTimeout(() => setRun(true), 100);
+                    }, 5000);
+
+                    // Enhanced polling with cleanup
+                    const originalWaitForCanvasReady = waitForCanvasReady;
+                    const wrappedWait = () => {
+                        const canvasElement = document.querySelector('[data-tutorial="canvas-area"]');
+                        if (canvasElement) {
+                            const rect = canvasElement.getBoundingClientRect();
+                            const height = rect.height;
+                            const width = rect.width;
+                            if (height > 100 && width > 100) {
+                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 15`);
+                                clearTimeout(maxWaitTimeout);
+                                setStepIndex(15);
+                                setTimeout(() => setRun(true), 100);
+                                return;
+                            }
+                        }
+                        // Log detailed diagnostics
+                        if (canvasElement) {
+                            const rect = canvasElement.getBoundingClientRect();
+                            console.log(`⏳ [Tutorial] Canvas exists but not ready yet: ${rect.width}x${rect.height}px`);
+                        } else {
+                            console.log('⏳ [Tutorial] Canvas element not found yet');
+                        }
+                        setTimeout(wrappedWait, 50);
+                    };
+
+                    wrappedWait();
                 } catch (error) {
                     console.error('❌ [Tutorial] Image selection error:', error);
                     setStepIndex(15);
@@ -798,66 +1033,149 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // IMAGE_ON_CANVAS → IMAGE_DELETE: Reopen drawer to show delete button
+        // IMAGE_ON_CANVAS → Completion/IMAGE_LOGIN_REMINDER: Begin exit/completion flow
         if (index === 15 && action === 'next' && type === 'step:after') {
-            console.log('🗑️ [Tutorial] Showing delete button');
+            console.log('🎉 [Tutorial] Canvas step complete, transitioning to exit flow');
+
+            // Pause the tour
             setRun(false);
+            console.log('⏸️ [Tutorial] Tour paused');
 
-            (async () => {
-                try {
-                    // Reopen drawer
-                    console.log('📂 [Tutorial] Reopening drawer for delete demo');
-                    onOpenGenerationDrawer?.();
+            // For guests: step 15 is the last step, show completion
+            // For logged-in: move to step 16 (IMAGE_LOGIN_REMINDER) for congratulations screen
+            if (!isLoggedIn) {
+                console.log('👤 [Tutorial] Guest user - showing completion at step 15');
+                // Execute completion sequence immediately for guests
+                setTimeout(() => {
+                    console.log('✅ [Tutorial] Executing completion sequence (guest)...');
 
-                    await new Promise(r => setTimeout(r, 400));
+                    // Reset state
+                    setStepIndex(0);
+                    setIsTypingDemoTriggered(false);
+                    setIsCheckboxDemoTriggered(false);
+                    setIsGenerationDemoTriggered(false);
+                    setIsEditDemoTriggered(false);
+                    justAdvancedToStep4Ref.current = false;
+                    autoStartInitializedRef.current = false;
+                    onToggleEditMode?.(false);
+                    console.log('🔄 [Tutorial] All tutorial flags reset');
 
-                    // Switch to image tab, project subtab
-                    onSwitchDrawerTab?.('image');
-                    await new Promise(r => setTimeout(r, 300));
+                    // Mark tutorial as completed
+                    tutorialCookies.markTutorialCompleted();
+                    console.log('🍪 [Tutorial] Tutorial marked as completed in cookies');
 
-                    // Move to IMAGE_DELETE step (step 16)
-                    console.log('➡️ [Tutorial] Moving to delete button step (step 16)');
-                    setStepIndex(16);
-                    setRun(true);
-                } catch (error) {
-                    console.error('❌ [Tutorial] Delete demo error:', error);
-                    setStepIndex(16);
-                    setRun(true);
-                }
-            })();
+                    // Clear canvas and prepare for user to create independently
+                    console.log('🧹 [Tutorial] Setting up clean state for independent creation');
+                    replaceCreatureDetails(EMPTY_STATBLOCK);
+
+                    // Show completion modal
+                    console.log('🎊 [Tutorial] Showing completion modal');
+                    setShowCompletionModal(true);
+                }, 400);
+                return;
+            }
+
+            // For logged-in users: proceed to step 16 (IMAGE_LOGIN_REMINDER)
+            setTimeout(() => {
+                console.log('➡️ [Tutorial] Moving to IMAGE_LOGIN_REMINDER step (step 16) - begin exit flow');
+                setStepIndex(16);
+                setRun(true);
+            }, 400);
             return;
         }
 
-        // IMAGE_DELETE → IMAGE_LOGIN_REMINDER: Click delete, show login reminder
+
+        // IMAGE_LOGIN_REMINDER → SAVE: Congratulations and quicksave info, move to save button
         if (index === 16 && action === 'next' && type === 'step:after') {
-            console.log('🗑️ [Tutorial] Clicking delete button');
+            console.log('🎉 [Tutorial] Exit flow - congratulations step complete, moving to SAVE button');
+
             setRun(false);
+            console.log('⏸️ [Tutorial] Tour paused');
 
-            (async () => {
-                try {
-                    // Click delete button
-                    if (onTutorialClickButton) {
-                        console.log('🖱️ [Tutorial] Clicking delete button');
-                        await onTutorialClickButton('[data-tutorial="image-delete-button"]');
-                    }
-
-                    // Wait for delete to complete
-                    await new Promise(r => setTimeout(r, 500));
-
-                    // Close drawer
-                    onCloseGenerationDrawer?.();
-                    await new Promise(r => setTimeout(r, 300));
-
-                    // Move to IMAGE_LOGIN_REMINDER step (step 17)
-                    console.log('➡️ [Tutorial] Moving to login reminder step (step 17)');
+            // Move to SAVE button step (step 17) - only logged-in users see this
+            if (isLoggedIn) {
+                setTimeout(() => {
+                    console.log('➡️ [Tutorial] Moving to SAVE button step (step 17)');
                     setStepIndex(17);
                     setRun(true);
-                } catch (error) {
-                    console.error('❌ [Tutorial] Delete click error:', error);
-                    setStepIndex(16);
+                }, 400);
+            } else {
+                // For guests: step 17 (SAVE) is filtered out, move directly to step 18 (HELP)
+                console.log('👤 [Tutorial] Guest user - skipping SAVE button, moving to HELP button (step 18)');
+                setTimeout(() => {
+                    setStepIndex(18);
                     setRun(true);
-                }
-            })();
+                }, 400);
+            }
+            return;
+        }
+
+        // SAVE → HELP: Show where to save, move to help button
+        if (index === 17 && action === 'next' && type === 'step:after') {
+            console.log('💾 [Tutorial] SAVE button step complete, moving to HELP button');
+
+            setRun(false);
+            console.log('⏸️ [Tutorial] Tour paused');
+
+            // Move to HELP button step (step 18)
+            setTimeout(() => {
+                console.log('➡️ [Tutorial] Moving to HELP button step (step 18)');
+                setStepIndex(18);
+                setRun(true);
+            }, 400);
+            return;
+        }
+
+        // HELP → Complete: Show where tutorial button is, then complete
+        if (index === 18 && action === 'next' && type === 'step:after') {
+            console.log('❓ [Tutorial] HELP button step complete, executing tutorial completion');
+
+            // Pause the tour
+            setRun(false);
+            console.log('⏸️ [Tutorial] Tour paused at final step');
+
+            // Execute completion sequence
+            setTimeout(() => {
+                console.log('✅ [Tutorial] Executing completion sequence...');
+
+                // 1. Disable mock auth
+                setIsTutorialMockAuth(false);
+                onSetMockAuthState?.(false);
+                console.log('🔓 [Tutorial] Mock auth disabled');
+
+                // 2. Reset step index
+                setStepIndex(0);
+                console.log('🔄 [Tutorial] Step index reset to 0');
+
+                // 3. Reset all tutorial flags
+                setIsTypingDemoTriggered(false);
+                setIsCheckboxDemoTriggered(false);
+                setIsGenerationDemoTriggered(false);
+                setIsEditDemoTriggered(false);
+                justAdvancedToStep4Ref.current = false;
+                autoStartInitializedRef.current = false;
+                onToggleEditMode?.(false);
+                console.log('🔄 [Tutorial] All tutorial flags reset');
+
+                // 4. Mark tutorial as completed
+                tutorialCookies.markTutorialCompleted();
+                console.log('🍪 [Tutorial] Tutorial marked as completed in cookies');
+
+                // 5. Clear canvas and prepare for user to create independently
+                console.log('🧹 [Tutorial] Setting up clean state for independent creation');
+                replaceCreatureDetails(EMPTY_STATBLOCK);
+
+                // 6. Wait for canvas to clear, then open generation drawer on text tab
+                setTimeout(() => {
+                    console.log('📝 [Tutorial] Opening text generation drawer on text tab');
+                    onOpenGenerationDrawer?.();
+                    onSwitchDrawerTab?.('text');
+                }, 500);
+
+                // 7. Notify parent that tutorial is complete
+                onComplete?.();
+                console.log('✅ [Tutorial] Completion callback executed');
+            }, 400);
             return;
         }
 
@@ -866,7 +1184,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             if (index === 1) {
                 // Going back from drawer to generation button - close drawer
                 console.log('⬅️ [Tutorial] Back: closing drawer');
-                onCloseGenerationDrawer?.();
+                onCloseGenerationDrawerRef.current?.();
             } else if (index === 2) {
                 // Going back from text generation tab - reset typing/checkbox flags for potential replay
                 console.log('⬅️ [Tutorial] Back: resetting typing/checkbox demos');
@@ -894,7 +1212,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             } else if (index === 9) {
                 // Going back from image generation tab to edit OFF - close drawer
                 console.log('⬅️ [Tutorial] Back: closing drawer');
-                onCloseGenerationDrawer?.();
+                onCloseGenerationDrawerRef.current?.();
                 setStepIndex(8);
                 return;
             } else if (index === 8) {
@@ -940,9 +1258,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         // Update step index for normal navigation
         // Skip steps with custom handlers:
         // 0 (drawer open), 2 (animations), 3 (generation trigger), 4 (progress bar), 5 (canvas→toolbox),
-        // 7 (edit demo), 8 (edit off→image), 9 (image prompt), 11 (image gen), 13 (image select), 14 (image canvas), 15 (delete)
-        // Steps using normal navigation: 1, 6, 10, 12, 16+...
-        const customHandlerSteps = [0, 2, 3, 4, 5, 7, 8, 9, 11, 13, 14, 15];
+        // 7 (edit demo), 8 (edit off→image), 9 (image prompt), 11 (image gen), 13 (image select), 14 (image canvas→select), 15 (canvas→completion), 16 (completion)
+        // Steps using normal navigation: 1, 6, 10, 12
+        const customHandlerSteps = [0, 2, 3, 4, 5, 7, 8, 9, 11, 13, 14, 15, 16, 17, 18];
         if (type === 'step:after' && action === 'next' && !customHandlerSteps.includes(index)) {
             console.log(`➡️ [Tutorial] Normal next: ${index} → ${index + 1}`);
             setStepIndex(index + 1);
@@ -985,31 +1303,252 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         },
     };
 
+    /**
+     * DEBUG MODE: Jump to a specific tutorial chunk
+     * Usage in browser console:
+     *   window.__TUTORIAL_DEBUG__.jumpToChunk('IMAGE_GENERATION');
+     *   window.__TUTORIAL_DEBUG__.jumpToStep('image-gen-tab');
+     */
+    useEffect(() => {
+        (window as any).__TUTORIAL_DEBUG__ = {
+            jumpToChunk: (chunkName: string) => {
+                console.log(`🚀 [DEBUG] Jumping to chunk: ${chunkName}`);
+
+                // Map chunk names to their first step
+                const chunkFirstSteps: Record<string, string> = {
+                    'WELCOME': TUTORIAL_STEP_NAMES.WELCOME,
+                    'TEXT_GENERATION': TUTORIAL_STEP_NAMES.TEXT_TAB,
+                    'EDITING': TUTORIAL_STEP_NAMES.CANVAS,
+                    'IMAGE_GENERATION': TUTORIAL_STEP_NAMES.IMAGE_GEN_TAB,
+                    'COMPLETION': TUTORIAL_STEP_NAMES.IMAGE_LOGIN_REMINDER,
+                };
+
+                const targetStepName = chunkFirstSteps[chunkName];
+                if (!targetStepName) {
+                    console.error(`❌ Unknown chunk: ${chunkName}`);
+                    return;
+                }
+
+                // Get the step index for this step name
+                const targetStepIndex = getStepIndex(targetStepName);
+                if (targetStepIndex === -1) {
+                    console.error(`❌ Step not found: ${targetStepName}`);
+                    return;
+                }
+
+                console.log(`✅ [DEBUG] Jumping to step ${targetStepIndex} (${targetStepName})`);
+
+                // For IMAGE_GENERATION chunk, we need to set up the state first
+                if (chunkName === 'IMAGE_GENERATION') {
+                    console.log('🔧 [DEBUG] Setting up state for IMAGE_GENERATION chunk...');
+                    // Load Hermione edited state (already has edited name)
+                    replaceCreatureDetails(HERMIONE_DEMO_STATBLOCK);
+                    // Close drawer initially
+                    onCloseGenerationDrawer?.();
+                    // Disable edit mode
+                    onToggleEditMode?.(false);
+                    // Enable mock auth for image generation
+                    setIsTutorialMockAuth(true);
+                    onSetMockAuthState?.(true);
+                    console.log('✅ [DEBUG] State setup complete');
+
+                    // Wait a moment for state to settle, then open drawer with image tab
+                    setTimeout(() => {
+                        console.log('🖼️ [DEBUG] Opening generation drawer for image tab');
+                        // Open the generation drawer
+                        onOpenGenerationDrawer?.();
+
+                        // Wait for drawer to open, then switch to image tab
+                        setTimeout(() => {
+                            console.log('🖼️ [DEBUG] Switching to image generation tab');
+                            onSwitchDrawerTab?.('image');
+
+                            // Wait for tab switch, then start the tour
+                            setTimeout(() => {
+                                console.log('🎬 [DEBUG] Starting tour at IMAGE_GENERATION chunk');
+                                setStepIndex(targetStepIndex);
+                                setTimeout(() => {
+                                    setRun(true);
+                                }, 100);
+                            }, 300); // Tab transition
+                        }, 400); // Drawer open animation
+                    }, 200); // State settle
+                    return;
+                }
+
+                // Jump to step
+                setStepIndex(targetStepIndex);
+
+                // Start tour
+                setTimeout(() => {
+                    setRun(true);
+                }, 300);
+            },
+
+            jumpToStep: (stepName: string) => {
+                console.log(`🚀 [DEBUG] Jumping to step: ${stepName}`);
+                const targetStepIndex = getStepIndex(stepName);
+                if (targetStepIndex === -1) {
+                    console.error(`❌ Step not found: ${stepName}`);
+                    return;
+                }
+                console.log(`✅ [DEBUG] Jumping to step ${targetStepIndex}`);
+                setStepIndex(targetStepIndex);
+                setTimeout(() => setRun(true), 300);
+            },
+
+            currentChunk: () => {
+                const chunk = getCurrentChunk(stepIndex, tutorialSteps);
+                console.log('📖 Current Chunk:', chunk?.name || 'None');
+                return chunk;
+            },
+
+            currentStep: () => {
+                const stepName = getStepName(stepIndex);
+                console.log(`📍 Current Step: ${stepIndex} (${stepName})`);
+                return stepName;
+            },
+
+            listChunks: () => {
+                console.log('📚 Available Chunks:');
+                console.log('  - WELCOME');
+                console.log('  - TEXT_GENERATION');
+                console.log('  - EDITING');
+                console.log('  - IMAGE_GENERATION');
+                console.log('  - COMPLETION');
+            },
+
+            enableMockAuth: () => {
+                console.log('🎭 [DEBUG] Enabling mock auth');
+                setIsTutorialMockAuth(true);
+                onSetMockAuthState?.(true);
+            },
+
+            disableMockAuth: () => {
+                console.log('🔓 [DEBUG] Disabling mock auth');
+                setIsTutorialMockAuth(false);
+                onSetMockAuthState?.(false);
+            },
+
+            currentTotalSteps: () => {
+                const tutorialList = isLoggedIn ? LOGGEDIN_TUTORIAL_STEPS : GUEST_TUTORIAL_STEPS;
+                console.log(`📊 Total steps for user: ${tutorialList.length}`);
+                return tutorialList.length;
+            },
+        };
+
+        return () => {
+            delete (window as any).__TUTORIAL_DEBUG__;
+        };
+    }, [stepIndex, tutorialSteps, setStepIndex, setRun, setIsTutorialMockAuth,
+        onCloseGenerationDrawer, onToggleEditMode, onSetMockAuthState, replaceCreatureDetails]);
+
     return (
-        <Joyride
-            key={`tutorial-${stepIndex}`}
-            steps={steps}
-            run={run}
-            stepIndex={stepIndex}
-            continuous
-            showProgress
-            showSkipButton
-            callback={handleJoyrideCallback}
-            styles={joyrideStyles}
-            locale={{
-                back: 'Back',
-                close: 'Close',
-                last: 'Finish',
-                next: 'Next',
-                skip: 'Skip Tutorial',
-            }}
-            floaterProps={{
-                disableAnimation: false,
-            }}
-            scrollOffset={100}
-            disableOverlayClose
-            spotlightClicks
-        />
+        <>
+            <Joyride
+                key={`tutorial-${stepIndex}`}
+                steps={steps}
+                run={run}
+                stepIndex={stepIndex}
+                continuous
+                showProgress
+                showSkipButton
+                callback={handleJoyrideCallback}
+                styles={joyrideStyles}
+                locale={{
+                    back: 'Back',
+                    close: 'Close',
+                    last: 'Finish',
+                    next: 'Next',
+                    skip: 'Skip Tutorial',
+                }}
+                floaterProps={{
+                    disableAnimation: false,
+                }}
+                scrollOffset={100}
+                disableOverlayClose
+                spotlightClicks
+            />
+
+            {/* Tutorial Completion Modal */}
+            <Modal
+                opened={showCompletionModal}
+                onClose={() => setShowCompletionModal(false)}
+                title={
+                    <Group gap="sm">
+                        <ThemeIcon color="green" size="lg" radius="xl">
+                            <IconCheck size={20} />
+                        </ThemeIcon>
+                        <Text size="xl" fw={600}>Tutorial Complete!</Text>
+                    </Group>
+                }
+                centered
+                size="md"
+                closeOnClickOutside={false}
+                closeOnEscape={false}
+                withCloseButton={false}
+            >
+                <Stack gap="lg">
+                    <Text size="lg" ta="center">
+                        🎉 Congratulations! You've completed the StatBlock Generator tutorial.
+                    </Text>
+
+                    <Text ta="center" c="dimmed">
+                        You now know how to:
+                    </Text>
+
+                    <Stack gap="xs">
+                        <Group gap="sm">
+                            <ThemeIcon color="blue" size="sm" radius="xl">
+                                <IconCheck size={12} />
+                            </ThemeIcon>
+                            <Text size="sm">Generate creature text with AI</Text>
+                        </Group>
+                        <Group gap="sm">
+                            <ThemeIcon color="blue" size="sm" radius="xl">
+                                <IconCheck size={12} />
+                            </ThemeIcon>
+                            <Text size="sm">Edit statblock details directly</Text>
+                        </Group>
+                        <Group gap="sm">
+                            <ThemeIcon color="blue" size="sm" radius="xl">
+                                <IconCheck size={12} />
+                            </ThemeIcon>
+                            <Text size="sm">Generate and select creature images</Text>
+                        </Group>
+                        <Group gap="sm">
+                            <ThemeIcon color="blue" size="sm" radius="xl">
+                                <IconCheck size={12} />
+                            </ThemeIcon>
+                            <Text size="sm">Export your creations</Text>
+                        </Group>
+                    </Stack>
+
+                    <Text ta="center" fw={500} c="blue">
+                        Ready to create your own creatures?
+                    </Text>
+
+                    <Group justify="center" gap="md">
+                        <Button
+                            size="lg"
+                            rightSection={<IconArrowRight size={16} />}
+                            onClick={() => {
+                                setShowCompletionModal(false);
+                                // Open generation drawer and notify parent
+                                setTimeout(() => {
+                                    console.log('📝 [Tutorial] Opening text generation drawer on text tab');
+                                    onOpenGenerationDrawer?.();
+                                    onSwitchDrawerTab?.('text');
+                                    onComplete?.();
+                                    console.log('✅ [Tutorial] Completion callback executed');
+                                }, 300);
+                            }}
+                        >
+                            Try It Yourself!
+                        </Button>
+                    </Group>
+                </Stack>
+            </Modal>
+        </>
     );
 };
-

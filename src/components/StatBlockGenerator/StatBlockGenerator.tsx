@@ -71,12 +71,16 @@ const StatBlockGenerator: React.FC = () => {
     // Tutorial generation completion handler
     const handleTutorialGenerationComplete = useCallback(() => {
         console.log('✅ [Tutorial] Generation simulation complete, calling tutorial callback');
+        console.log('🔍 [Tutorial] Callback exists?', !!tutorialGenerationCompleteCallback);
         if (tutorialGenerationCompleteCallback) {
+            console.log('🎯 [Tutorial] Invoking tutorial callback...');
             tutorialGenerationCompleteCallback();
+        } else {
+            console.log('⚠️ [Tutorial] No callback registered!');
         }
     }, [tutorialGenerationCompleteCallback]);
 
-    // Export handlers (moved from StatBlockHeader for UnifiedHeader integration)
+    // Export handlers for UnifiedHeader AppToolbox integration
     const handleExportHTML = useCallback(() => {
         const template = getTemplate(selectedTemplateId) ?? DEFAULT_TEMPLATE;
         const customData = extractCustomData(selectedAssets);
