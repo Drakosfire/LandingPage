@@ -175,7 +175,7 @@ const StatBlockGenerator: React.FC = () => {
 
         // Type character by character with typing speed
         for (let i = 0; i < text.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, 50)); // 50ms between characters (faster typing)
+            await new Promise(resolve => setTimeout(resolve, 20)); // 20ms between characters (snappy but visible)
             element.value = text.substring(0, i + 1);
 
             // Dispatch input event so React components update
