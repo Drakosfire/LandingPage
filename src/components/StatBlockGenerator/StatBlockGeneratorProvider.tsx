@@ -82,6 +82,7 @@ export interface StatBlockGeneratorContextType {
     setSelectedCreatureImage: (image: string, index?: number) => void;
     addGeneratedImage: (image: GeneratedImage) => void;
     removeGeneratedImage: (imageId: string) => Promise<void>;
+    clearTutorialImages: () => void;  // Clear tutorial images when tutorial completes
     addGenerated3DModel: (model: Generated3DModel) => void;
     addGeneratedExport: (exportItem: GeneratedExport) => void;
     setImagePrompt: (prompt: string) => void;  // Update image prompt
@@ -584,6 +585,36 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             }
         }
     }, [isLoggedIn, userId, currentProject?.id, generatedContent.images]);
+
+    const clearTutorialImages = useCallback(() => {
+        console.log('🧹 [Provider] Clearing tutorial images');
+        const tutorialImageCount = generatedContent.images.filter(img => img.isTutorial).length;
+        
+        if (tutorialImageCount === 0) {
+            console.log('✅ [Provider] No tutorial images to clear');
+            return;
+        }
+
+        // Remove all images with isTutorial flag
+        setGeneratedContent((prev: typeof generatedContent) => ({
+            ...prev,
+            images: prev.images.filter((img: GeneratedImage) => !img.isTutorial)
+        }));
+
+        // Also clear from selectedAssets if any tutorial images were selected
+        const tutorialUrls = generatedContent.images
+            .filter(img => img.isTutorial)
+            .map(img => img.url);
+
+        setSelectedAssets((prev: typeof selectedAssets) => ({
+            ...prev,
+            generatedImages: prev.generatedImages.filter(url => !tutorialUrls.includes(url)),
+            // Clear selected image if it was a tutorial image
+            creatureImage: tutorialUrls.includes(prev.creatureImage || '') ? undefined : prev.creatureImage
+        }));
+
+        console.log(`✅ [Provider] Cleared ${tutorialImageCount} tutorial images`);
+    }, [generatedContent.images]);
 
     const addGenerated3DModel = useCallback((model: Generated3DModel) => {
         setGeneratedContent((prev: typeof generatedContent) => ({
@@ -1268,6 +1299,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         setSelectedCreatureImage,
         addGeneratedImage,
         removeGeneratedImage,
+        clearTutorialImages,
         addGenerated3DModel,
         addGeneratedExport,
         setImagePrompt,

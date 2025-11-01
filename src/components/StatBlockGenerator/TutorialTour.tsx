@@ -84,7 +84,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 }) => {
     const theme = useMantineTheme();
     const { isLoggedIn } = useAuth();
-    const { replaceCreatureDetails } = useStatBlockGenerator();
+    const { replaceCreatureDetails, clearTutorialImages } = useStatBlockGenerator();
     const [run, setRun] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const [steps, setSteps] = useState<TutorialStep[]>(tutorialSteps);
@@ -142,6 +142,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             // 2. Clear canvas (blank statblock)
             replaceCreatureDetails(EMPTY_STATBLOCK);
 
+            // 2b. Clear any lingering tutorial images (prevent duplicates on restart)
+            console.log('🧹 [Tutorial] Clearing any existing tutorial images');
+            clearTutorialImages();
+
             // 3. Reset all tutorial flags
             setIsTypingDemoTriggered(false);
             setIsCheckboxDemoTriggered(false);
@@ -189,6 +193,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
                 // 2. Clear canvas (blank statblock)
                 replaceCreatureDetails(EMPTY_STATBLOCK);
+
+                // 2b. Clear any lingering tutorial images (prevent duplicates on auto-start)
+                console.log('🧹 [Tutorial] Clearing any existing tutorial images');
+                clearTutorialImages();
 
                 // 3. Reset all tutorial flags
                 setIsTypingDemoTriggered(false);
@@ -358,6 +366,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             // Clear canvas and open text generation drawer for user to start creating
             console.log('🧹 [Tutorial] Setting up clean state for user to start creating');
             replaceCreatureDetails(EMPTY_STATBLOCK);
+
+            // Clear tutorial images from state
+            console.log('🧹 [Tutorial] Clearing tutorial images');
+            clearTutorialImages();
 
             // Wait for canvas to clear, then open generation drawer
             setTimeout(() => {
@@ -636,6 +648,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                 // 5. Clear canvas and prepare for user to create independently
                 console.log('🧹 [Tutorial] Setting up clean state for independent creation');
                 replaceCreatureDetails(EMPTY_STATBLOCK);
+
+                // 5b. Clear tutorial images from state
+                console.log('🧹 [Tutorial] Clearing tutorial images');
+                clearTutorialImages();
 
                 // 6. Show completion modal
                 console.log('🎊 [Tutorial] Showing completion modal');
@@ -1035,7 +1051,6 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     }, 5000);
 
                     // Enhanced polling with cleanup
-                    const originalWaitForCanvasReady = waitForCanvasReady;
                     const wrappedWait = () => {
                         const canvasElement = document.querySelector('[data-tutorial="canvas-area"]');
                         if (canvasElement) {
@@ -1043,9 +1058,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                             const height = rect.height;
                             const width = rect.width;
                             if (height > 100 && width > 100) {
-                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 15`);
+                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 18`);
                                 clearTimeout(maxWaitTimeout);
-                                setStepIndex(15);
+                                setStepIndex(18);
                                 setTimeout(() => setRun(true), 100);
                                 return;
                             }
@@ -1063,7 +1078,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     wrappedWait();
                 } catch (error) {
                     console.error('❌ [Tutorial] Image selection error:', error);
-                    setStepIndex(15);
+                    setStepIndex(18);
                     setRun(true);
                 }
             })();
@@ -1104,6 +1119,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Clear canvas and prepare for user to create independently
                     console.log('🧹 [Tutorial] Setting up clean state for independent creation');
                     replaceCreatureDetails(EMPTY_STATBLOCK);
+
+                    // Clear tutorial images from state
+                    console.log('🧹 [Tutorial] Clearing tutorial images');
+                    clearTutorialImages();
 
                     // Show completion modal
                     console.log('🎊 [Tutorial] Showing completion modal');
@@ -1201,6 +1220,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                 // 5. Clear canvas and prepare for user to create independently
                 console.log('🧹 [Tutorial] Setting up clean state for independent creation');
                 replaceCreatureDetails(EMPTY_STATBLOCK);
+
+                // 5b. Clear tutorial images from state
+                console.log('🧹 [Tutorial] Clearing tutorial images');
+                clearTutorialImages();
 
                 // 6. Wait for canvas to clear, then open generation drawer on text tab
                 setTimeout(() => {
@@ -1308,9 +1331,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         // 19+ (exit flow), etc.
         // Steps using normal navigation: 0, 1, 2, 4, 9, 13, 15
         const customHandlerSteps = [3, 5, 6, 7, 8, 10, 11, 12, 14, 16, 17, 18, 19, 20, 21];
-        
+
         console.log(`🔍 [Tutorial] Navigation check - index: ${index}, type: ${type}, action: ${action}, hasCustomHandler: ${customHandlerSteps.includes(index)}`);
-        
+
         if (type === 'step:after' && action === 'next' && !customHandlerSteps.includes(index)) {
             console.log(`➡️ [Tutorial] Normal next: ${index} → ${index + 1}`);
             setStepIndex(index + 1);
