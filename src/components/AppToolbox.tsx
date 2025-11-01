@@ -157,6 +157,7 @@ export const AppToolbox: React.FC<AppToolboxProps> = ({
             shadow="md"
             width={width}
             position={position}
+            trigger="click"  // Fix: Only open on click, not hover
             closeOnItemClick={false}  // Allow toggling switches without closing
             withinPortal
             offset={8}  // Add offset to prevent cutoff
@@ -220,45 +221,46 @@ export const AppToolbox: React.FC<AppToolboxProps> = ({
                                     </Box>
                                 );
                             } else if (control.type === 'submenu' && control.submenuItems) {
-                                // Render as nested submenu
+                                // Render submenu items as regular menu items with indentation
                                 return (
-                                    <Menu key={control.id} trigger="click" openDelay={100} closeDelay={200}>
-                                        <Menu.Target>
+                                    <React.Fragment key={control.id}>
+                                        {/* Main export item */}
+                                        <Menu.Item
+                                            leftSection={control.icon}
+                                            disabled={control.disabled}
+                                            style={{
+                                                minHeight: isMobile ? '48px' : '36px',
+                                                fontSize: isMobile ? '16px' : '14px',
+                                                padding: isMobile ? '12px 16px' : '8px 12px',
+                                                fontWeight: 600,
+                                                backgroundColor: 'var(--mantine-color-gray-0)',
+                                                borderBottom: '1px solid var(--mantine-color-gray-2)'
+                                            }}
+                                            {...(control.dataAttributes || {})}
+                                        >
+                                            {control.label}
+                                        </Menu.Item>
+
+                                        {/* Submenu items */}
+                                        {control.submenuItems.map((subItem) => (
                                             <Menu.Item
-                                                leftSection={control.icon}
-                                                rightSection={
-                                                    <Text size="xs" c="dimmed">›</Text>
-                                                }
-                                                disabled={control.disabled}
+                                                key={subItem.id}
+                                                leftSection={subItem.icon}
+                                                onClick={subItem.onClick}
+                                                disabled={subItem.disabled}
+                                                color={subItem.color}
                                                 style={{
                                                     minHeight: isMobile ? '48px' : '36px',
                                                     fontSize: isMobile ? '16px' : '14px',
-                                                    padding: isMobile ? '12px 16px' : '8px 12px'
+                                                    padding: isMobile ? '12px 16px 12px 32px' : '8px 12px 8px 24px', // Indent submenu items
+                                                    borderLeft: '2px solid var(--mantine-color-gray-3)',
+                                                    marginLeft: '8px'
                                                 }}
-                                                {...(control.dataAttributes || {})}
                                             >
-                                                {control.label}
+                                                {subItem.label}
                                             </Menu.Item>
-                                        </Menu.Target>
-                                        <Menu.Dropdown>
-                                            {control.submenuItems.map((subItem) => (
-                                                <Menu.Item
-                                                    key={subItem.id}
-                                                    leftSection={subItem.icon}
-                                                    onClick={subItem.onClick}
-                                                    disabled={subItem.disabled}
-                                                    color={subItem.color}
-                                                    style={{
-                                                        minHeight: isMobile ? '48px' : '36px',
-                                                        fontSize: isMobile ? '16px' : '14px',
-                                                        padding: isMobile ? '12px 16px' : '8px 12px'
-                                                    }}
-                                                >
-                                                    {subItem.label}
-                                                </Menu.Item>
-                                            ))}
-                                        </Menu.Dropdown>
-                                    </Menu>
+                                        ))}
+                                    </React.Fragment>
                                 );
                             } else {
                                 // Render as menu item with mobile-friendly sizing

@@ -23,3 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 
 *storybook.log
+
+# Benchmark output files
+benchmark-*.json
+# Temporary debug scripts
+debug-component-*.js

@@ -649,12 +649,21 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                 console.error('❌ [Tutorial] Toolbox icon not found!');
             }
 
-            // Wait for menu to open, then show edit mode toggle (step 6)
-            setTimeout(() => {
-                console.log('➡️ [Tutorial] Moving to edit mode toggle in toolbox (step 6)');
-                setStepIndex(6);
-                setRun(true);
-            }, 400);
+            // Wait for menu to open and position properly, then show edit mode toggle (step 6)
+            const waitForMenuPositioning = () => {
+                const editToggle = document.querySelector('[data-tutorial="edit-mode-toggle"]');
+                if (editToggle && editToggle.getBoundingClientRect().top > 0) {
+                    console.log('➡️ [Tutorial] Moving to edit mode toggle in toolbox (step 6)');
+                    setStepIndex(6);
+                    setRun(true);
+                } else {
+                    // Keep checking until element is properly positioned
+                    setTimeout(waitForMenuPositioning, 50);
+                }
+            };
+            
+            // Start checking after initial delay for portal rendering
+            setTimeout(waitForMenuPositioning, 600);
             return;
         }
 
@@ -700,13 +709,23 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                             console.log('✅ [Tutorial] Toolbox menu opened');
                         }
 
-                        // Wait for menu to open
-                        await new Promise(r => setTimeout(r, 400));
+                        // Wait for menu to open and position properly
+                        await new Promise(r => setTimeout(r, 600));
 
-                        // Move to step 8 (show edit toggle in toolbox, about to turn OFF)
-                        console.log('➡️ [Tutorial] Moving to edit toggle OFF step (step 8)');
-                        setStepIndex(8);
-                        setRun(true);
+                        // Verify element is positioned before showing spotlight
+                        const waitForEditTogglePositioning = () => {
+                            const editToggle = document.querySelector('[data-tutorial="edit-mode-toggle"]');
+                            if (editToggle && editToggle.getBoundingClientRect().top > 0) {
+                                console.log('➡️ [Tutorial] Moving to edit toggle OFF step (step 8)');
+                                setStepIndex(8);
+                                setRun(true);
+                            } else {
+                                // Keep checking until element is properly positioned
+                                setTimeout(waitForEditTogglePositioning, 50);
+                            }
+                        };
+                        
+                        waitForEditTogglePositioning();
                     } else {
                         console.warn('⚠️ [Tutorial] No edit text handler provided');
                         setStepIndex(9); // Skip to step 9 on error
