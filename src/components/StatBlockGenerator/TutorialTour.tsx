@@ -1031,6 +1031,11 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Wait for drawer close animation AND canvas to settle
                     await new Promise(r => setTimeout(r, 600));
 
+                    // Scroll to top of page to show the canvas
+                    console.log('📜 [Tutorial] Scrolling to top to show canvas');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    await new Promise(r => setTimeout(r, 800));
+
                     // Wait for canvas element to be fully positioned before showing spotlight
                     const waitForCanvasReady = () => {
                         const canvasElement = document.querySelector('[data-tutorial="canvas-area"]');
