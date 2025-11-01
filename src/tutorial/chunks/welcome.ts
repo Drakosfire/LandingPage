@@ -5,18 +5,21 @@ import { TutorialLogger } from '../utils/chunkUtilities';
 /**
  * WELCOME Chunk: Introduction and drawer setup
  * 
- * Steps: WELCOME → DRAWER
- * Duration: ~30 seconds
+ * Steps: WELCOME → GENERATION_HEADER → PROJECTS_HEADER → TOOLS_HEADER → DRAWER
+ * Duration: ~60 seconds
  * Side effects: Open generation drawer, switch to text tab
  * 
- * This is the first chunk users encounter. It introduces the app and opens
- * the generation drawer, setting up for text generation demo.
+ * This is the first chunk users encounter. It introduces the app, shows
+ * header navigation, and opens the generation drawer for text generation demo.
  */
 export const WELCOME_CHUNK: TutorialChunk = {
     name: 'WELCOME',
 
     steps: [
         TUTORIAL_STEP_NAMES.WELCOME,
+        TUTORIAL_STEP_NAMES.GENERATION_HEADER,
+        TUTORIAL_STEP_NAMES.PROJECTS_HEADER,
+        TUTORIAL_STEP_NAMES.TOOLS_HEADER,
         TUTORIAL_STEP_NAMES.DRAWER,
     ],
 
@@ -61,7 +64,7 @@ export const WELCOME_CHUNK: TutorialChunk = {
      * using a closure pattern or dependency injection.
      */
     handlers: {
-        // Step 1: Welcome message
+        // Step 0: Welcome message
         // User reads introduction and clicks Next
         [TUTORIAL_STEP_NAMES.WELCOME]: async (data) => {
             if (data.action === 'next') {
@@ -69,7 +72,31 @@ export const WELCOME_CHUNK: TutorialChunk = {
             }
         },
 
-        // Step 2: Drawer explanation
+        // Step 1: Generation header button
+        // User reads about generation feature and clicks Next
+        [TUTORIAL_STEP_NAMES.GENERATION_HEADER]: async (data) => {
+            if (data.action === 'next') {
+                TutorialLogger.stepExecute('WELCOME', TUTORIAL_STEP_NAMES.GENERATION_HEADER, 'next');
+            }
+        },
+
+        // Step 2: Projects header button
+        // User reads about projects feature and clicks Next
+        [TUTORIAL_STEP_NAMES.PROJECTS_HEADER]: async (data) => {
+            if (data.action === 'next') {
+                TutorialLogger.stepExecute('WELCOME', TUTORIAL_STEP_NAMES.PROJECTS_HEADER, 'next');
+            }
+        },
+
+        // Step 3: Tools header menu
+        // User reads about tools menu and clicks Next
+        [TUTORIAL_STEP_NAMES.TOOLS_HEADER]: async (data) => {
+            if (data.action === 'next') {
+                TutorialLogger.stepExecute('WELCOME', TUTORIAL_STEP_NAMES.TOOLS_HEADER, 'next');
+            }
+        },
+
+        // Step 4: Drawer explanation
         // When user clicks Next, open the generation drawer
         [TUTORIAL_STEP_NAMES.DRAWER]: async (data) => {
             if (data.action === 'next') {

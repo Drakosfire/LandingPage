@@ -3,6 +3,9 @@ import { Step } from 'react-joyride';
 // Step names for dynamic index lookup (no hardcoded indices!)
 export const TUTORIAL_STEP_NAMES = {
     WELCOME: 'welcome',
+    GENERATION_HEADER: 'generation-header',
+    PROJECTS_HEADER: 'projects-header',
+    TOOLS_HEADER: 'tools-header',
     DRAWER: 'drawer',
     TEXT_TAB: 'text-tab',
     GENERATE_BUTTON: 'generate-button',
@@ -32,10 +35,31 @@ export type TutorialStep = Step & { name: string };
 // Individual step definitions
 const WELCOME: TutorialStep = {
     name: TUTORIAL_STEP_NAMES.WELCOME,
-    target: '[data-tutorial="generation-button"]',
-    content: '👋 Welcome to StatBlock Generator! Click here to create your first creature using AI. 💡 Tip: You can restart this tutorial anytime by clicking the Tutorial button in the tools menu (top-right).',
+    target: 'body',
+    content: '👋 Welcome to StatBlock Generator! Let\'s take a quick tour of the main features. This tutorial will show you how to create, edit, and export D&D 5e creature statblocks.',
     disableBeacon: true,
+    placement: 'center',
+};
+
+const GENERATION_HEADER: TutorialStep = {
+    name: TUTORIAL_STEP_NAMES.GENERATION_HEADER,
+    target: '[data-tutorial="generation-button"]',
+    content: '🎨 Click here to open AI Generation - create creatures from text descriptions or generate portrait images.',
     placement: 'bottom',
+};
+
+const PROJECTS_HEADER: TutorialStep = {
+    name: TUTORIAL_STEP_NAMES.PROJECTS_HEADER,
+    target: '[data-tutorial="projects-button"]',
+    content: '💾 Projects lets you save and organize your creations. (Requires free account)',
+    placement: 'bottom',
+};
+
+const TOOLS_HEADER: TutorialStep = {
+    name: TUTORIAL_STEP_NAMES.TOOLS_HEADER,
+    target: '[data-tutorial="app-toolbox"]',
+    content: '🛠️ The Tools menu has editing controls, export options, and help. You can restart this tutorial anytime from here!',
+    placement: 'bottom-end',
 };
 
 const DRAWER: TutorialStep = {
@@ -258,34 +282,37 @@ const HELP: TutorialStep = {
     placement: 'bottom',
 };
 
-// Guest tutorial flow: 16 steps (0-15)
+// Guest tutorial flow: 19 steps (0-18) - added 3 header orientation steps
 export const GUEST_TUTORIAL_STEPS: TutorialStep[] = [
-    WELCOME,
-    DRAWER,
-    TEXT_TAB,
-    GENERATE_BUTTON,
-    PROGRESS_BAR,
-    CANVAS,
-    EDIT_TOGGLE_ON,
-    CREATURE_NAME,
-    EDIT_TOGGLE_OFF,
-    IMAGE_GEN_TAB,
-    IMAGE_GEN_PROMPT,
-    IMAGE_GEN_BUTTON,
-    IMAGE_GEN_RESULTS,
-    MODAL_NAVIGATION,
-    IMAGE_SELECT,
-    IMAGE_ON_CANVAS,
+    WELCOME,              // Step 0: Welcome overview
+    GENERATION_HEADER,    // Step 1: Generation button
+    PROJECTS_HEADER,      // Step 2: Projects button
+    TOOLS_HEADER,         // Step 3: Tools menu
+    DRAWER,               // Step 4: Generation drawer (was step 1)
+    TEXT_TAB,             // Step 5: Text gen tab (was step 2)
+    GENERATE_BUTTON,      // Step 6: Generate button (was step 3)
+    PROGRESS_BAR,         // Step 7: Progress bar (was step 4)
+    CANVAS,               // Step 8: Canvas (was step 5)
+    EDIT_TOGGLE_ON,       // Step 9: Edit mode on (was step 6)
+    CREATURE_NAME,        // Step 10: Creature name (was step 7)
+    EDIT_TOGGLE_OFF,      // Step 11: Edit mode off (was step 8)
+    IMAGE_GEN_TAB,        // Step 12: Image gen tab (was step 9)
+    IMAGE_GEN_PROMPT,     // Step 13: Image prompt (was step 10)
+    IMAGE_GEN_BUTTON,     // Step 14: Image gen button (was step 11)
+    IMAGE_GEN_RESULTS,    // Step 15: Image results (was step 12)
+    MODAL_NAVIGATION,     // Step 16: Image modal nav (was step 13)
+    IMAGE_SELECT,         // Step 17: Image select (was step 14)
+    IMAGE_ON_CANVAS,      // Step 18: Image on canvas (was step 15)
 ];
 
-// Logged-in tutorial flow: 21 steps (0-20)
+// Logged-in tutorial flow: 24 steps (0-23)
 export const LOGGEDIN_TUTORIAL_STEPS: TutorialStep[] = [
-    ...GUEST_TUTORIAL_STEPS,  // First 16 steps
-    IMAGE_LOGIN_REMINDER,
-    SAVE,
-    EXPORT,
-    PROJECTS,
-    HELP,
+    ...GUEST_TUTORIAL_STEPS,  // First 19 steps
+    IMAGE_LOGIN_REMINDER,     // Step 19: Login reminder (was step 16)
+    SAVE,                     // Step 20: Save (was step 17)
+    EXPORT,                   // Step 21: Export (was step 18)
+    PROJECTS,                 // Step 22: Projects (was step 19)
+    HELP,                     // Step 23: Help (was step 20)
 ];
 
 // Master list (for backwards compatibility / reference)

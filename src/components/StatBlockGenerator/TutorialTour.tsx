@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Joyride, { CallBackProps, STATUS, Step, Styles } from 'react-joyride';
+import Joyride, { CallBackProps, EVENTS, STATUS, Step, Styles } from 'react-joyride';
 import { useMantineTheme, Modal, Button, Text, Group, Stack, ThemeIcon } from '@mantine/core';
 import { IconCheck, IconSparkles, IconArrowRight } from '@tabler/icons-react';
 import {
@@ -131,20 +131,16 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
      * the user was in when they initiated the tutorial.
      */
     useEffect(() => {
-        console.log('🎓 [Tutorial] useEffect triggered, forceRun:', forceRun);
-
         if (forceRun) {
             // TUTORIAL STATE INITIALIZATION
             // Reset to a clean slate for tutorial start
-            console.log('🧹 [Tutorial] Initializing clean tutorial state...');
+            console.log('🎓 [Tutorial] Initializing clean state...');
 
             // 1. Close all drawers
             onCloseGenerationDrawerRef.current?.();
-            console.log('🚪 [Tutorial] Closed generation drawer');
 
             // 2. Clear canvas (blank statblock)
             replaceCreatureDetails(EMPTY_STATBLOCK);
-            console.log('🎨 [Tutorial] Cleared canvas to blank statblock');
 
             // 3. Reset all tutorial flags
             setIsTypingDemoTriggered(false);
@@ -152,21 +148,24 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             setIsGenerationDemoTriggered(false);
             setIsEditDemoTriggered(false);
             justAdvancedToStep4Ref.current = false;
-            console.log('🔄 [Tutorial] Reset all tutorial flags');
 
             // 4. Get steps for user type when manually triggered
             const tutorialSteps = getTutorialSteps();
-            setSteps(tutorialSteps);
 
-            // Initialize at step 0
+            if (tutorialSteps.length === 0) {
+                console.error('❌ [Tutorial] Cannot start - steps array is empty!');
+                return;
+            }
+
+            setSteps(tutorialSteps);
             setStepIndex(0);
 
-            console.log('✅ [Tutorial] Starting tutorial with clean state, run=true');
-
-            // Start the tour
-            setTimeout(() => {
+            // Start the tour in next frame to break out of React batching
+            // This ensures steps and stepIndex are fully committed before starting
+            requestAnimationFrame(() => {
                 setRun(true);
-            }, 100);
+            });
+
             return;
         }
 
@@ -179,21 +178,17 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             const timer = setTimeout(() => {
                 // Check if tutorial was manually started while we were waiting
                 if (initializationStartedRef.current) {
-                    console.log('⏭️ [Tutorial] Manual start occurred, skipping auto-start initialization');
                     return;
                 }
 
                 // TUTORIAL STATE INITIALIZATION (Auto-start)
                 // Reset to a clean slate for first-time tutorial
-                console.log('🧹 [Tutorial] Initializing clean tutorial state for first-time user...');
 
                 // 1. Close all drawers
                 onCloseGenerationDrawerRef.current?.();
-                console.log('🚪 [Tutorial] Closed generation drawer (auto-start)');
 
                 // 2. Clear canvas (blank statblock)
                 replaceCreatureDetails(EMPTY_STATBLOCK);
-                console.log('🎨 [Tutorial] Cleared canvas to blank statblock (auto-start)');
 
                 // 3. Reset all tutorial flags
                 setIsTypingDemoTriggered(false);
@@ -207,17 +202,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                 setSteps(tutorialSteps);
                 setStepIndex(0);
 
-                console.log('✅ [Tutorial] Starting tutorial with clean state (auto-start), run=true');
-
-                // Debug: Check if first step target exists
-                const firstStepTarget = document.querySelector('[data-tutorial="generation-button"]');
-                console.log('🎯 [Tutorial] First step target exists? (auto-start)', !!firstStepTarget, firstStepTarget);
-
-                setRun(true);
+                // Start in next frame to ensure steps/stepIndex are committed
+                requestAnimationFrame(() => {
+                    setRun(true);
+                });
             }, 1500); // 1.5s delay to let the page settle
 
             return () => {
-                console.log('🔄 [Tutorial] Auto-start timer cleanup');
                 clearTimeout(timer);
             };
         }
@@ -239,10 +230,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
     // Generation demo is triggered when user clicks Next on step 3 (in callback handler)
     // These useEffects are removed as animations happen before showing tooltips
 
-    // Clear canvas guard flag after step 5 (canvas) renders
+    // Clear canvas guard flag after step 8 (canvas) renders
     useEffect(() => {
-        if (stepIndex === 5 && justAdvancedToStep4Ref.current && run) {
-            console.log('⏰ [Tutorial] Step 5 (canvas) rendered, clearing guard flag after 200ms');
+        if (stepIndex === 8 && justAdvancedToStep4Ref.current && run) {
+            console.log('⏰ [Tutorial] Step 8 (canvas) rendered, clearing guard flag after 200ms');
             const timer = setTimeout(() => {
                 justAdvancedToStep4Ref.current = false;
                 console.log('✅ [Tutorial] Canvas guard flag cleared, ready for user interaction');
@@ -251,10 +242,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
     }, [stepIndex, run]);
 
-    // Auto-trigger edit demo when step 7 (creature name spotlight) user clicks Next
+    // Auto-trigger edit demo when step 10 (creature name spotlight) user clicks Next
     useEffect(() => {
-        if (stepIndex === 7 && run && !isEditDemoTriggered) {
-            console.log('🎯 [Tutorial] Step 7 (creature name) loaded, ready to demonstrate editing');
+        if (stepIndex === 10 && run && !isEditDemoTriggered) {
+            console.log('🎯 [Tutorial] Step 10 (creature name) loaded, ready to demonstrate editing');
             // Note: The actual animation is triggered by the callback handler when user clicks Next
         }
     }, [stepIndex, run, isEditDemoTriggered]);
@@ -314,9 +305,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
          * TODO: Systematically update all hardcoded index checks below
          */
 
-        // DEBUG: Log every step 5 (canvas) callback with full details
-        if (index === 5) {
-            console.log('🔍 [Step 5 (Canvas) Callback] DETAILED:', {
+        // DEBUG: Log every step 8 (canvas) callback with full details
+        if (index === 8) {
+            console.log('🔍 [Step 8 (Canvas) Callback] DETAILED:', {
                 action,
                 type,
                 status,
@@ -336,6 +327,15 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             console.log('🎯 [Tutorial] Tour started! Looking for target:', target);
             const element = typeof target === 'string' ? document.querySelector(target) : null;
             console.log('🎯 [Tutorial] Target element exists?', !!element, element);
+        }
+
+        // Handle target not found - Joyride can't advance if element doesn't exist
+        if (type === EVENTS.TARGET_NOT_FOUND) {
+            const target = steps[index]?.target;
+            console.error('❌ [Tutorial] TARGET NOT FOUND:', target, 'for step', index + 1, steps[index]?.name);
+            console.error('❌ [Tutorial] Tutorial is stuck because element does not exist in DOM');
+            console.error('❌ [Tutorial] Make sure the element exists before this step');
+            return;
         }
 
         // PRIORITY: Check for completion FIRST before any other logic
@@ -406,34 +406,29 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             });
         }
 
-        // WELCOME → DRAWER: User clicked Next, open the generation drawer
-        // EXAMPLE OF NEW PATTERN: Using named steps instead of hardcoded indices
-        if (isStep(TUTORIAL_STEP_NAMES.WELCOME) && action === 'next' && type === 'step:after') {
-            setRun(false); // Pause the tour
+        // Step 3 → 4 transition: TOOLS_HEADER → DRAWER (open generation drawer)
+        if (index === 3 && action === 'next' && type === 'step:after') {
+            console.log('🎨 [Tutorial] Opening generation drawer');
             onOpenGenerationDrawer?.();
+            setRun(false);
 
-            // Wait for drawer to open and element to be positioned
-            const waitForElement = () => {
-                const element = document.querySelector('[data-tutorial="generation-drawer-title"]');
-                if (element && element.getBoundingClientRect().top > 0) {
-                    goToStep(TUTORIAL_STEP_NAMES.DRAWER); // ← Named step instead of setStepIndex(1)
-                    // Small additional delay before showing spotlight
-                    setTimeout(() => {
-                        setRun(true);
-                    }, 100);
+            // Wait for drawer to open and render
+            const waitForDrawer = () => {
+                const drawer = document.querySelector('[data-tutorial="generation-drawer-title"]');
+                if (drawer) {
+                    console.log('✅ [Tutorial] Drawer opened, moving to step 4');
+                    setStepIndex(4);
+                    setRun(true);
                 } else {
-                    // Keep checking until element is properly positioned
-                    setTimeout(waitForElement, 50);
+                    setTimeout(waitForDrawer, 50);
                 }
             };
-
-            // Start checking after initial animation delay
-            setTimeout(waitForElement, 400);
+            setTimeout(waitForDrawer, 300);
             return;
         }
 
-        // When user clicks "Next" on step 2 (text generation tab), trigger typing + checkbox animations
-        if (index === 2 && action === 'next' && type === 'step:after') {
+        // Step 5 → 6 transition: TEXT_TAB → GENERATE_BUTTON (trigger typing + checkbox animations)
+        if (index === 5 && action === 'next' && type === 'step:after') {
             console.log('📝 [Tutorial] Triggering typing + checkbox demos, then showing generate button');
             setRun(false); // Pause tour during animations
 
@@ -471,22 +466,22 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                         console.log('✅ [Tutorial] All boxes checked');
                     }
 
-                    // 3. Move to generate button step (step 3)
-                    console.log('➡️ [Tutorial] Moving to generate button step');
-                    setStepIndex(3);
+                    // 3. Move to generate button step (step 6)
+                    console.log('➡️ [Tutorial] Moving to generate button step (step 6)');
+                    setStepIndex(6);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Animation error:', error);
-                    setStepIndex(3); // Move to next step even on error
+                    setStepIndex(6); // Move to next step even on error
                     setRun(true);
                 }
             })();
             return;
         }
 
-        // Step 3 → 4 transition: User clicked Next on generate button, trigger generation and show progress bar
-        if (index === 3 && action === 'next' && type === 'step:after') {
-            console.log('➡️ [Tutorial] User clicked Next on step 3 (generate button)');
+        // Step 6 → 7 transition: GENERATE_BUTTON → PROGRESS_BAR (trigger generation and show progress bar)
+        if (index === 6 && action === 'next' && type === 'step:after') {
+            console.log('➡️ [Tutorial] User clicked Next on step 6 (generate button)');
 
             // Prevent re-triggering if already triggered
             if (isGenerationDemoTriggered) {
@@ -499,29 +494,29 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
             (async () => {
                 try {
-                    // Register callback for when progress bar simulation completes (auto-advance to step 5)
+                    // Register callback for when progress bar simulation completes (auto-advance to step 8)
                     const autoAdvanceCallback = () => {
                         console.log('✅ [Tutorial] Progress bar simulation complete, auto-advancing to canvas');
-                        
+
                         // Load demo statblock
                         replaceCreatureDetails(HERMIONE_DEMO_STATBLOCK);
-                        
+
                         // Wait for canvas to render, then close drawer and advance
                         setTimeout(async () => {
                             onCloseGenerationDrawerRef.current?.();
                             await new Promise(r => setTimeout(r, 300));
-                            
-                            // Move to canvas step (step 5)
-                            console.log('➡️ [Tutorial] Moving to canvas step (step 5)');
+
+                            // Move to canvas step (step 8)
+                            console.log('➡️ [Tutorial] Moving to canvas step (step 8)');
                             justAdvancedToStep4Ref.current = true;
-                            setStepIndex(5);
+                            setStepIndex(8);
                             setRun(true);
-                            
+
                             // Clear callback after use
                             onSetGenerationCompleteCallback?.(null);
                         }, 1000);
                     };
-                    
+
                     // CRITICAL: Wrap in arrow function to prevent React setState from treating as functional update
                     onSetGenerationCompleteCallback?.(() => autoAdvanceCallback);
 
@@ -549,14 +544,14 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
                     await waitForProgressBar();
 
-                    // Move to progress bar step (step 4)
-                    console.log('➡️ [Tutorial] Moving to progress bar step (step 4)');
-                    setStepIndex(4);
+                    // Move to progress bar step (step 7)
+                    console.log('➡️ [Tutorial] Moving to progress bar step (step 7)');
+                    setStepIndex(7);
                     setRun(true);
 
                 } catch (error) {
                     console.error('❌ [Tutorial] Generation trigger error:', error);
-                    setStepIndex(4); // Move to progress bar step even on error
+                    setStepIndex(7); // Move to progress bar step even on error
                     setRun(true);
                     // Clear callback on error
                     onSetGenerationCompleteCallback?.(null);
@@ -566,10 +561,10 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // Step 4 → 5 transition: User manually clicked Next on progress bar (fallback if they don't wait)
-        if (index === 4 && action === 'next' && type === 'step:after') {
+        // Step 7 → 8 transition: User manually clicked Next on progress bar (fallback if they don't wait)
+        if (index === 7 && action === 'next' && type === 'step:after') {
             console.log('➡️ [Tutorial] User manually clicked Next on progress bar step');
-            
+
             // Clear the auto-advance callback since user is manually advancing
             onSetGenerationCompleteCallback?.(null);
 
@@ -587,15 +582,15 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     onCloseGenerationDrawerRef.current?.();
                     await new Promise(r => setTimeout(r, 300));
 
-                    // Move to canvas step (step 5)
-                    console.log('➡️ [Tutorial] Moving to canvas step (step 5)');
+                    // Move to canvas step (step 8)
+                    console.log('➡️ [Tutorial] Moving to canvas step (step 8)');
                     justAdvancedToStep4Ref.current = true;
-                    setStepIndex(5);
+                    setStepIndex(8);
                     setRun(true);
 
                 } catch (error) {
                     console.error('❌ [Tutorial] Demo loading error:', error);
-                    setStepIndex(5);
+                    setStepIndex(8);
                     setRun(true);
                 }
             })();
@@ -603,8 +598,8 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // IMAGE_LOGIN_REMINDER → Tutorial Complete: Execute final completion sequence
-        if (index === 16 && action === 'next' && type === 'step:after') {
+        // IMAGE_LOGIN_REMINDER → Tutorial Complete: Execute final completion sequence (for logged-in users)
+        if (index === 19 && action === 'next' && type === 'step:after') {
             console.log('🎉 [Tutorial] Congratulations step complete, executing final completion sequence');
 
             // Pause the tour
@@ -649,18 +644,18 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // When user clicks "Next" on step 5 (canvas), open toolbox and show edit mode toggle
-        if (index === 5 && action === 'next' && type === 'step:after') {
-            console.log('🎯 [Step 5→6 Handler] Matched! guardFlag:', justAdvancedToStep4Ref.current);
+        // When user clicks "Next" on step 8 (canvas), open toolbox and show edit mode toggle
+        if (index === 8 && action === 'next' && type === 'step:after') {
+            console.log('🎯 [Step 8→9 Handler] Matched! guardFlag:', justAdvancedToStep4Ref.current);
 
-            // Check if we just programmatically advanced to step 5 (canvas)
+            // Check if we just programmatically advanced to step 8 (canvas)
             if (justAdvancedToStep4Ref.current) {
-                console.log('⏭️ [Tutorial] Step 5 (canvas) just loaded programmatically, ignoring initial callback');
+                console.log('⏭️ [Tutorial] Step 8 (canvas) just loaded programmatically, ignoring initial callback');
                 // DON'T clear flag here - useEffect handles it after render
                 return; // Don't advance yet, wait for actual user click
             }
 
-            console.log('🔧 [Tutorial] User clicked Next on step 5 (canvas), opening toolbox menu');
+            console.log('🔧 [Tutorial] User clicked Next on step 8 (canvas), opening toolbox menu');
             setRun(false); // Pause during menu open
 
             // Click toolbox icon to open menu
@@ -672,12 +667,12 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                 console.error('❌ [Tutorial] Toolbox icon not found!');
             }
 
-            // Wait for menu to open and position properly, then show edit mode toggle (step 6)
+            // Wait for menu to open and position properly, then show edit mode toggle (step 9)
             const waitForMenuPositioning = () => {
                 const editToggle = document.querySelector('[data-tutorial="edit-mode-toggle"]');
                 if (editToggle && editToggle.getBoundingClientRect().top > 0) {
-                    console.log('➡️ [Tutorial] Moving to edit mode toggle in toolbox (step 6)');
-                    setStepIndex(6);
+                    console.log('➡️ [Tutorial] Moving to edit mode toggle in toolbox (step 9)');
+                    setStepIndex(9);
                     setRun(true);
                 } else {
                     // Keep checking until element is properly positioned
@@ -690,21 +685,21 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // When user clicks "Next" on step 6 (edit mode toggle in toolbox), turn ON edit mode and go to creature name
-        if (index === 6 && action === 'next' && type === 'step:after') {
-            console.log('✏️ [Tutorial] User clicked Next on edit toggle (step 6), enabling edit mode');
+        // When user clicks "Next" on step 9 (edit mode toggle in toolbox), turn ON edit mode and go to creature name
+        if (index === 9 && action === 'next' && type === 'step:after') {
+            console.log('✏️ [Tutorial] User clicked Next on edit toggle (step 9), enabling edit mode');
             onToggleEditMode?.(true);
 
             // Wait for edit mode to activate, then go to creature name
             setTimeout(() => {
-                console.log('➡️ [Tutorial] Edit mode enabled, moving to creature name (step 7)');
-                setStepIndex(7);
+                console.log('➡️ [Tutorial] Edit mode enabled, moving to creature name (step 10)');
+                setStepIndex(10);
             }, 300);
             return;
         }
 
-        // When user clicks "Next" on step 7 (creature name), trigger edit animation and turn OFF edit mode
-        if (index === 7 && action === 'next' && type === 'step:after') {
+        // When user clicks "Next" on step 10 (creature name), trigger edit animation and turn OFF edit mode
+        if (index === 10 && action === 'next' && type === 'step:after') {
             console.log('✍️ [Tutorial] Triggering edit animation');
             setRun(false); // Pause tour during animation
 
@@ -739,8 +734,8 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                         const waitForEditTogglePositioning = () => {
                             const editToggle = document.querySelector('[data-tutorial="edit-mode-toggle"]');
                             if (editToggle && editToggle.getBoundingClientRect().top > 0) {
-                                console.log('➡️ [Tutorial] Moving to edit toggle OFF step (step 8)');
-                                setStepIndex(8);
+                                console.log('➡️ [Tutorial] Moving to edit toggle OFF step (step 11)');
+                                setStepIndex(11);
                                 setRun(true);
                             } else {
                                 // Keep checking until element is properly positioned
@@ -751,20 +746,20 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                         waitForEditTogglePositioning();
                     } else {
                         console.warn('⚠️ [Tutorial] No edit text handler provided');
-                        setStepIndex(9); // Skip to step 9 on error
+                        setStepIndex(12); // Skip to step 12 on error
                         setRun(true);
                     }
                 } catch (error) {
                     console.error('❌ [Tutorial] Edit animation error:', error);
-                    setStepIndex(9); // Move to step 9 even on error
+                    setStepIndex(12); // Move to step 12 even on error
                     setRun(true);
                 }
             })();
             return;
         }
 
-        // When user clicks "Next" on step 8 (edit mode toggle - turn OFF), disable edit mode and go to image generation
-        if (index === 8 && action === 'next' && type === 'step:after') {
+        // When user clicks "Next" on step 11 (edit mode toggle - turn OFF), disable edit mode and go to image generation
+        if (index === 11 && action === 'next' && type === 'step:after') {
             console.log('🔒 [Tutorial] Turning OFF edit mode and moving to image generation');
             setRun(false); // Pause during transitions
 
@@ -803,13 +798,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Wait for tab transition
                     await new Promise(r => setTimeout(r, 300));
 
-                    // Move to step 9 (image generation tab explanation)
-                    console.log('➡️ [Tutorial] Moving to image generation tab step (step 9)');
-                    setStepIndex(9);
+                    // Move to step 12 (image generation tab explanation)
+                    console.log('➡️ [Tutorial] Moving to image generation tab step (step 12)');
+                    setStepIndex(12);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Image generation step error:', error);
-                    setStepIndex(9);
+                    setStepIndex(12);
                     setRun(true);
                 }
             })();
@@ -817,18 +812,18 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // IMAGE_GEN_TAB → IMAGE_GEN_PROMPT: Skip typing animation (prompt auto-populated from creature sdPrompt)
-        if (index === 9 && action === 'next' && type === 'step:after') {
+        if (index === 12 && action === 'next' && type === 'step:after') {
             console.log('📝 [Tutorial] Image gen tab intro complete, moving to prompt step (already auto-populated)');
 
-            // Move directly to IMAGE_GEN_PROMPT step (step 10) - no typing needed
+            // Move directly to IMAGE_GEN_PROMPT step (step 13) - no typing needed
             // The image prompt should already be populated from the creature's sdPrompt field
-            console.log('➡️ [Tutorial] Moving to image prompt step (step 10)');
-            setStepIndex(10);
+            console.log('➡️ [Tutorial] Moving to image prompt step (step 13)');
+            setStepIndex(13);
             return;
         }
 
         // IMAGE_GEN_BUTTON → IMAGE_GEN_RESULTS: Click generate, show progress bar, load mock images, show results
-        if (index === 11 && action === 'next' && type === 'step:after') {
+        if (index === 14 && action === 'next' && type === 'step:after') {
             console.log('🎨 [Tutorial] Clicking image generate button');
             setRun(false);
 
@@ -844,13 +839,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     console.log('⏳ [Tutorial] Waiting for progress bar simulation to complete...');
                     await new Promise(r => setTimeout(r, 9500));
 
-                    // Move to IMAGE_GEN_RESULTS step (step 12)
-                    console.log('➡️ [Tutorial] Moving to image results grid step (step 12)');
-                    setStepIndex(12);
+                    // Move to IMAGE_GEN_RESULTS step (step 15)
+                    console.log('➡️ [Tutorial] Moving to image results grid step (step 15)');
+                    setStepIndex(15);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Image generation error:', error);
-                    setStepIndex(12);
+                    setStepIndex(15);
                     setRun(true);
                 }
             })();
@@ -858,7 +853,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // IMAGE_GEN_RESULTS → MODAL_NAVIGATION: Click expand button, navigate to 4th image, explain buttons
-        if (index === 12 && action === 'next' && type === 'step:after') {
+        if (index === 15 && action === 'next' && type === 'step:after') {
             console.log('🔍 [Tutorial] Showing expand button and navigating to 4th image');
             setRun(false);
 
@@ -899,13 +894,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                         console.log('✨ [Tutorial] Previous button highlighted');
                     }
 
-                    // Move to MODAL_NAVIGATION_EXPLANATION step (step 13 - inside modal)
-                    console.log('➡️ [Tutorial] Moving to modal navigation explanation step (step 13)');
-                    setStepIndex(13);
+                    // Move to MODAL_NAVIGATION_EXPLANATION step (step 16 - inside modal)
+                    console.log('➡️ [Tutorial] Moving to modal navigation explanation step (step 16)');
+                    setStepIndex(16);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Expand button demo error:', error);
-                    setStepIndex(13);
+                    setStepIndex(16);
                     setRun(true);
                 }
             })();
@@ -913,7 +908,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // MODAL_NAVIGATION_EXPLANATION → IMAGE_SELECT: Close modal, proceed to image selection
-        if (index === 13 && action === 'next' && type === 'step:after') {
+        if (index === 16 && action === 'next' && type === 'step:after') {
             console.log('🚪 [Tutorial] Closing modal and proceeding to image selection');
             setRun(false);
 
@@ -946,13 +941,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Wait for modal to close
                     await new Promise(r => setTimeout(r, 400));
 
-                    // Move to IMAGE_SELECT step (step 14)
-                    console.log('➡️ [Tutorial] Moving to image select step (step 14)');
-                    setStepIndex(14);
+                    // Move to IMAGE_SELECT step (step 17)
+                    console.log('➡️ [Tutorial] Moving to image select step (step 17)');
+                    setStepIndex(17);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Modal close error:', error);
-                    setStepIndex(14);
+                    setStepIndex(17);
                     setRun(true);
                 }
             })();
@@ -960,7 +955,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // IMAGE_SELECT → IMAGE_ON_CANVAS: Click 3rd image to select it
-        if (index === 14 && action === 'next' && type === 'step:after') {
+        if (index === 17 && action === 'next' && type === 'step:after') {
             console.log('🖼️ [Tutorial] Selecting 3rd image');
             setRun(false);
 
@@ -1016,8 +1011,8 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                             const width = rect.width;
                             // Check if element exists AND has been measured (has dimensions)
                             if (height > 100 && width > 100) {
-                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 15`);
-                                setStepIndex(15);
+                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 18`);
+                                setStepIndex(18);
                                 setTimeout(() => setRun(true), 100);
                                 return;
                             }
@@ -1035,7 +1030,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Add safety timeout (5 seconds max wait)
                     const maxWaitTimeout = setTimeout(() => {
                         console.warn('⚠️ [Tutorial] Canvas positioning timeout - proceeding anyway');
-                        setStepIndex(15);
+                        setStepIndex(18);
                         setTimeout(() => setRun(true), 100);
                     }, 5000);
 
@@ -1076,7 +1071,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // IMAGE_ON_CANVAS → Completion/IMAGE_LOGIN_REMINDER: Begin exit/completion flow
-        if (index === 15 && action === 'next' && type === 'step:after') {
+        if (index === 18 && action === 'next' && type === 'step:after') {
             console.log('🎉 [Tutorial] Canvas step complete, transitioning to exit flow');
 
             // Pause the tour
@@ -1128,7 +1123,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
 
         // IMAGE_LOGIN_REMINDER → SAVE: Congratulations and quicksave info, move to save button
-        if (index === 16 && action === 'next' && type === 'step:after') {
+        if (index === 19 && action === 'next' && type === 'step:after') {
             console.log('🎉 [Tutorial] Exit flow - congratulations step complete, moving to SAVE button');
 
             setRun(false);
@@ -1153,7 +1148,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // SAVE → HELP: Show where to save, move to help button
-        if (index === 17 && action === 'next' && type === 'step:after') {
+        if (index === 20 && action === 'next' && type === 'step:after') {
             console.log('💾 [Tutorial] SAVE button step complete, moving to HELP button');
 
             setRun(false);
@@ -1169,7 +1164,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // HELP → Complete: Show where tutorial button is, then complete
-        if (index === 18 && action === 'next' && type === 'step:after') {
+        if (index === 21 && action === 'next' && type === 'step:after') {
             console.log('❓ [Tutorial] HELP button step complete, executing tutorial completion');
 
             // Pause the tour
@@ -1223,65 +1218,65 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
         // Handle back button - reopen/close drawer as needed
         if (action === 'prev') {
-            if (index === 1) {
-                // Going back from drawer to generation button - close drawer
+            if (index === 4) {
+                // Going back from drawer to tools header - close drawer
                 console.log('⬅️ [Tutorial] Back: closing drawer');
                 onCloseGenerationDrawerRef.current?.();
-            } else if (index === 2) {
+            } else if (index === 5) {
                 // Going back from text generation tab - reset typing/checkbox flags for potential replay
                 console.log('⬅️ [Tutorial] Back: resetting typing/checkbox demos');
                 setIsTypingDemoTriggered(false);
                 setIsCheckboxDemoTriggered(false);
-            } else if (index === 3) {
+            } else if (index === 6) {
                 // Going back from generate button to text tab - reset typing/checkbox flags
                 console.log('⬅️ [Tutorial] Back: resetting typing/checkbox demos');
                 setIsTypingDemoTriggered(false);
                 setIsCheckboxDemoTriggered(false);
-            } else if (index === 4) {
+            } else if (index === 7) {
                 // Going back from progress bar to generate button
                 console.log('⬅️ [Tutorial] Back: returning to generate button');
                 setIsGenerationDemoTriggered(false); // Reset so user can trigger generation again
-            } else if (index === 11 && !isLoggedIn) {
-                // GUEST USERS: Going back from save button (step 11) - skip step 10 and go to step 9 (image tab)
-                console.log('⬅️ [Tutorial] Guest user back from step 11 - going to step 9');
-                setStepIndex(9);
+            } else if (index === 14 && !isLoggedIn) {
+                // GUEST USERS: Going back from save button (step 14) - skip step 13 and go to step 12 (image tab)
+                console.log('⬅️ [Tutorial] Guest user back from step 14 - going to step 12');
+                setStepIndex(12);
                 return;
-            } else if (index === 10) {
+            } else if (index === 13) {
                 // Going back from upload zone to image generation tab
                 console.log('⬅️ [Tutorial] Back: returning to image generation tab');
-                setStepIndex(9);
+                setStepIndex(12);
                 return;
-            } else if (index === 9) {
+            } else if (index === 12) {
                 // Going back from image generation tab to edit OFF - close drawer
                 console.log('⬅️ [Tutorial] Back: closing drawer');
                 onCloseGenerationDrawerRef.current?.();
-                setStepIndex(8);
+                setStepIndex(11);
                 return;
-            } else if (index === 8) {
+            } else if (index === 11) {
                 // Going back from edit OFF message to creature name - turn edit mode ON, reset animation flag
                 console.log('⬅️ [Tutorial] Back: re-enabling edit mode');
                 onToggleEditMode?.(true);
                 setIsEditDemoTriggered(false); // Reset flag so animation can trigger again
-            } else if (index === 7) {
+            } else if (index === 10) {
                 // Going back from creature name to edit toggle - just navigate back
                 console.log('⬅️ [Tutorial] Back: returning to edit toggle');
                 // Edit mode stays on
-            } else if (index === 6) {
+            } else if (index === 9) {
                 // Going back from edit toggle to canvas - turn off edit mode and reset generation flag
                 console.log('⬅️ [Tutorial] Back: disabling edit mode, resetting generation demo');
                 onToggleEditMode?.(false);
                 setIsEditDemoTriggered(false); // Reset edit demo flag
                 setIsGenerationDemoTriggered(false); // Reset generation flag for potential replay
                 justAdvancedToStep4Ref.current = false; // Reset canvas flag so it can wait properly next time
-            } else if (index === 5) {
+            } else if (index === 8) {
                 // Going back from canvas to progress bar - reopen drawer and reset generation flag
                 console.log('⬅️ [Tutorial] Back: reopening drawer, resetting generation demo');
-                
+
                 // Clear auto-advance callback when going back
                 onSetGenerationCompleteCallback?.(null);
-                
+
                 setRun(false);
-                setStepIndex(4);
+                setStepIndex(7);
                 setIsGenerationDemoTriggered(false);
                 justAdvancedToStep4Ref.current = false;
                 onOpenGenerationDrawer?.();
@@ -1302,17 +1297,28 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // Update step index for normal navigation
+        // NEW (with header steps 0-2): Steps 0, 1, 2 use normal navigation
         // Skip steps with custom handlers:
-        // 0 (drawer open), 2 (animations), 3 (generation trigger), 4 (progress bar), 5 (canvas→toolbox),
-        // 7 (edit demo), 8 (edit off→image), 9 (image prompt), 11 (image gen), 13 (image select), 14 (image canvas→select), 15 (canvas→completion), 16 (completion)
-        // Steps using normal navigation: 1, 6, 10, 12
-        const customHandlerSteps = [0, 2, 3, 4, 5, 7, 8, 9, 11, 13, 14, 15, 16, 17, 18];
+        // 3 (TOOLS_HEADER→DRAWER - opens drawer), 5 (TEXT_TAB→GENERATE - animations), 
+        // 6 (GENERATE→PROGRESS - generation trigger), 7 (PROGRESS→CANVAS - auto-advance), 
+        // 8 (CANVAS→EDIT_ON - canvas→toolbox), 10 (EDIT_ON→NAME - edit demo), 
+        // 11 (NAME→EDIT_OFF - edit off→image), 12 (EDIT_OFF→IMAGE_TAB - image prompt), 
+        // 14 (IMAGE_PROMPT→IMAGE_GEN - image gen), 16 (IMAGE_RESULTS→NAV - image select), 
+        // 17 (NAV→SELECT - image canvas→select), 18 (SELECT→IMAGE_CANVAS - canvas→completion), 
+        // 19+ (exit flow), etc.
+        // Steps using normal navigation: 0, 1, 2, 4, 9, 13, 15
+        const customHandlerSteps = [3, 5, 6, 7, 8, 10, 11, 12, 14, 16, 17, 18, 19, 20, 21];
+        
+        console.log(`🔍 [Tutorial] Navigation check - index: ${index}, type: ${type}, action: ${action}, hasCustomHandler: ${customHandlerSteps.includes(index)}`);
+        
         if (type === 'step:after' && action === 'next' && !customHandlerSteps.includes(index)) {
             console.log(`➡️ [Tutorial] Normal next: ${index} → ${index + 1}`);
             setStepIndex(index + 1);
         } else if (type === 'step:after' && action === 'prev') {
             console.log(`⬅️ [Tutorial] Normal back: ${index} → ${index - 1}`);
             setStepIndex(index - 1);
+        } else {
+            console.log(`⏭️ [Tutorial] Navigation skipped - waiting for custom handler or wrong event type`);
         }
     };
 
