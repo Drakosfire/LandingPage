@@ -499,6 +499,32 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
             (async () => {
                 try {
+                    // Register callback for when progress bar simulation completes (auto-advance to step 5)
+                    const autoAdvanceCallback = () => {
+                        console.log('✅ [Tutorial] Progress bar simulation complete, auto-advancing to canvas');
+                        
+                        // Load demo statblock
+                        replaceCreatureDetails(HERMIONE_DEMO_STATBLOCK);
+                        
+                        // Wait for canvas to render, then close drawer and advance
+                        setTimeout(async () => {
+                            onCloseGenerationDrawerRef.current?.();
+                            await new Promise(r => setTimeout(r, 300));
+                            
+                            // Move to canvas step (step 5)
+                            console.log('➡️ [Tutorial] Moving to canvas step (step 5)');
+                            justAdvancedToStep4Ref.current = true;
+                            setStepIndex(5);
+                            setRun(true);
+                            
+                            // Clear callback after use
+                            onSetGenerationCompleteCallback?.(null);
+                        }, 1000);
+                    };
+                    
+                    // CRITICAL: Wrap in arrow function to prevent React setState from treating as functional update
+                    onSetGenerationCompleteCallback?.(() => autoAdvanceCallback);
+
                     // Click the generate button to start the simulation
                     if (onTutorialClickButton) {
                         console.log('🖱️ [Tutorial] Clicking Generate button');
@@ -532,47 +558,44 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     console.error('❌ [Tutorial] Generation trigger error:', error);
                     setStepIndex(4); // Move to progress bar step even on error
                     setRun(true);
+                    // Clear callback on error
+                    onSetGenerationCompleteCallback?.(null);
                 }
             })();
 
             return;
         }
 
-        // Step 4 → 5 transition: Progress bar completes, load demo and show canvas
+        // Step 4 → 5 transition: User manually clicked Next on progress bar (fallback if they don't wait)
         if (index === 4 && action === 'next' && type === 'step:after') {
-            console.log('➡️ [Tutorial] User clicked Next on step 4 (progress bar), loading demo');
+            console.log('➡️ [Tutorial] User manually clicked Next on progress bar step');
+            
+            // Clear the auto-advance callback since user is manually advancing
+            onSetGenerationCompleteCallback?.(null);
 
             setRun(false); // Pause tour while we load demo
 
             (async () => {
                 try {
                     // Load demo statblock
-                    console.log('📜 [Tutorial] Loading Hermione demo statblock');
                     replaceCreatureDetails(HERMIONE_DEMO_STATBLOCK);
-                    console.log('✅ [Tutorial] replaceCreatureDetails called');
 
                     // Wait for canvas to measure and render components
-                    console.log('⏳ [Tutorial] Waiting for canvas measurement and render...');
                     await new Promise(r => setTimeout(r, 1000));
-                    console.log('✅ [Tutorial] Canvas should now be fully rendered');
 
                     // Close drawer
-                    console.log('🚪 [Tutorial] Closing generation drawer');
                     onCloseGenerationDrawerRef.current?.();
-
-                    // Wait for drawer close animation
                     await new Promise(r => setTimeout(r, 300));
 
                     // Move to canvas step (step 5)
-                    console.log('➡️ [Tutorial] Moving to canvas with Hermione visible (step 5)');
-                    justAdvancedToStep4Ref.current = true; // Flag to prevent immediate advancement
-                    console.log('🚩 [Tutorial] Set guard flag = true');
+                    console.log('➡️ [Tutorial] Moving to canvas step (step 5)');
+                    justAdvancedToStep4Ref.current = true;
                     setStepIndex(5);
                     setRun(true);
 
                 } catch (error) {
                     console.error('❌ [Tutorial] Demo loading error:', error);
-                    setStepIndex(5); // Move to canvas step even on error
+                    setStepIndex(5);
                     setRun(true);
                 }
             })();
@@ -661,7 +684,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     setTimeout(waitForMenuPositioning, 50);
                 }
             };
-            
+
             // Start checking after initial delay for portal rendering
             setTimeout(waitForMenuPositioning, 600);
             return;
@@ -724,7 +747,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                                 setTimeout(waitForEditTogglePositioning, 50);
                             }
                         };
-                        
+
                         waitForEditTogglePositioning();
                     } else {
                         console.warn('⚠️ [Tutorial] No edit text handler provided');
@@ -1253,10 +1276,14 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             } else if (index === 5) {
                 // Going back from canvas to progress bar - reopen drawer and reset generation flag
                 console.log('⬅️ [Tutorial] Back: reopening drawer, resetting generation demo');
+                
+                // Clear auto-advance callback when going back
+                onSetGenerationCompleteCallback?.(null);
+                
                 setRun(false);
-                setStepIndex(4); // Move to progress bar step
-                setIsGenerationDemoTriggered(false); // Reset so user can trigger generation again
-                justAdvancedToStep4Ref.current = false; // Reset canvas flag
+                setStepIndex(4);
+                setIsGenerationDemoTriggered(false);
+                justAdvancedToStep4Ref.current = false;
                 onOpenGenerationDrawer?.();
 
                 // Wait for drawer to reopen before continuing
