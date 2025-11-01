@@ -18,6 +18,7 @@ export const TUTORIAL_STEP_NAMES = {
     IMAGE_GEN_PROMPT: 'image-gen-prompt',
     IMAGE_GEN_BUTTON: 'image-gen-button',
     IMAGE_GEN_RESULTS: 'image-gen-results',
+    MODAL_INTRO: 'modal-intro',
     MODAL_NAVIGATION: 'modal-navigation',
     IMAGE_SELECT: 'image-select',
     IMAGE_ON_CANVAS: 'image-on-canvas',
@@ -197,7 +198,7 @@ const IMAGE_GEN_BUTTON: TutorialStep = {
 const IMAGE_GEN_RESULTS: TutorialStep = {
     name: TUTORIAL_STEP_NAMES.IMAGE_GEN_RESULTS,
     target: '[data-tutorial="image-results-grid"]',
-    content: '🖼️ Here are your generated images! Each generation creates 4 variations. Watch as we use the expand button to view images full size!',
+    content: '🖼️ Here are your generated images! Each generation creates 4 variations. Watch as we expand the 3rd image to view it full size!',
     placement: 'top',
     styles: {
         tooltip: {
@@ -206,11 +207,23 @@ const IMAGE_GEN_RESULTS: TutorialStep = {
     },
 };
 
+const MODAL_INTRO: TutorialStep = {
+    name: TUTORIAL_STEP_NAMES.MODAL_INTRO,
+    target: '[data-tutorial="modal-next-button"]',
+    content: '⬅️➡️ You can navigate between images using these arrow buttons. Let\'s try browsing through the images!',
+    placement: 'bottom',
+    styles: {
+        tooltip: {
+            maxWidth: '340px',
+        },
+    },
+};
+
 const MODAL_NAVIGATION: TutorialStep = {
     name: TUTORIAL_STEP_NAMES.MODAL_NAVIGATION,
     target: '[data-tutorial="modal-prev-button"]',
-    content: '⬅️➡️ Use these navigation buttons to flip through all 4 images in full size! We\'re currently viewing the 4th image, so the previous button is highlighted. Close the modal when you\'re done browsing.',
-    placement: 'top',
+    content: '✨ Great! You can flip through all your generated images this way. Close the modal when you\'re ready to select one.',
+    placement: 'bottom',
     styles: {
         tooltip: {
             maxWidth: '340px',
@@ -282,7 +295,7 @@ const HELP: TutorialStep = {
     placement: 'bottom',
 };
 
-// Guest tutorial flow: 19 steps (0-18) - added 3 header orientation steps
+// Guest tutorial flow: 20 steps (0-19) - added 3 header orientation steps + modal intro
 export const GUEST_TUTORIAL_STEPS: TutorialStep[] = [
     WELCOME,              // Step 0: Welcome overview
     GENERATION_HEADER,    // Step 1: Generation button
@@ -300,19 +313,20 @@ export const GUEST_TUTORIAL_STEPS: TutorialStep[] = [
     IMAGE_GEN_PROMPT,     // Step 13: Image prompt (was step 10)
     IMAGE_GEN_BUTTON,     // Step 14: Image gen button (was step 11)
     IMAGE_GEN_RESULTS,    // Step 15: Image results (was step 12)
-    MODAL_NAVIGATION,     // Step 16: Image modal nav (was step 13)
-    IMAGE_SELECT,         // Step 17: Image select (was step 14)
-    IMAGE_ON_CANVAS,      // Step 18: Image on canvas (was step 15)
+    MODAL_INTRO,          // Step 16: Modal intro - show navigation buttons
+    MODAL_NAVIGATION,     // Step 17: Modal navigation demo (was step 16)
+    IMAGE_SELECT,         // Step 18: Image select (was step 17)
+    IMAGE_ON_CANVAS,      // Step 19: Image on canvas (was step 18)
 ];
 
-// Logged-in tutorial flow: 24 steps (0-23)
+// Logged-in tutorial flow: 25 steps (0-24)
 export const LOGGEDIN_TUTORIAL_STEPS: TutorialStep[] = [
-    ...GUEST_TUTORIAL_STEPS,  // First 19 steps
-    IMAGE_LOGIN_REMINDER,     // Step 19: Login reminder (was step 16)
-    SAVE,                     // Step 20: Save (was step 17)
-    EXPORT,                   // Step 21: Export (was step 18)
-    PROJECTS,                 // Step 22: Projects (was step 19)
-    HELP,                     // Step 23: Help (was step 20)
+    ...GUEST_TUTORIAL_STEPS,  // First 20 steps
+    IMAGE_LOGIN_REMINDER,     // Step 20: Login reminder (was step 19)
+    SAVE,                     // Step 21: Save (was step 20)
+    EXPORT,                   // Step 22: Export (was step 21)
+    PROJECTS,                 // Step 23: Projects (was step 22)
+    HELP,                     // Step 24: Help (was step 23)
 ];
 
 // Master list (for backwards compatibility / reference)

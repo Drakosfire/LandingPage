@@ -916,7 +916,7 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
                                         color="blue"
                                         variant="filled"
                                         size="md"
-                                        data-tutorial={index === 0 ? 'image-expand-button' : undefined}
+                                        data-tutorial={index === 0 ? 'image-expand-button' : index === 2 ? 'image-expand-button-2' : undefined}
                                         style={{
                                             position: 'absolute',
                                             top: 8,

@@ -868,54 +868,43 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // IMAGE_GEN_RESULTS → MODAL_NAVIGATION: Click expand button, navigate to 4th image, explain buttons
+        // IMAGE_GEN_RESULTS → MODAL_INTRO: Open modal on image 3 and introduce navigation buttons
         if (index === 15 && action === 'next' && type === 'step:after') {
-            console.log('🔍 [Tutorial] Showing expand button and navigating to 4th image');
+            console.log('🔍 [Tutorial] Opening modal on 3rd image and introducing navigation');
             setRun(false);
 
             (async () => {
                 try {
-                    // Click expand button on first image
+                    // Click expand button on THIRD image (the one we'll eventually select)
                     if (onTutorialClickButton) {
-                        console.log('🖱️ [Tutorial] Clicking expand button');
-                        await onTutorialClickButton('[data-tutorial="image-expand-button"]');
+                        console.log('🖱️ [Tutorial] Clicking expand button on 3rd image');
+                        await onTutorialClickButton('[data-tutorial="image-expand-button-2"]');
                     }
 
                     // Wait for modal to open
                     await new Promise(r => setTimeout(r, 800));
 
-                    // Navigate to 4th image (click next button 3 times)
-                    console.log('➡️ [Tutorial] Navigating to 4th image in modal');
-                    const nextButton = document.querySelector('[data-tutorial="modal-next-button"]');
-                    if (nextButton) {
-                        // Click next 3 times to reach image 4
-                        for (let i = 0; i < 3; i++) {
-                            await new Promise(r => setTimeout(r, 800));
-                            (nextButton as HTMLElement).click();
-                            console.log(`➡️ [Tutorial] Clicked next button ${i + 1}/3 (now at image ${i + 2})`);
-                        }
-                    }
-
-                    // Wait for user to see the 4th image
-                    await new Promise(r => setTimeout(r, 1000));
-
-                    // Highlight the previous button since we're at the last image
-                    console.log('🔍 [Tutorial] Highlighting previous button for navigation explanation');
+                    // Highlight BOTH navigation buttons immediately (before navigating)
+                    console.log('✨ [Tutorial] Highlighting navigation buttons BEFORE demonstration');
                     const prevButton = document.querySelector('[data-tutorial="modal-prev-button"]');
-                    if (prevButton) {
-                        // Add highlighting class to make it clear which button to use
-                        (prevButton as HTMLElement).style.border = '2px solid #228be6';
-                        (prevButton as HTMLElement).style.borderRadius = '4px';
-                        (prevButton as HTMLElement).style.backgroundColor = 'rgba(34, 139, 230, 0.1)';
-                        console.log('✨ [Tutorial] Previous button highlighted');
+                    const nextButton = document.querySelector('[data-tutorial="modal-next-button"]');
+                    
+                    if (prevButton && nextButton) {
+                        // Highlight both buttons to introduce them
+                        [prevButton, nextButton].forEach(btn => {
+                            (btn as HTMLElement).style.border = '2px solid #228be6';
+                            (btn as HTMLElement).style.borderRadius = '4px';
+                            (btn as HTMLElement).style.backgroundColor = 'rgba(34, 139, 230, 0.1)';
+                        });
+                        console.log('✨ [Tutorial] Navigation buttons highlighted');
                     }
 
-                    // Move to MODAL_NAVIGATION_EXPLANATION step (step 16 - inside modal)
-                    console.log('➡️ [Tutorial] Moving to modal navigation explanation step (step 16)');
+                    // Move to MODAL_INTRO step (step 16 - ready to demonstrate navigation)
+                    console.log('➡️ [Tutorial] Moving to modal intro step (step 16)');
                     setStepIndex(16);
                     setRun(true);
                 } catch (error) {
-                    console.error('❌ [Tutorial] Expand button demo error:', error);
+                    console.error('❌ [Tutorial] Modal open error:', error);
                     setStepIndex(16);
                     setRun(true);
                 }
@@ -923,47 +912,95 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             return;
         }
 
-        // MODAL_NAVIGATION_EXPLANATION → IMAGE_SELECT: Close modal, proceed to image selection
+        // MODAL_INTRO → MODAL_NAVIGATION: Demonstrate navigation (3→4→3)
         if (index === 16 && action === 'next' && type === 'step:after') {
-            console.log('🚪 [Tutorial] Closing modal and proceeding to image selection');
+            console.log('➡️ [Tutorial] Demonstrating image navigation');
             setRun(false);
 
             (async () => {
                 try {
-                    // Remove highlighting from navigation buttons before closing
-                    console.log('🧹 [Tutorial] Removing button highlighting before closing modal');
+                    // Navigate forward: image 3 → image 4
+                    const nextButton = document.querySelector('[data-tutorial="modal-next-button"]');
+                    if (nextButton) {
+                        console.log('➡️ [Tutorial] Clicking next to show image 4');
+                        (nextButton as HTMLElement).click();
+                        await new Promise(r => setTimeout(r, 1000));
+                    }
+
+                    // Navigate backward: image 4 → image 3
+                    const prevButton = document.querySelector('[data-tutorial="modal-prev-button"]');
+                    if (prevButton) {
+                        console.log('⬅️ [Tutorial] Clicking prev to return to image 3');
+                        (prevButton as HTMLElement).click();
+                        await new Promise(r => setTimeout(r, 1000));
+                    }
+
+                    // Keep buttons highlighted
+                    console.log('✨ [Tutorial] Navigation demo complete, ready to close modal');
+                    
+                    // Move to MODAL_NAVIGATION step (step 17 - inside modal, ready to close)
+                    console.log('➡️ [Tutorial] Moving to modal navigation step (step 17)');
+                    setStepIndex(17);
+                    setRun(true);
+                } catch (error) {
+                    console.error('❌ [Tutorial] Navigation demo error:', error);
+                    setStepIndex(17);
+                    setRun(true);
+                }
+            })();
+            return;
+        }
+
+        // MODAL_NAVIGATION → IMAGE_SELECT: Close modal and prepare to select image 3
+        if (index === 17 && action === 'next' && type === 'step:after') {
+            console.log('🚪 [Tutorial] Closing modal to select image');
+            setRun(false);
+
+            (async () => {
+                try {
+                    // Remove highlighting from navigation buttons
+                    console.log('🧹 [Tutorial] Removing button highlighting');
                     const prevButton = document.querySelector('[data-tutorial="modal-prev-button"]');
                     const nextButton = document.querySelector('[data-tutorial="modal-next-button"]');
 
-                    if (prevButton) {
-                        (prevButton as HTMLElement).style.border = '';
-                        (prevButton as HTMLElement).style.borderRadius = '';
-                        (prevButton as HTMLElement).style.backgroundColor = '';
-                    }
-                    if (nextButton) {
-                        (nextButton as HTMLElement).style.border = '';
-                        (nextButton as HTMLElement).style.borderRadius = '';
-                        (nextButton as HTMLElement).style.backgroundColor = '';
-                    }
+                    [prevButton, nextButton].forEach(btn => {
+                        if (btn) {
+                            (btn as HTMLElement).style.border = '';
+                            (btn as HTMLElement).style.borderRadius = '';
+                            (btn as HTMLElement).style.backgroundColor = '';
+                        }
+                    });
 
                     // Close modal
                     await new Promise(r => setTimeout(r, 500));
                     const closeButton = document.querySelector('[data-tutorial="modal-close-button"]');
                     if (closeButton) {
                         (closeButton as HTMLElement).click();
-                        console.log('🚪 [Tutorial] Closed modal');
+                        console.log('🚪 [Tutorial] Modal closed');
                     }
 
                     // Wait for modal to close
                     await new Promise(r => setTimeout(r, 400));
 
-                    // Move to IMAGE_SELECT step (step 17)
-                    console.log('➡️ [Tutorial] Moving to image select step (step 17)');
-                    setStepIndex(17);
+                    // Highlight the 3rd image (the one we were viewing)
+                    const thirdImage = document.querySelector('[data-tutorial="image-result-2"]');
+                    if (thirdImage) {
+                        thirdImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        await new Promise(r => setTimeout(r, 500));
+                        
+                        (thirdImage as HTMLElement).style.border = '3px solid #228be6';
+                        (thirdImage as HTMLElement).style.borderRadius = '8px';
+                        (thirdImage as HTMLElement).style.boxShadow = '0 0 0 2px rgba(34, 139, 230, 0.3)';
+                        console.log('✨ [Tutorial] Image 3 highlighted for selection');
+                    }
+
+                    // Move to IMAGE_SELECT step (step 18)
+                    console.log('➡️ [Tutorial] Moving to image select step (step 18)');
+                    setStepIndex(18);
                     setRun(true);
                 } catch (error) {
                     console.error('❌ [Tutorial] Modal close error:', error);
-                    setStepIndex(17);
+                    setStepIndex(18);
                     setRun(true);
                 }
             })();
@@ -971,37 +1008,13 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         }
 
         // IMAGE_SELECT → IMAGE_ON_CANVAS: Click 3rd image to select it
-        if (index === 17 && action === 'next' && type === 'step:after') {
+        if (index === 18 && action === 'next' && type === 'step:after') {
             console.log('🖼️ [Tutorial] Selecting 3rd image');
             setRun(false);
 
             (async () => {
                 try {
-                    // Highlight the 3rd image before selecting it
-                    console.log('🔍 [Tutorial] Highlighting 3rd image for selection');
-                    const thirdImage = document.querySelector('[data-tutorial="image-result-2"]');
-                    if (thirdImage) {
-                        // Scroll the image into view first
-                        thirdImage.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center',
-                            inline: 'center'
-                        });
-                        console.log('📜 [Tutorial] Scrolled to 3rd image');
-
-                        // Wait for scroll to complete
-                        await new Promise(r => setTimeout(r, 500));
-
-                        // Then highlight the image
-                        (thirdImage as HTMLElement).style.border = '3px solid #228be6';
-                        (thirdImage as HTMLElement).style.borderRadius = '8px';
-                        (thirdImage as HTMLElement).style.boxShadow = '0 0 0 2px rgba(34, 139, 230, 0.3)';
-                        console.log('✨ [Tutorial] 3rd image highlighted');
-                    }
-
-                    // Wait a moment for user to see the highlighting
-                    await new Promise(r => setTimeout(r, 1000));
-
+                    // Image is already highlighted from previous step, just click it
                     // Click 3rd image to select it
                     if (onTutorialClickButton) {
                         console.log('🖱️ [Tutorial] Clicking 3rd image');
@@ -1027,8 +1040,8 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                             const width = rect.width;
                             // Check if element exists AND has been measured (has dimensions)
                             if (height > 100 && width > 100) {
-                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 18`);
-                                setStepIndex(18);
+                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 19`);
+                                setStepIndex(19);
                                 setTimeout(() => setRun(true), 100);
                                 return;
                             }
@@ -1046,7 +1059,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     // Add safety timeout (5 seconds max wait)
                     const maxWaitTimeout = setTimeout(() => {
                         console.warn('⚠️ [Tutorial] Canvas positioning timeout - proceeding anyway');
-                        setStepIndex(18);
+                        setStepIndex(19);
                         setTimeout(() => setRun(true), 100);
                     }, 5000);
 
@@ -1058,9 +1071,9 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                             const height = rect.height;
                             const width = rect.width;
                             if (height > 100 && width > 100) {
-                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 18`);
+                                console.log(`✅ [Tutorial] Canvas fully positioned (${width}x${height}), moving to step 19`);
                                 clearTimeout(maxWaitTimeout);
-                                setStepIndex(18);
+                                setStepIndex(19);
                                 setTimeout(() => setRun(true), 100);
                                 return;
                             }
