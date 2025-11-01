@@ -87,8 +87,8 @@ const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({
 
             onGenerationStart?.();
 
-            // Simulate realistic generation time with progress bar (9000ms to match flux-pro timing)
-            const SIMULATED_GENERATION_TIME = 9000;
+            // Simulate realistic generation time with progress bar (4000ms for tutorial)
+            const SIMULATED_GENERATION_TIME = 4000;
             await new Promise(r => setTimeout(r, SIMULATED_GENERATION_TIME));
 
             // Add mock images to project (marked as tutorial-only, won't persist)
