@@ -15,7 +15,7 @@ import { STATBLOCK_APP } from '../../context/AppContext';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../fixtures/templates';
 import { buildPageDocument, extractCustomData } from '../../canvas/data';
 import { exportPageToHTMLFile } from '@dungeonmind/canvas';
-import { createStatblockAdapters } from '../../canvas/adapters/statblockAdapters';
+import { createStatblockAdapters } from './canvasAdapters';
 
 // Import components
 import { UnifiedHeader } from '../UnifiedHeader';

@@ -8,6 +8,7 @@
 // Canvas package imports (using npm linked @dungeonmind/canvas)
 import type {
     DataResolver,
+    ListNormalizer,
     HeightEstimator,
     MetadataExtractor,
     CanvasAdapters,
@@ -58,6 +59,64 @@ const statblockDataResolver: DataResolver = {
     getPrimarySource<T = unknown>(dataSources: ComponentDataSource[], type: string): T | undefined {
         const source = dataSources.find((s) => s.type === type);
         return source?.payload as T | undefined;
+    },
+};
+
+// =============================================================================
+// List Normalizer for Statblocks
+// =============================================================================
+
+/**
+ * Normalize list items for statblocks
+ * Handles special cases like:
+ * - Nested actions (legendaryActions.actions, lairActions.actions)
+ * - Spell lists (combining cantrips + knownSpells)
+ * - Plain arrays (actions, traits, etc.)
+ */
+const statblockListNormalizer: ListNormalizer = {
+    normalizeListItems<T = unknown>(items: T[] | undefined | null): T[] {
+        if (!items) return [];
+        
+        // If it's already an array, return it
+        if (Array.isArray(items)) {
+            return items.filter(item => item !== null && item !== undefined);
+        }
+        
+        // If it's an object, check for special structures
+        if (typeof items === 'object') {
+            const obj = items as any;
+            
+            // Handle legendaryActions/lairActions structure: { actions: [...], description: "..." }
+            if (obj.actions && Array.isArray(obj.actions)) {
+                return obj.actions.filter((item: any) => item !== null && item !== undefined);
+            }
+            
+            // Handle spellcasting structure: { cantrips: [...], knownSpells: [...] }
+            if (obj.cantrips || obj.knownSpells) {
+                const cantrips = (obj.cantrips ?? []).map((spell: any) => ({
+                    id: spell.id ?? `cantrip-${spell.name?.toLowerCase().replace(/\s+/g, '-')}`,
+                    name: spell.name,
+                    desc: spell.description ?? '',
+                    level: spell.level ?? 0,
+                    school: spell.school,
+                    usage: spell.usage,
+                }));
+                
+                const knownSpells = (obj.knownSpells ?? []).map((spell: any) => ({
+                    id: spell.id ?? `spell-${spell.name?.toLowerCase().replace(/\s+/g, '-')}`,
+                    name: spell.name,
+                    desc: spell.description ?? '',
+                    level: spell.level,
+                    school: spell.school,
+                    usage: spell.usage,
+                }));
+                
+                return [...cantrips, ...knownSpells] as T[];
+            }
+        }
+        
+        // Fallback: return empty array
+        return [];
     },
 };
 
@@ -170,6 +229,25 @@ const statblockMetadataExtractor: MetadataExtractor = {
 };
 
 // =============================================================================
+// Component Type Mapping for Statblocks
+// =============================================================================
+
+/**
+ * Maps statblock component types to their region list kinds
+ * This tells Canvas which components should be treated as list components
+ * and what kind of list content they represent
+ */
+const STATBLOCK_COMPONENT_TYPE_MAP: Record<string, string | undefined> = {
+    'action-section': 'action-list',
+    'trait-list': 'trait-list',
+    'bonus-action-section': 'bonus-action-list',
+    'reaction-section': 'reaction-list',
+    'legendary-actions': 'legendary-action-list',
+    'lair-actions': 'lair-action-list',
+    'spellcasting-block': 'spell-list',
+};
+
+// =============================================================================
 // Complete Adapter Bundle for Statblocks
 // =============================================================================
 
@@ -182,15 +260,15 @@ const statblockMetadataExtractor: MetadataExtractor = {
  * @returns Complete CanvasAdapters bundle configured for statblocks
  */
 export const createStatblockAdapters = (): CanvasAdapters => {
-    // Get default adapters for list normalization and region content factory
+    // Get default adapters for region content factory
     const defaults = createDefaultAdapters();
 
     return {
         // Statblock-specific data resolver
         dataResolver: statblockDataResolver,
 
-        // Use default list normalizer (generic array normalization works for actions/spells)
-        listNormalizer: defaults.listNormalizer,
+        // Statblock-specific list normalizer (handles nested actions, spell combination)
+        listNormalizer: statblockListNormalizer,
 
         // Use default region content factory (generic content creation works)
         regionContentFactory: defaults.regionContentFactory,
@@ -200,6 +278,9 @@ export const createStatblockAdapters = (): CanvasAdapters => {
 
         // Statblock-specific metadata extractor (knows how to get creature name)
         metadataExtractor: statblockMetadataExtractor,
+        
+        // Statblock component type mapping
+        componentTypeMap: STATBLOCK_COMPONENT_TYPE_MAP,
     };
 };
 
@@ -208,6 +289,7 @@ export const createStatblockAdapters = (): CanvasAdapters => {
  */
 export {
     statblockDataResolver,
+    statblockListNormalizer,
     statblockHeightEstimator,
     statblockMetadataExtractor,
 };

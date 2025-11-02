@@ -15,7 +15,7 @@ import { useCanvasLayout } from '@dungeonmind/canvas';
 import { CanvasPage } from '@dungeonmind/canvas';
 import { MeasurementLayer, MeasurementCoordinator } from '@dungeonmind/canvas';
 import { COMPONENT_VERTICAL_SPACING_PX } from '@dungeonmind/canvas';
-import { createStatblockAdapters } from '../../canvas/adapters/statblockAdapters';
+import { createStatblockAdapters } from './canvasAdapters';
 
 interface StatblockPageProps {
     page: StatblockPageDocument;
