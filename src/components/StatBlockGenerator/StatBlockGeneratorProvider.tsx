@@ -520,10 +520,10 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const handleGuardCreateNew = useCallback(async () => {
         console.log('📁 [Guard] User chose: Create New Project');
         setGuardModalOpen(false);
-        
+
         // Clear current project (will trigger new project creation on save)
         setCurrentProject(null);
-        
+
         guardResolveRef.current?.('create-new');
         guardResolveRef.current = null;
     }, []);
@@ -531,7 +531,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const handleGuardOverwrite = useCallback(() => {
         console.log('⚠️ [Guard] User chose: Overwrite Current Project');
         setGuardModalOpen(false);
-        
+
         guardResolveRef.current?.('proceed');
         guardResolveRef.current = null;
     }, []);
@@ -539,7 +539,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const handleGuardCancel = useCallback(() => {
         console.log('❌ [Guard] User cancelled generation');
         setGuardModalOpen(false);
-        
+
         guardResolveRef.current?.('cancel');
         guardResolveRef.current = null;
     }, []);
@@ -639,7 +639,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const clearTutorialImages = useCallback(() => {
         console.log('🧹 [Provider] Clearing tutorial images');
         const tutorialImageCount = generatedContent.images.filter(img => img.isTutorial).length;
-        
+
         if (tutorialImageCount === 0) {
             console.log('✅ [Provider] No tutorial images to clear');
             return;
@@ -1392,7 +1392,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     return (
         <StatBlockGeneratorContext.Provider value={contextValue}>
             {children}
-            
+
             {/* Guard Modal - Prevent accidental overwrite of saved projects */}
             <GenerateWithProjectGuard
                 opened={guardModalOpen}
