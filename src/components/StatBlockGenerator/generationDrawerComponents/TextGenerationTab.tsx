@@ -30,7 +30,8 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
         creatureDetails,
         replaceCreatureDetails,
         setIsGenerating,
-        setImagePrompt
+        setImagePrompt,
+        checkBeforeGenerate
     } = useStatBlockGenerator();
 
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -61,6 +62,20 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
         if (!generationPrompt.trim() && !isTutorialMode) {
             console.log('⚠️ [TextGen] No prompt provided, aborting');
             return;
+        }
+
+        // Guard check: Prevent accidental overwrite of saved projects (skip for tutorial)
+        if (!isTutorialMode) {
+            const guardResult = await checkBeforeGenerate();
+            if (guardResult === 'cancel') {
+                console.log('❌ [TextGen] Generation cancelled by user');
+                return;
+            }
+            if (guardResult === 'create-new') {
+                console.log('📁 [TextGen] Creating new project - currentProject cleared');
+                // Guard already cleared currentProject, proceed with generation
+            }
+            // If 'proceed', user confirmed overwrite, continue normally
         }
 
         // CRITICAL: Prevent real generation during tutorial BUT show progress bar for UX
@@ -244,7 +259,8 @@ const TextGenerationTab: React.FC<TextGenerationTabProps> = ({
         setImagePrompt,
         onGenerationStart,
         onGenerationComplete,
-        isTutorialMode
+        isTutorialMode,
+        checkBeforeGenerate
     ]);
 
     const quickFillSuggestions = [

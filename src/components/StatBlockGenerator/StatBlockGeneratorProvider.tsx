@@ -19,6 +19,7 @@ import { MeasurementCoordinator } from '@dungeonmind/canvas';
 import { normalizeStatblock, createDefaultStatblock } from '../../utils/statblockNormalization';
 import { getRandomDemo, EMPTY_STATBLOCK } from '../../fixtures/demoStatblocks';
 import { tutorialCookies } from '../../utils/tutorialCookies';
+import { GenerateWithProjectGuard } from './GenerateWithProjectGuard';
 
 // Context interface for StatBlockGenerator (Phase 5: Step navigation removed)
 export interface StatBlockGeneratorContextType {
@@ -77,6 +78,7 @@ export interface StatBlockGeneratorContextType {
     // State Updates
     updateCreatureDetails: (updates: Partial<StatBlockDetails>) => void;
     replaceCreatureDetails: (next: StatBlockDetails) => void;
+    checkBeforeGenerate: () => Promise<'proceed' | 'create-new' | 'cancel'>;  // Guard against overwriting saved projects
     setSelectedTemplateId: (templateId: string) => void;
     setIsCanvasEditMode: (isEditMode: boolean) => void;
     setSelectedCreatureImage: (image: string, index?: number) => void;
@@ -385,6 +387,10 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     const [lastSaved, setLastSaved] = useState<string | null>(null);
     const [autoSaveEnabled] = useState(true);
 
+    // Guard modal for preventing accidental overwrites
+    const [guardModalOpen, setGuardModalOpen] = useState(false);
+    const guardResolveRef = useRef<((result: 'proceed' | 'create-new' | 'cancel') => void) | null>(null);
+
     // Computed values
     const isAnyGenerationInProgress = useMemo(() =>
         Object.values(generationLocks).some(lock => lock),
@@ -492,6 +498,50 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         setCreatureDetails(deepClone);
         console.log('✅ [Provider] setCreatureDetails called with DEEP CLONED object');
         // Auto-save will be triggered by useEffect watching creatureDetails
+    }, []);
+
+    // Guard check before generation - prevents accidental overwrite of saved projects
+    const checkBeforeGenerate = useCallback((): Promise<'proceed' | 'create-new' | 'cancel'> => {
+        return new Promise((resolve) => {
+            // If no saved project is loaded, proceed immediately
+            if (!currentProject?.id) {
+                console.log('✅ [Guard] No saved project, proceeding with generation');
+                resolve('proceed');
+                return;
+            }
+
+            // Saved project exists - show guard modal
+            console.log('⚠️ [Guard] Saved project detected:', currentProject.name, '- showing guard modal');
+            guardResolveRef.current = resolve;
+            setGuardModalOpen(true);
+        });
+    }, [currentProject]);
+
+    const handleGuardCreateNew = useCallback(async () => {
+        console.log('📁 [Guard] User chose: Create New Project');
+        setGuardModalOpen(false);
+        
+        // Clear current project (will trigger new project creation on save)
+        setCurrentProject(null);
+        
+        guardResolveRef.current?.('create-new');
+        guardResolveRef.current = null;
+    }, []);
+
+    const handleGuardOverwrite = useCallback(() => {
+        console.log('⚠️ [Guard] User chose: Overwrite Current Project');
+        setGuardModalOpen(false);
+        
+        guardResolveRef.current?.('proceed');
+        guardResolveRef.current = null;
+    }, []);
+
+    const handleGuardCancel = useCallback(() => {
+        console.log('❌ [Guard] User cancelled generation');
+        setGuardModalOpen(false);
+        
+        guardResolveRef.current?.('cancel');
+        guardResolveRef.current = null;
     }, []);
 
     const loadDemoData = useCallback(() => {
@@ -1294,6 +1344,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         // State Updates
         updateCreatureDetails,
         replaceCreatureDetails,
+        checkBeforeGenerate,
         setSelectedTemplateId,
         setIsCanvasEditMode,
         setSelectedCreatureImage,
@@ -1341,6 +1392,15 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     return (
         <StatBlockGeneratorContext.Provider value={contextValue}>
             {children}
+            
+            {/* Guard Modal - Prevent accidental overwrite of saved projects */}
+            <GenerateWithProjectGuard
+                opened={guardModalOpen}
+                onClose={handleGuardCancel}
+                projectName={currentProject?.name || 'Untitled Project'}
+                onCreateNew={handleGuardCreateNew}
+                onOverwrite={handleGuardOverwrite}
+            />
         </StatBlockGeneratorContext.Provider>
     );
 };

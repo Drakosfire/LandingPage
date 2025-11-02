@@ -27,7 +27,8 @@ const Step1CreatureDescription: React.FC<Step1CreatureDescriptionProps> = ({
         replaceCreatureDetails,
         generationLocks,
         isAnyGenerationInProgress,
-        setIsGenerating
+        setIsGenerating,
+        checkBeforeGenerate
     } = useStatBlockGenerator();
 
     // Local state for generation options
@@ -39,6 +40,18 @@ const Step1CreatureDescription: React.FC<Step1CreatureDescriptionProps> = ({
     // Handle AI generation
     const handleGenerateCreature = useCallback(async () => {
         if (!generationPrompt.trim()) return;
+
+        // Guard check: Prevent accidental overwrite of saved projects
+        const guardResult = await checkBeforeGenerate();
+        if (guardResult === 'cancel') {
+            console.log('❌ [Step1] Generation cancelled by user');
+            return;
+        }
+        if (guardResult === 'create-new') {
+            console.log('📁 [Step1] Creating new project - currentProject cleared');
+            // Guard already cleared currentProject, proceed with generation
+        }
+        // If 'proceed', user confirmed overwrite, continue normally
 
         try {
             // Phase 3: Set flag to prevent auto-save during generation
@@ -162,7 +175,8 @@ const Step1CreatureDescription: React.FC<Step1CreatureDescriptionProps> = ({
         updateCreatureDetails,
         onGenerationLockChange,
         setIsGenerating,
-        replaceCreatureDetails
+        replaceCreatureDetails,
+        checkBeforeGenerate
     ]);
 
     // Quick fill suggestions
