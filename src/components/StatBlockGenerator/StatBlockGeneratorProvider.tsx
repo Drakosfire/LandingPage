@@ -15,7 +15,7 @@ import {
     ValidationResult,
     CRCalculationResult
 } from '../../types/statblock.types';
-import { MeasurementCoordinator } from '../../canvas/layout/measurement';
+import { MeasurementCoordinator } from '@dungeonmind/canvas';
 import { normalizeStatblock, createDefaultStatblock } from '../../utils/statblockNormalization';
 import { getRandomDemo, EMPTY_STATBLOCK } from '../../fixtures/demoStatblocks';
 import { tutorialCookies } from '../../utils/tutorialCookies';

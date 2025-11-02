@@ -9,13 +9,13 @@ import type {
 } from '../../types/statblockCanvas.types';
 import { DND_CSS_BASE_URL } from '../../config';
 import '../../styles/StatblockCanvas.css';
-import type { CanvasLayoutEntry } from '../../canvas/layout/types';
-import { CanvasLayoutProvider } from '../../canvas/layout/state';
-import { useCanvasLayout } from '../../canvas/hooks/useCanvasLayout';
-import { CanvasPage } from '../../canvas/components/CanvasPage';
-import { MeasurementLayer, MeasurementCoordinator } from '../../canvas/layout/measurement';
-import type { BasePageDimensions } from '../../canvas/layout/utils';
-import { COMPONENT_VERTICAL_SPACING_PX } from '../../canvas/layout/utils';
+import type { CanvasLayoutEntry, BasePageDimensions } from '@dungeonmind/canvas';
+import { CanvasLayoutProvider } from '@dungeonmind/canvas';
+import { useCanvasLayout } from '@dungeonmind/canvas';
+import { CanvasPage } from '@dungeonmind/canvas';
+import { MeasurementLayer, MeasurementCoordinator } from '@dungeonmind/canvas';
+import { COMPONENT_VERTICAL_SPACING_PX } from '@dungeonmind/canvas';
+import { createStatblockAdapters } from '../../canvas/adapters/statblockAdapters';
 
 interface StatblockPageProps {
     page: StatblockPageDocument;
@@ -59,7 +59,7 @@ const renderEntry = (
             variables={entry.instance.variables}
             layout={entry.instance.layout}
             region={region}
-            regionContent={entry.regionContent}
+            regionContent={entry.regionContent as any}
             regionOverflow={Boolean(entry.overflow)}
             isEditMode={isEditMode}
             onUpdateData={onUpdateData}
@@ -73,6 +73,9 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const [scale, setScale] = useState(1);
     const [fontsReady, setFontsReady] = useState(false);
     const [measuredColumnWidth, setMeasuredColumnWidth] = useState<number | null>(null);
+
+    // Create statblock adapters (memoized)
+    const adapters = useMemo(() => createStatblockAdapters(), []);
 
     // DEBUG: Log edit mode prop
     console.log('📄 [StatblockPage] Received isEditMode prop:', isEditMode);
@@ -108,8 +111,9 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         componentInstances: fontsReady ? page.componentInstances : [],
         template,
         dataSources: fontsReady ? (page.dataSources ?? []) : [],
-        componentRegistry,
+        componentRegistry: componentRegistry as any,
         pageVariables: page.pageVariables,
+        adapters,
     });
 
     const baseDimensions: BasePageDimensions = layout.baseDimensions;
