@@ -14,7 +14,7 @@ import { useAuth } from '../../context/AuthContext';
 import { STATBLOCK_APP } from '../../context/AppContext';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../fixtures/templates';
 import { buildPageDocument, extractCustomData } from '../../canvas/data';
-import { exportPageToHTMLFile } from '@dungeonmind/canvas';
+import { exportPageToHTMLFile } from 'dungeonmind-canvas';
 import { createStatblockAdapters } from './canvasAdapters';
 
 // Import components

@@ -9,12 +9,12 @@ import type {
 } from '../../types/statblockCanvas.types';
 import { DND_CSS_BASE_URL } from '../../config';
 import '../../styles/StatblockCanvas.css';
-import type { CanvasLayoutEntry, BasePageDimensions } from '@dungeonmind/canvas';
-import { CanvasLayoutProvider } from '@dungeonmind/canvas';
-import { useCanvasLayout } from '@dungeonmind/canvas';
-import { CanvasPage } from '@dungeonmind/canvas';
-import { MeasurementLayer, MeasurementCoordinator } from '@dungeonmind/canvas';
-import { COMPONENT_VERTICAL_SPACING_PX } from '@dungeonmind/canvas';
+import type { CanvasLayoutEntry, BasePageDimensions } from 'dungeonmind-canvas';
+import { CanvasLayoutProvider } from 'dungeonmind-canvas';
+import { useCanvasLayout } from 'dungeonmind-canvas';
+import { CanvasPage } from 'dungeonmind-canvas';
+import { MeasurementLayer, MeasurementCoordinator } from 'dungeonmind-canvas';
+import { COMPONENT_VERTICAL_SPACING_PX } from 'dungeonmind-canvas';
 import { createStatblockAdapters } from './canvasAdapters';
 
 interface StatblockPageProps {

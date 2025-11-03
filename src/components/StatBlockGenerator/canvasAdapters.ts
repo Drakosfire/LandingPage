@@ -14,8 +14,8 @@ import type {
     CanvasAdapters,
     ComponentDataSource,
     ComponentDataReference,
-} from '@dungeonmind/canvas';
-import { createDefaultAdapters } from '@dungeonmind/canvas';
+} from 'dungeonmind-canvas';
+import { createDefaultAdapters } from 'dungeonmind-canvas';
 import type { StatBlockDetails, Action } from '../../types/statblock.types';
 
 // =============================================================================
@@ -76,21 +76,21 @@ const statblockDataResolver: DataResolver = {
 const statblockListNormalizer: ListNormalizer = {
     normalizeListItems<T = unknown>(items: T[] | undefined | null): T[] {
         if (!items) return [];
-        
+
         // If it's already an array, return it
         if (Array.isArray(items)) {
             return items.filter(item => item !== null && item !== undefined);
         }
-        
+
         // If it's an object, check for special structures
         if (typeof items === 'object') {
             const obj = items as any;
-            
+
             // Handle legendaryActions/lairActions structure: { actions: [...], description: "..." }
             if (obj.actions && Array.isArray(obj.actions)) {
                 return obj.actions.filter((item: any) => item !== null && item !== undefined);
             }
-            
+
             // Handle spellcasting structure: { cantrips: [...], knownSpells: [...] }
             if (obj.cantrips || obj.knownSpells) {
                 const cantrips = (obj.cantrips ?? []).map((spell: any) => ({
@@ -101,7 +101,7 @@ const statblockListNormalizer: ListNormalizer = {
                     school: spell.school,
                     usage: spell.usage,
                 }));
-                
+
                 const knownSpells = (obj.knownSpells ?? []).map((spell: any) => ({
                     id: spell.id ?? `spell-${spell.name?.toLowerCase().replace(/\s+/g, '-')}`,
                     name: spell.name,
@@ -110,11 +110,11 @@ const statblockListNormalizer: ListNormalizer = {
                     school: spell.school,
                     usage: spell.usage,
                 }));
-                
+
                 return [...cantrips, ...knownSpells] as T[];
             }
         }
-        
+
         // Fallback: return empty array
         return [];
     },
@@ -278,7 +278,7 @@ export const createStatblockAdapters = (): CanvasAdapters => {
 
         // Statblock-specific metadata extractor (knows how to get creature name)
         metadataExtractor: statblockMetadataExtractor,
-        
+
         // Statblock component type mapping
         componentTypeMap: STATBLOCK_COMPONENT_TYPE_MAP,
     };
