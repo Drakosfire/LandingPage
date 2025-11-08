@@ -1,0 +1,163 @@
+/**
+ * Canvas Edit Mode Styles
+ * 
+ * Interactive editing effects: pop-out, focus highlights, backdrop.
+ * Works with contenteditable elements.
+ * Provides visual feedback when users edit canvas components.
+ */
+
+/* ===== Remove Default Contenteditable Styling ===== */
+[contenteditable="true"] {
+    /* Remove browser default outline completely */
+    outline: none !important;
+    /* Show text cursor */
+    cursor: text;
+    /* No visual styling on individual elements */
+    box-shadow: none !important;
+    border: none !important;
+    /* Prevent individual elements from creating their own stacking context */
+    position: static !important;
+    transform: none !important;
+    z-index: auto !important;
+}
+
+/* ===== Mobile Touch Targets ===== */
+@media (max-width: 768px) {
+    [contenteditable="true"] {
+        min-height: 32px;
+        padding: 0.25rem;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* ===== Section Transitions (Pop-Out Preparation) ===== */
+.dm-action-section,
+.dm-trait-section,
+.dm-bonus-action-section,
+.dm-reaction-section,
+.dm-legendary-section,
+.dm-lair-section,
+.dm-spellcasting-section,
+.dm-identity-header,
+.dm-stat-summary,
+.dm-ability-table,
+.dm-quickfacts,
+.block.descriptive,
+h2#user-monster-name,
+.dm-monster-name,
+.dm-character-name {
+    /* Smooth transitions for pop-out effect */
+    transition: transform 0.2s ease-out,
+        box-shadow 0.2s ease-out,
+        z-index 0s,
+        background-color 0.2s ease-out;
+    position: relative;
+    z-index: 1;
+    will-change: transform;
+}
+
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+
+    .dm-action-section,
+    .dm-trait-section,
+    .dm-bonus-action-section,
+    .dm-reaction-section,
+    .dm-legendary-section,
+    .dm-lair-section,
+    .dm-spellcasting-section,
+    .dm-identity-header,
+    .dm-stat-summary,
+    .dm-ability-table,
+    .dm-quickfacts,
+    .block.descriptive,
+    h2#user-monster-name,
+    .dm-monster-name,
+    .dm-character-name {
+        transition: none;
+    }
+
+    /* Still show focus, just without motion */
+    .dm-identity-header:focus-within,
+    .dm-stat-summary:focus-within,
+    .dm-ability-table:focus-within,
+    .dm-quick-facts:focus-within,
+    .dm-flavor-summary:focus-within,
+    .block.descriptive:focus-within,
+    .dm-action-section:focus-within,
+    .dm-trait-section:focus-within,
+    .dm-bonus-action-section:focus-within,
+    .dm-reaction-section:focus-within,
+    .dm-legendary-section:focus-within,
+    .dm-lair-section:focus-within,
+    .dm-spellcasting-section:focus-within {
+        transform: none !important;
+        box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.5) !important;
+    }
+}
+
+/* ===== Pop-Out Effect (Focus Within) ===== */
+.dm-identity-header:focus-within,
+.dm-stat-summary:focus-within,
+.dm-ability-table:focus-within,
+.dm-quick-facts:focus-within,
+.dm-flavor-summary:focus-within,
+.block.descriptive:focus-within,
+.dm-action-section:focus-within,
+.dm-trait-section:focus-within,
+.dm-bonus-action-section:focus-within,
+.dm-reaction-section:focus-within,
+.dm-legendary-section:focus-within,
+.dm-lair-section:focus-within,
+.dm-spellcasting-section:focus-within {
+    /* Elevate above other content */
+    z-index: 1000 !important;
+
+    /* Dramatic shadow for depth */
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4),
+        0 4px 16px rgba(0, 0, 0, 0.3) !important;
+
+    /* Scale up the entire section (8% increase) */
+    transform: scale(1.08) translateZ(0);
+
+    /* Brighten background */
+    background-color: rgba(255, 255, 255, 0.98) !important;
+
+    /* Add subtle border */
+    border: 2px solid rgba(34, 139, 230, 0.4) !important;
+    border-radius: 6px !important;
+
+    /* Ensure padding is maintained */
+    padding: 1rem !important;
+
+    /* Smooth animation */
+    transition: transform 0.2s ease-out,
+        box-shadow 0.2s ease-out,
+        background-color 0.2s ease-out,
+        border 0.2s ease-out;
+}
+
+/* ===== Backdrop Overlay (Dim Other Content) ===== */
+.dm-canvas-page:has([contenteditable="true"]:focus)::before,
+.dm-statblock-page:has([contenteditable="true"]:focus)::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    pointer-events: none;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

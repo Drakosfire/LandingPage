@@ -1,0 +1,118 @@
+/**
+ * Canvas Print Styles
+ *
+ * Shared print contract for any DungeonMind canvas surface.
+ * Ensures only the rendered canvas is visible during browser print/PDF export.
+ */
+
+@page {
+    size: letter portrait;
+    margin: 0.25in;
+}
+
+@media print {
+    body,
+    body * {
+        visibility: hidden !important;
+        overflow: visible !important;
+    }
+
+    .dm-canvas-responsive,
+    .dm-canvas-responsive * {
+        visibility: visible !important;
+    }
+
+    .dm-canvas-responsive {
+        position: absolute !important;
+        top: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 8in !important;
+        height: auto !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .dm-canvas-wrapper {
+        transform: none !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .dm-canvas-renderer {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    .dm-canvas-pages,
+    .dm-canvas-pages-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        position: static !important;
+    }
+
+    .dm-canvas-pages::after,
+    .dm-canvas-pages-content::after {
+        display: none !important;
+        content: none !important;
+    }
+
+    .dm-canvas-measurement-layer,
+    .dm-canvas-measurement-layer * {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -99999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .dm-pagination-marker {
+        display: none !important;
+    }
+
+    .dm-canvas-pages .page {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        width: 8in !important;
+        max-width: 8in !important;
+        max-height: 10.5in !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        position: relative !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .dm-canvas-pages .page:first-child {
+        break-before: avoid !important;
+        page-break-before: avoid !important;
+    }
+
+    .dm-canvas-pages .page:not(:first-child) {
+        break-before: page !important;
+        page-break-before: always !important;
+    }
+
+    .dm-canvas-pages .page:last-child {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+        margin-bottom: 0 !important;
+    }
+
+    .dm-canvas-pages .page .columnWrapper,
+    .dm-canvas-pages .page .monster,
+    .dm-canvas-pages .page .canvas-column {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+}
+

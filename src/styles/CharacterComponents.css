@@ -1,0 +1,264 @@
+/**
+ * Character-Specific Component Styles
+ * 
+ * Styles that are ONLY used in CharacterGenerator.
+ * DO NOT use in StatBlockGenerator or other apps.
+ * 
+ * For shared D&D styling, see: styles/canvas/canvas-dnd-theme.css
+ */
+
+/* ===== Character Header Specific ===== */
+.dm-character-level-info {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 1rem;
+    color: var(--dm-text-dark-brown);
+    font-style: italic;
+}
+
+.dm-character-class {
+    font-weight: 600;
+    color: var(--dm-text-header-brown);
+}
+
+/* ===== Skills List (Character-specific) ===== */
+.dm-skills-list {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    background: var(--dm-white-overlay);
+    padding: 0.8rem 1rem;
+    border-radius: 4px;
+    box-shadow: 0 0 6px var(--dm-shadow-subtle);
+    margin-bottom: 0.6rem;
+}
+
+.dm-skill-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+    padding: 0.2rem 0;
+}
+
+.dm-skill-name {
+    font-weight: 600;
+}
+
+.dm-skill-modifier {
+    font-weight: 700;
+    color: var(--dm-text-header-brown);
+    min-width: 2rem;
+    text-align: right;
+}
+
+.dm-skill-proficiency {
+    font-size: 0.85rem;
+    color: var(--dm-text-maroon-red);
+    margin-left: 0.5rem;
+}
+
+/* ===== Equipment List (Character-specific) ===== */
+.dm-equipment-list {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    background: var(--dm-white-overlay);
+    padding: 0.8rem 1rem;
+    border-radius: 4px;
+    box-shadow: 0 0 6px var(--dm-shadow-subtle);
+    margin-bottom: 0.6rem;
+}
+
+.dm-equipment-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.dm-equipment-name {
+    font-weight: 600;
+}
+
+.dm-equipment-quantity {
+    color: var(--dm-text-header-brown);
+}
+
+/* ===== Class Features (Character-specific) ===== */
+.dm-features-section {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    background: var(--dm-white-overlay);
+    padding: 0.8rem 1rem;
+    border-radius: 4px;
+    box-shadow: 0 0 6px var(--dm-shadow-subtle);
+    margin-bottom: 0.6rem;
+}
+
+.dm-feature-item {
+    margin-bottom: 0.6rem;
+}
+
+.dm-feature-name {
+    font-family: 'BookInsanityRemake', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--dm-text-header-brown);
+    margin-bottom: 0.2rem;
+}
+
+.dm-feature-description {
+    font-size: 0.9rem;
+    line-height: 1.35;
+    color: var(--dm-text-dark-brown);
+}
+
+/* ===== Spell Slots (Character-specific) ===== */
+.dm-spell-slots-tracker {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.dm-spell-slot-level {
+    font-weight: 700;
+    color: var(--dm-text-header-brown);
+    margin-right: 0.5rem;
+}
+
+.dm-spell-slot {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--dm-text-maroon-red);
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.dm-spell-slot:hover {
+    background: rgba(161, 29, 24, 0.1);
+}
+
+.dm-spell-slot.used {
+    background: var(--dm-text-maroon-red);
+}
+
+.dm-spell-slot.used:hover {
+    background: rgba(161, 29, 24, 0.8);
+}
+
+/* ===== Character Stats Summary ===== */
+.dm-character-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.dm-character-stat-item {
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(255, 249, 237, 0.8);
+    border-radius: 4px;
+}
+
+.dm-character-stat-label {
+    font-size: 0.85rem;
+    color: var(--dm-text-header-brown);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dm-character-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--dm-text-maroon-red);
+}
+
+/* ===== Proficiency Bonus (Character-specific) ===== */
+.dm-proficiency-bonus {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 700;
+}
+
+.dm-proficiency-bonus::before {
+    content: '+';
+    color: var(--dm-text-maroon-red);
+}
+
+/* ===== Saving Throws (Character-specific) ===== */
+.dm-saving-throws {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.dm-saving-throw-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.5rem;
+    background: rgba(255, 249, 237, 0.8);
+    border-radius: 4px;
+}
+
+.dm-saving-throw-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.dm-saving-throw-value {
+    font-weight: 700;
+    color: var(--dm-text-header-brown);
+}
+
+/* ===== Character Portrait (different from monster) ===== */
+.dm-character-portrait {
+    text-align: center;
+    margin: 0.5rem auto;
+    max-width: 100%;
+}
+
+.dm-character-portrait__image {
+    display: block;
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    margin: 0 auto;
+    border: 3px solid var(--dm-text-header-brown);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dm-character-portrait__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 1.2rem;
+    color: rgba(88, 24, 13, 0.6);
+    border: 2px dashed rgba(88, 24, 13, 0.4);
+    border-radius: 8px;
+    background: rgba(255, 249, 237, 0.5);
+}
+
+/* ===== Mobile Responsiveness ===== */
+@media (max-width: 768px) {
+    .dm-character-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dm-skills-list {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dm-character-stats {
+        grid-template-columns: 1fr;
+    }
+}

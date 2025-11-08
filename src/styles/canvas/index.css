@@ -1,0 +1,23 @@
+/**
+ * DungeonMind Canvas Styles - Complete System
+ * 
+ * Import this single file to get all canvas styling:
+ * - Base responsive containers and layout
+ * - D&D theme component styling
+ * - Edit mode interactive effects
+ * 
+ * Usage:
+ * import '../../styles/canvas/index.css';
+ */
+
+/* Base responsive canvas container and layout */
+@import './canvas-base.css';
+
+/* D&D theme component styling (dm-* classes) */
+@import './canvas-dnd-theme.css';
+
+/* Edit mode interactive effects (pop-out, focus) */
+@import './canvas-edit-mode.css';
+
+/* Print / PDF export support */
+@import './canvas-print.css';

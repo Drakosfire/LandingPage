@@ -1,0 +1,315 @@
+/**
+ * Canvas D&D Theme Styles
+ * 
+ * D&D 5e PHB-inspired component styling.
+ * Provides dm-* classes for D&D-themed components.
+ * Can be used for stat blocks, character sheets, spell cards, etc.
+ */
+
+/* ===== Color Variables ===== */
+:root {
+    /* D&D Theme Colors */
+    --dm-text-dark-brown: #2b1d0f;
+    --dm-text-header-brown: #58180d;
+    --dm-text-maroon-red: #a11d18;
+    --dm-accent-gold: #C0AD6A;
+    --dm-accent-red: #9C2B1B;
+
+    /* DungeonMind Additions */
+    --dm-white-overlay: rgba(255, 255, 255, 0.7);
+    --dm-blue-focus: rgba(34, 139, 230, 0.4);
+    --dm-shadow-subtle: rgba(0, 0, 0, 0.1);
+    --dm-shadow-dramatic: rgba(0, 0, 0, 0.4);
+}
+
+/* ===== Identity Header (Creature/Character Name) ===== */
+.dm-identity-header {
+    text-align: left;
+    color: var(--dm-text-header-brown);
+    position: relative !important;
+}
+
+.dm-monster-name,
+.dm-character-name {
+    font-family: 'BookInsanityRemake', 'NodestoCapsCondensed', serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.02em;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.dm-monster-meta,
+.dm-character-meta {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 1rem;
+    margin: 0.3rem 0 0;
+    color: var(--dm-text-dark-brown);
+}
+
+/* ===== Stat Summary Block ===== */
+.dm-stat-summary {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.65);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    border-left: 4px solid var(--dm-text-maroon-red);
+    box-shadow: 0 0 6px var(--dm-shadow-subtle);
+}
+
+.dm-stat-summary dt {
+    font-weight: 700;
+    color: var(--dm-text-header-brown);
+}
+
+.dm-stat-summary dd {
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+/* ===== Quick Facts ===== */
+.dm-quickfacts {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    background: rgba(255, 249, 237, 0.8);
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    border-left: 4px solid rgba(161, 29, 24, 0.8);
+    box-shadow: 0 0 4px var(--dm-shadow-subtle);
+}
+
+.dm-quickfacts-row {
+    display: flex;
+    gap: 0.3rem;
+    margin-bottom: 0.25rem;
+}
+
+.dm-quickfacts-row strong {
+    color: var(--dm-text-header-brown);
+    font-weight: 700;
+}
+
+.dm-quickfacts-row span {
+    font-weight: 600;
+}
+
+/* ===== Ability Scores Table ===== */
+.dm-ability-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    background: rgba(247, 235, 215, 0.85);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.dm-ability-table th {
+    background: linear-gradient(180deg,
+            rgba(143, 36, 28, 0.9) 0%,
+            rgba(90, 22, 18, 0.9) 100%);
+    color: #fdf6ea;
+    padding: 0.4rem 0;
+    font-weight: 700;
+}
+
+.dm-ability-table td {
+    padding: 0.5rem 0;
+    color: var(--dm-text-dark-brown);
+}
+
+.dm-ability-value {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    font-weight: 700;
+}
+
+.dm-ability-value span:last-child {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dm-text-header-brown);
+}
+
+/* ===== Content Sections (Actions, Traits, etc.) ===== */
+.dm-action-section,
+.dm-trait-section,
+.dm-bonus-action-section,
+.dm-reaction-section,
+.dm-legendary-section,
+.dm-lair-section,
+.dm-spellcasting-section {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    background: var(--dm-white-overlay);
+    padding: 0.8rem 1rem;
+    border-radius: 4px;
+    box-shadow: 0 0 6px var(--dm-shadow-subtle);
+    margin-bottom: 0.6rem;
+}
+
+.dm-section-heading {
+    font-family: 'BookInsanityRemake', serif;
+    color: var(--dm-text-maroon-red);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.6rem;
+}
+
+/* ===== Action/Trait Lists ===== */
+.dm-action-list,
+.dm-trait-list {
+    margin: 0;
+    padding: 0;
+}
+
+.dm-action-term,
+.dm-trait-term {
+    font-family: 'BookInsanityRemake', serif;
+    font-size: 1.05rem;
+    margin: 0;
+    color: var(--dm-text-header-brown);
+}
+
+.dm-action-term strong,
+.dm-trait-term strong {
+    font-weight: 700;
+}
+
+.dm-action-description,
+.dm-trait-description {
+    margin: 0.25rem 0 0.5rem;
+    color: var(--dm-text-dark-brown);
+    line-height: 1.35;
+}
+
+.dm-action-divider,
+.dm-trait-divider {
+    height: 1px;
+    width: 100%;
+    background: rgba(88, 24, 13, 0.25);
+    margin: 0.4rem 0 0.6rem;
+}
+
+/* ===== Spellcasting Components ===== */
+.dm-spellcasting-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.4rem;
+}
+
+.dm-spellcasting-table th,
+.dm-spellcasting-table td {
+    text-align: left;
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid rgba(88, 24, 13, 0.2);
+}
+
+.dm-spellcasting-table th {
+    background: rgba(161, 29, 24, 0.12);
+    font-weight: 700;
+    color: var(--dm-text-header-brown);
+}
+
+.dm-spellcasting-list-section {
+    margin-top: 0.75rem;
+}
+
+.dm-spellcasting-subheading {
+    font-family: 'BookInsanityRemake', serif;
+    color: var(--dm-text-header-brown);
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dm-spellcasting-deflist {
+    margin: 0;
+    padding: 0;
+}
+
+.dm-spellcasting-term {
+    display: flex;
+    flex-direction: column;
+    font-family: 'BookInsanityRemake', serif;
+    color: var(--dm-text-header-brown);
+}
+
+.dm-spellcasting-term strong {
+    font-size: 1.05rem;
+}
+
+.dm-spellcasting-meta {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.85rem;
+    color: rgba(43, 29, 15, 0.75);
+    margin-top: 0.15rem;
+}
+
+.dm-spellcasting-description {
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    margin: 0.25rem 0 0.6rem;
+    color: var(--dm-text-dark-brown);
+}
+
+/* ===== Portrait Components ===== */
+.dm-portrait-panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.55);
+    border: 3px solid rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.dm-portrait-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: multiply;
+}
+
+.dm-portrait-placeholder {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    color: rgba(88, 24, 13, 0.8);
+}
+
+/* ===== Pagination Marker ===== */
+.dm-pagination-marker {
+    font-family: 'BookInsanityRemake', serif;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(88, 24, 13, 0.8);
+    text-align: right;
+    margin-bottom: 0.75rem;
+}
+
+/* ===== Responsive Typography ===== */
+@media (max-width: 768px) {
+
+    .dm-monster-name,
+    .dm-character-name {
+        font-size: 1.8rem !important;
+    }
+
+    .dm-section-heading {
+        font-size: 0.95rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .dm-monster-name,
+    .dm-character-name {
+        font-size: 1.5rem !important;
+    }
+}

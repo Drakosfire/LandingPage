@@ -1,0 +1,113 @@
+/**
+ * StatBlock-Specific Component Styles
+ * 
+ * Styles that are ONLY used in StatBlockGenerator.
+ * DO NOT use in CharacterGenerator or other apps.
+ * 
+ * For shared D&D styling, see: styles/canvas/canvas-dnd-theme.css
+ */
+
+/* ===== Monster Portrait (StatBlock-specific) ===== */
+.monster-portrait {
+    text-align: center;
+    margin: 0.35cm auto;
+    max-width: 100%;
+}
+
+.monster-portrait__image {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+    border: 2px solid rgba(34, 20, 12, 0.4);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    mix-blend-mode: multiply;
+}
+
+.monster-portrait__placeholder {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    color: rgba(34, 20, 12, 0.75);
+    border: 1px dashed rgba(34, 20, 12, 0.35);
+    background-color: rgba(255, 249, 237, 0.65);
+}
+
+/* ===== Portrait Wrapper (StatBlock-specific) ===== */
+.portrait-wrapper {
+    display: inline-block;
+    max-width: 100%;
+}
+
+.portrait-wrapper--sized {
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== Legendary/Lair Summary (StatBlock-specific) ===== */
+.dm-legendary-summary,
+.dm-lair-summary,
+.dm-spellcasting-summary {
+    margin: 0.4rem 0 0.6rem;
+    font-style: italic;
+    color: rgba(43, 29, 15, 0.9);
+}
+
+/* ===== Monster Frame Support ===== */
+/* CRITICAL: Override D&D CSS multi-column with explicit flexbox */
+.dm-canvas-responsive .monster.frame.wide {
+    /* Kill CSS multi-column (from 5ePHBstyle.css) */
+    column-count: unset !important;
+    column-width: unset !important;
+    column-gap: unset !important;
+    column-fill: unset !important;
+    
+    /* Use flexbox for explicit .canvas-column children */
+    display: flex !important;
+    gap: var(--dm-column-gap, 12px);
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ===== StatBlock Measurement Layer Overrides ===== */
+.dm-canvas-measurement-layer .monster.frame.wide {
+    transform: none !important;
+}
+
+.dm-canvas-measurement-layer .monster-portrait {
+    margin: 0;
+}
+
+.dm-canvas-measurement-layer .portrait-wrapper {
+    display: block;
+    overflow: hidden;
+}
+
+.dm-canvas-measurement-layer .portrait-wrapper img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.dm-canvas-measurement-layer .dm-portrait-panel {
+    min-height: 0;
+}
+
+.dm-canvas-measurement-layer .portrait-measurement-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: block;
+}
+
+.dm-canvas-measurement-layer .portrait-measurement-wrapper img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
