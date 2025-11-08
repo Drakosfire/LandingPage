@@ -8,7 +8,8 @@ import type {
     TemplateConfig,
 } from '../../types/statblockCanvas.types';
 import { DND_CSS_BASE_URL } from '../../config';
-import '../../styles/StatblockCanvas.css';
+import '../../styles/canvas/index.css';         // Shared canvas styles
+import '../../styles/StatblockComponents.css';  // StatBlock-specific styles
 import type { CanvasLayoutEntry, BasePageDimensions } from 'dungeonmind-canvas';
 import { CanvasLayoutProvider } from 'dungeonmind-canvas';
 import { useCanvasLayout } from 'dungeonmind-canvas';
@@ -29,6 +30,7 @@ interface StatblockPageProps {
 const MIN_SCALE = 0.35;
 const MAX_SCALE = 2.5;
 const PAGE_GAP_PX = 48;
+const FALLBACK_MARGIN_MM = 10;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -107,12 +109,23 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         checkFonts();
     }, []);
 
+    const pageVariablesWithMargins = useMemo(() => ({
+        ...page.pageVariables,
+        margins: {
+            ...page.pageVariables.margins,
+            topMm: page.pageVariables.margins?.topMm ?? FALLBACK_MARGIN_MM,
+            bottomMm: page.pageVariables.margins?.bottomMm ?? FALLBACK_MARGIN_MM,
+            leftMm: page.pageVariables.margins?.leftMm,
+            rightMm: page.pageVariables.margins?.rightMm,
+        },
+    }), [page.pageVariables]);
+
     const layout = useCanvasLayout({
         componentInstances: fontsReady ? page.componentInstances : [],
         template,
         dataSources: fontsReady ? (page.dataSources ?? []) : [],
         componentRegistry: componentRegistry as any,
-        pageVariables: page.pageVariables,
+        pageVariables: pageVariablesWithMargins,
         adapters,
     });
 
@@ -290,7 +303,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const scaledHeightPx = baseHeightPx * scale;
     const pageCount = Math.max(1, layout.plan?.pages.length ?? 1);
 
-    const columnCount = page.pageVariables.columns.columnCount;
+    const columnCount = pageVariablesWithMargins.columns.columnCount;
     // Use the same spacing constant as pagination to ensure CSS and layout logic match
     const columnGapPx = COMPONENT_VERTICAL_SPACING_PX;
 
@@ -327,29 +340,29 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
 
     const pageVariablesWithPagination: PageVariables = useMemo(() => {
         if (!layout.plan) {
-            return page.pageVariables;
+            return pageVariablesWithMargins;
         }
 
-        const requestedPageCount = page.pageVariables.pagination?.pageCount ?? 1;
+        const requestedPageCount = pageVariablesWithMargins.pagination?.pageCount ?? 1;
         if (layout.plan.pages.length === requestedPageCount) {
-            return page.pageVariables;
+            return pageVariablesWithMargins;
         }
 
         return {
-            ...page.pageVariables,
+            ...pageVariablesWithMargins,
             pagination: {
-                ...(page.pageVariables.pagination ?? {
-                    columnCount: page.pageVariables.columns.columnCount,
+                ...(pageVariablesWithMargins.pagination ?? {
+                    columnCount: pageVariablesWithMargins.columns.columnCount,
                     pageCount: requestedPageCount,
                 }),
                 pageCount: layout.plan.pages.length,
             },
         };
-    }, [layout.plan, page.pageVariables]);
+    }, [layout.plan, pageVariablesWithMargins]);
 
     const renderWithProps = (entry: CanvasLayoutEntry) =>
         renderEntry(entry, componentRegistry, {
-            mode: page.pageVariables.mode,
+            mode: pageVariablesWithMargins.mode,
             pageVariables: pageVariablesWithPagination,
             dataSources: page.dataSources ?? [],
         }, isEditMode, onUpdateData);
@@ -417,7 +430,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                                     entries={layout.measurementEntries}
                                     renderComponent={(entry) =>
                                         renderEntry(entry, componentRegistry, {
-                                            mode: page.pageVariables.mode,
+                                            mode: pageVariablesWithMargins.mode,
                                             pageVariables: pageVariablesWithPagination,
                                             dataSources: page.dataSources ?? [],
                                         }, isEditMode, onUpdateData)
