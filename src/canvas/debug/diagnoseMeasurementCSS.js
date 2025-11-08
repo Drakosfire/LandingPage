@@ -14,8 +14,8 @@ window.diagnoseMeasurementCSS = function () {
     console.log('🔍 MEASUREMENT LAYER CSS DIAGNOSTIC\n');
     console.log('='.repeat(80));
 
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
-    const visLayer = document.querySelector('.brewRenderer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
+    const visLayer = document.querySelector('.dm-canvas-renderer');
 
     if (!measLayer || !visLayer) {
         console.error('❌ Could not find measurement or visible layer');

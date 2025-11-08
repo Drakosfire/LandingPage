@@ -9,7 +9,7 @@
     console.log('🔍 COMPONENT-12 (SPELL LIST) DIAGNOSIS\n');
 
     // Get scale
-    const container = document.querySelector('.brewRenderer-wrapper');
+    const container = document.querySelector('.dm-canvas-wrapper');
     const transform = window.getComputedStyle(container).transform;
     const matrix = transform.match(/matrix\(([^)]+)\)/);
     const scale = matrix ? parseFloat(matrix[1].split(',')[0]) : 1;
@@ -18,7 +18,7 @@
 
     // From pagination logs, Region 2:2 has 10 spells (split 3:11:14, placed 10)
     // Find measurement entry for component-12 with 10 spells
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
 
     // The key should be for 10 items starting at index 3
     const targetKey = 'component-12:spell-list:3:10:14'; // 10 items, starting at spell 3
@@ -57,7 +57,7 @@
     });
 
     // Find visible entry in Region 2:2
-    const visColumn = document.querySelectorAll('.brewRenderer .canvas-column')[3]; // Page 2, Column 2 (0-indexed: 3)
+    const visColumn = document.querySelectorAll('.dm-canvas-renderer .canvas-column')[3]; // Page 2, Column 2 (0-indexed: 3)
     let visEntry = null;
 
     if (visColumn) {
@@ -73,7 +73,7 @@
     if (!visEntry) {
         console.warn('\n⚠️  Could not find component-12 in visible Region 2:2');
         console.log('Checking all columns for spell sections:');
-        const allCols = document.querySelectorAll('.brewRenderer .canvas-column');
+        const allCols = document.querySelectorAll('.dm-canvas-renderer .canvas-column');
         allCols.forEach((col, idx) => {
             const spellSections = col.querySelectorAll('.dm-spellcasting-section');
             if (spellSections.length > 0) {

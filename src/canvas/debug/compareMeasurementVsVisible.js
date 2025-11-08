@@ -11,21 +11,21 @@
     console.log('🔍 MEASUREMENT vs VISIBLE COMPARISON\n');
 
     // Find measurement layer
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
     if (!measLayer) {
         console.error('❌ Measurement layer not found');
         return;
     }
 
     // Find visible layer
-    const visibleLayer = document.querySelector('.brewRenderer');
+    const visibleLayer = document.querySelector('.dm-canvas-renderer');
     if (!visibleLayer) {
         console.error('❌ Visible layer not found');
         return;
     }
 
     // Get scale
-    const container = document.querySelector('.brewRenderer-wrapper');
+    const container = document.querySelector('.dm-canvas-wrapper');
     const transform = window.getComputedStyle(container).transform;
     const matrix = transform.match(/matrix\(([^)]+)\)/);
     const scale = matrix ? parseFloat(matrix[1].split(',')[0]) : 1;

@@ -190,21 +190,21 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         if (process.env.NODE_ENV !== 'production') {
             // eslint-disable-next-line no-console
             console.debug('[StatblockPage] Container found, searching for monster frame...', {
-                brewRenderer: container.querySelector('.brewRenderer'),
+                canvasRenderer: container.querySelector('.dm-canvas-renderer'),
                 allMonsterFrames: container.querySelectorAll('.monster.frame.wide').length,
             });
         }
 
         // Query for the visible monster frame (NOT in the measurement layer)
         // Use a more specific selector to avoid the measurement layer
-        const visibleFrame = container.querySelector('.brewRenderer .pages .monster.frame.wide');
+        const visibleFrame = container.querySelector('.dm-canvas-renderer .dm-canvas-pages .monster.frame.wide');
         if (!visibleFrame) {
             if (process.env.NODE_ENV !== 'production') {
                 // eslint-disable-next-line no-console
                 console.warn('[StatblockPage] Could not find visible monster frame for measurement', {
                     containerClassName: container.className,
-                    hasBrewRenderer: !!container.querySelector('.brewRenderer'),
-                    hasPages: !!container.querySelector('.brewRenderer .pages'),
+                    hasCanvasRenderer: !!container.querySelector('.dm-canvas-renderer'),
+                    hasPages: !!container.querySelector('.dm-canvas-renderer .dm-canvas-pages'),
                     hasAnyMonsterFrame: !!container.querySelector('.monster.frame.wide'),
                 });
             }
@@ -333,7 +333,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         transformOrigin: 'top center',
     }), [scale]);
 
-    const brewRendererStyle = useMemo<React.CSSProperties>(() => ({
+    const canvasRendererStyle = useMemo<React.CSSProperties>(() => ({
         width: `${baseWidthPx}px`,
         height: `${baseHeightPx * pageCount + (pageCount - 1) * PAGE_GAP_PX}px`,
     }), [baseWidthPx, baseHeightPx, pageCount]);
@@ -370,7 +370,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     // Show loading state while fonts load
     if (!fontsReady) {
         return (
-            <div className="dm-statblock-responsive" style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
+            <div className="dm-canvas-responsive" style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
                 <div style={{ textAlign: 'center', color: '#666' }}>
                     <p>Loading fonts...</p>
                 </div>
@@ -379,18 +379,18 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     }
 
     return (
-        <div className="dm-statblock-responsive" ref={containerRef} style={containerStyle}>
-            <div className="brewRenderer-wrapper" style={transformWrapperStyle}>
-                <div className="brewRenderer" style={brewRendererStyle}>
-                    <div className="pages">
-                        <div className="pages-content">
+        <div className="dm-canvas-responsive" ref={containerRef} style={containerStyle}>
+            <div className="dm-canvas-wrapper" style={transformWrapperStyle}>
+                <div className="dm-canvas-renderer" style={canvasRendererStyle}>
+                    <div className="dm-canvas-pages">
+                        <div className="dm-canvas-pages-content">
                             <CanvasPage layoutPlan={layout.plan} renderEntry={renderWithProps} />
                         </div>
                     </div>
                 </div>
             </div>
             <div
-                className="dm-statblock-measurement-layer"
+                className="dm-canvas-measurement-layer"
                 aria-hidden
                 style={{
                     position: 'absolute',

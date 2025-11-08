@@ -11,9 +11,9 @@
     console.log('🔍 MEASUREMENT ACCUMULATION ANALYSIS\n');
 
     // Get scale
-    const container = document.querySelector('.brewRenderer-wrapper');
+    const container = document.querySelector('.dm-canvas-wrapper');
     if (!container) {
-        console.error('❌ Could not find .brewRenderer-wrapper');
+        console.error('❌ Could not find .dm-canvas-wrapper');
         return;
     }
 
@@ -25,7 +25,7 @@
     console.log('');
 
     // Find visible columns
-    const visibleLayer = document.querySelector('.brewRenderer');
+    const visibleLayer = document.querySelector('.dm-canvas-renderer');
     if (!visibleLayer) {
         console.error('❌ Visible layer not found');
         return;

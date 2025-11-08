@@ -273,7 +273,7 @@ window.investigateComponentPlacement = function (targetSelector) {
         console.log('\n' + '='.repeat(80));
         console.log('\n📏 STEP 5: Measurement Accuracy\n');
 
-        const measLayer = document.querySelector('.dm-statblock-measurement-layer');
+        const measLayer = document.querySelector('.dm-canvas-measurement-layer');
         if (measLayer) {
             // Find matching component in measurement layer by class
             const measComp = measLayer.querySelector(`.${componentClass.split(' ')[0]}`);

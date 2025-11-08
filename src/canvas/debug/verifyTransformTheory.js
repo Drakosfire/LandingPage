@@ -12,8 +12,8 @@ window.verifyTransformTheory = function () {
     console.log('🔍 TRANSFORM THEORY VERIFICATION\n');
     console.log('='.repeat(80));
 
-    const visActions = document.querySelector('.brewRenderer .dm-action-section');
-    const measActions = document.querySelector('.dm-statblock-measurement-layer .dm-action-section');
+    const visActions = document.querySelector('.dm-canvas-renderer .dm-action-section');
+    const measActions = document.querySelector('.dm-canvas-measurement-layer .dm-action-section');
 
     if (!visActions || !measActions) {
         console.error('❌ Could not find Actions in both layers');
@@ -21,8 +21,8 @@ window.verifyTransformTheory = function () {
     }
 
     // Get the transform scale from the wrapper
-    const brewWrapper = document.querySelector('.brewRenderer-wrapper');
-    const transform = window.getComputedStyle(brewWrapper).transform;
+    const canvasWrapper = document.querySelector('.dm-canvas-wrapper');
+    const transform = window.getComputedStyle(canvasWrapper).transform;
 
     let scale = 0.777; // default
     if (transform && transform !== 'none') {
@@ -87,7 +87,7 @@ window.verifyTransformTheory = function () {
         console.warn('   Cannot compare heights directly - they measure different content!\n');
 
         // Try to find the rest in Column 2
-        const col2Actions = document.querySelectorAll('.brewRenderer .canvas-column')[1]
+        const col2Actions = document.querySelectorAll('.dm-canvas-renderer .canvas-column')[1]
             ?.querySelector('.dm-action-section');
 
         if (col2Actions) {

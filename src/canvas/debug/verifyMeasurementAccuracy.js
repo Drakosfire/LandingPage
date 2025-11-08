@@ -15,8 +15,8 @@ window.verifyMeasurementAccuracy = function () {
     console.log('='.repeat(80));
 
     // Find both layers
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
-    const visLayer = document.querySelector('.brewRenderer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
+    const visLayer = document.querySelector('.dm-canvas-renderer');
 
     if (!measLayer || !visLayer) {
         console.error('❌ Missing measurement or visible layer');

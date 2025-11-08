@@ -15,9 +15,9 @@ window.diagnoseHeightMeasurement = function () {
     console.log('='.repeat(80));
 
     // Find transform wrapper and column
-    const wrapper = document.querySelector('.brewRenderer-wrapper');
-    const brewRenderer = document.querySelector('.brewRenderer');
-    const column = document.querySelector('.brewRenderer .canvas-column');
+    const wrapper = document.querySelector('.dm-canvas-wrapper');
+    const canvasRenderer = document.querySelector('.dm-canvas-renderer');
+    const column = document.querySelector('.dm-canvas-renderer .canvas-column');
 
     if (!wrapper || !column) {
         console.error('❌ Could not find wrapper or column elements');
@@ -27,17 +27,17 @@ window.diagnoseHeightMeasurement = function () {
     console.log('\n📏 STEP 1: Element Hierarchy\n');
 
     const wrapperTransform = window.getComputedStyle(wrapper).transform;
-    const brewTransform = window.getComputedStyle(brewRenderer).transform;
+    const rendererTransform = window.getComputedStyle(canvasRenderer).transform;
     const columnTransform = window.getComputedStyle(column).transform;
 
     console.table({
-        'brewRenderer-wrapper': {
+        'dm-canvas-wrapper': {
             transform: wrapperTransform.substring(0, 50),
             hasTransform: wrapperTransform !== 'none' ? '✅' : '❌',
         },
-        'brewRenderer': {
-            transform: brewTransform.substring(0, 50),
-            hasTransform: brewTransform !== 'none' ? '✅' : '❌',
+        'dm-canvas-renderer': {
+            transform: rendererTransform.substring(0, 50),
+            hasTransform: rendererTransform !== 'none' ? '✅' : '❌',
         },
         'canvas-column': {
             transform: columnTransform,
@@ -58,17 +58,17 @@ window.diagnoseHeightMeasurement = function () {
     console.log('\n📐 STEP 2: Bounding Box Measurements\n');
 
     const wrapperRect = wrapper.getBoundingClientRect();
-    const brewRect = brewRenderer.getBoundingClientRect();
+    const rendererRect = canvasRenderer.getBoundingClientRect();
     const columnRect = column.getBoundingClientRect();
 
     console.table({
-        'brewRenderer-wrapper': {
+        'dm-canvas-wrapper': {
             width: wrapperRect.width.toFixed(2),
             height: wrapperRect.height.toFixed(2),
         },
-        'brewRenderer': {
-            width: brewRect.width.toFixed(2),
-            height: brewRect.height.toFixed(2),
+        'dm-canvas-renderer': {
+            width: rendererRect.width.toFixed(2),
+            height: rendererRect.height.toFixed(2),
         },
         'canvas-column': {
             width: columnRect.width.toFixed(2),

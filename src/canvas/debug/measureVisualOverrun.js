@@ -11,9 +11,9 @@
     console.log('🔍 VISUAL OVERRUN DIAGNOSTIC\n');
 
     // Get scale from CSS variable
-    const container = document.querySelector('.brewRenderer-wrapper');
+    const container = document.querySelector('.dm-canvas-wrapper');
     if (!container) {
-        console.error('❌ Could not find .brewRenderer-wrapper');
+        console.error('❌ Could not find .dm-canvas-wrapper');
         return;
     }
 

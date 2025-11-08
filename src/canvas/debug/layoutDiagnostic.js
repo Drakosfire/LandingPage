@@ -34,7 +34,7 @@
     // ============================================================================
     console.log('\n📐 SECTION 1: Measurement Layer Configuration\n');
 
-    const measurementLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measurementLayer = document.querySelector('.dm-canvas-measurement-layer');
     const visibleColumn = document.querySelector('.canvas-column');
 
     if (!measurementLayer) {
@@ -226,15 +226,15 @@
     console.log('\n' + '='.repeat(80));
     console.log('\n📐 SECTION 5: Column Width Analysis\n');
 
-    const visiblePage = document.querySelector('.brewRenderer .page.phb');
-    const measPage = document.querySelector('.dm-statblock-measurement-layer .page.phb');
+    const visiblePage = document.querySelector('.dm-canvas-renderer .page.phb');
+    const measPage = document.querySelector('.dm-canvas-measurement-layer .page.phb');
 
     if (visiblePage && measPage) {
         const visPageRect = visiblePage.getBoundingClientRect();
         const measPageRect = measPage.getBoundingClientRect();
 
-        const visCol = document.querySelector('.brewRenderer .canvas-column');
-        const measCol = document.querySelector('.dm-statblock-measurement-layer .canvas-column');
+        const visCol = document.querySelector('.dm-canvas-renderer .canvas-column');
+        const measCol = document.querySelector('.dm-canvas-measurement-layer .canvas-column');
 
         if (visCol && measCol) {
             const visColRect = visCol.getBoundingClientRect();

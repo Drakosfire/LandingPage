@@ -43,8 +43,8 @@ console.log('       → Using estimate instead of measurement\n');
 console.log('\n🎯 QUICK CHECK - Run this now:\n');
 
 // Check current state
-const col1 = document.querySelector('.brewRenderer .canvas-column:nth-child(1)');
-const col2 = document.querySelector('.brewRenderer .canvas-column:nth-child(2)');
+const col1 = document.querySelector('.dm-canvas-renderer .canvas-column:nth-child(1)');
+const col2 = document.querySelector('.dm-canvas-renderer .canvas-column:nth-child(2)');
 
 if (col1 && col2) {
     const col1Height = col1.getBoundingClientRect().height;
@@ -76,7 +76,7 @@ if (col1 && col2) {
         }
     });
 
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
     const measActions = measLayer?.querySelector('.dm-action-section');
     const measHeight = measActions ? measActions.getBoundingClientRect().height : 0;
 

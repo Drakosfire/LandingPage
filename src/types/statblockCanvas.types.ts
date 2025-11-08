@@ -10,6 +10,13 @@ export interface PageDimensions {
     bleed?: number;
 }
 
+export interface PageMargins {
+    topMm?: number;
+    bottomMm?: number;
+    leftMm?: number;
+    rightMm?: number;
+}
+
 export interface PageBackgroundConfig {
     type: 'parchment' | 'solid' | 'image';
     color?: string;
@@ -41,6 +48,7 @@ export interface PageVariables {
     mode: PageMode;
     dimensions: PageDimensions;
     background: PageBackgroundConfig;
+    margins?: PageMargins;
     columns: ColumnConfig;
     pagination: PaginationConfig;
     snap: SnapConfig;

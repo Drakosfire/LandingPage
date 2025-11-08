@@ -9,18 +9,18 @@
     console.log('🔍 DOM & CSS COMPARISON\n');
 
     // Get scale
-    const container = document.querySelector('.brewRenderer-wrapper');
+    const container = document.querySelector('.dm-canvas-wrapper');
     const transform = window.getComputedStyle(container).transform;
     const matrix = transform.match(/matrix\(([^)]+)\)/);
     const scale = matrix ? parseFloat(matrix[1].split(',')[0]) : 1;
 
     // Find measurement entry
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
     const targetKey = 'component-10:legendary-action-list:0:2:3';
     const measEntry = measLayer.querySelector(`[data-measurement-key="${targetKey}"]`);
 
     // Find visible entry
-    const visColumn = document.querySelectorAll('.brewRenderer .canvas-column')[1];
+    const visColumn = document.querySelectorAll('.dm-canvas-renderer .canvas-column')[1];
     let visEntry = null;
     visColumn.querySelectorAll('.canvas-entry').forEach(entry => {
         const leg = entry.querySelector('.dm-legendary-section');

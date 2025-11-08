@@ -211,7 +211,7 @@
     console.log('\n' + '='.repeat(80));
     console.log('\n📏 STEP 6: Measurement vs Actual Height\n');
 
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
     if (measLayer) {
         const measComp6 = measLayer.querySelector('[data-component-id="component-6"]');
 

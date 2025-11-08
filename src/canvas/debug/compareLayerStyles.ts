@@ -10,7 +10,7 @@
 
 export function compareComponentStyles(componentId: string = 'component-0') {
     // Find measurement layer component
-    const measurementLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measurementLayer = document.querySelector('.dm-canvas-measurement-layer');
     const measurementEntry = measurementLayer?.querySelector(`[data-measurement-key="${componentId}:0"]`);
     const measurementComponent = measurementEntry?.firstElementChild;
 

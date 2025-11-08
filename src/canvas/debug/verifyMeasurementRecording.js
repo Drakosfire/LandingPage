@@ -13,14 +13,14 @@
     console.log('🔍 MEASUREMENT RECORDING VERIFICATION\n');
 
     // Find measurement layer
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
     if (!measLayer) {
         console.error('❌ Measurement layer not found');
         return;
     }
 
     // Get scale
-    const container = document.querySelector('.brewRenderer-wrapper');
+    const container = document.querySelector('.dm-canvas-wrapper');
     const transform = window.getComputedStyle(container).transform;
     const matrix = transform.match(/matrix\(([^)]+)\)/);
     const scale = matrix ? parseFloat(matrix[1].split(',')[0]) : 1;
@@ -45,7 +45,7 @@
     }
 
     // Check visible layer column width
-    const visColumn = document.querySelectorAll('.brewRenderer .canvas-column')[1];
+    const visColumn = document.querySelectorAll('.dm-canvas-renderer .canvas-column')[1];
     if (visColumn) {
         const colWidth = visColumn.getBoundingClientRect().width;
         const preTransformWidth = colWidth / scale;
@@ -93,7 +93,7 @@
     });
 
     // Find the same component in visible layer (Region 1:2)
-    const visLayerColumn = document.querySelectorAll('.brewRenderer .canvas-column')[1];
+    const visLayerColumn = document.querySelectorAll('.dm-canvas-renderer .canvas-column')[1];
     let visEntry = null;
 
     if (visLayerColumn) {

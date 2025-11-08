@@ -9,9 +9,9 @@
     console.log('🔍 ACTUAL COLUMN CONTENT MEASUREMENT\n');
 
     // Get scale
-    const container = document.querySelector('.brewRenderer-wrapper');
+    const container = document.querySelector('.dm-canvas-wrapper');
     if (!container) {
-        console.error('❌ Could not find .brewRenderer-wrapper');
+        console.error('❌ Could not find .dm-canvas-wrapper');
         return;
     }
 

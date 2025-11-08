@@ -80,7 +80,7 @@ window.diagnoseSplit = function () {
     });
 
     // Get measurement layer data
-    const measLayer = document.querySelector('.dm-statblock-measurement-layer');
+    const measLayer = document.querySelector('.dm-canvas-measurement-layer');
     const measActions = measLayer?.querySelector('.dm-action-section');
 
     if (!measActions) {
