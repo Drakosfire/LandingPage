@@ -61,7 +61,7 @@
     column-width: unset !important;
     column-gap: unset !important;
     column-fill: unset !important;
-    
+
     /* Use flexbox for explicit .canvas-column children */
     display: flex !important;
     gap: var(--dm-column-gap, 12px);

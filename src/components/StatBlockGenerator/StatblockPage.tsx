@@ -31,6 +31,7 @@ const MIN_SCALE = 0.35;
 const MAX_SCALE = 2.5;
 const PAGE_GAP_PX = 48;
 const FALLBACK_MARGIN_MM = 10;
+const MM_TO_PX = 96 / 25.4;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -115,8 +116,8 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             ...page.pageVariables.margins,
             topMm: page.pageVariables.margins?.topMm ?? FALLBACK_MARGIN_MM,
             bottomMm: page.pageVariables.margins?.bottomMm ?? FALLBACK_MARGIN_MM,
-            leftMm: page.pageVariables.margins?.leftMm,
-            rightMm: page.pageVariables.margins?.rightMm,
+            leftMm: page.pageVariables.margins?.leftMm ?? FALLBACK_MARGIN_MM,
+            rightMm: page.pageVariables.margins?.rightMm ?? FALLBACK_MARGIN_MM,
         },
     }), [page.pageVariables]);
 
@@ -129,10 +130,16 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         adapters,
     });
 
-    const baseDimensions: BasePageDimensions = layout.baseDimensions;
-    const baseWidthPx = baseDimensions.widthPx;
-    const baseHeightPx = baseDimensions.heightPx;
-    const baseContentHeightPx = baseDimensions.contentHeightPx;
+    const {
+        widthPx: baseWidthPx,
+        heightPx: baseHeightPx,
+        contentHeightPx: baseContentHeightPx,
+        topMarginPx: baseTopMarginPx,
+        bottomMarginPx: baseBottomMarginPx,
+    }: BasePageDimensions = layout.baseDimensions;
+
+    const leftMarginPx = (pageVariablesWithMargins.margins?.leftMm ?? FALLBACK_MARGIN_MM) * MM_TO_PX;
+    const rightMarginPx = (pageVariablesWithMargins.margins?.rightMm ?? FALLBACK_MARGIN_MM) * MM_TO_PX;
 
     useLayoutEffect(() => {
         if (typeof ResizeObserver === 'undefined') {
@@ -325,7 +332,42 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         '--dm-page-scale': `${scale}`,
         '--dm-column-count': `${columnCount}`,
         '--dm-column-gap': `${columnGapPx}px`,
-    }), [baseContentHeightPx, baseHeightPx, baseWidthPx, columnCount, pageCount, totalScaledHeightPx, scale]);
+        '--dm-page-top-margin': `${baseTopMarginPx}px`,
+        '--dm-page-bottom-margin': `${baseBottomMarginPx}px`,
+        '--dm-page-left-margin': `${leftMarginPx}px`,
+        '--dm-page-right-margin': `${rightMarginPx}px`,
+    }), [baseContentHeightPx, baseHeightPx, baseWidthPx, baseTopMarginPx, baseBottomMarginPx, columnCount, pageCount, totalScaledHeightPx, scale, leftMarginPx, rightMarginPx]);
+
+    useLayoutEffect(() => {
+        const node = containerRef.current;
+        if (!node) {
+            return;
+        }
+
+        node.style.setProperty('--dm-page-width', `${baseWidthPx}px`);
+        node.style.setProperty('--dm-page-height', `${baseHeightPx}px`);
+        node.style.setProperty('--dm-page-content-height', `${baseContentHeightPx}px`);
+        node.style.setProperty('--dm-page-count', `${pageCount}`);
+        node.style.setProperty('--dm-page-scale', `${scale}`);
+        node.style.setProperty('--dm-column-count', `${columnCount}`);
+        node.style.setProperty('--dm-column-gap', `${columnGapPx}px`);
+        node.style.setProperty('--dm-page-top-margin', `${baseTopMarginPx}px`);
+        node.style.setProperty('--dm-page-bottom-margin', `${baseBottomMarginPx}px`);
+        node.style.setProperty('--dm-page-left-margin', `${leftMarginPx}px`);
+        node.style.setProperty('--dm-page-right-margin', `${rightMarginPx}px`);
+    }, [
+        baseWidthPx,
+        baseHeightPx,
+        baseContentHeightPx,
+        baseTopMarginPx,
+        baseBottomMarginPx,
+        pageCount,
+        scale,
+        columnCount,
+        columnGapPx,
+        leftMarginPx,
+        rightMarginPx,
+    ]);
 
     // Wrapper handles the transform, inner renderer handles content structure
     const transformWrapperStyle = useMemo<React.CSSProperties>(() => ({
