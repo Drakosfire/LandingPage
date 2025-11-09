@@ -7,7 +7,7 @@
 
 @page {
     size: letter portrait;
-    margin: 0;
+    margin: 0.25in;
 }
 
 @media print {
@@ -23,6 +23,12 @@
         overflow: visible !important;
     }
 
+    .generator-canvas-container,
+    .generator-canvas-container *,
+    .statblock-canvas-area,
+    .statblock-canvas-area *,
+    .mantine-Card-root,
+    .mantine-Card-root *,
     .dm-canvas-responsive,
     .dm-canvas-responsive * {
         visibility: visible !important;
@@ -58,6 +64,17 @@
 
     .mantine-AppShell-main {
         padding-top: 0 !important;
+    }
+
+    .mantine-Card-root {
+        all: unset !important;
+        display: block !important;
+        visibility: visible !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     .dm-canvas-responsive {
@@ -126,8 +143,8 @@
     .dm-canvas-responsive .page.phb {
         break-inside: avoid !important;
         page-break-inside: avoid !important;
-        width: var(--dm-page-width, 8.5in) !important;
-        max-width: var(--dm-page-width, 8.5in) !important;
+        width: var(--dm-page-width, 8in) !important;
+        max-width: var(--dm-page-width, 8in) !important;
         height: var(--dm-page-height) !important;
         margin: 0 !important;
         padding: var(--dm-page-top-margin, 0) var(--dm-page-right-margin, 0) var(--dm-page-bottom-margin, 0) var(--dm-page-left-margin, 0) !important;
