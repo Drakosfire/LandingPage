@@ -7,15 +7,16 @@ import type {
     StatblockPageDocument,
     TemplateConfig,
 } from '../../types/statblockCanvas.types';
+import type { StatBlockDetails } from '../../types/statblock.types';
 import { DND_CSS_BASE_URL } from '../../config';
 import '../../styles/canvas/index.css';         // Shared canvas styles
 import '../../styles/StatblockComponents.css';  // StatBlock-specific styles
-import type { CanvasLayoutEntry, BasePageDimensions } from 'dungeonmind-canvas';
+import type { CanvasLayoutEntry, BasePageDimensions, MeasurementEntry, MeasurementRecord } from 'dungeonmind-canvas';
 import { CanvasLayoutProvider } from 'dungeonmind-canvas';
 import { useCanvasLayout } from 'dungeonmind-canvas';
 import { CanvasPage } from 'dungeonmind-canvas';
 import { MeasurementLayer, MeasurementCoordinator } from 'dungeonmind-canvas';
-import { COMPONENT_VERTICAL_SPACING_PX } from 'dungeonmind-canvas';
+import { COMPONENT_VERTICAL_SPACING_PX, isComponentDebugEnabled } from 'dungeonmind-canvas';
 import { createStatblockAdapters } from './canvasAdapters';
 
 interface StatblockPageProps {
@@ -40,7 +41,7 @@ const renderEntry = (
     registry: Record<string, ComponentRegistryEntry>,
     props: Omit<CanvasComponentProps, 'id' | 'dataRef' | 'layout'>,
     isEditMode?: boolean,
-    onUpdateData?: (updates: Partial<import('../../types/statblock.types').StatBlockDetails>) => void
+    onUpdateData?: (updates: Partial<StatBlockDetails>) => void
 ) => {
     const registryEntry = registry[entry.instance.type];
     if (!registryEntry) {
@@ -55,6 +56,12 @@ const renderEntry = (
         }
         : undefined;
 
+    const onUpdateDataProp: CanvasComponentProps['onUpdateData'] = onUpdateData
+        ? ((updates) => {
+            onUpdateData(updates as Partial<StatBlockDetails>);
+        })
+        : undefined;
+
     return (
         <Component
             id={entry.instance.id}
@@ -65,11 +72,24 @@ const renderEntry = (
             regionContent={entry.regionContent as any}
             regionOverflow={Boolean(entry.overflow)}
             isEditMode={isEditMode}
-            onUpdateData={onUpdateData}
+            onUpdateData={onUpdateDataProp}
             {...props}
         />
     );
 };
+
+const isSpellcastingMeasurementKey = (key: string): boolean =>
+    key.includes('spellcasting-block') ||
+    key.includes(':spell-list');
+
+// Check if component-12 (spellcasting) is in debug set via CLI/env vars
+const isSpellcastingDebugEnabled = (): boolean => isComponentDebugEnabled('component-12');
+
+const SPELLCASTING_HEIGHT_EPSILON = 0.5;
+const SPELLCASTING_HEIGHT_LOG_COOLDOWN_MS = 1500;
+
+const isSpellcastingVerboseLoggingEnabled = (): boolean =>
+    typeof window !== 'undefined' && Boolean((window as any).__SPELLCASTING_LOG_VERBOSE__);
 
 const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, componentRegistry, isEditMode, onUpdateData, measurementCoordinator }) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -81,8 +101,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const adapters = useMemo(() => createStatblockAdapters(), []);
 
     // DEBUG: Log edit mode prop
-    console.log('📄 [StatblockPage] Received isEditMode prop:', isEditMode);
-
     // Wait for custom fonts to load before measuring
     useLayoutEffect(() => {
         if (typeof document === 'undefined' || !document.fonts) {
@@ -256,14 +274,30 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
 
             const columnRect = column.getBoundingClientRect();
 
-            // CRITICAL: Divide by scale to get pre-transform height
-            // The visible layer is scaled down (e.g., 0.777x), so we measure 764px
-            // But pagination needs PRE-TRANSFORM height (983px) to match measurement layer
             const usableHeight = columnRect.height / scale;
+            const heightCeiling = Math.max(baseContentHeightPx, 0);
+            const cappedHeight = Math.min(usableHeight, heightCeiling);
 
-            if (usableHeight > 0 && Math.abs(usableHeight - lastMeasuredHeight) > 1) {
-                lastMeasuredHeight = usableHeight;
-                layout.setRegionHeight(usableHeight);
+            if (
+                isSpellcastingDebugEnabled() &&
+                (Math.abs(usableHeight - cappedHeight) > 0.5 || Math.abs(cappedHeight - lastMeasuredHeight) > 1)
+            ) {
+                console.log('📏 [Spellcasting Debug] Region height measurement', {
+                    usableHeight,
+                    heightCeiling,
+                    cappedHeight,
+                    scale,
+                    columnRect: {
+                        height: columnRect.height,
+                        top: columnRect.top,
+                        bottom: columnRect.bottom,
+                    },
+                });
+            }
+
+            if (cappedHeight > 0 && Math.abs(cappedHeight - lastMeasuredHeight) > 1) {
+                lastMeasuredHeight = cappedHeight;
+                layout.setRegionHeight(cappedHeight);
             }
         };
 
@@ -276,7 +310,90 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         updateRegionHeight();
 
         return () => observer.disconnect();
-    }, [layout.setRegionHeight, layout.plan]); // Re-measure when layout plan is created
+    }, [layout.setRegionHeight, layout.plan, baseContentHeightPx, scale]); // Re-measure when layout plan is created
+
+    const spellcastingMeasurementLogRef = React.useRef(
+        new Map<string, { height: number; loggedAt: number }>()
+    );
+
+    const handleMeasurements = React.useCallback(
+        (updates: MeasurementRecord[]) => {
+            if (isSpellcastingDebugEnabled()) {
+                const now = Date.now();
+                const verbose = isSpellcastingVerboseLoggingEnabled();
+                const interesting: MeasurementRecord[] = [];
+
+                updates.forEach((update) => {
+                    if (!isSpellcastingMeasurementKey(update.key)) {
+                        return;
+                    }
+
+                    const cache = spellcastingMeasurementLogRef.current;
+
+                    if (update.height == null || update.height <= 0) {
+                        if (cache.delete(update.key)) {
+                            interesting.push(update);
+                        }
+                        return;
+                    }
+
+                    const previous = cache.get(update.key);
+                    const hasSignificantChange =
+                        verbose &&
+                        previous != null &&
+                        (Math.abs(previous.height - update.height) > SPELLCASTING_HEIGHT_EPSILON ||
+                            now - previous.loggedAt >= SPELLCASTING_HEIGHT_LOG_COOLDOWN_MS);
+
+                    if (!previous || hasSignificantChange) {
+                        cache.set(update.key, { height: update.height, loggedAt: now });
+                        // Only emit subsequent measurements when verbose mode is enabled
+                        if (!previous || verbose) {
+                            interesting.push(update);
+                        }
+                    }
+                });
+
+                if (interesting.length > 0) {
+                    console.log('🧮 [Spellcasting Debug] Measurement batch', {
+                        count: interesting.length,
+                        entries: interesting.map(({ key, height, measuredAt }) => ({
+                            key,
+                            height,
+                            measuredAt,
+                        })),
+                        mode: verbose ? 'verbose' : 'initial-only',
+                    });
+                }
+            }
+            layout.onMeasurements(updates);
+        },
+        [layout]
+    );
+
+    useEffect(() => {
+        if (!layout.plan || !isSpellcastingDebugEnabled()) {
+            return;
+        }
+
+        layout.plan.pages.forEach((pageLayout) => {
+            pageLayout.columns.forEach((columnLayout) => {
+                columnLayout.entries.forEach((entry) => {
+                    if (isComponentDebugEnabled(entry.instance.id)) {
+                        console.log('🧭 [Spellcasting Debug] Pagination placement', {
+                            page: pageLayout.pageNumber,
+                            column: columnLayout.columnNumber,
+                            span: entry.span,
+                            overflow: entry.overflow,
+                            listContinuation: entry.listContinuation,
+                            measurementKey: entry.measurementKey,
+                            estimatedHeight: entry.estimatedHeight,
+                            regionContent: entry.regionContent,
+                        });
+                    }
+                });
+            });
+        });
+    }, [layout.plan]);
 
     useEffect(() => {
         if (!DND_CSS_BASE_URL) {
@@ -470,14 +587,14 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                             >
                                 <MeasurementLayer
                                     entries={layout.measurementEntries}
-                                    renderComponent={(entry) =>
+                                    renderComponent={(entry: MeasurementEntry) =>
                                         renderEntry(entry, componentRegistry, {
                                             mode: pageVariablesWithMargins.mode,
                                             pageVariables: pageVariablesWithPagination,
                                             dataSources: page.dataSources ?? [],
                                         }, isEditMode, onUpdateData)
                                     }
-                                    onMeasurements={layout.onMeasurements}
+                                    onMeasurements={handleMeasurements}
                                     coordinator={measurementCoordinator}
                                 />
                             </div>

@@ -107,7 +107,7 @@
     display: flex;
     gap: var(--dm-column-gap, 12px);
     width: 100%;
-    height: 100%;
+    height: 900px;
     column-count: unset !important;
     column-width: unset !important;
     column-gap: unset !important;

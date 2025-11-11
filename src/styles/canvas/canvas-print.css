@@ -156,9 +156,10 @@
         background-size: cover !important;
     }
 
-    .dm-canvas-responsive .page .columnWrapper {
-        height: var(--dm-page-content-height) !important;
-        max-height: var(--dm-page-content-height) !important;
+    .dm-canvas-responsive .page .columnWrapper,
+    .dm-canvas-responsive .page .monster.frame.wide {
+        height: 900 !important;
+        max-height: 900 !important;
     }
 
     .dm-canvas-pages .page:first-child {

@@ -59,6 +59,8 @@ export interface LayoutColumn {
     columnNumber: 1 | 2;
     key: string;
     entries: CanvasLayoutEntry[];
+    usedHeightPx?: number;
+    availableHeightPx?: number;
 }
 
 export interface PageLayout {

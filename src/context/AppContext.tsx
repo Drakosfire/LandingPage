@@ -114,6 +114,12 @@ export const CARD_GENERATOR_APP: AppMetadata = {
     icon: `${process.env.PUBLIC_URL}/images/CardGeneratorLogo.png`
 };
 
+export const CHARACTER_GENERATOR_APP: AppMetadata = {
+    id: 'character-generator',
+    name: 'Character Generator',
+    icon: `${process.env.PUBLIC_URL}/images/DungeonMindLogo2.png`
+};
+
 export const RULES_LAWYER_APP: AppMetadata = {
     id: 'rules-lawyer',
     name: 'Rules Lawyer',

@@ -1,59 +1,30 @@
 import type { Action, StatBlockDetails } from './statblock.types';
 import type React from 'react';
+import type {
+    PageMode,
+    PageDimensions,
+    ColumnConfig,
+    PaginationConfig,
+    PageVariables,
+    ComponentLayoutConfig as BaseComponentLayoutConfig,
+    ComponentDataReference as BaseComponentDataReference,
+    ComponentInstance as BaseComponentInstance,
+    ComponentDataSource as BaseComponentDataSource,
+    RegionListContent as BaseRegionListContent,
+    TemplateSlot,
+    TemplateComponentPlacement,
+    TemplateConfig as BaseTemplateConfig,
+    PageDocument as BasePageDocument,
+    CanvasComponentProps as BaseCanvasComponentProps,
+} from 'dungeonmind-canvas';
 
-export type PageMode = 'locked' | 'freeform';
+export type { PageMode, PageDimensions, ColumnConfig, PaginationConfig, PageVariables, TemplateSlot, TemplateComponentPlacement };
 
-export interface PageDimensions {
-    width: number;
-    height: number;
-    unit: 'px' | 'mm' | 'in';
-    bleed?: number;
-}
-
-export interface PageMargins {
-    topMm?: number;
-    bottomMm?: number;
-    leftMm?: number;
-    rightMm?: number;
-}
-
-export interface PageBackgroundConfig {
-    type: 'parchment' | 'solid' | 'image';
-    color?: string;
-    textureUrl?: string;
-    overlayOpacity?: number;
-}
-
-export interface ColumnConfig {
-    enabled: boolean;
-    columnCount: number;
-    gutter: number;
-    unit: 'px' | 'mm' | 'in';
-}
-
-export interface SnapConfig {
-    enabled: boolean;
-    gridSize: number;
-    gridUnit: 'px' | 'mm' | 'in';
-    snapToSlots: boolean;
-    snapToEdges: boolean;
-}
-
-export interface PaginationConfig {
-    pageCount: number;
-    columnCount: 1 | 2;
-}
-
-export interface PageVariables {
-    mode: PageMode;
-    dimensions: PageDimensions;
-    background: PageBackgroundConfig;
-    margins?: PageMargins;
-    columns: ColumnConfig;
-    pagination: PaginationConfig;
-    snap: SnapConfig;
-    templateId?: string;
-}
+export type PageBackgroundConfig = PageVariables['background'];
+export type SnapConfig = PageVariables['snap'];
+export type PageMargins = NonNullable<PageVariables['margins']>;
+type BaseHistoryArray = BasePageDocument['history'];
+export type PageHistoryEntry = BaseHistoryArray extends Array<infer H> ? H : never;
 
 export type CanvasComponentType =
     | 'identity-header'
@@ -79,115 +50,63 @@ export type CanvasComponentType =
     | 'markdown-block'
     | 'spacer';
 
-export interface ComponentDimensions {
-    width: number;
-    height: number;
-}
+export type ComponentLayoutConfig = BaseComponentLayoutConfig;
 
-export interface LayoutPosition {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    rotation?: number;
-    zIndex?: number;
-}
-
-export interface ComponentLayoutConfig {
-    slotId?: string;
-    position?: LayoutPosition;
-    minSize?: ComponentDimensions;
-    maxSize?: ComponentDimensions;
-    isVisible: boolean;
-    isLocked?: boolean;
-    location?: {
-        page: number;
-        column: 1 | 2;
-    };
-}
+type BaseStatblockDataRef = Extract<BaseComponentDataReference, { type: 'statblock' }>;
+type BaseCustomDataRef = Extract<BaseComponentDataReference, { type: 'custom' }>;
 
 export type ComponentDataReference =
-    | { type: 'statblock'; path: keyof StatBlockDetails | string; sourceId?: string }
-    | { type: 'custom'; key: string; sourceId?: string };
+    | (BaseStatblockDataRef & { path: keyof StatBlockDetails | string })
+    | BaseCustomDataRef;
 
-export interface ComponentInstance {
-    id: string;
+export interface ComponentInstance extends Omit<BaseComponentInstance, 'type' | 'dataRef'> {
     type: CanvasComponentType;
     dataRef: ComponentDataReference;
-    layout: ComponentLayoutConfig;
-    modeOverrides?: Partial<ComponentLayoutConfig>;
-    variables?: Record<string, unknown>;
 }
 
-export interface RegionListContent {
-    kind: 'action-list' | 'trait-list' | 'bonus-action-list' | 'reaction-list' | 'legendary-action-list' | 'lair-action-list' | 'spell-list';
+type BaseDataSource<T> = BaseComponentDataSource<T>;
+
+export type ComponentDataSource =
+    | (BaseDataSource<StatBlockDetails> & { type: 'statblock'; payload: StatBlockDetails })
+    | (BaseDataSource<Record<string, unknown>> & { type: 'custom'; payload: Record<string, unknown> });
+
+export interface RegionListContent extends Omit<BaseRegionListContent, 'kind' | 'items'> {
+    kind:
+    | 'action-list'
+    | 'trait-list'
+    | 'bonus-action-list'
+    | 'reaction-list'
+    | 'legendary-action-list'
+    | 'lair-action-list'
+    | 'spell-list'
+    | 'spell-list-metadata';
     items: Action[];
-    startIndex: number;
-    totalCount: number;
-    isContinuation: boolean;
-    metadata?: Record<string, unknown>;
 }
 
-export interface TemplateSlot {
-    id: string;
-    name: string;
-    position: LayoutPosition;
+export interface TemplateConfig extends Omit<BaseTemplateConfig, 'slots' | 'defaultComponents' | 'allowedComponents'> {
+    slots: Array<
+        Omit<TemplateSlot, 'allowedComponents'> & {
+            allowedComponents: CanvasComponentType[];
+        }
+    >;
+    defaultComponents: Array<
+        Omit<TemplateComponentPlacement, 'componentType' | 'defaultDataRef'> & {
+            componentType: CanvasComponentType;
+            defaultDataRef: ComponentDataReference;
+        }
+    >;
     allowedComponents: CanvasComponentType[];
-    isRequired?: boolean;
 }
 
-export interface TemplateComponentPlacement {
-    slotId: string;
-    componentType: CanvasComponentType;
-    defaultDataRef: ComponentDataReference;
-    defaultVariables?: Record<string, unknown>;
-}
-
-export interface TemplateConfig {
-    id: string;
-    name: string;
-    description?: string;
-    defaultMode: PageMode;
-    defaultPageVariables: Omit<PageVariables, 'mode' | 'templateId'>;
-    slots: TemplateSlot[];
-    defaultComponents: TemplateComponentPlacement[];
-    allowedComponents: CanvasComponentType[];
-    metadata?: Record<string, unknown>;
-}
-
-export interface PageHistoryEntry {
-    id: string;
-    createdAt: string;
-    userId: string;
-    summary: string;
-}
-
-export interface ComponentDataSource {
-    id: string;
-    type: 'statblock' | 'custom';
-    payload: StatBlockDetails | Record<string, unknown>;
-    updatedAt: string;
-}
-
-export interface StatblockPageDocument {
-    id: string;
-    projectId: string;
-    ownerId: string;
-    templateId: string;
-    pageVariables: PageVariables;
+export interface StatblockPageDocument extends Omit<BasePageDocument, 'componentInstances' | 'dataSources'> {
     componentInstances: ComponentInstance[];
     dataSources: ComponentDataSource[];
-    createdAt: string;
-    updatedAt: string;
-    history?: PageHistoryEntry[];
-    metadata?: Record<string, unknown>;
 }
 
 export interface PageDocumentUpdate {
     pageVariables?: Partial<PageVariables>;
     componentInstances?: ComponentInstance[];
     dataSources?: ComponentDataSource[];
-    metadata?: Record<string, unknown>;
 }
 
 export interface ComponentRegistryEntry {
@@ -203,23 +122,11 @@ export interface ComponentRegistryEntry {
     component: React.ComponentType<CanvasComponentProps> | React.LazyExoticComponent<React.ComponentType<CanvasComponentProps>>;
 }
 
-export interface CanvasComponentProps {
-    id: string;
+export interface CanvasComponentProps extends Omit<BaseCanvasComponentProps, 'dataRef' | 'dataSources' | 'pageVariables' | 'regionContent'> {
     dataRef: ComponentDataReference;
-    variables?: Record<string, unknown>;
-    layout: ComponentLayoutConfig;
-    mode: PageMode;
-    pageVariables: PageVariables;
     dataSources: ComponentDataSource[];
-    isEditMode?: boolean;
-    onUpdateData?: (updates: Partial<import('./statblock.types').StatBlockDetails>) => void;
-    region?: {
-        page: number;
-        column: 1 | 2;
-        index: number;
-    };
+    pageVariables: PageVariables;
     regionContent?: RegionListContent;
-    regionOverflow?: boolean;
 }
 
 export interface PageLoadResponse {

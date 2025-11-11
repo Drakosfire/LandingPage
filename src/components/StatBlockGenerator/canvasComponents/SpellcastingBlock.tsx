@@ -156,149 +156,8 @@ const SpellcastingBlock: React.FC<CanvasComponentProps> = ({ dataRef, dataSource
         });
     };
 
-    // Handle pagination: if regionContent is provided, only render those spells
-    if (regionContent && regionContent.items.length > 0) {
-        const { items, startIndex, totalCount, isContinuation } = regionContent;
-
-        // Convert action items back to spells (they were converted in utils.ts)
-        const spellsToRender = items.map((action: Action) => ({
-            id: action.id, // Preserve ID for stable keys
-            name: action.name,
-            description: action.desc,
-            level: (action as any).level ?? 0,
-            school: (action as any).school,
-            usage: (action as any).usage,
-        } as Spell));
-
-        const heading = isContinuation ? 'Spellcasting (cont.)' : 'Spellcasting';
-        const showMetadata = startIndex === 0; // Only show summary/table on first section
-
-        return (
-            <section className={`dm-spellcasting-section${regionOverflow ? ' dm-section-overflow' : ''}`}>
-                <h4 className="dm-section-heading" id="spellcasting">{heading}</h4>
-                {showMetadata && (
-                    <>
-                        <p className="dm-spellcasting-summary">
-                            Spellcasting Ability: <EditableText
-                                value={spellcasting.ability}
-                                onChange={(value) => updateSpellcastingMeta({ ability: value })}
-                                isEditMode={isEditMode}
-                                placeholder="Ability"
-                                onEditStart={handleEditStart}
-                                onEditChange={handleEditChange}
-                            />, Spell Save DC <EditableText
-                                value={String(spellcasting.save)}
-                                onChange={(value) => updateSpellcastingMeta({ save: parseInt(value) || 0 })}
-                                isEditMode={isEditMode}
-                                placeholder="DC"
-                                onEditStart={handleEditStart}
-                                onEditChange={handleEditChange}
-                            />, Spell Attack Bonus +<EditableText
-                                value={String(spellcasting.attack)}
-                                onChange={(value) => updateSpellcastingMeta({ attack: parseInt(value) || 0 })}
-                                isEditMode={isEditMode}
-                                placeholder="Bonus"
-                                onEditStart={handleEditStart}
-                                onEditChange={handleEditChange}
-                            />
-                        </p>
-                        <table className="dm-spellcasting-table">
-                            <tbody>
-                                <tr>
-                                    <th scope="row">Spellcasting Level</th>
-                                    <td>
-                                        <EditableText
-                                            value={String(spellcasting.level)}
-                                            onChange={(value) => updateSpellcastingMeta({ level: parseInt(value) || 0 })}
-                                            isEditMode={isEditMode}
-                                            placeholder="Level"
-                                            onEditStart={handleEditStart}
-                                            onEditChange={handleEditChange}
-                                        />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Spell Slots</th>
-                                    <td>
-                                        <EditableText
-                                            value={formatSpellSlots(spellcasting.spellSlots)}
-                                            onChange={(value) => {
-                                                // Note: This is a simplified string edit. Proper parsing would be needed for production.
-                                                updateSpellcastingMeta({ spellSlots: spellcasting.spellSlots });
-                                            }}
-                                            isEditMode={isEditMode}
-                                            placeholder="Spell slots"
-                                            onEditStart={handleEditStart}
-                                            onEditChange={handleEditChange}
-                                        />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </>
-                )}
-                <div className="dm-spellcasting-list-section">
-                    <dl className="dm-spellcasting-deflist">
-                        {spellsToRender.map((spell, index) => {
-                            const globalIndex = startIndex + index;
-                            const isLast = globalIndex === totalCount - 1;
-                            const metaParts: string[] = [formatSpellLevelLabel(spell)];
-                            if (spell.school) {
-                                metaParts.push(spell.school);
-                            }
-                            if (spell.usage) {
-                                metaParts.push(spell.usage);
-                            }
-
-                            return (
-                                <React.Fragment key={spell.id}>
-                                    <dt className="dm-spellcasting-term">
-                                        <strong>
-                                            <EditableText
-                                                value={spell.name}
-                                                onChange={(value) => {
-                                                    // Note: This is a simplified version - proper list type detection needed
-                                                    const listType = spell.level === 0 ? 'cantrips' : 'knownSpells';
-                                                    updateSpell(globalIndex, { name: value }, listType);
-                                                }}
-                                                isEditMode={isEditMode}
-                                                placeholder="Spell name"
-                                                onEditStart={handleEditStart}
-                                                onEditChange={handleEditChange}
-                                            />
-                                        </strong>
-                                        <span className="dm-spellcasting-meta">{metaParts.join(' | ')}</span>
-                                    </dt>
-                                    {spell.description ? (
-                                        <dd className="dm-spellcasting-description">
-                                            <EditableText
-                                                value={spell.description}
-                                                onChange={(value) => {
-                                                    const listType = spell.level === 0 ? 'cantrips' : 'knownSpells';
-                                                    updateSpell(globalIndex, { description: value }, listType);
-                                                }}
-                                                isEditMode={isEditMode}
-                                                placeholder="Spell description"
-                                                multiline
-                                                onEditStart={handleEditStart}
-                                                onEditChange={handleEditChange}
-                                            />
-                                        </dd>
-                                    ) : null}
-                                    {!isLast ? <div className="dm-action-divider" /> : null}
-                                </React.Fragment>
-                            );
-                        })}
-                    </dl>
-                </div>
-            </section>
-        );
-    }
-
-    // Non-paginated fallback: render all spells normally (also editable)
-    return (
-        <section className="dm-spellcasting-section">
-            <h4 className="dm-section-heading" id="spellcasting">Spellcasting</h4>
+    const renderMetadataSection = () => (
+        <>
             <p className="dm-spellcasting-summary">
                 Spellcasting Ability: <EditableText
                     value={spellcasting.ability}
@@ -344,7 +203,7 @@ const SpellcastingBlock: React.FC<CanvasComponentProps> = ({ dataRef, dataSource
                             <EditableText
                                 value={formatSpellSlots(spellcasting.spellSlots)}
                                 onChange={(value) => {
-                                    // Note: This is a simplified string edit
+                                    // Note: This is a simplified string edit. Proper parsing would be needed for production.
                                     updateSpellcastingMeta({ spellSlots: spellcasting.spellSlots });
                                 }}
                                 isEditMode={isEditMode}
@@ -356,6 +215,106 @@ const SpellcastingBlock: React.FC<CanvasComponentProps> = ({ dataRef, dataSource
                     </tr>
                 </tbody>
             </table>
+        </>
+    );
+
+    // Handle pagination: if regionContent is provided, only render those spells
+    if (regionContent) {
+        const isMetadataSegment = regionContent.kind === 'spell-list-metadata';
+        const headingId = 'spellcasting';
+        const sectionClassName = `dm-spellcasting-section${regionOverflow ? ' dm-section-overflow' : ''}`;
+
+        if (isMetadataSegment) {
+            return (
+                <section className={sectionClassName}>
+                    <h4 className="dm-section-heading" id={headingId}>Spellcasting</h4>
+                    {renderMetadataSection()}
+                </section>
+            );
+        }
+
+        const { items, startIndex, totalCount, isContinuation } = regionContent;
+
+        // Convert action items back to spells (they were converted in utils.ts)
+        const spellsToRender = items.map((action: Action) => ({
+            id: action.id, // Preserve ID for stable keys
+            name: action.name,
+            description: action.desc,
+            level: (action as any).level ?? 0,
+            school: (action as any).school,
+            usage: (action as any).usage,
+        } as Spell));
+
+        const heading = startIndex === 0 ? 'Spell List' : 'Spellcasting (cont.)';
+
+        return (
+            <section className={sectionClassName}>
+                <h4 className="dm-section-heading" id={headingId}>{heading}</h4>
+                {spellsToRender.length > 0 && (
+                    <div className="dm-spellcasting-list-section">
+                        <dl className="dm-spellcasting-deflist">
+                            {spellsToRender.map((spell, index) => {
+                                const globalIndex = startIndex + index;
+                                const isLast = globalIndex === totalCount - 1;
+                                const metaParts: string[] = [formatSpellLevelLabel(spell)];
+                                if (spell.school) {
+                                    metaParts.push(spell.school);
+                                }
+                                if (spell.usage) {
+                                    metaParts.push(spell.usage);
+                                }
+
+                                return (
+                                    <React.Fragment key={spell.id}>
+                                        <dt className="dm-spellcasting-term">
+                                            <strong>
+                                                <EditableText
+                                                    value={spell.name}
+                                                    onChange={(value) => {
+                                                        // Note: This is a simplified version - proper list type detection needed
+                                                        const listType = spell.level === 0 ? 'cantrips' : 'knownSpells';
+                                                        updateSpell(globalIndex, { name: value }, listType);
+                                                    }}
+                                                    isEditMode={isEditMode}
+                                                    placeholder="Spell name"
+                                                    onEditStart={handleEditStart}
+                                                    onEditChange={handleEditChange}
+                                                />
+                                            </strong>
+                                            <span className="dm-spellcasting-meta">{metaParts.join(' | ')}</span>
+                                        </dt>
+                                        {spell.description ? (
+                                            <dd className="dm-spellcasting-description">
+                                                <EditableText
+                                                    value={spell.description}
+                                                    onChange={(value) => {
+                                                        const listType = spell.level === 0 ? 'cantrips' : 'knownSpells';
+                                                        updateSpell(globalIndex, { description: value }, listType);
+                                                    }}
+                                                    isEditMode={isEditMode}
+                                                    placeholder="Spell description"
+                                                    multiline
+                                                    onEditStart={handleEditStart}
+                                                    onEditChange={handleEditChange}
+                                                />
+                                            </dd>
+                                        ) : null}
+                                        {!isLast ? <div className="dm-action-divider" /> : null}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </dl>
+                    </div>
+                )}
+            </section>
+        );
+    }
+
+    // Non-paginated fallback: render all spells normally (also editable)
+    return (
+        <section className="dm-spellcasting-section">
+            <h4 className="dm-section-heading" id="spellcasting">Spellcasting</h4>
+            {renderMetadataSection()}
             <SpellListSection title="Cantrips" spells={spellcasting.cantrips} />
             <SpellListSection title="Known Spells" spells={spellcasting.knownSpells} />
         </section>

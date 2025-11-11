@@ -21,6 +21,192 @@ import { MEASUREMENT_THROTTLE_MS, regionKey } from './utils';
 const shouldLogMeasurements = process.env.NODE_ENV !== 'production';
 const MEASUREMENT_EPSILON = 0.25;
 
+type MeasurementLoopEvent = 'attach' | 'detach';
+type MeasurementEventType = MeasurementLoopEvent | 'measure' | 'enqueue' | 'resize' | 'raf';
+
+interface MeasurementLoopHistory {
+    events: Array<{ type: MeasurementLoopEvent; timestamp: number }>;
+    firstAttachLogged: boolean;
+    firstDetachLogged: boolean;
+    loopNotifiedAt: number | null;
+}
+
+interface MeasurementHeightHistory {
+    lastHeight: number;
+    lastLoggedAt: number;
+}
+
+const LOOP_DETECTION_WINDOW_MS = 1500;
+const LOOP_ALERT_THRESHOLD = 3;
+const HEIGHT_LOG_EPSILON = 0.75;
+const HEIGHT_LOG_COOLDOWN_MS = 1500;
+
+const measurementLoopHistory = new Map<string, MeasurementLoopHistory>();
+const measurementHeightHistory = new Map<string, MeasurementHeightHistory>();
+
+interface LoopEvaluationResult {
+    shouldLog: boolean;
+    reason?: 'first-attach' | 'first-detach' | 'loop-detected';
+    meta?: Record<string, unknown>;
+}
+
+interface HeightEvaluationResult {
+    shouldLog: boolean;
+    reason?: 'first-measurement' | 'height-change' | 'delete';
+}
+
+const evaluateLoopEvent = (key: string, type: MeasurementLoopEvent): LoopEvaluationResult => {
+    const now = Date.now();
+    let history = measurementLoopHistory.get(key);
+
+    if (!history) {
+        history = {
+            events: [],
+            firstAttachLogged: false,
+            firstDetachLogged: false,
+            loopNotifiedAt: null,
+        };
+        measurementLoopHistory.set(key, history);
+    }
+
+    history.events.push({ type, timestamp: now });
+    const windowStart = now - LOOP_DETECTION_WINDOW_MS;
+    history.events = history.events.filter((event) => event.timestamp >= windowStart);
+
+    let shouldLog = false;
+    let reason: LoopEvaluationResult['reason'];
+    let meta: LoopEvaluationResult['meta'];
+
+    if (type === 'attach' && !history.firstAttachLogged) {
+        shouldLog = true;
+        reason = 'first-attach';
+        history.firstAttachLogged = true;
+    } else if (type === 'detach' && !history.firstDetachLogged) {
+        shouldLog = true;
+        reason = 'first-detach';
+        history.firstDetachLogged = true;
+    }
+
+    const attachCount = history.events.filter((event) => event.type === 'attach').length;
+    const detachCount = history.events.filter((event) => event.type === 'detach').length;
+    const transitions = history.events.reduce((count, event, index, arr) => {
+        if (index === 0) {
+            return count;
+        }
+        return count + (arr[index - 1].type !== event.type ? 1 : 0);
+    }, 0);
+
+    if (attachCount >= LOOP_ALERT_THRESHOLD && detachCount >= LOOP_ALERT_THRESHOLD && transitions >= (LOOP_ALERT_THRESHOLD * 2 - 1)) {
+        const shouldNotify = !history.loopNotifiedAt || now - history.loopNotifiedAt > LOOP_DETECTION_WINDOW_MS;
+        if (shouldNotify) {
+            shouldLog = true;
+            reason = 'loop-detected';
+            meta = {
+                attachCount,
+                detachCount,
+                transitions,
+                windowMs: LOOP_DETECTION_WINDOW_MS,
+            };
+            history.loopNotifiedAt = now;
+        }
+    }
+
+    if (history.loopNotifiedAt && now - history.loopNotifiedAt > LOOP_DETECTION_WINDOW_MS * 2) {
+        history.loopNotifiedAt = null;
+        history.firstAttachLogged = false;
+        history.firstDetachLogged = false;
+    }
+
+    return { shouldLog, reason, meta };
+};
+
+const evaluateHeightEvent = (key: string, height: number | null): HeightEvaluationResult => {
+    const now = Date.now();
+
+    if (height == null) {
+        measurementHeightHistory.delete(key);
+        return { shouldLog: true, reason: 'delete' };
+    }
+
+    const previous = measurementHeightHistory.get(key);
+    if (!previous) {
+        measurementHeightHistory.set(key, { lastHeight: height, lastLoggedAt: now });
+        return { shouldLog: true, reason: 'first-measurement' };
+    }
+
+    if (Math.abs(previous.lastHeight - height) > HEIGHT_LOG_EPSILON || now - previous.lastLoggedAt >= HEIGHT_LOG_COOLDOWN_MS) {
+        measurementHeightHistory.set(key, { lastHeight: height, lastLoggedAt: now });
+        return { shouldLog: true, reason: 'height-change' };
+    }
+
+    return { shouldLog: false };
+};
+
+const shouldLogAncillaryEvent = (key: string): boolean => {
+    const history = measurementLoopHistory.get(key);
+    if (!history) {
+        return false;
+    }
+    if (!history.loopNotifiedAt) {
+        return false;
+    }
+    return Date.now() - history.loopNotifiedAt <= LOOP_DETECTION_WINDOW_MS * 2;
+};
+
+type SpellcastingEventPayload = Record<string, unknown> & { height?: number | null };
+
+const logSpellcastingEvent = (
+    key: string,
+    type: MeasurementEventType,
+    emoji: string,
+    label: string,
+    payload: SpellcastingEventPayload = {},
+    { force = false }: { force?: boolean } = {}
+): void => {
+    if (!shouldLogMeasurements || !isSpellcastingMeasurementKey(key)) {
+        return;
+    }
+
+    let shouldLog = force;
+    let reason: LoopEvaluationResult['reason'] | HeightEvaluationResult['reason'];
+    let meta: Record<string, unknown> | undefined;
+
+    if (!shouldLog) {
+        if (type === 'attach' || type === 'detach') {
+            const result = evaluateLoopEvent(key, type);
+            shouldLog = result.shouldLog;
+            reason = result.reason;
+            meta = result.meta;
+        } else if (type === 'measure' || type === 'enqueue') {
+            const result = evaluateHeightEvent(key, typeof payload.height === 'number' ? payload.height : null);
+            shouldLog = result.shouldLog;
+            reason = result.reason;
+        } else if (type === 'resize' || type === 'raf') {
+            shouldLog = shouldLogAncillaryEvent(key);
+        }
+    }
+
+    if (!shouldLog) {
+        return;
+    }
+
+    console.log(`${emoji} [Measurement][Spellcasting] ${label}`, {
+        key,
+        ...payload,
+        ...(reason ? { reason } : {}),
+        ...(meta ? { meta } : {}),
+    });
+};
+
+const SPELLCASTING_MEASUREMENT_TAG = 'spellcasting-block';
+const SPELLCASTING_REGION_KIND = ':spell-list';
+const DEBUG_COMPONENT_IDS = ['component-12'];
+
+const isSpellcastingMeasurementKey = (key: string): boolean =>
+    key.includes(SPELLCASTING_MEASUREMENT_TAG) ||
+    key.includes(SPELLCASTING_REGION_KIND) ||
+    DEBUG_COMPONENT_IDS.some((id) => key.includes(id));
+
 type MeasurementDispatcher = (updates: MeasurementRecord[]) => void;
 
 /**
@@ -87,6 +273,22 @@ export const useIdleMeasurementDispatcher = (
             return;
         }
 
+        if (shouldLogMeasurements) {
+            const deletedKeys = new Set(deletions.map(({ key }) => key));
+            const targeted = combined.filter((entry) => isSpellcastingMeasurementKey(entry.key));
+            if (targeted.length > 0) {
+                console.log('🧮 [Measurement][Spellcasting] dispatcher summary', {
+                    pendingCount: combined.length,
+                    entries: targeted.map((entry) => ({
+                        key: entry.key,
+                        height: entry.height,
+                        deleted: deletedKeys.has(entry.key),
+                        measuredAt: entry.measuredAt,
+                    })),
+                });
+            }
+        }
+
         dispatch(combined);
     }, [dispatch]);
 
@@ -94,6 +296,11 @@ export const useIdleMeasurementDispatcher = (
         (key: string, height: number | null) => {
             const measuredAt = Date.now();
 
+            logSpellcastingEvent(key, 'enqueue', '📥', 'enqueue', {
+                height,
+                measuredAt,
+                isDeletion: height === null || height <= 0,
+            });
             // null height signals deletion
             if (height === null || height <= 0) {
                 pending.current.set(key, { key, height: 0, measuredAt, deleted: true });
@@ -178,6 +385,11 @@ class MeasurementObserver {
      */
     lock(): void {
         this.isLocked = true;
+        if (process.env.NODE_ENV !== 'production' && isSpellcastingMeasurementKey(this.key)) {
+            console.log('🔒 [Measurement][Spellcasting] lock', {
+                key: this.key,
+            });
+        }
     }
 
     /**
@@ -191,6 +403,12 @@ class MeasurementObserver {
         if (this.pendingMeasurement !== null) {
             this.onMeasure(this.key, this.pendingMeasurement);
             this.pendingMeasurement = null;
+        }
+        if (process.env.NODE_ENV !== 'production' && isSpellcastingMeasurementKey(this.key)) {
+            console.log('🔓 [Measurement][Spellcasting] unlock', {
+                key: this.key,
+                hasPendingMeasurement: this.pendingMeasurement != null,
+            });
         }
     }
 
@@ -244,6 +462,20 @@ class MeasurementObserver {
             // Dispatch immediately
             this.onMeasure(this.key, height);
         }
+        const computed = typeof window !== 'undefined' ? window.getComputedStyle(this.node) : null;
+        logSpellcastingEvent(this.key, 'measure', '📏', 'measure', {
+            height,
+            offsetHeight: this.node.offsetHeight,
+            scrollHeight: this.node.scrollHeight,
+            clientHeight: this.node.clientHeight,
+            className: this.node.className,
+            isLocked: this.isLocked,
+            pendingMeasurement: this.pendingMeasurement,
+            display: computed?.display,
+            position: computed?.position,
+            flexGrow: computed?.flexGrow,
+            flexShrink: computed?.flexShrink,
+        });
     };
 
     private attachResizeObserver(): void {
@@ -252,6 +484,7 @@ class MeasurementObserver {
         }
 
         this.observer = new window.ResizeObserver(() => {
+            logSpellcastingEvent(this.key, 'resize', '🔁', 'resize observed');
             this.scheduleRAF();
         });
         this.observer.observe(this.node);
@@ -280,6 +513,12 @@ class MeasurementObserver {
                 img.removeEventListener('load', handleImageEvent);
                 img.removeEventListener('error', handleImageEvent);
             });
+
+            if (process.env.NODE_ENV !== 'production' && isSpellcastingMeasurementKey(this.key)) {
+                console.log('🧹 [Measurement][Spellcasting] image listeners cleaned', {
+                    key: this.key,
+                });
+            }
         };
     }
 
@@ -299,6 +538,7 @@ class MeasurementObserver {
             this.rafHandle = null;
             this.measure();
         });
+        logSpellcastingEvent(this.key, 'raf', '🎯', 'raf scheduled');
     }
 }
 
@@ -344,6 +584,7 @@ export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, ren
                 // Only signal deletion if there was actually an observer to remove
                 // This prevents false deletions when entry objects are recreated with same keys
                 if (existingObserver) {
+                    logSpellcastingEvent(key, 'detach', '👋', 'detach');
                     existingObserver.detach();
                     observers.current.delete(key);
                     // Phase 1: Unregister from coordinator
@@ -359,6 +600,15 @@ export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, ren
                 return;
             }
 
+            if (isSpellcastingMeasurementKey(key) || DEBUG_COMPONENT_IDS.includes(entry.instance.id)) {
+                logSpellcastingEvent(key, 'attach', '➕', 'attach', {
+                    entryId: entry.instance.id,
+                    slotIndex: entry.slotIndex,
+                    orderIndex: entry.orderIndex,
+                    regionContentKind: entry.regionContent?.kind,
+                }, { force: DEBUG_COMPONENT_IDS.includes(entry.instance.id) && !isSpellcastingMeasurementKey(key) });
+            }
+
             const observer = new MeasurementObserver(key, node, dispatcher);
             observer.attach();
             observers.current.set(key, observer);
@@ -371,6 +621,7 @@ export const MeasurementLayer: React.FC<MeasurementLayerProps> = ({ entries, ren
 
     useEffect(() => () => {
         observers.current.forEach((observer, key) => {
+            logSpellcastingEvent(key, 'detach', '🧨', 'cleanup', {}, { force: true });
             observer.detach();
             // Phase 1: Unregister from coordinator
             coordinator?.unregisterObserver(key);

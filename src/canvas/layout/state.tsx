@@ -8,6 +8,7 @@ import type {
     TemplateConfig,
 } from '../../types/statblockCanvas.types';
 import type {
+    CanvasLayoutEntry,
     CanvasLayoutState,
     LayoutPlan,
     MeasurementEntry,
@@ -32,6 +33,102 @@ const logLayoutDirty = (reason: string, context: Record<string, unknown> = {}) =
     }
     // eslint-disable-next-line no-console
     console.debug('[layout-dirty]', reason, context);
+};
+
+type DebugPlanEntrySummary = {
+    instanceId: string;
+    componentType: string;
+    slotIndex: number;
+    orderIndex: number;
+    sourceRegionKey: string;
+    region: {
+        page: number;
+        column: 1 | 2;
+    };
+    homeRegion: {
+        page: number;
+        column: 1 | 2;
+    };
+    measurementKey: string;
+    estimatedHeight: number;
+    span?: {
+        top: number;
+        bottom: number;
+        height: number;
+    };
+    overflow: boolean;
+    overflowRouted: boolean;
+    listContinuation?: {
+        isContinuation: boolean;
+        startIndex: number;
+        totalCount: number;
+    };
+};
+
+type DebugPlanColumnSummary = {
+    columnNumber: 1 | 2;
+    entryCount: number;
+    entries: DebugPlanEntrySummary[];
+};
+
+type DebugPlanSummary = {
+    pageCount: number;
+    overflowWarningCount: number;
+    overflowWarnings: LayoutPlan['overflowWarnings'];
+    pages: Array<{
+        pageNumber: number;
+        columns: DebugPlanColumnSummary[];
+    }>;
+};
+
+const round = (value: number): number => Number(value.toFixed(2));
+
+const summarizeEntryForDebug = (entry: CanvasLayoutEntry): DebugPlanEntrySummary => ({
+    instanceId: entry.instance.id,
+    componentType: entry.instance.type,
+    slotIndex: entry.slotIndex,
+    orderIndex: entry.orderIndex,
+    sourceRegionKey: entry.sourceRegionKey,
+    region: entry.region,
+    homeRegion: entry.homeRegion,
+    measurementKey: entry.measurementKey,
+    estimatedHeight: round(entry.estimatedHeight),
+    span: entry.span
+        ? {
+            top: round(entry.span.top),
+            bottom: round(entry.span.bottom),
+            height: round(entry.span.height),
+        }
+        : undefined,
+    overflow: Boolean(entry.overflow),
+    overflowRouted: Boolean(entry.overflowRouted),
+    listContinuation: entry.listContinuation
+        ? {
+            isContinuation: entry.listContinuation.isContinuation,
+            startIndex: entry.listContinuation.startIndex,
+            totalCount: entry.listContinuation.totalCount,
+        }
+        : undefined,
+});
+
+const summarizePlanForDebug = (plan: LayoutPlan | null): DebugPlanSummary | null => {
+    if (!plan) {
+        return null;
+    }
+
+    return {
+        pageCount: plan.pages.length,
+        overflowWarningCount: plan.overflowWarnings.length,
+        overflowWarnings: plan.overflowWarnings,
+        pages: plan.pages.map((page) => ({
+            pageNumber: page.pageNumber,
+            columns: page.columns.map((column) => ({
+                columnNumber: column.columnNumber,
+                entryCount: column.entries.length,
+                entries: column.entries.map(summarizeEntryForDebug),
+            })),
+        })),
+    };
 };
 
 type CanvasLayoutAction =
@@ -249,18 +346,40 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
                 isLayoutDirty: true,
             });
         case 'SET_REGION_HEIGHT': {
-            const heightDiff = Math.abs(state.regionHeightPx - action.payload.regionHeightPx);
+            const incomingHeight = action.payload.regionHeightPx;
+            const nextHeight =
+                state.regionHeightPx <= 0 ? incomingHeight : Math.min(state.regionHeightPx, incomingHeight);
+            const heightDiff = Math.abs(state.regionHeightPx - nextHeight);
+
             if (heightDiff < 1) {
+                if (process.env.NODE_ENV !== 'production' && incomingHeight < state.regionHeightPx) {
+                    // eslint-disable-next-line no-console
+                    console.log('[CanvasLayout] Region height ignored (diff too small)', {
+                        previousHeight: state.regionHeightPx,
+                        incomingHeight,
+                    });
+                }
                 return state;
             }
+
             logLayoutDirty('SET_REGION_HEIGHT', {
                 oldHeight: state.regionHeightPx,
-                newHeight: action.payload.regionHeightPx,
-                diff: heightDiff
+                newHeight: nextHeight,
+                incomingHeight,
+                diff: heightDiff,
             });
+            if (process.env.NODE_ENV !== 'production') {
+                // eslint-disable-next-line no-console
+                console.log('[CanvasLayout] Region height updated', {
+                    previousHeight: state.regionHeightPx,
+                    incomingHeight,
+                    nextHeight,
+                    diff: Number(heightDiff.toFixed(2)),
+                });
+            }
             return {
                 ...state,
-                regionHeightPx: action.payload.regionHeightPx,
+                regionHeightPx: nextHeight,
                 isLayoutDirty: true,
             };
         }
@@ -376,6 +495,31 @@ export const layoutReducer = (state: CanvasLayoutState, action: CanvasLayoutActi
             const assignedRegions = new Map<string, SlotAssignment>();
 
             if (committedPlan) {
+                if (process.env.NODE_ENV !== 'production') {
+                    const previousPlan = state.layoutPlan;
+                    const previousPageCount = previousPlan?.pages.length ?? 0;
+                    const nextPageCount = committedPlan.pages.length;
+                    const pendingPages = state.pendingLayout?.pages.length ?? null;
+                    // eslint-disable-next-line no-console
+                    console.log('[CanvasLayout] Committed plan', {
+                        previousPageCount,
+                        nextPageCount,
+                        pendingPages,
+                    });
+
+                    const hasPendingPlan = Boolean(state.pendingLayout);
+                    const didPageCountDecrease = previousPageCount > nextPageCount;
+
+                    if (hasPendingPlan && previousPlan && didPageCountDecrease) {
+                        const previousSummary = summarizePlanForDebug(previousPlan);
+                        const nextSummary = summarizePlanForDebug(committedPlan);
+                        // eslint-disable-next-line no-console
+                        console.log('[CanvasLayout] Plan diff detail', {
+                            previous: previousSummary,
+                            next: nextSummary,
+                        });
+                    }
+                }
                 committedPlan.pages.forEach((page) => {
                     page.columns.forEach((column) => {
                         column.entries.forEach((entry) => {

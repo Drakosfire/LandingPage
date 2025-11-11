@@ -16,7 +16,7 @@
     "@types/react-dom": "^18.3.0",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.7.7",
-    "dungeonmind-canvas": "^0.1.0",
+    "dungeonmind-canvas": "file:../Canvas",
     "html2pdf.js": "^0.12.1",
     "js-cookie": "^3.0.5",
     "react": "^18.3.1",
@@ -38,7 +38,8 @@
     "build:dev": "export NODE_ENV=development && export REACT_APP_DUNGEONMIND_API_URL=https://dev.dungeonmind.net && npx react-scripts build",
     "benchmark:images": "tsx scripts/benchmarkImageGeneration.ts",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "canvas-debug": "node scripts/canvasDebug.js"
   },
   "eslintConfig": {
     "extends": [

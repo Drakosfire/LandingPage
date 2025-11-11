@@ -39,8 +39,134 @@ interface PaginateArgs {
     measurements: Map<MeasurementKey, MeasurementRecord>;
 }
 
+// Diagnostic: Log when module loads (before any other code)
+if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.log('🔧 [paginate.ts] Module loaded', {
+        timestamp: new Date().toISOString(),
+        hasProcess: typeof process !== 'undefined',
+        NODE_ENV: process.env.NODE_ENV,
+    });
+}
+
 const MAX_REGION_ITERATIONS = 400;
 const MAX_PAGES = 10; // Circuit breaker to prevent infinite pagination loops
+
+// No default debug components - use CLI/env vars to specify: npm run canvas-debug -- component-1 component-2
+const DEFAULT_DEBUG_COMPONENT_IDS: string[] = [];
+
+const parseComponentIdList = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => (typeof item === 'string' ? item.trim() : ''))
+            .filter((item): item is string => item.length > 0);
+    }
+
+    if (typeof value === 'string') {
+        return value
+            .split(/[, ]+/)
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+    }
+
+    if (value && typeof value === 'object') {
+        return parseComponentIdList((value as { ids?: unknown }).ids);
+    }
+
+    return [];
+};
+
+const readComponentIdsFromEnv = (): string[] => {
+    if (typeof process === 'undefined' || typeof process.env === 'undefined') {
+        return [];
+    }
+    // Check REACT_APP_ prefixed var first (React Scripts exposes these)
+    const reactAppValue = process.env.REACT_APP_CANVAS_DEBUG_COMPONENTS;
+    if (reactAppValue) {
+        return parseComponentIdList(reactAppValue);
+    }
+    // Fallback to non-prefixed var (for Node.js/server-side)
+    const envValue = process.env.CANVAS_DEBUG_COMPONENTS;
+    return parseComponentIdList(envValue);
+};
+
+const readComponentIdsFromGlobal = (): string[] => {
+    if (typeof globalThis === 'undefined') {
+        return [];
+    }
+    const globalValue = (globalThis as { __CANVAS_DEBUG_COMPONENTS?: unknown }).__CANVAS_DEBUG_COMPONENTS;
+    return parseComponentIdList(globalValue);
+};
+
+const readComponentIdsFromStorage = (): string[] => {
+    if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
+        return [];
+    }
+    try {
+        const stored = window.localStorage.getItem('canvas-debug:components');
+        return parseComponentIdList(stored);
+    } catch {
+        return [];
+    }
+};
+
+const buildDebugComponentSet = (): Set<string> => {
+    const ids = new Set<string>();
+    DEFAULT_DEBUG_COMPONENT_IDS.forEach((id) => ids.add(id));
+    readComponentIdsFromEnv().forEach((id) => ids.add(id));
+    readComponentIdsFromGlobal().forEach((id) => ids.add(id));
+    readComponentIdsFromStorage().forEach((id) => ids.add(id));
+    return ids;
+};
+
+const DEBUG_COMPONENT_IDS = buildDebugComponentSet();
+// Only debug components explicitly specified via CLI/env vars
+const shouldDebugComponent = (componentId: string): boolean =>
+    DEBUG_COMPONENT_IDS.has(componentId);
+
+// Export for use in other modules (e.g., StatblockPage.tsx)
+export const isComponentDebugEnabled = (componentId: string): boolean =>
+    shouldDebugComponent(componentId);
+
+// Log debug configuration on module load (once per page load)
+if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
+    const enabledFlags: string[] = [];
+    
+    // Check REACT_APP_ prefixed vars (React Scripts exposes these)
+    if (process.env.REACT_APP_CANVAS_DEBUG_PAGINATE === '1') enabledFlags.push('paginate');
+    if (process.env.REACT_APP_CANVAS_DEBUG_PLANNER === '1') enabledFlags.push('planner');
+    if (process.env.REACT_APP_CANVAS_DEBUG_PLAN_DIFF === '1') enabledFlags.push('plan-diff');
+    if (process.env.REACT_APP_CANVAS_DEBUG_MEASUREMENT === '1') enabledFlags.push('measurement');
+    if (process.env.REACT_APP_CANVAS_DEBUG_LAYOUT === '1') enabledFlags.push('layout');
+    if (process.env.REACT_APP_CANVAS_DEBUG_MEASURE_FIRST === '1') enabledFlags.push('measure-first');
+
+    // Always log debug configuration in development (removed conditional to ensure visibility)
+    // eslint-disable-next-line no-console
+    console.log('🎯 [Canvas Debug] Active configuration:', {
+        componentIds: Array.from(DEBUG_COMPONENT_IDS),
+        enabledFlags: enabledFlags.length > 0 ? enabledFlags : ['none'],
+        source: {
+            env: readComponentIdsFromEnv().length > 0 ? 'env' : null,
+            global: readComponentIdsFromGlobal().length > 0 ? 'global' : null,
+            storage: readComponentIdsFromStorage().length > 0 ? 'storage' : null,
+            default: DEFAULT_DEBUG_COMPONENT_IDS.length > 0 ? 'default' : null,
+        },
+        envVars: {
+            REACT_APP_CANVAS_DEBUG_COMPONENTS: process.env.REACT_APP_CANVAS_DEBUG_COMPONENTS || 'not set',
+            REACT_APP_CANVAS_DEBUG_PAGINATE: process.env.REACT_APP_CANVAS_DEBUG_PAGINATE || 'not set',
+            REACT_APP_CANVAS_DEBUG_PLANNER: process.env.REACT_APP_CANVAS_DEBUG_PLANNER || 'not set',
+            REACT_APP_CANVAS_DEBUG_PLAN_DIFF: process.env.REACT_APP_CANVAS_DEBUG_PLAN_DIFF || 'not set',
+            REACT_APP_CANVAS_DEBUG_MEASUREMENT: process.env.REACT_APP_CANVAS_DEBUG_MEASUREMENT || 'not set',
+            REACT_APP_CANVAS_DEBUG_LAYOUT: process.env.REACT_APP_CANVAS_DEBUG_LAYOUT || 'not set',
+            REACT_APP_CANVAS_DEBUG_MEASURE_FIRST: process.env.REACT_APP_CANVAS_DEBUG_MEASURE_FIRST || 'not set',
+        },
+        diagnostic: {
+            DEBUG_COMPONENT_IDS_size: DEBUG_COMPONENT_IDS.size,
+            enabledFlags_length: enabledFlags.length,
+            NODE_ENV: process.env.NODE_ENV,
+        },
+    });
+}
 
 let debugRunId = 0;
 
@@ -547,17 +673,21 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
 
                 overflowWarnings.push({ componentId: entry.instance.id, page: page.pageNumber, column: column.columnNumber });
 
-                logPaginationDecision(runId, 'entry-overflow', {
-                    componentId: entry.instance.id,
-                    regionKey: key,
-                    page: page.pageNumber,
-                    column: column.columnNumber,
-                    span,
-                    estimatedHeight,
-                    regionHeightPx,
-                    hasRegionContent: !!entry.regionContent,
-                    itemCount: entry.regionContent?.items.length ?? 0,
-                });
+                if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                    console.log('📛 [paginate][Debug] component overflow', {
+                        runId,
+                        componentId: entry.instance.id,
+                        regionKey: key,
+                        page: page.pageNumber,
+                        column: column.columnNumber,
+                        estimatedHeight,
+                        cursorOffset: cursor.currentOffset,
+                        regionHeightPx,
+                        span,
+                        hasRegionContent: !!entry.regionContent,
+                        itemCount: entry.regionContent?.items.length ?? 0,
+                    });
+                }
 
                 // Measurement-based split evaluation for list components
                 // For list components with multiple items, use concrete measurements to determine
@@ -565,6 +695,16 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 const startsInBottomFifth = span.top > (regionHeightPx * 1);
                 let shouldAvoidSplit = startsInBottomFifth; // Default: simple threshold for blocks
                 let splitDecision: SplitDecision | null = null;
+
+                if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                    console.log('🪓 [paginate][Debug] evaluating split', {
+                        runId,
+                        componentId: entry.instance.id,
+                        items: entry.regionContent?.items?.length ?? 0,
+                        cursorOffset: cursor.currentOffset,
+                        regionHeightPx,
+                    });
+                }
 
                 // For list components with multiple items, use measurement-based evaluation
                 if (entry.regionContent && entry.regionContent.items.length > 1) {
@@ -814,18 +954,31 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     remainingItems = splitDecision.remainingItems as typeof items;
                     placedHeight = splitDecision.placedHeight;
 
-                    logPaginationDecision(runId, 'split-using-measurements', {
-                        componentId: entry.instance.id,
-                        regionKey: key,
-                        placedCount: placedItems.length,
-                        remainingCount: remainingItems.length,
-                        placedHeight,
-                        reason: splitDecision.reason,
-                    });
+                    if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                        console.log('🧮 [paginate][Debug] split decision', {
+                            runId,
+                            componentId: entry.instance.id,
+                            placedCount: placedItems.length,
+                            remainingCount: remainingItems.length,
+                            placedHeight,
+                            reason: splitDecision.reason,
+                        });
+                    }
                 } else {
                     // Fallback: estimate-based splitting (legacy path)
                     let cumulativeHeight = 0;
                     const availableHeight = Math.max(regionHeightPx - cursor.currentOffset, 0);
+
+                    if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                        console.log('📐 [paginate][Debug] estimate split', {
+                            runId,
+                            componentId: entry.instance.id,
+                            placedCount: placedItems.length,
+                            remainingCount: remainingItems.length,
+                            placedHeight,
+                            availableHeight,
+                        });
+                    }
 
                     items.forEach((item, itemIndex) => {
                         const itemHeight = estimateActionHeight(item) + (itemIndex > 0 ? LIST_ITEM_SPACING_PX : 0);
@@ -850,31 +1003,51 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 }
 
                 if (placedItems.length === 0) {
-                    const committedEntry: CanvasLayoutEntry = {
-                        ...entry,
-                        region: {
-                            page: page.pageNumber,
-                            column: column.columnNumber,
-                            index: columnEntries.length,
-                        },
-                        span,
-                        overflow: true,
-                        listContinuation: entry.regionContent
-                            ? {
-                                isContinuation: entry.regionContent.isContinuation,
-                                startIndex: entry.regionContent.startIndex,
-                                totalCount: entry.regionContent.totalCount,
+                    const rerouteKey = (() => {
+                        const candidate = findNextRegion(pages, key);
+                        if (!candidate) {
+                            const newPageNumber = pages.length + 1;
+                            if (!ensurePage(pages, newPageNumber, columnCount, pendingQueues)) {
+                                return null;
                             }
-                            : undefined,
-                    };
+                            return findNextRegion(pages, key)?.key ?? null;
+                        }
+                        return candidate.key;
+                    })();
 
-                    columnEntries.push(committedEntry);
-                    // Mark region as full since even a single list item won't fit
-                    cursor.currentOffset = regionHeightPx + COMPONENT_VERTICAL_SPACING_PX;
-                    logPaginationDecision(runId, 'region-full-no-space-for-list', {
-                        componentId: entry.instance.id,
-                        regionKey: key,
-                    });
+                    if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                        console.log('🚚 [paginate][Debug] rerouting empty split', {
+                            runId,
+                            componentId: entry.instance.id,
+                            regionKey: key,
+                            cursorOffset: cursor.currentOffset,
+                            regionHeightPx,
+                            rerouteKey,
+                        });
+                    }
+
+                    if (rerouteKey) {
+                        const pendingQueue = getPendingQueue(rerouteKey);
+                        pendingQueue.push({
+                            ...entry,
+                            overflow: true,
+                            overflowRouted: true,
+                            sourceRegionKey: rerouteKey,
+                        });
+                        routedInRegion.add(`${entry.instance.id}:${rerouteKey}`);
+                    } else {
+                        columnEntries.push({
+                            ...entry,
+                            region: {
+                                page: page.pageNumber,
+                                column: column.columnNumber,
+                                index: columnEntries.length,
+                            },
+                            span,
+                            overflow: true,
+                        });
+                        cursor.currentOffset = regionHeightPx + COMPONENT_VERTICAL_SPACING_PX;
+                    }
                     continue;
                 }
 
@@ -886,6 +1059,10 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     entry.regionContent.isContinuation,
                     entry.regionContent.metadata
                 );
+                const hasContinuation = remainingItems.length > 0;
+                const hadOverflow = entry.overflow ?? false;
+                const willClearOverflow = hadOverflow && !hasContinuation;
+
                 const placedEntry: CanvasLayoutEntry = {
                     ...entry,
                     regionContent: placedContent,
@@ -897,8 +1074,8 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                     },
                     estimatedHeight: placedHeight,
                     span: computeSpan(cursor, placedHeight),
-                    overflow: entry.overflow ?? false,
-                    overflowRouted: false,
+                    overflow: hasContinuation ? true : false,
+                    overflowRouted: hasContinuation ? entry.overflowRouted ?? false : false,
                     listContinuation: {
                         isContinuation: placedContent.isContinuation,
                         startIndex: placedContent.startIndex,
@@ -910,6 +1087,21 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 columnEntries.push(placedEntry);
                 advanceCursor(cursor, placedEntry.span!);
 
+                if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                    console.log('📦 [paginate][Debug] placed segment', {
+                        runId,
+                        componentId: entry.instance.id,
+                        regionKey: key,
+                        measurementKey: placedEntry.measurementKey,
+                        span: placedEntry.span,
+                        cursorOffset: cursor.currentOffset,
+                        remainingItems: remainingItems.length,
+                        overflow: placedEntry.overflow ?? false,
+                        overflowRouted: placedEntry.overflowRouted ?? false,
+                        clearedOverflow: willClearOverflow,
+                    });
+                }
+
                 if (remainingItems.length > 0) {
                     if (!nextRegion) {
                         const newPageNumber = pages.length + 1;
@@ -919,6 +1111,14 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                                 ...columnEntries[columnEntries.length - 1],
                                 overflow: true,
                             };
+                            if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                                console.log('🚨 [paginate][Debug] forced overflow on placed segment (no next region)', {
+                                    runId,
+                                    componentId: entry.instance.id,
+                                    regionKey: key,
+                                    columnLength: columnEntries.length,
+                                });
+                            }
                             continue;
                         }
                     }
@@ -930,6 +1130,14 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                             ...columnEntries[columnEntries.length - 1],
                             overflow: true,
                         };
+                        if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                            console.log('🚨 [paginate][Debug] forced overflow on placed segment (missing updated region)', {
+                                runId,
+                                componentId: entry.instance.id,
+                                regionKey: key,
+                                columnLength: columnEntries.length,
+                            });
+                        }
                         continue;
                     }
 
@@ -939,6 +1147,14 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                             ...columnEntries[columnEntries.length - 1],
                             overflow: true,
                         };
+                        if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                            console.log('🚨 [paginate][Debug] forced overflow on placed segment (ensurePage failed)', {
+                                runId,
+                                componentId: entry.instance.id,
+                                regionKey: key,
+                                columnLength: columnEntries.length,
+                            });
+                        }
                         continue;
                     }
 
@@ -973,10 +1189,27 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
 
                     const pendingQueue = getPendingQueue(updatedNextRegion.key);
                     pendingQueue.push(followUpEntry);
+                    if (process.env.NODE_ENV !== 'production' && shouldDebugComponent(entry.instance.id)) {
+                        console.log('📬 [paginate][Debug] queued continuation segment', {
+                            runId,
+                            componentId: entry.instance.id,
+                            fromRegion: key,
+                            toRegion: updatedNextRegion.key,
+                            remainingCount: remainingItems.length,
+                            estimatedHeight: followUpEntry.estimatedHeight,
+                            overflow: followUpEntry.overflow ?? false,
+                            overflowRouted: followUpEntry.overflowRouted ?? false,
+                        });
+                    }
                 }
             }
 
             column.entries = columnEntries;
+            const lastSpan = columnEntries.length > 0 ? columnEntries[columnEntries.length - 1].span ?? null : null;
+            const usedHeight = lastSpan ? lastSpan.bottom : 0;
+            const availableHeight = Math.max(regionHeightPx - usedHeight, 0);
+            column.usedHeightPx = Number(usedHeight.toFixed(2));
+            column.availableHeightPx = Number(availableHeight.toFixed(2));
             processedBuckets.set(key, columnEntries);
         }
     }
@@ -999,6 +1232,37 @@ export const paginate = ({ buckets, columnCount, regionHeightPx, requestedPageCo
                 percentMeasured: total > 0 ? ((paginationStats.heightSources.measured / total) * 100).toFixed(1) + '%' : 'N/A',
             },
         });
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+        const debugPlacements: Array<Record<string, unknown>> = [];
+        pages.forEach((page) => {
+            page.columns.forEach((column) => {
+                column.entries.forEach((entry) => {
+                    if (shouldDebugComponent(entry.instance.id)) {
+                        debugPlacements.push({
+                            componentId: entry.instance.id,
+                            measurementKey: entry.measurementKey,
+                            page: page.pageNumber,
+                            column: column.columnNumber,
+                            index: entry.region?.index ?? null,
+                            overflow: entry.overflow ?? false,
+                            overflowRouted: entry.overflowRouted ?? false,
+                            continuation: entry.listContinuation?.isContinuation ?? false,
+                            startIndex: entry.listContinuation?.startIndex,
+                            totalCount: entry.listContinuation?.totalCount,
+                        });
+                    }
+                });
+            });
+        });
+
+        if (debugPlacements.length > 0) {
+            console.log('📄 [paginate][Debug] placement summary', {
+                runId,
+                entries: debugPlacements,
+            });
+        }
     }
 
     // Reset stats for next run
