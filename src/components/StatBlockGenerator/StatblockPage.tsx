@@ -93,6 +93,9 @@ const isSpellcastingVerboseLoggingEnabled = (): boolean =>
 
 const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, componentRegistry, isEditMode, onUpdateData, measurementCoordinator }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    // FIXED: Track last sent height to prevent redundant setRegionHeight calls
+    // This ref persists across effect re-runs, preventing excessive state updates
+    const lastSentHeightRef = useRef<number>(0);
     const [scale, setScale] = useState(1);
     const [fontsReady, setFontsReady] = useState(false);
     const [measuredColumnWidth, setMeasuredColumnWidth] = useState<number | null>(null);
@@ -263,8 +266,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             }
         }
 
-        let lastMeasuredHeight = 0;
-
         const updateRegionHeight = () => {
             // Measure the COLUMN, not the frame
             const column = visibleFrame.querySelector('.canvas-column');
@@ -273,15 +274,106 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             }
 
             const columnRect = column.getBoundingClientRect();
+            // Cast to HTMLElement to access scrollHeight, clientHeight, offsetHeight
+            const columnElement = column as HTMLElement;
+            const columnScrollHeight = columnElement.scrollHeight;
+            const columnClientHeight = columnElement.clientHeight;
+            const columnOffsetHeight = columnElement.offsetHeight;
 
-            const usableHeight = columnRect.height / scale;
+            // FIXED: Measure the FRAME container, not the column
+            // The column grows with content, but the frame defines available space
+            // If frame is constrained by viewport/container, measure that constraint
+            const frameElement = visibleFrame as HTMLElement;
+            const frameRect = frameElement.getBoundingClientRect();
+            const frameScrollHeight = frameElement.scrollHeight;
+            const frameClientHeight = frameElement.clientHeight;
+            const frameOffsetHeight = frameElement.offsetHeight;
+            
+            // Also check parent container for constraints
+            const parentContainer = visibleFrame.parentElement;
+            const parentRect = parentContainer?.getBoundingClientRect();
+            const parentScrollHeight = parentContainer ? (parentContainer as HTMLElement).scrollHeight : 0;
+            const parentClientHeight = parentContainer ? (parentContainer as HTMLElement).clientHeight : 0;
+
+            // FIXED: Prioritize parent container measurements over column measurements
+            // The parent container defines the available space, column just contains content
+            // Priority: parentScrollHeight > parentClientHeight > frameScrollHeight > frameClientHeight > columnScrollHeight
+            let fullColumnHeight: number;
+            let measurementSource: string;
+            
+            if (parentScrollHeight > 0) {
+                fullColumnHeight = parentScrollHeight;
+                measurementSource = 'parentScrollHeight';
+            } else if (parentClientHeight > 0) {
+                fullColumnHeight = parentClientHeight;
+                measurementSource = 'parentClientHeight';
+            } else if (frameScrollHeight > 0) {
+                fullColumnHeight = frameScrollHeight;
+                measurementSource = 'frameScrollHeight';
+            } else if (frameClientHeight > 0) {
+                fullColumnHeight = frameClientHeight;
+                measurementSource = 'frameClientHeight';
+            } else if (columnScrollHeight > 0) {
+                fullColumnHeight = columnScrollHeight;
+                measurementSource = 'columnScrollHeight';
+            } else {
+                // Fallback to largest available measurement
+                const measurements = [
+                    frameScrollHeight,
+                    frameClientHeight,
+                    frameOffsetHeight,
+                    frameRect.height,
+                    columnScrollHeight,
+                    columnOffsetHeight,
+                    columnRect.height,
+                    parentScrollHeight,
+                    parentClientHeight,
+                    parentRect?.height || 0,
+                ].filter(h => h > 0);
+                
+                fullColumnHeight = Math.max(...measurements);
+                measurementSource = 'Math.max(fallback)';
+            }
+            
+            const usableHeight = fullColumnHeight / scale;
             const heightCeiling = Math.max(baseContentHeightPx, 0);
             const cappedHeight = Math.min(usableHeight, heightCeiling);
 
-            if (
-                isSpellcastingDebugEnabled() &&
-                (Math.abs(usableHeight - cappedHeight) > 0.5 || Math.abs(cappedHeight - lastMeasuredHeight) > 1)
-            ) {
+            // DEBUG: Log detailed measurement info to diagnose height discrepancy
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('📏 [StatblockPage] Column height measurement details', {
+                    scale,
+                    columnMeasurements: {
+                        getBoundingClientRect: columnRect.height,
+                        scrollHeight: columnScrollHeight,
+                        clientHeight: columnClientHeight,
+                        offsetHeight: columnOffsetHeight,
+                    },
+                    frameMeasurements: {
+                        getBoundingClientRect: frameRect.height,
+                        scrollHeight: frameScrollHeight,
+                        clientHeight: frameClientHeight,
+                        offsetHeight: frameOffsetHeight,
+                    },
+                    parentMeasurements: parentContainer ? {
+                        getBoundingClientRect: parentRect?.height,
+                        scrollHeight: parentScrollHeight,
+                        clientHeight: parentClientHeight,
+                    } : null,
+                    selected: {
+                        fullColumnHeight,
+                        source: measurementSource,
+                    },
+                    calculated: {
+                        usableHeight,
+                        heightCeiling,
+                        cappedHeight,
+                    },
+                    note: 'usableHeight = fullColumnHeight / scale (pre-transform height for pagination)',
+                });
+            }
+
+            if (isSpellcastingDebugEnabled() && Math.abs(usableHeight - cappedHeight) > 0.5) {
                 console.log('📏 [Spellcasting Debug] Region height measurement', {
                     usableHeight,
                     heightCeiling,
@@ -295,9 +387,35 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                 });
             }
 
-            if (cappedHeight > 0 && Math.abs(cappedHeight - lastMeasuredHeight) > 1) {
-                lastMeasuredHeight = cappedHeight;
+            // FIXED: Only call setRegionHeight if value actually changed (>1px difference)
+            // This prevents excessive calls while ensuring measurement changes propagate
+            // The reducer also has a heightDiff < 1 guard as a safety net
+            const heightDiff = Math.abs(cappedHeight - lastSentHeightRef.current);
+            
+            if (cappedHeight > 0 && heightDiff > 1) {
+                const previousSentHeight = lastSentHeightRef.current;
+                lastSentHeightRef.current = cappedHeight;
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log('📏 [StatblockPage] Setting region height', {
+                        cappedHeight,
+                        usableHeight,
+                        fullColumnHeight,
+                        measurementSource,
+                        scale,
+                        previousSentHeight,
+                        heightDiff: Number(heightDiff.toFixed(2)),
+                        timestamp: Date.now(),
+                    });
+                }
                 layout.setRegionHeight(cappedHeight);
+            } else if (process.env.NODE_ENV !== 'production' && cappedHeight > 0 && heightDiff <= 1) {
+                // Log when we skip calling setRegionHeight due to small change
+                console.log('📏 [StatblockPage] Skipping region height update (change too small)', {
+                    cappedHeight,
+                    lastSentHeight: lastSentHeightRef.current,
+                    heightDiff: Number(heightDiff.toFixed(2)),
+                    timestamp: Date.now(),
+                });
             }
         };
 
@@ -596,6 +714,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                                     }
                                     onMeasurements={handleMeasurements}
                                     coordinator={measurementCoordinator}
+                                    measuredColumnWidth={measuredColumnWidth}
                                 />
                             </div>
                         </div>

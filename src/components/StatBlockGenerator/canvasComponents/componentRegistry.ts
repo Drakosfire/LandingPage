@@ -31,7 +31,7 @@ import SpellcastingBlock from './SpellcastingBlock';
  * - component: The React component to render
  * - defaults: Default configuration for new instances
  */
-export const componentRegistry: Record<string, ComponentRegistryEntry> = {
+export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> = {
     'identity-header': {
         type: 'identity-header',
         displayName: 'Identity Header',
@@ -151,27 +151,19 @@ export const componentRegistry: Record<string, ComponentRegistryEntry> = {
     },
 };
 
-/**
- * Helper function to get a component registry entry by type.
- * Returns undefined if the component type is not registered.
- */
-export const getComponentEntry = (type: string): ComponentRegistryEntry | undefined => {
-    return componentRegistry[type];
+// Helper functions that work with this registry
+export const getComponentEntry = (type: string) => {
+    return CANVAS_COMPONENT_REGISTRY[type];
 };
 
-/**
- * Helper function to get all available component types.
- */
 export const getAllComponentTypes = (): string[] => {
-    return Object.keys(componentRegistry);
+    return Object.keys(CANVAS_COMPONENT_REGISTRY);
 };
 
-/**
- * Helper function to check if a component type is registered.
- */
 export const isComponentRegistered = (type: string): boolean => {
-    return type in componentRegistry;
+    return type in CANVAS_COMPONENT_REGISTRY;
 };
 
-export default componentRegistry;
+// Export the registry as default for backward compatibility
+export default CANVAS_COMPONENT_REGISTRY;
 

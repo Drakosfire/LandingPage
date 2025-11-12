@@ -4,8 +4,9 @@ import { Card, Stack, Text } from '@mantine/core';
 import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import StatblockPage from '../StatblockPage';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../../fixtures/templates';
-import { CANVAS_COMPONENT_REGISTRY } from '../../../canvas/registry';
-import { buildPageDocument, extractCustomData } from '../../../canvas/data';
+import { CANVAS_COMPONENT_REGISTRY } from '../canvasComponents/componentRegistry';
+import { buildPageDocument, extractCustomData } from 'dungeonmind-canvas';
+import type { StatblockPageDocument } from '../../../types/statblockCanvas.types';
 
 const StatBlockCanvas: React.FC = () => {
     const {
@@ -70,7 +71,7 @@ const StatBlockCanvas: React.FC = () => {
                 customData,
                 projectId: creatureDetails.projectId,
                 ownerId: 'current-user',
-            });
+            }) as StatblockPageDocument;
 
             return (
                 <Card shadow="sm" padding="sm" radius="md" withBorder>
