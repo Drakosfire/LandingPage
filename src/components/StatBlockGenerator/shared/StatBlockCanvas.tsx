@@ -6,7 +6,8 @@ import StatblockPage from '../StatblockPage';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../../fixtures/templates';
 import { CANVAS_COMPONENT_REGISTRY } from '../canvasComponents/componentRegistry';
 import { buildPageDocument, extractCustomData } from 'dungeonmind-canvas';
-import type { StatblockPageDocument } from '../../../types/statblockCanvas.types';
+import type { TemplateConfig as BaseTemplateConfig } from 'dungeonmind-canvas';
+import type { StatblockPageDocument, ComponentRegistryEntry, TemplateConfig } from '../../../types/statblockCanvas.types';
 
 const StatBlockCanvas: React.FC = () => {
     const {
@@ -66,12 +67,12 @@ const StatBlockCanvas: React.FC = () => {
             const customData = extractCustomData(selectedAssets);
 
             const livePage = buildPageDocument({
-                template,
+                template: template as unknown as BaseTemplateConfig,
                 statblockData: creatureDetails,
                 customData,
                 projectId: creatureDetails.projectId,
                 ownerId: 'current-user',
-            }) as StatblockPageDocument;
+            }) as unknown as StatblockPageDocument;
 
             return (
                 <Card shadow="sm" padding="sm" radius="md" withBorder>
@@ -79,7 +80,7 @@ const StatBlockCanvas: React.FC = () => {
                         key={currentProject?.id || 'no-project'}  // Force remount on project change
                         page={livePage}
                         template={template}
-                        componentRegistry={CANVAS_COMPONENT_REGISTRY}
+                        componentRegistry={CANVAS_COMPONENT_REGISTRY as Record<string, ComponentRegistryEntry>}
                         isEditMode={isCanvasEditMode}
                         onUpdateData={updateCreatureDetails}
                         measurementCoordinator={measurementCoordinator}

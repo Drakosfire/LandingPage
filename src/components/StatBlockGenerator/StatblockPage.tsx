@@ -151,6 +151,36 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         adapters,
     });
 
+    // Debug: Log layout state
+    useEffect(() => {
+        if (process.env.NODE_ENV !== 'production' && layout.plan) {
+            console.log('[StatblockPage] Layout state:', {
+                fontsReady,
+                componentCount: page.componentInstances.length,
+                layoutPlanExists: !!layout.plan,
+                pageCount: layout.plan?.pages.length ?? 0,
+                firstPageColumns: layout.plan?.pages[0]?.columns.length ?? 0,
+                firstColumnEntries: layout.plan?.pages[0]?.columns[0]?.entries.length ?? 0,
+                secondColumnEntries: layout.plan?.pages[0]?.columns[1]?.entries.length ?? 0,
+                firstColumnEntryIds: layout.plan?.pages[0]?.columns[0]?.entries.map(e => e.instance.id) ?? [],
+                secondColumnEntryIds: layout.plan?.pages[0]?.columns[1]?.entries.map(e => e.instance.id) ?? [],
+                baseDimensions: layout.baseDimensions,
+            });
+
+            // Log component home regions
+            if (page.componentInstances.length > 0) {
+                console.log('[StatblockPage] Component home regions:',
+                    page.componentInstances.slice(0, 5).map(inst => ({
+                        id: inst.id,
+                        type: inst.type,
+                        slotId: inst.layout.slotId,
+                        position: inst.layout.position,
+                    }))
+                );
+            }
+        }
+    }, [fontsReady, page.componentInstances.length, layout.plan, layout.baseDimensions]);
+
     const {
         widthPx: baseWidthPx,
         heightPx: baseHeightPx,
@@ -288,7 +318,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             const frameScrollHeight = frameElement.scrollHeight;
             const frameClientHeight = frameElement.clientHeight;
             const frameOffsetHeight = frameElement.offsetHeight;
-            
+
             // Also check parent container for constraints
             const parentContainer = visibleFrame.parentElement;
             const parentRect = parentContainer?.getBoundingClientRect();
@@ -300,7 +330,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             // Priority: parentScrollHeight > parentClientHeight > frameScrollHeight > frameClientHeight > columnScrollHeight
             let fullColumnHeight: number;
             let measurementSource: string;
-            
+
             if (parentScrollHeight > 0) {
                 fullColumnHeight = parentScrollHeight;
                 measurementSource = 'parentScrollHeight';
@@ -330,11 +360,11 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                     parentClientHeight,
                     parentRect?.height || 0,
                 ].filter(h => h > 0);
-                
+
                 fullColumnHeight = Math.max(...measurements);
                 measurementSource = 'Math.max(fallback)';
             }
-            
+
             const usableHeight = fullColumnHeight / scale;
             const heightCeiling = Math.max(baseContentHeightPx, 0);
             const cappedHeight = Math.min(usableHeight, heightCeiling);
@@ -391,7 +421,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             // This prevents excessive calls while ensuring measurement changes propagate
             // The reducer also has a heightDiff < 1 guard as a safety net
             const heightDiff = Math.abs(cappedHeight - lastSentHeightRef.current);
-            
+
             if (cappedHeight > 0 && heightDiff > 1) {
                 const previousSentHeight = lastSentHeightRef.current;
                 lastSentHeightRef.current = cappedHeight;

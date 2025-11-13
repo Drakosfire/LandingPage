@@ -176,17 +176,25 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
         // Auto-start for first-time users after a delay
         // Only run if tutorial hasn't been manually started
         const hasCompleted = tutorialCookies.hasCompletedTutorial();
+        console.log('🎓 [Tutorial] Auto-start check:', {
+            forceRun,
+            hasCompleted,
+            autoStartInitialized: autoStartInitializedRef.current,
+            willAutoStart: !forceRun && !hasCompleted && !autoStartInitializedRef.current,
+        });
         if (!forceRun && !hasCompleted && !autoStartInitializedRef.current) {
             autoStartInitializedRef.current = true; // Mark as started to prevent re-triggering
 
             const timer = setTimeout(() => {
                 // Check if tutorial was manually started while we were waiting
                 if (initializationStartedRef.current) {
+                    console.log('⏭️ [Tutorial] Auto-start cancelled - manual start detected');
                     return;
                 }
 
                 // TUTORIAL STATE INITIALIZATION (Auto-start)
                 // Reset to a clean slate for first-time tutorial
+                console.log('🎬 [Tutorial] Auto-starting tutorial...');
 
                 // 1. Close all drawers
                 onCloseGenerationDrawerRef.current?.();
@@ -217,8 +225,16 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
             }, 1500); // 1.5s delay to let the page settle
 
             return () => {
+                // If component unmounts before timer fires, reset the flag so it can retry on remount
                 clearTimeout(timer);
+                // Reset flag to allow retry on remount (timer callback hasn't fired yet)
+                console.log('🔄 [Tutorial] Component unmounted before auto-start timer, resetting flag');
+                autoStartInitializedRef.current = false;
             };
+        } else if (!forceRun && !hasCompleted && autoStartInitializedRef.current) {
+            console.log('⏭️ [Tutorial] Auto-start skipped:', {
+                reason: run ? 'tutorial already running' : 'already initialized',
+            });
         }
     }, [forceRun, replaceCreatureDetails]);
 
@@ -888,7 +904,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     console.log('✨ [Tutorial] Highlighting navigation buttons BEFORE demonstration');
                     const prevButton = document.querySelector('[data-tutorial="modal-prev-button"]');
                     const nextButton = document.querySelector('[data-tutorial="modal-next-button"]');
-                    
+
                     if (prevButton && nextButton) {
                         // Highlight both buttons to introduce them
                         [prevButton, nextButton].forEach(btn => {
@@ -937,7 +953,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
 
                     // Keep buttons highlighted
                     console.log('✨ [Tutorial] Navigation demo complete, ready to close modal');
-                    
+
                     // Move to MODAL_NAVIGATION step (step 17 - inside modal, ready to close)
                     console.log('➡️ [Tutorial] Moving to modal navigation step (step 17)');
                     setStepIndex(17);
@@ -987,7 +1003,7 @@ export const TutorialTour: React.FC<TutorialTourProps> = ({
                     if (thirdImage) {
                         thirdImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         await new Promise(r => setTimeout(r, 500));
-                        
+
                         (thirdImage as HTMLElement).style.border = '3px solid #228be6';
                         (thirdImage as HTMLElement).style.borderRadius = '8px';
                         (thirdImage as HTMLElement).style.boxShadow = '0 0 0 2px rgba(34, 139, 230, 0.3)';

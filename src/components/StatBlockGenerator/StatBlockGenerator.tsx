@@ -14,6 +14,7 @@ import { useAuth } from '../../context/AuthContext';
 import { STATBLOCK_APP } from '../../context/AppContext';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../fixtures/templates';
 import { buildPageDocument, extractCustomData, exportPageToHTMLFile } from 'dungeonmind-canvas';
+import type { TemplateConfig as BaseTemplateConfig } from 'dungeonmind-canvas';
 import { createStatblockAdapters } from './canvasAdapters';
 
 // Import components
@@ -86,7 +87,7 @@ const StatBlockGenerator: React.FC = () => {
         const customData = extractCustomData(selectedAssets);
 
         const livePage = buildPageDocument({
-            template,
+            template: template as unknown as BaseTemplateConfig,
             statblockData: creatureDetails,
             customData,
             projectId: creatureDetails.projectId,
@@ -94,7 +95,7 @@ const StatBlockGenerator: React.FC = () => {
         });
 
         const adapters = createStatblockAdapters();
-        exportPageToHTMLFile(livePage, template, adapters);
+        exportPageToHTMLFile(livePage, template as unknown as BaseTemplateConfig, adapters);
     }, [selectedTemplateId, creatureDetails, selectedAssets]);
 
     const handleExportPDF = useCallback(() => {

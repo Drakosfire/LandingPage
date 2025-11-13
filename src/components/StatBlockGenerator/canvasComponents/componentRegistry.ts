@@ -7,6 +7,7 @@
  */
 
 import type { ComponentRegistryEntry } from '../../../types/statblockCanvas.types';
+import type React from 'react';
 
 import IdentityHeader from './IdentityHeader';
 import StatSummary from './StatSummary';
@@ -22,6 +23,11 @@ import LegendaryActionsSection from './LegendaryActionsSection';
 import LairActionsSection from './LairActionsSection';
 import SpellcastingBlock from './SpellcastingBlock';
 
+// Type helper to cast components to the expected registry type
+const asRegistryComponent = <T extends React.ComponentType<any>>(
+    component: T
+): React.ComponentType<any> => component as any;
+
 /**
  * Central component registry mapping component type IDs to their implementations.
  * 
@@ -35,7 +41,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'identity-header': {
         type: 'identity-header',
         displayName: 'Identity Header',
-        component: IdentityHeader,
+        component: asRegistryComponent(IdentityHeader),
         defaults: {
             dataRef: { type: 'statblock', path: 'name' },
             layout: { isVisible: true },
@@ -44,7 +50,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'stat-summary': {
         type: 'stat-summary',
         displayName: 'Stat Summary',
-        component: StatSummary,
+        component: asRegistryComponent(StatSummary),
         defaults: {
             dataRef: { type: 'statblock', path: 'armorClass' },
             layout: { isVisible: true },
@@ -53,7 +59,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'ability-table': {
         type: 'ability-table',
         displayName: 'Ability Scores',
-        component: AbilityScoresTable,
+        component: asRegistryComponent(AbilityScoresTable),
         defaults: {
             dataRef: { type: 'statblock', path: 'abilities' },
             layout: { isVisible: true },
@@ -62,7 +68,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'portrait-panel': {
         type: 'portrait-panel',
         displayName: 'Portrait',
-        component: PortraitPanel,
+        component: asRegistryComponent(PortraitPanel),
         defaults: {
             dataRef: { type: 'custom', key: 'portraitUrl' },
             layout: { isVisible: true },
@@ -71,7 +77,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'quick-facts': {
         type: 'quick-facts',
         displayName: 'Quick Facts',
-        component: QuickFacts,
+        component: asRegistryComponent(QuickFacts),
         defaults: {
             dataRef: { type: 'statblock', path: 'savingThrows' },
             layout: { isVisible: true },
@@ -80,7 +86,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'action-section': {
         type: 'action-section',
         displayName: 'Actions',
-        component: ActionSection,
+        component: asRegistryComponent(ActionSection),
         defaults: {
             dataRef: { type: 'statblock', path: 'actions' },
             layout: { isVisible: true },
@@ -89,7 +95,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'flavor-summary': {
         type: 'flavor-summary',
         displayName: 'Flavor Summary',
-        component: FlavorSummary,
+        component: asRegistryComponent(FlavorSummary),
         defaults: {
             dataRef: { type: 'statblock', path: 'description' },
             layout: { isVisible: true },
@@ -98,7 +104,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'trait-list': {
         type: 'trait-list',
         displayName: 'Traits',
-        component: TraitList,
+        component: asRegistryComponent(TraitList),
         defaults: {
             dataRef: { type: 'statblock', path: 'specialAbilities' },
             layout: { isVisible: true },
@@ -107,7 +113,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'bonus-action-section': {
         type: 'bonus-action-section',
         displayName: 'Bonus Actions',
-        component: BonusActionSection,
+        component: asRegistryComponent(BonusActionSection),
         defaults: {
             dataRef: { type: 'statblock', path: 'bonusActions' },
             layout: { isVisible: true },
@@ -116,7 +122,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'reaction-section': {
         type: 'reaction-section',
         displayName: 'Reactions',
-        component: ReactionSection,
+        component: asRegistryComponent(ReactionSection),
         defaults: {
             dataRef: { type: 'statblock', path: 'reactions' },
             layout: { isVisible: true },
@@ -125,7 +131,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'legendary-actions': {
         type: 'legendary-actions',
         displayName: 'Legendary Actions',
-        component: LegendaryActionsSection,
+        component: asRegistryComponent(LegendaryActionsSection),
         defaults: {
             dataRef: { type: 'statblock', path: 'legendaryActions' },
             layout: { isVisible: true },
@@ -134,7 +140,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'lair-actions': {
         type: 'lair-actions',
         displayName: 'Lair Actions',
-        component: LairActionsSection,
+        component: asRegistryComponent(LairActionsSection),
         defaults: {
             dataRef: { type: 'statblock', path: 'lairActions' },
             layout: { isVisible: true },
@@ -143,7 +149,7 @@ export const CANVAS_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> =
     'spellcasting-block': {
         type: 'spellcasting-block',
         displayName: 'Spellcasting',
-        component: SpellcastingBlock,
+        component: asRegistryComponent(SpellcastingBlock),
         defaults: {
             dataRef: { type: 'statblock', path: 'spells' },
             layout: { isVisible: true },
