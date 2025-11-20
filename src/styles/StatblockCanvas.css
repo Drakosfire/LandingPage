@@ -299,14 +299,26 @@ h2#user-monster-name,
     text-align: center;
     margin: 0.35cm auto;
     max-width: 100%;
+    display: block;
+    width: 100%;
+}
+
+.monster-portrait__frame {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 2px solid rgba(34, 20, 12, 0.4);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 249, 237, 0.4);
 }
 
 .monster-portrait__image {
-    display: inline-block;
-    max-width: 100%;
-    height: auto;
-    border: 2px solid rgba(34, 20, 12, 0.4);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
     mix-blend-mode: multiply;
 }
 
@@ -578,51 +590,10 @@ h2#user-monster-name,
     gap: var(--dm-column-gap, 12px);
 }
 
-.portrait-wrapper {
-    display: inline-block;
-    max-width: 100%;
-}
-
-.portrait-wrapper--sized {
-    width: 100%;
-    height: 100%;
-}
-
 .dm-statblock-measurement-layer .monster.frame.wide {
     transform: none !important;
 }
 
 .dm-statblock-measurement-layer .monster-portrait {
     margin: 0;
-}
-
-.dm-statblock-measurement-layer .portrait-wrapper {
-    display: block;
-    overflow: hidden;
-}
-
-.dm-statblock-measurement-layer .portrait-wrapper img {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: cover;
-}
-
-.dm-statblock-measurement-layer .dm-portrait-panel {
-    min-height: 0;
-}
-
-.dm-statblock-measurement-layer .portrait-measurement-wrapper {
-    position: relative;
-    overflow: hidden;
-    display: block;
-}
-
-.dm-statblock-measurement-layer .portrait-measurement-wrapper img {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: cover;
 }

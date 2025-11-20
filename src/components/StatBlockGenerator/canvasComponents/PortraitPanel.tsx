@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
 import type { CanvasComponentProps } from '../../../types/statblockCanvas.types';
 import { resolveDataReference } from './utils';
@@ -17,28 +17,21 @@ const PortraitPanel: React.FC<CanvasComponentProps> = ({ dataRef, dataSources, l
     const src = (resolvedSrc && !imageError) ? resolvedSrc : PLACEHOLDER_IMAGE;
     const isPlaceholder = !resolvedSrc || imageError;
 
-    const imageStyle = useMemo<React.CSSProperties>(() => ({
-        width: '100%',
-        height: 'auto',
-        display: 'block',
-        objectFit: 'contain',
-    }), []);
-
     const handleImageError = () => {
         setImageError(true);
     };
 
     return (
-        <p className="monster-portrait" style={{ margin: 0, padding: 0 }}>
-            <img
-                className="monster-portrait__image"
-                src={src}
-                alt={isPlaceholder ? "Portrait placeholder" : "Creature portrait"}
-                onError={handleImageError}
-                style={imageStyle}
-                data-tutorial="creature-portrait"
-            />
-        </p>
+        <figure className="monster-portrait">
+            <div className="monster-portrait__frame" data-tutorial="creature-portrait">
+                <img
+                    className="monster-portrait__image"
+                    src={src}
+                    alt={isPlaceholder ? 'Portrait placeholder' : 'Creature portrait'}
+                    onError={handleImageError}
+                />
+            </div>
+        </figure>
     );
 };
 
