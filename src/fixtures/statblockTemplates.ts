@@ -269,7 +269,7 @@ export const demoTemplate: TemplateConfig = {
         columns: {
             enabled: true,
             columnCount: 2,
-            gutter: 16,
+            gutter: 12, // Must match COMPONENT_VERTICAL_SPACING_PX (12px) for accurate pagination
             unit: 'px',
         },
         pagination: {
