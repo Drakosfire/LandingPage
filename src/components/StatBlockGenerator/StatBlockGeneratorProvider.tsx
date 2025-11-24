@@ -17,7 +17,7 @@ import {
 } from '../../types/statblock.types';
 import { MeasurementCoordinator } from 'dungeonmind-canvas';
 import { normalizeStatblock, createDefaultStatblock } from '../../utils/statblockNormalization';
-import { getRandomDemo, EMPTY_STATBLOCK } from '../../fixtures/demoStatblocks';
+import { getRandomDemo, findDemo, EMPTY_STATBLOCK } from '../../fixtures/demoStatblocks';
 import { tutorialCookies } from '../../utils/tutorialCookies';
 import { GenerateWithProjectGuard } from './GenerateWithProjectGuard';
 
@@ -90,7 +90,7 @@ export interface StatBlockGeneratorContextType {
     setImagePrompt: (prompt: string) => void;  // Update image prompt
     setImageStyle: (style: string) => void;    // Update image style
     setImageModel: (model: string) => void;    // Update AI model
-    loadDemoData: () => void;
+    loadDemoData: (demoName?: string) => void;
 
     // Validation & CR Calculation
     validateStatBlock: () => Promise<ValidationResult>;
@@ -544,11 +544,23 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         guardResolveRef.current = null;
     }, []);
 
-    const loadDemoData = useCallback(() => {
-        console.log('🎲 [Provider] Loading random demo statblock...');
+    const loadDemoData = useCallback((demoName?: string) => {
+        console.log('🎲 [Provider] Loading demo statblock...', demoName ? `(specific: ${demoName})` : '(random)');
 
-        // Get a random demo from our collection
-        const demoStatblock = getRandomDemo();
+        // Get specific demo by name, or random if not specified
+        let demoStatblock: StatBlockDetails;
+        if (demoName) {
+            const specific = findDemo(demoName);
+            if (specific) {
+                demoStatblock = specific;
+                console.log(`🎯 [Provider] Found demo: "${specific.name}"`);
+            } else {
+                console.warn(`⚠️ [Provider] Demo "${demoName}" not found, using random`);
+                demoStatblock = getRandomDemo();
+            }
+        } else {
+            demoStatblock = getRandomDemo();
+        }
 
         console.log(`🎲 [Provider] Selected demo: "${demoStatblock.name}"`);
 

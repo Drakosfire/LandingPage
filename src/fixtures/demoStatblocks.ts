@@ -685,6 +685,21 @@ export const getRandomDemo = (): StatBlockDetails => {
 };
 
 /**
+ * Get a specific demo by name (for testing/debugging)
+ */
+export const getDemoByName = (name: string): StatBlockDetails | undefined => {
+    return DEMO_STATBLOCKS.find(demo => demo.name === name);
+};
+
+/**
+ * Get demo by partial name match (case-insensitive)
+ */
+export const findDemo = (partialName: string): StatBlockDetails | undefined => {
+    const search = partialName.toLowerCase();
+    return DEMO_STATBLOCKS.find(demo => demo.name.toLowerCase().includes(search));
+};
+
+/**
  * Check if a statblock is one of the demos (by name comparison)
  */
 export const isDemoStatblock = (name: string): boolean => {
