@@ -20,6 +20,21 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [currentEmbedding, setCurrentEmbedding] = useState<string>('srd');
 
     const sendMessage = async (message: string) => {
+        // Convert chatHistory from Message[] format to backend's tuple format: [(user_msg, assistant_msg), ...]
+        // Filter out error messages and pair up user/assistant messages
+        const chatHistoryTuples: [string, string][] = [];
+        let currentUserMsg: string | null = null;
+
+        for (const msg of chatHistory) {
+            if (msg.role === 'user') {
+                currentUserMsg = msg.content;
+            } else if (msg.role === 'assistant' && currentUserMsg !== null) {
+                chatHistoryTuples.push([currentUserMsg, msg.content]);
+                currentUserMsg = null;
+            }
+        }
+
+        // Add user message to UI immediately
         setChatHistory(prev => [...prev, { role: 'user', content: message }]);
 
         try {
@@ -29,11 +44,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include', // Include session cookies
-                body: JSON.stringify({ query: message, embedding_id: currentEmbedding }),
+                body: JSON.stringify({
+                    message: message,
+                    chat_history: chatHistoryTuples
+                }),
             });
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -46,9 +65,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }]);
 
         } catch (error) {
+            console.error('Error sending message:', error);
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'Sorry, there was an error processing your request.';
             setChatHistory(prev => [...prev, {
                 role: 'error',
-                content: 'Sorry, there was an error processing your request.'
+                content: errorMessage
             }]);
         }
     };
