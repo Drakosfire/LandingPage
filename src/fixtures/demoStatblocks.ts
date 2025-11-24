@@ -75,14 +75,32 @@ const drJupiter: StatBlockDetails = {
             range: "Touch",
         }
     ],
-    bonusActions: [],
+    bonusActions: [
+        {
+            id: "dr-jupiter-bonus-001",
+            name: "Tailwind Boost",
+            desc: "Dr. Jupiter releases a quick burst of invigorating pheromones. One creature within 15 feet regains 5 hit points and can stand up from prone without expending movement.",
+            usage: "Bonus Action, 3/day",
+        },
+        {
+            id: "dr-jupiter-bonus-002",
+            name: "Sterile Field",
+            desc: "Dr. Jupiter creates a brief sterile aura around an ally within 10 feet. Until the start of Dr. Jupiter's next turn, that ally has advantage on saving throws against disease and poison.",
+            usage: "Bonus Action",
+        },
+    ],
     reactions: [
         {
             id: "0f7e413c-6be6-496e-befb-f3b9cbec53bc",
             name: "Protective Bark",
             desc: "When an ally within 5 feet is attacked, Dr. Jupiter can impose disadvantage on the attack roll by barking loudly.",
             range: "5 ft",
-        }
+        },
+        {
+            id: "dr-jupiter-reaction-002",
+            name: "Emergency Shield",
+            desc: "When a creature Dr. Jupiter can see within 10 feet takes damage, Dr. Jupiter interposes a burst of healing energy, reducing the damage by 1d6 + 2.",
+        },
     ],
     spells: {
         level: 3,
@@ -262,8 +280,25 @@ const empressHermione: StatBlockDetails = {
             range: "30 ft.",
         }
     ],
-    bonusActions: [],
-    reactions: [],
+    bonusActions: [
+        {
+            id: "hermione-bonus-001",
+            name: "Starlight Pulse",
+            desc: "Empress Hermione emits a soothing pulse of astral light. She or an ally within 15 feet regains 6 hit points and ends the frightened condition.",
+        },
+        {
+            id: "hermione-bonus-002",
+            name: "Temporal Sidestep",
+            desc: "Empress Hermione bends time around herself, teleporting up to 10 feet to a space she can see. Until the start of her next turn, opportunity attacks against her have disadvantage.",
+        },
+    ],
+    reactions: [
+        {
+            id: "hermione-reaction-001",
+            name: "Radiant Riposte",
+            desc: "When a creature within 5 feet hits the empress with an attack, she lashes out with celestial energy. The attacker takes 5 (1d10) radiant damage unless it succeeds on a DC 15 Dexterity saving throw.",
+        },
+    ],
     spells: {
         level: 5,
         ability: "Charisma",
@@ -456,8 +491,25 @@ const madameLoaf: StatBlockDetails = {
             range: "10 ft.",
         }
     ],
-    bonusActions: [],
-    reactions: [],
+    bonusActions: [
+        {
+            id: "madame-loaf-bonus-001",
+            name: "Lap Claim",
+            desc: "Madame Loaf darts to a creature within 5 feet and curls up in their lap. The target must succeed on a DC 13 Wisdom saving throw or become charmed until the start of Madame Loaf's next turn.",
+        },
+        {
+            id: "madame-loaf-bonus-002",
+            name: "Catnap Recharge",
+            desc: "Madame Loaf takes a lightning-fast nap, regaining 5 hit points and gaining advantage on the next saving throw she makes before the end of her next turn.",
+        },
+    ],
+    reactions: [
+        {
+            id: "madame-loaf-reaction-001",
+            name: "Whisker Warning",
+            desc: "When Madame Loaf or a creature she can see within 10 feet is targeted by an attack, she flicks her whiskers and imposes disadvantage on the attack roll.",
+        },
+    ],
     spells: {
         level: 3,
         ability: "Charisma",

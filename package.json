@@ -39,7 +39,8 @@
     "benchmark:images": "tsx scripts/benchmarkImageGeneration.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "canvas-debug": "node scripts/canvasDebug.js"
+    "canvas-debug": "node scripts/canvasDebug.js",
+    "canvas:snapshot": "ts-node --project tsconfig.scripts.json scripts/canvasPlacementSnapshot.ts"
   },
   "eslintConfig": {
     "extends": [
@@ -76,6 +77,7 @@
     "postcss-preset-mantine": "^1.17.0",
     "prop-types": "^15.8.1",
     "storybook": "^8.4.7",
+    "ts-node": "^10.9.2",
     "tsx": "^4.7.0",
     "webpack": "^5.97.1"
   }

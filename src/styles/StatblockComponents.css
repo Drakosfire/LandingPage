@@ -10,7 +10,7 @@
 /* ===== Monster Portrait (StatBlock-specific) ===== */
 .monster-portrait {
     text-align: center;
-    margin: 0.35cm auto;
+    margin: 0 auto;
     max-width: 100%;
     display: block;
     width: 100%;
