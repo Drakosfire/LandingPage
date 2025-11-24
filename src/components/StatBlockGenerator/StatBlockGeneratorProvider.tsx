@@ -612,24 +612,24 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                     console.error('❌ Component not found:', componentId);
                     return null;
                 }
-                
+
                 // Get scale from CSS variable (visible canvas scale)
                 const container = document.querySelector('.dm-canvas-responsive');
                 const scale = container ? parseFloat(getComputedStyle(container).getPropertyValue('--dm-page-scale') || '1') : 1;
-                
+
                 const rect = element.getBoundingClientRect();
                 const column = element.closest('.canvas-column');
                 const columnRect = column ? column.getBoundingClientRect() : null;
-                
+
                 const spanTop = parseFloat(element.getAttribute('data-span-top') || '0');
                 const spanBottom = parseFloat(element.getAttribute('data-span-bottom') || '0');
                 const measuredHeight = spanBottom - spanTop;
                 const visualHeightScaled = rect.height;
                 const visualHeightUnscaled = visualHeightScaled / scale; // Convert back to base dimensions
                 const heightDiff = visualHeightUnscaled - measuredHeight;
-                
+
                 const overflowAmount = columnRect ? (rect.bottom - columnRect.bottom) : 0;
-                
+
                 console.log('═══════════════════════════════════════');
                 console.log('📊 OVERFLOW CHECK:', componentId);
                 console.log('═══════════════════════════════════════');
@@ -645,24 +645,24 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                     console.log('✅ No visual overflow');
                 }
                 console.log('═══════════════════════════════════════');
-                
+
                 return { measuredHeight, visualHeightScaled, visualHeightUnscaled, heightDiff, overflowAmount, scale };
             },
-            
+
             validateAllMeasurements: () => {
                 const entries = Array.from(document.querySelectorAll('[data-entry-id]'));
-                
+
                 // Get scale from CSS variable (visible canvas scale)
                 const container = document.querySelector('.dm-canvas-responsive');
                 const scale = container ? parseFloat(getComputedStyle(container).getPropertyValue('--dm-page-scale') || '1') : 1;
-                
+
                 console.log('═══════════════════════════════════════');
                 console.log('📊 ALL COMPONENTS MEASUREMENT VALIDATION');
                 console.log('═══════════════════════════════════════');
                 console.log('Scale factor:', scale.toFixed(3) + 'x');
                 console.log('Checking', entries.length, 'components...');
                 console.log('');
-                
+
                 const results = entries.map(el => {
                     const id = el.getAttribute('data-entry-id');
                     const rect = el.getBoundingClientRect();
@@ -673,7 +673,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                     const visualHeightUnscaled = visualHeightScaled / scale; // Convert back to base dimensions
                     const gap = visualHeightUnscaled - measuredHeight;
                     const gapPercent = measuredHeight > 0 ? (gap / measuredHeight * 100) : 0;
-                    
+
                     return {
                         id,
                         measured: measuredHeight.toFixed(2),
@@ -684,18 +684,18 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                         problem: Math.abs(gap) > 2 ? '❌' : '✅', // 2px tolerance after accounting for scale
                     };
                 }).filter(r => parseFloat(r.measured) > 0); // Skip zero-height metadata
-                
+
                 console.table(results);
-                
+
                 const problems = results.filter(r => r.problem === '❌');
-                
+
                 console.log('');
                 console.log('📊 SUMMARY:');
                 console.log('   Scale factor:', scale.toFixed(3) + 'x');
                 console.log('   Total components:', results.length);
                 console.log('   With measurement gaps > 2px (after scale correction):', problems.length);
                 console.log('');
-                
+
                 if (problems.length > 0) {
                     console.log('⚠️ COMPONENTS WITH MEASUREMENT ISSUES:');
                     problems.forEach(p => {
@@ -704,29 +704,29 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 } else {
                     console.log('✅ All components measure accurately (after accounting for scale)!');
                 }
-                
+
                 console.log('═══════════════════════════════════════');
-                
+
                 return { results, scale };
             },
-            
+
             inspectScale: (componentId: string = 'component-5') => {
                 const element = document.querySelector(`[data-entry-id="${componentId}"]`);
                 if (!element) {
                     console.error('❌ Component not found:', componentId);
                     return null;
                 }
-                
+
                 // Walk up parent chain checking for transforms
                 let current: Element | null = element;
                 const transforms: Array<{ depth: number; element: string; transform: string; scale: string }> = [];
                 let depth = 0;
-                
+
                 while (current && depth < 10) {
                     const computed = window.getComputedStyle(current);
                     const transform = computed.transform;
                     const scale = computed.scale;
-                    
+
                     if (transform !== 'none' || scale !== 'none') {
                         transforms.push({
                             depth,
@@ -735,16 +735,16 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                             scale,
                         });
                     }
-                    
+
                     current = current.parentElement;
                     depth++;
                 }
-                
+
                 // Check container scale
                 const container = document.querySelector('.dm-canvas-responsive');
                 const containerStyle = container ? window.getComputedStyle(container) : null;
                 const pageScale = containerStyle ? containerStyle.getPropertyValue('--dm-page-scale') : null;
-                
+
                 console.log('═══════════════════════════════════════');
                 console.log('🔍 SCALE/TRANSFORM INSPECTION');
                 console.log('═══════════════════════════════════════');
@@ -758,68 +758,68 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                     console.log('   None');
                 }
                 console.log('═══════════════════════════════════════');
-                
+
                 return { pageScale, transforms };
             },
-            
+
             compareCSS: (componentId: string) => {
                 // Try both formats: component-5 and component-05
                 const normalizedId = componentId.replace(/^component-(\d+)$/, (_, n) => `component-${parseInt(n, 10)}`);
                 const normalizedIdPadded = componentId.replace(/^component-(\d+)$/, (_, n) => `component-${parseInt(n, 10).toString().padStart(2, '0')}`);
-                
+
                 // Find all instances (list components can have multiple entries)
                 const allInstances = Array.from(document.querySelectorAll(`[data-entry-id="${normalizedId}"], [data-entry-id="${normalizedIdPadded}"]`));
-                
+
                 if (allInstances.length === 0) {
                     console.error('❌ Component not found in visible canvas:', componentId);
                     return null;
                 }
-                
+
                 // Filter to visible instances with actual height
                 const visibleInstances = allInstances.filter(el => {
                     const rect = el.getBoundingClientRect();
                     return rect.height > 0 && rect.width > 0;
                 });
-                
+
                 if (visibleInstances.length === 0) {
                     console.warn('⚠️ Component found but has 0px height - may be collapsed or not rendered');
                     console.log('   Found', allInstances.length, 'instance(s) with 0px height');
                     console.log('   Using first instance for analysis anyway...');
                 }
-                
+
                 // Use first visible instance, or first instance if all are 0px
                 const visibleElement = visibleInstances.length > 0 ? visibleInstances[0] : allInstances[0];
-                
+
                 if (allInstances.length > 1) {
                     console.log(`ℹ️ Found ${allInstances.length} instance(s) of ${componentId}, analyzing first visible one`);
                 }
-                
+
                 // Get the actual component content (inside .canvas-entry wrapper)
                 const componentContent = visibleElement.firstElementChild || visibleElement;
-                
+
                 // Check if component has actual content/height
                 const rect = visibleElement.getBoundingClientRect();
                 const contentRect = componentContent.getBoundingClientRect();
-                
+
                 // Get scale factor
                 const container = document.querySelector('.dm-canvas-responsive');
                 const scale = container ? parseFloat(getComputedStyle(container).getPropertyValue('--dm-page-scale') || '1') : 1;
-                
+
                 // Get canonical column width
                 const column = visibleElement.closest('.canvas-column');
                 const columnWidth = column ? parseFloat(getComputedStyle(column).width) / scale : null;
-                
+
                 const visibleComputed = window.getComputedStyle(visibleElement);
                 const contentComputed = window.getComputedStyle(componentContent);
-                
+
                 // Get span data
                 const spanTop = parseFloat(visibleElement.getAttribute('data-span-top') || '0');
                 const spanBottom = parseFloat(visibleElement.getAttribute('data-span-bottom') || '0');
                 const measuredHeight = spanBottom - spanTop;
-                
+
                 // Get parent container styles
                 const columnComputed = column ? window.getComputedStyle(column) : null;
-                
+
                 // Analyze CSS properties that could affect height
                 const analysis = {
                     // Container wrapper (.canvas-entry)
@@ -866,7 +866,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                         regionKey: visibleElement.getAttribute('data-region-key') || 'unknown',
                     },
                 };
-                
+
                 console.log('═══════════════════════════════════════');
                 console.log('🔍 CSS ANALYSIS:', componentId);
                 console.log('═══════════════════════════════════════');
@@ -905,7 +905,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                     console.log('   This 4px difference per component accumulates!');
                 }
                 console.log('═══════════════════════════════════════');
-                
+
                 return analysis;
             },
         };

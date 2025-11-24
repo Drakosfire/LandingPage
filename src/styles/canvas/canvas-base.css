@@ -96,14 +96,17 @@
 
 /* ===== Column Wrapper (for two-column layouts) ===== */
 .dm-canvas-responsive .page,
-.dm-canvas-responsive .page.phb {
+.dm-canvas-responsive .page.phb,
+.dm-canvas-measurement-layer .page,
+.dm-canvas-measurement-layer .page.phb {
     column-count: unset !important;
     column-width: unset !important;
     column-gap: unset !important;
     column-fill: unset !important;
 }
 
-.dm-canvas-responsive .columnWrapper {
+.dm-canvas-responsive .columnWrapper,
+.dm-canvas-measurement-layer .columnWrapper {
     display: flex;
     gap: var(--dm-column-gap, 12px);
     width: 100%;
@@ -115,7 +118,8 @@
 }
 
 /* CCC: Override vendor multi-column rules for shared canvas layouts */
-.dm-canvas-responsive .monster.frame.wide {
+.dm-canvas-responsive .monster.frame.wide,
+.dm-canvas-measurement-layer .monster.frame.wide {
     column-count: unset !important;
     column-width: unset !important;
     column-gap: unset !important;
@@ -131,7 +135,8 @@
 }
 
 /* CRITICAL: High specificity to override any other .canvas-column rules */
-.dm-canvas-responsive .monster.frame.wide .canvas-column {
+.dm-canvas-responsive .monster.frame.wide .canvas-column,
+.dm-canvas-measurement-layer .monster.frame.wide .canvas-column {
     /* Equal-width columns: flex distributes space evenly */
     flex: 1 1 0% !important;
     /* Equal growth/shrink, 0% basis */
@@ -142,11 +147,13 @@
     gap: var(--dm-column-gap, 12px);
 }
 
-.dm-canvas-responsive .monster.frame.wide .canvas-column:first-of-type {
+.dm-canvas-responsive .monster.frame.wide .canvas-column:first-of-type,
+.dm-canvas-measurement-layer .monster.frame.wide .canvas-column:first-of-type {
     margin-right: calc(var(--dm-column-gap, 12px) / 2);
 }
 
-.dm-canvas-responsive .monster.frame.wide .canvas-column:last-of-type {
+.dm-canvas-responsive .monster.frame.wide .canvas-column:last-of-type,
+.dm-canvas-measurement-layer .monster.frame.wide .canvas-column:last-of-type {
     margin-left: calc(var(--dm-column-gap, 12px) / 2);
 }
 
