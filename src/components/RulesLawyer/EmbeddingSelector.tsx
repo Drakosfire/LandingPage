@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import './EmbeddingSelector.css';
-import { DUNGEONMIND_API_URL } from '../../config';
 
 const EmbeddingSelector: React.FC = () => {
 
-    const { setCurrentEmbedding } = useChatContext();
+    const {
+        currentEmbedding,
+        embeddingsLoaded,
+        isLoadingEmbeddings,
+        setCurrentEmbedding,
+        loadEmbedding
+    } = useChatContext();
     const [selectedEmbedding, setSelectedEmbedding] = useState('DnD_PHB_55');
-    const [isLoading, setIsLoading] = useState(false);
 
     // This is the list of embeddings that the user can select from that is stored in the backend
     const embeddings = [
@@ -26,44 +30,27 @@ const EmbeddingSelector: React.FC = () => {
     };
 
     const handleLoadEmbedding = async () => {
-        setIsLoading(true);
-        // Loading embedding silently
         try {
-            const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/loadembeddings`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include', // Include session cookies
-                body: JSON.stringify({
-                    embedding: selectedEmbedding,
-                    embeddings_file_path: `${selectedEmbedding}_embeddings.csv`,
-                    enhanced_json_path: `${selectedEmbedding}.json`
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to load embeddings');
-            }
-
-            setCurrentEmbedding(selectedEmbedding);
-
+            await loadEmbedding(selectedEmbedding);
         } catch (error) {
             console.error('Error loading embeddings:', error);
-        } finally {
-            setIsLoading(false);
+            // Error is already logged in ChatContext
         }
     };
 
     return (
         <div className="embedding-selector-container">
-            <h5 className="embedding-selector-header">Select a Rule set to chat with, then load it</h5>
+            <h5 className="embedding-selector-header">
+                {embeddingsLoaded
+                    ? `Current Rule Set: ${embeddingDisplayNames[currentEmbedding] || currentEmbedding}`
+                    : 'Select a Rule set to chat with'}
+            </h5>
             <div className="selector-wrapper">
                 <select
                     value={selectedEmbedding}
                     onChange={(e) => setSelectedEmbedding(e.target.value)}
                     className="embedding-selector"
-                    disabled={isLoading}
+                    disabled={isLoadingEmbeddings}
                 >
                     {embeddings.map(embedding => (
                         <option key={embedding.id} value={embedding.id}>
@@ -75,14 +62,13 @@ const EmbeddingSelector: React.FC = () => {
                     onClick={handleLoadEmbedding}
                     className="button-with-image"
                     id="loadEmbeddingButton"
-                    disabled={isLoading}
-                    title="Load Selected Embedding"
+                    disabled={isLoadingEmbeddings || selectedEmbedding === currentEmbedding}
+                    title={isLoadingEmbeddings ? 'Loading...' : selectedEmbedding === currentEmbedding ? 'Already loaded' : 'Load Selected Embedding'}
+                    aria-label={isLoadingEmbeddings ? 'Loading embeddings' : selectedEmbedding === currentEmbedding ? 'Already loaded' : 'Load Selected Embedding'}
                 >
-                    {isLoading ? 'Loading...' : ''}
+                    {/* Icon only - no text overlay */}
                 </button>
             </div>
-            {/* TODO: Uncomment this when we have a way to ping the backend and get the current embedding */}
-            {/* <h5 className="embedding-selector-header"> Current Embedding: {embeddingDisplayNames[selectedEmbedding]} </h5> */}
         </div>
     );
 };

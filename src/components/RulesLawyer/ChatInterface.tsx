@@ -1,11 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useChatContext } from '../../context/ChatContext';
 import './ChatInterface.css';
 
 const ChatInterface: React.FC = () => {
     const [message, setMessage] = useState('');
-    const [embeddingLoaded, setEmbeddingLoaded] = useState(false);
-    const { chatHistory, sendMessage, currentEmbedding, setCurrentEmbedding } = useChatContext();
+    const {
+        chatHistory,
+        sendMessage,
+        embeddingsLoaded,
+        isLoadingEmbeddings
+    } = useChatContext();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -58,14 +63,21 @@ const ChatInterface: React.FC = () => {
 
             <div className="chat-messages">
                 {chatHistory.map((msg, index) => {
+                    const isAssistant = msg.role === 'assistant';
                     return (
                         <div key={index} className={`message ${msg.role}`}>
-                            {msg.role === 'assistant' && (
+                            {isAssistant && (
                                 <div className="message-header">
                                     {'Rules Lawyer'}
                                 </div>
                             )}
-                            <p>{msg.content}</p>
+                            {isAssistant ? (
+                                <ReactMarkdown className="message-content markdown">
+                                    {msg.content}
+                                </ReactMarkdown>
+                            ) : (
+                                <p>{msg.content}</p>
+                            )}
                         </div>
                     );
                 })}
@@ -96,12 +108,15 @@ const ChatInterface: React.FC = () => {
                     // Define the height as two lines
                     style={{ height: '4em' }}
                     placeholder={
-                        embeddingLoaded
+                        embeddingsLoaded
                             ? `Ask the ${'Rules Lawyer'} a question...`
                             : 'Select a ruleset to query...'
                     }
+                    disabled={isLoadingEmbeddings || !embeddingsLoaded || isLoading}
                 />
-                <button type="submit">Send</button>
+                <button type="submit" disabled={isLoadingEmbeddings || !embeddingsLoaded || isLoading || !message.trim()}>
+                    Send
+                </button>
             </form>
 
         </div>
