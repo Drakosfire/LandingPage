@@ -131,13 +131,16 @@
 /* CCC: Override vendor multi-column rules for shared canvas layouts */
 .dm-canvas-responsive .monster.frame.wide,
 .dm-canvas-measurement-layer .monster.frame.wide {
+    /* Disable CSS multi-column (from 5ePHBstyle.css) */
     column-count: unset !important;
     column-width: unset !important;
-    column-gap: unset !important;
     column-fill: unset !important;
+    /* NOTE: column-gap: unset was removed - it was overriding flexbox gap! */
 
     display: flex !important;
-    gap: var(--dm-column-gap, 12px);
+    /* Phase 2: Use explicit column-gap to avoid conflict with multi-column override */
+    column-gap: var(--dm-column-gap, 12px) !important;
+    row-gap: var(--dm-column-gap, 12px);
     flex: 1 1 auto;
     width: 100%;
     height: 100%;
@@ -165,6 +168,8 @@
     min-width: 0;
     /* Decorative: component spacing (theme can customize) */
     gap: var(--dm-column-gap, 12px);
+    /* Phase 2: Top padding for first component breathing room */
+    padding-top: 8px;
 }
 
 /* MEASUREMENT layer: Decorative properties + fallback */
@@ -174,6 +179,8 @@
     min-width: 0;
     /* Decorative: component spacing */
     gap: var(--dm-column-gap, 12px);
+    /* Phase 2: Top padding for first component breathing room (matches visible) */
+    padding-top: 8px;
 }
 
 /* Column spacing is handled by columnWrapper's flexbox gap property.

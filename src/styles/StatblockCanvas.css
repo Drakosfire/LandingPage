@@ -585,6 +585,8 @@ h2#user-monster-name,
 .dm-canvas-measurement-layer .monster.frame.wide {
     flex: 1 1 auto;
     display: flex;
+    /* Phase 2: Ensure gap is applied for column spacing */
+    gap: var(--dm-column-gap, 12px);
     width: 100%;
     height: 100%;
     max-width: 100%;

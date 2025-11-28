@@ -60,12 +60,14 @@
     /* Kill CSS multi-column (from 5ePHBstyle.css) */
     column-count: unset !important;
     column-width: unset !important;
-    column-gap: unset !important;
     column-fill: unset !important;
+    /* NOTE: column-gap: unset was removed - it overrides flexbox gap! */
 
     /* Use flexbox for explicit .canvas-column children */
     display: flex !important;
-    gap: var(--dm-column-gap, 12px);
+    /* Phase 2: Explicit column-gap to avoid multi-column override conflict */
+    column-gap: var(--dm-column-gap, 12px) !important;
+    row-gap: var(--dm-column-gap, 12px);
     flex: 1 1 auto;
     width: 100%;
     height: 100%;

@@ -289,12 +289,14 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: rgba(88, 24, 13, 0.8);
-    text-align: right;
     /* Phase 1: Position absolute so marker doesn't reduce column height */
-    /* Without this, 24px height + 12px margin = 36px stolen from columns */
+    /* Phase 2: Centered at top of page, outside content padding */
     position: absolute;
-    top: 10mm; /* Align with page padding */
-    right: 1cm;
+    top: 4mm;
+    /* Above content area (page padding is 10mm) */
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
     margin: 0;
     z-index: 10;
 }
