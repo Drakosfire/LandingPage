@@ -18,8 +18,8 @@ body {
   background-color: var(--background-color);
 }
 
-/* Only reset child elements when needed */
-body * {
+/* Only reset child elements when needed - exclude canvas areas */
+body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *) {
   box-sizing: inherit;
   margin: 0;
 }
@@ -46,8 +46,8 @@ body * {
   margin: 0 auto;
 }
 
-/* Section-specific styling */
-section {
+/* Section-specific styling - exclude canvas sections */
+section:not(.dm-canvas-responsive section):not(.dm-canvas-measurement-layer section) {
   padding: 3rem 0;
   /* Reduced padding for better responsiveness */
 }

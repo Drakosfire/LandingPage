@@ -10,6 +10,7 @@ import type {
 } from '../../types/statblockCanvas.types';
 import type { StatBlockDetails } from '../../types/statblock.types';
 import { DND_CSS_BASE_URL } from '../../config';
+import { usePHBTheme } from '../../hooks/useTheme';
 import '../../styles/canvas/index.css';         // Shared canvas styles
 import '../../styles/StatblockComponents.css';  // StatBlock-specific styles
 import type { CanvasLayoutEntry, BasePageDimensions, MeasurementEntry, MeasurementRecord } from 'dungeonmind-canvas';
@@ -1205,34 +1206,23 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         });
     }, [layout.plan]);
 
+    // Load D&D PHB theme CSS via ThemeLoader (wrapped in @layer theme)
+    // This ensures Canvas structural CSS (@layer canvas-structure) has higher priority
+    const { isLoaded: themeLoaded, error: themeError } = usePHBTheme(DND_CSS_BASE_URL, {
+        debug: process.env.NODE_ENV !== 'production',
+    });
+
+    // Log theme loading status in development
     useEffect(() => {
-        if (!DND_CSS_BASE_URL) {
-            return;
+        if (process.env.NODE_ENV !== 'production') {
+            if (themeLoaded) {
+                console.log('🎨 [StatblockPage] PHB theme loaded via @layer theme');
+            }
+            if (themeError) {
+                console.error('❌ [StatblockPage] PHB theme error:', themeError);
+            }
         }
-
-        const cssFiles = ['all.css', 'bundle.css', 'style.css', '5ePHBstyle.css'];
-        const appendedLinks: HTMLLinkElement[] = [];
-
-        cssFiles.forEach((file) => {
-            const existing = document.querySelector(`link[data-dnd-css="${file}"]`);
-            if (existing) return;
-
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = `${DND_CSS_BASE_URL}/${file}`;
-            link.setAttribute('data-dnd-css', file);
-            document.head.appendChild(link);
-            appendedLinks.push(link);
-        });
-
-        return () => {
-            appendedLinks.forEach((link) => {
-                if (document.head.contains(link)) {
-                    document.head.removeChild(link);
-                }
-            });
-        };
-    }, [page.id]);
+    }, [themeLoaded, themeError]);
 
     useEffect(() => {
         if (!measurementHostReady && measurementEntryCount > 0 && measurementStatus !== 'complete') {

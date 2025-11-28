@@ -1,0 +1,18 @@
+/**
+ * CSS Layer Order Declaration
+ * 
+ * CRITICAL: This file must be imported FIRST before any other CSS.
+ * CSS @layer order is determined by first declaration, so this file
+ * establishes the cascade priority before any content is added.
+ * 
+ * Layer Priority (lowest to highest):
+ * 1. canvas-reset     - Browser normalization (lowest)
+ * 2. canvas-structure - Column widths, flexbox, page dimensions (Canvas owns)
+ * 3. theme            - Colors, fonts, backgrounds (Themes own - e.g., D&D PHB)
+ * 4. canvas-overrides - Structural overrides that MUST win over theme
+ * 5. component-overrides - Component-specific adjustments
+ * 6. print            - Print/PDF export styles (highest)
+ */
+
+@layer canvas-reset, canvas-structure, theme, canvas-overrides, component-overrides, print;
+

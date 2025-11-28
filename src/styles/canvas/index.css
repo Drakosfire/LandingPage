@@ -2,22 +2,29 @@
  * DungeonMind Canvas Styles - Complete System
  * 
  * Import this single file to get all canvas styling:
+ * - CSS Layer hierarchy (cascade control)
  * - Base responsive containers and layout
  * - D&D theme component styling
  * - Edit mode interactive effects
  * 
  * Usage:
  * import '../../styles/canvas/index.css';
+ * 
+ * CSS Layer Order (lowest to highest priority):
+ * 1. canvas-reset     - Browser normalization
+ * 2. canvas-structure - Column widths, flexbox (Canvas owns)
+ * 3. theme            - Colors, fonts, backgrounds (Themes own)
+ * 4. canvas-overrides - Structural overrides that MUST win over theme
+ * 5. component-overrides - Component-specific adjustments
+ * 6. print            - Print/PDF export styles
  */
 
-/* Base responsive canvas container and layout */
+/* CRITICAL: Layer order MUST be imported FIRST - @import runs before other rules */
+/* This establishes cascade priority before any @layer content blocks are processed */
+@import './canvas-layer-order.css';
+
+/* Import files - they contain @layer blocks that slot into the order above */
 @import './canvas-base.css';
-
-/* D&D theme component styling (dm-* classes) */
 @import './canvas-dnd-theme.css';
-
-/* Edit mode interactive effects (pop-out, focus) */
 @import './canvas-edit-mode.css';
-
-/* Print / PDF export support */
 @import './canvas-print.css';

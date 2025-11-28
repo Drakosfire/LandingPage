@@ -3,6 +3,7 @@ import React from 'react';
 import { Card } from '@mantine/core';
 import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { DND_CSS_BASE_URL } from '../../config';
+import { usePHBTheme } from '../../hooks/useTheme';
 import type { Action } from '../../types/statblock.types';
 
 interface DnDStatblockWorkspaceProps {
@@ -187,18 +188,12 @@ const DnDStatblockWorkspace: React.FC<DnDStatblockWorkspaceProps> = ({ height = 
         );
     };
 
+    // Load D&D PHB theme CSS via ThemeLoader (wrapped in @layer theme)
+    usePHBTheme(DND_CSS_BASE_URL);
+
     return (
         <Card shadow="sm" padding="md" radius="md" withBorder style={{ height, overflow: 'auto' }}>
-            {/* Inject external CSS if provided via env */}
-            {DND_CSS_BASE_URL && (
-                <>
-                    <link href={`${DND_CSS_BASE_URL}/all.css`} rel="stylesheet" />
-                    <link href={`${DND_CSS_BASE_URL}/bundle.css`} rel="stylesheet" />
-                    <link href={`${DND_CSS_BASE_URL}/style.css`} rel="stylesheet" />
-                    <link href={`${DND_CSS_BASE_URL}/5ePHBstyle.css`} rel="stylesheet" />
-                </>
-            )}
-
+            {/* CSS now loaded via usePHBTheme hook with @layer theme */}
             <div className='brewRenderer'>
                 <div className='pages'>
                     <div className='page phb' id='workspace-p1'>
