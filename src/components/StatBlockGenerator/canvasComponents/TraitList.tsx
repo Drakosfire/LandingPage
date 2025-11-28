@@ -84,11 +84,8 @@ const TraitList: React.FC<CanvasComponentProps> = ({ regionContent, regionOverfl
 
     return (
         <section className={`dm-trait-section${regionOverflow ? ' dm-section-overflow' : ''}`}>
-            {startIndex === 0 ? (
-                <h4 className="dm-section-heading" id="traits">{heading}</h4>
-            ) : (
-                <h4 className="dm-section-heading" id="traits">{heading}</h4>
-            )}
+            {/* Heading always shows but text changes for continuations */}
+            <h4 className="dm-section-heading" id="traits">{heading}</h4>
             <dl className="dm-action-list">
                 {items.map((trait, index) => {
                     const globalIndex = startIndex + index;

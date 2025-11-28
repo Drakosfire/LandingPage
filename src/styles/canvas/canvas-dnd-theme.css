@@ -290,7 +290,13 @@
     letter-spacing: 0.05em;
     color: rgba(88, 24, 13, 0.8);
     text-align: right;
-    margin-bottom: 0.75rem;
+    /* Phase 1: Position absolute so marker doesn't reduce column height */
+    /* Without this, 24px height + 12px margin = 36px stolen from columns */
+    position: absolute;
+    top: 10mm; /* Align with page padding */
+    right: 1cm;
+    margin: 0;
+    z-index: 10;
 }
 
 /* ===== Responsive Typography ===== */

@@ -1403,6 +1403,21 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     // Using measuredColumnWidth would cause wrong-width measurements on refresh when DOM is clamped.
     const measurementColumnWidthPx = canonicalColumnWidthPx ?? fallbackColumnWidthPx;
 
+    // DIAGNOSTIC: Log width selection to debug measurement width mismatch
+    if (process.env.NODE_ENV !== 'production' && measurementStatus === 'measuring') {
+        console.log('📐 [StatblockPage] Measurement width selection', {
+            canonicalColumnWidthPx,
+            fallbackColumnWidthPx,
+            measurementColumnWidthPx,
+            usingFallback: canonicalColumnWidthPx == null,
+            baseWidthPx,
+            columnGapPx,
+            columnCount,
+            leftMarginPx,
+            rightMarginPx,
+        });
+    }
+
     useEffect(() => {
         // Only verify fonts if portal exists, fonts are loaded, and we're ready to render (but fonts not yet verified)
         // CRITICAL: We need fontsReady to be true before checking fonts in measurement layer
@@ -1742,13 +1757,17 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                             <div
                                 className="canvas-column"
                                 style={{
-                                    width: measurementColumnWidthPx != null
-                                        ? `${measurementColumnWidthPx}px`
-                                        : `${fallbackColumnWidthPx}px`,
-                                    maxWidth: measurementColumnWidthPx != null
-                                        ? `${measurementColumnWidthPx}px`
-                                        : `${fallbackColumnWidthPx}px`,
+                                    // Phase 1: Use IDENTICAL structural styles as visible layer
+                                    // to guarantee measurement width === visible width
+                                    width: `${measurementColumnWidthPx ?? fallbackColumnWidthPx}px`,
+                                    boxSizing: 'border-box',
+                                    display: 'flex',
+                                    flexDirection: 'column',
                                     flex: 'none',
+                                    flexShrink: 0,
+                                    flexGrow: 0,
+                                    minWidth: 0,
+                                    overflow: 'hidden',
                                 }}
                             >
                                 <MeasurementLayer
@@ -1782,7 +1801,11 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                     <div className="dm-canvas-renderer" style={canvasRendererStyle}>
                         <div className="dm-canvas-pages">
                             <div className="dm-canvas-pages-content">
-                                <CanvasPage layoutPlan={layout.plan} renderEntry={renderWithProps} />
+                                <CanvasPage
+                                    layoutPlan={layout.plan}
+                                    renderEntry={renderWithProps}
+                                    columnWidthPx={measurementColumnWidthPx}
+                                />
                             </div>
                         </div>
                     </div>

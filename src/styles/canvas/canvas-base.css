@@ -64,6 +64,8 @@
     height: var(--dm-page-height);
     /* CSS multi-column DISABLED - Canvas uses explicit flexbox columns via .canvas-column divs */
     /* This prevents conflict with dungeonmind-canvas layout system */
+    /* Phase 1: Enable absolute positioning for pagination marker */
+    position: relative;
 }
 
 /* ===== Canvas Page Wrapper ===== */
@@ -103,6 +105,12 @@
     column-width: unset !important;
     column-gap: unset !important;
     column-fill: unset !important;
+    /* CRITICAL: Override PHB padding to match Canvas DEFAULT_PAGE_*_MARGIN_MM (10mm = 37.8px) */
+    /* Without this, CSS provides less space than pagination expects, causing overflow */
+    /* Canvas computes: contentHeightPx = pageHeight - (topMargin + bottomMargin) = 1056 - 75.6 = 980.4px */
+    padding: 10mm 1cm !important;
+    /* top/bottom: 10mm, left/right: 1cm */
+    box-sizing: border-box !important;
 }
 
 .dm-canvas-responsive .columnWrapper,
@@ -110,7 +118,10 @@
     display: flex;
     gap: var(--dm-column-gap, 12px);
     width: 100%;
-    height: 900px;
+    /* Phase 1: Use 100% to fill available page area (page height minus padding) */
+    /* This ensures columnWrapper height matches regionHeightPx used by pagination */
+    /* Previous hardcoded 900px caused ~80px overflow because pagination uses ~980px */
+    height: 100%;
     column-count: unset !important;
     column-width: unset !important;
     column-gap: unset !important;
@@ -132,29 +143,49 @@
     height: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    /* CRITICAL: Override D&D theme padding/margin which steal space from columns */
+    /* Without this: 4px top + 4px bottom padding + 12px margin = 20px lost */
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-/* CRITICAL: High specificity to override any other .canvas-column rules */
-.dm-canvas-responsive .monster.frame.wide .canvas-column,
-.dm-canvas-measurement-layer .monster.frame.wide .canvas-column {
-    /* Equal-width columns: flex distributes space evenly */
-    flex: 1 1 0% !important;
-    /* Equal growth/shrink, 0% basis */
+/* ===== Canvas Column Rules (Phase 1: Measurement Perfection) ===== */
+/* 
+ * STRUCTURAL properties (width, flex, display, box-sizing) are now controlled
+ * via inline styles in CanvasPage.tsx using createColumnStructuralStyles().
+ * This guarantees measurement layer width === visible layer width.
+ * 
+ * CSS here provides DECORATIVE properties (gap) and FALLBACK for legacy usage.
+ */
+
+/* VISIBLE layer: Decorative properties + fallback */
+.dm-canvas-responsive .monster.frame.wide .canvas-column {
+    /* Fallback flex if no inline styles provided (legacy compatibility) */
+    flex: 1 1 0%;
     min-width: 0;
-    /* Allow flex shrinking below content size */
-    display: flex !important;
-    flex-direction: column;
+    /* Decorative: component spacing (theme can customize) */
     gap: var(--dm-column-gap, 12px);
 }
 
+/* MEASUREMENT layer: Decorative properties + fallback */
+.dm-canvas-measurement-layer .monster.frame.wide .canvas-column {
+    /* Fallback flex if no inline styles provided */
+    flex: none;
+    min-width: 0;
+    /* Decorative: component spacing */
+    gap: var(--dm-column-gap, 12px);
+}
+
+/* Column spacing is handled by columnWrapper's flexbox gap property.
+   DO NOT add margins here - they would double-count spacing and make columns narrower. */
 .dm-canvas-responsive .monster.frame.wide .canvas-column:first-of-type,
 .dm-canvas-measurement-layer .monster.frame.wide .canvas-column:first-of-type {
-    margin-right: calc(var(--dm-column-gap, 12px) / 2);
+    margin-right: 0;
 }
 
 .dm-canvas-responsive .monster.frame.wide .canvas-column:last-of-type,
 .dm-canvas-measurement-layer .monster.frame.wide .canvas-column:last-of-type {
-    margin-left: calc(var(--dm-column-gap, 12px) / 2);
+    margin-left: 0;
 }
 
 /* ===== Measurement Layer ===== */

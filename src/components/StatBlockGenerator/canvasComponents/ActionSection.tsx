@@ -67,7 +67,29 @@ const ActionSection: React.FC<CanvasComponentProps> = ({ regionContent, regionOv
         };
     }, [isEditing, releaseComponentLock]);
 
+    // DIAGNOSTIC: Log render state for heading investigation
+    const renderKey = `${regionContent?.startIndex ?? 'null'}:${regionContent?.items?.length ?? 0}`;
+    const inMeasurementLayer = typeof document !== 'undefined'
+        && document.querySelector('.dm-measurement-layer')?.contains(
+            document.querySelector(`[data-measurement-key*="action-list:${regionContent?.startIndex ?? '?'}:${regionContent?.items?.length ?? '?'}"]`)
+        );
+
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('🔬 [ActionSection] Render', {
+            renderKey,
+            hasRegionContent: !!regionContent,
+            itemCount: regionContent?.items?.length ?? 0,
+            startIndex: regionContent?.startIndex ?? 'undefined',
+            isContinuation: regionContent?.isContinuation ?? 'undefined',
+            inMeasurementLayer,
+            timestamp: Date.now(),
+        });
+    }
+
     if (!regionContent || regionContent.items.length === 0) {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('🔬 [ActionSection] EARLY RETURN (no content)', { renderKey });
+        }
         return null;
     }
 
@@ -76,11 +98,20 @@ const ActionSection: React.FC<CanvasComponentProps> = ({ regionContent, regionOv
     const showHeading = startIndex === 0;
     const headingText = isContinuation ? 'Actions (cont.)' : 'Actions';
 
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('🔬 [ActionSection] Rendering with heading', {
+            showHeading,
+            headingText,
+            startIndex,
+            itemCount: items.length,
+            totalCount,
+        });
+    }
+
     return (
         <section className={`dm-action-section${regionOverflow ? ' dm-section-overflow' : ''}`}>
-            {showHeading ? (
-                <h4 className="dm-section-heading" id="actions">{headingText}</h4>
-            ) : (
+            {/* FIXED: Only render heading for startIndex === 0, hide for continuations */}
+            {showHeading && (
                 <h4 className="dm-section-heading" id="actions">{headingText}</h4>
             )}
             <dl className="dm-action-list">
