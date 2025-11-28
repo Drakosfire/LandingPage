@@ -137,13 +137,21 @@
     }
 
     /* ===== Content Sections (Actions, Traits, etc.) ===== */
+    /* CRITICAL: Include measurement layer selectors for consistent measurement */
     .dm-action-section,
     .dm-trait-section,
     .dm-bonus-action-section,
     .dm-reaction-section,
     .dm-legendary-section,
     .dm-lair-section,
-    .dm-spellcasting-section {
+    .dm-spellcasting-section,
+    .dm-canvas-measurement-layer .dm-action-section,
+    .dm-canvas-measurement-layer .dm-trait-section,
+    .dm-canvas-measurement-layer .dm-bonus-action-section,
+    .dm-canvas-measurement-layer .dm-reaction-section,
+    .dm-canvas-measurement-layer .dm-legendary-section,
+    .dm-canvas-measurement-layer .dm-lair-section,
+    .dm-canvas-measurement-layer .dm-spellcasting-section {
         font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
         background: var(--dm-white-overlay);
         padding: 0.8rem 1rem;
@@ -152,7 +160,8 @@
         margin-bottom: 0.6rem;
     }
 
-    .dm-section-heading {
+    .dm-section-heading,
+    .dm-canvas-measurement-layer .dm-section-heading {
         font-family: 'BookInsanityRemake', serif;
         color: var(--dm-text-maroon-red);
         text-transform: uppercase;
@@ -162,14 +171,19 @@
 
     /* ===== Action/Trait Lists ===== */
     .dm-action-list,
-    .dm-trait-list {
+    .dm-trait-list,
+    .dm-canvas-measurement-layer .dm-action-list,
+    .dm-canvas-measurement-layer .dm-trait-list {
         margin: 0;
         padding: 0;
     }
 
     /* ===== List Item Layout: Term → Break → Description ===== */
+    /* CRITICAL: Include measurement layer selectors to ensure measured heights match rendered heights */
     .dm-action-term,
-    .dm-trait-term {
+    .dm-trait-term,
+    .dm-canvas-measurement-layer .dm-action-term,
+    .dm-canvas-measurement-layer .dm-trait-term {
         font-family: 'BookInsanityRemake', serif;
         font-size: 1.05rem;
         color: var(--dm-text-header-brown);
@@ -179,17 +193,23 @@
 
     /* First term in list should not have top margin */
     .dm-action-list>.dm-action-term:first-child,
-    .dm-trait-list>.dm-trait-term:first-child {
+    .dm-trait-list>.dm-trait-term:first-child,
+    .dm-canvas-measurement-layer .dm-action-list>.dm-action-term:first-child,
+    .dm-canvas-measurement-layer .dm-trait-list>.dm-trait-term:first-child {
         margin-top: 0;
     }
 
     .dm-action-term strong,
-    .dm-trait-term strong {
+    .dm-trait-term strong,
+    .dm-canvas-measurement-layer .dm-action-term strong,
+    .dm-canvas-measurement-layer .dm-trait-term strong {
         font-weight: 700;
     }
 
     .dm-action-description,
-    .dm-trait-description {
+    .dm-trait-description,
+    .dm-canvas-measurement-layer .dm-action-description,
+    .dm-canvas-measurement-layer .dm-trait-description {
         display: block;
         margin: 0 0 0.5rem;
         color: var(--dm-text-dark-brown);
@@ -198,7 +218,9 @@
 
     /* Hide dividers - cleaner look without separator lines */
     .dm-action-divider,
-    .dm-trait-divider {
+    .dm-trait-divider,
+    .dm-canvas-measurement-layer .dm-action-divider,
+    .dm-canvas-measurement-layer .dm-trait-divider {
         display: none;
     }
 
@@ -241,7 +263,9 @@
     }
 
     /* ===== Spell Item Layout: Name → Meta → Description (each on own line) ===== */
-    .dm-spellcasting-term {
+    /* CRITICAL: Include measurement layer selectors for consistent measurement */
+    .dm-spellcasting-term,
+    .dm-canvas-measurement-layer .dm-spellcasting-term {
         display: block;
         font-family: 'BookInsanityRemake', serif;
         color: var(--dm-text-header-brown);
@@ -249,16 +273,19 @@
     }
 
     /* First spell term shouldn't have top margin */
-    .dm-spellcasting-deflist>.dm-spellcasting-term:first-child {
+    .dm-spellcasting-deflist>.dm-spellcasting-term:first-child,
+    .dm-canvas-measurement-layer .dm-spellcasting-deflist>.dm-spellcasting-term:first-child {
         margin-top: 0;
     }
 
-    .dm-spellcasting-term strong {
+    .dm-spellcasting-term strong,
+    .dm-canvas-measurement-layer .dm-spellcasting-term strong {
         font-size: 1.05rem;
         display: block;
     }
 
-    .dm-spellcasting-meta {
+    .dm-spellcasting-meta,
+    .dm-canvas-measurement-layer .dm-spellcasting-meta {
         font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
         font-size: 0.85rem;
         font-style: italic;
@@ -267,7 +294,8 @@
         margin: 0.1rem 0 0.15rem;
     }
 
-    .dm-spellcasting-description {
+    .dm-spellcasting-description,
+    .dm-canvas-measurement-layer .dm-spellcasting-description {
         font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
         font-size: 0.9rem;
         line-height: 1.35;
