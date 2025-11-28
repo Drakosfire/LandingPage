@@ -171,8 +171,7 @@
         min-width: 0;
         /* Decorative: component spacing (theme can customize) */
         gap: var(--dm-column-gap, 12px);
-        /* Phase 2: Top padding for first component breathing room */
-        padding-top: 8px;
+        /* NOTE: padding is in canvas-overrides layer to beat theme reset */
     }
 
     /* MEASUREMENT layer: Decorative properties + fallback */
@@ -182,8 +181,7 @@
         min-width: 0;
         /* Decorative: component spacing */
         gap: var(--dm-column-gap, 12px);
-        /* Phase 2: Top padding for first component breathing room (matches visible) */
-        padding-top: 8px;
+        /* NOTE: padding is in canvas-overrides layer to beat theme reset */
     }
 
     /* Column spacing is handled by columnWrapper's flexbox gap property.
@@ -286,11 +284,10 @@
         gap: var(--dm-column-gap, 12px);
     }
 
-    /* Component horizontal padding - breathing room inside columns */
+    /* Column padding: breathing room for components (beats theme reset) */
     .dm-canvas-responsive .monster.frame.wide .canvas-column,
     .dm-canvas-measurement-layer .monster.frame.wide .canvas-column {
-        padding-left: 5px;
-        padding-right: 5px;
+        padding: 8px 5px;
     }
 
 }
