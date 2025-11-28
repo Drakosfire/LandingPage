@@ -10,10 +10,13 @@ import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 const formatSpellSlots = (slots: SpellcastingBlockType['spellSlots']) => {
     const entries = Object.entries(slots || {})
         .filter(([, value]) => value && value > 0)
-        .map(([key, value]) => ({
-            level: Number(key.replace('level', '')),  // Backend sends 'level1', 'level2', etc.
-            value,
-        }))
+        .map(([key, value]) => {
+            // Handle various key formats: 'level1', '1', 'slot1', 'first', etc.
+            const numericMatch = key.match(/(\d+)/);
+            const level = numericMatch ? Number(numericMatch[1]) : NaN;
+            return { level, value };
+        })
+        .filter(entry => !isNaN(entry.level)) // Skip entries with unparseable levels
         .sort((a, b) => a.level - b.level);
 
     if (entries.length === 0) {
