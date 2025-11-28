@@ -304,32 +304,33 @@
     padding: 5px !important;
 }
 
-/* Override global "body *" margin reset for action/trait list items */
+/* Override global "body *" margin reset for list items (block layout: term → description) */
 .dm-canvas-responsive .dm-action-term,
 .dm-canvas-responsive .dm-trait-term,
+.dm-canvas-responsive .dm-spellcasting-term,
 .dm-canvas-measurement-layer .dm-action-term,
-.dm-canvas-measurement-layer .dm-trait-term {
-    margin: 0.5rem 0 0.2rem !important;
+.dm-canvas-measurement-layer .dm-trait-term,
+.dm-canvas-measurement-layer .dm-spellcasting-term {
+    margin: 0.6rem 0 0.15rem !important;
+    display: block !important;
 }
 
-/* First term shouldn't have top margin */
+/* First term in list shouldn't have top margin */
 .dm-canvas-responsive .dm-action-list>.dm-action-term:first-child,
 .dm-canvas-responsive .dm-trait-list>.dm-trait-term:first-child,
+.dm-canvas-responsive .dm-spellcasting-deflist>.dm-spellcasting-term:first-child,
 .dm-canvas-measurement-layer .dm-action-list>.dm-action-term:first-child,
-.dm-canvas-measurement-layer .dm-trait-list>.dm-trait-term:first-child {
+.dm-canvas-measurement-layer .dm-trait-list>.dm-trait-term:first-child,
+.dm-canvas-measurement-layer .dm-spellcasting-deflist>.dm-spellcasting-term:first-child {
     margin-top: 0 !important;
 }
 
 .dm-canvas-responsive .dm-action-description,
 .dm-canvas-responsive .dm-trait-description,
+.dm-canvas-responsive .dm-spellcasting-description,
 .dm-canvas-measurement-layer .dm-action-description,
-.dm-canvas-measurement-layer .dm-trait-description {
-    margin: 0.2rem 0 0.4rem !important;
-}
-
-.dm-canvas-responsive .dm-action-divider,
-.dm-canvas-responsive .dm-trait-divider,
-.dm-canvas-measurement-layer .dm-action-divider,
-.dm-canvas-measurement-layer .dm-trait-divider {
-    margin: 0.5rem 0 !important;
+.dm-canvas-measurement-layer .dm-trait-description,
+.dm-canvas-measurement-layer .dm-spellcasting-description {
+    margin: 0 0 0.5rem !important;
+    display: block !important;
 }

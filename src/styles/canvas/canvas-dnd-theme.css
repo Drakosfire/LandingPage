@@ -167,16 +167,14 @@
         padding: 0;
     }
 
+    /* ===== List Item Layout: Term → Break → Description ===== */
     .dm-action-term,
     .dm-trait-term {
         font-family: 'BookInsanityRemake', serif;
         font-size: 1.05rem;
-        margin: 0.5rem 0 0.2rem;
-        margin-right: 0.25rem;
-        /* Space between term and description text */
         color: var(--dm-text-header-brown);
-        display: inline;
-        /* Inline so term flows with description */
+        display: block;
+        margin: 0.6rem 0 0.15rem;
     }
 
     /* First term in list should not have top margin */
@@ -192,17 +190,16 @@
 
     .dm-action-description,
     .dm-trait-description {
-        margin: 0.2rem 0 0.4rem;
+        display: block;
+        margin: 0 0 0.5rem;
         color: var(--dm-text-dark-brown);
         line-height: 1.4;
     }
 
+    /* Hide dividers - cleaner look without separator lines */
     .dm-action-divider,
     .dm-trait-divider {
-        height: 1px;
-        width: 100%;
-        background: rgba(88, 24, 13, 0.25);
-        margin: 0.5rem 0;
+        display: none;
     }
 
     /* ===== Spellcasting Components ===== */
@@ -243,29 +240,39 @@
         padding: 0;
     }
 
+    /* ===== Spell Item Layout: Name → Meta → Description (each on own line) ===== */
     .dm-spellcasting-term {
-        display: flex;
-        flex-direction: column;
+        display: block;
         font-family: 'BookInsanityRemake', serif;
         color: var(--dm-text-header-brown);
+        margin: 0.6rem 0 0;
+    }
+
+    /* First spell term shouldn't have top margin */
+    .dm-spellcasting-deflist>.dm-spellcasting-term:first-child {
+        margin-top: 0;
     }
 
     .dm-spellcasting-term strong {
         font-size: 1.05rem;
+        display: block;
     }
 
     .dm-spellcasting-meta {
         font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
         font-size: 0.85rem;
+        font-style: italic;
         color: rgba(43, 29, 15, 0.75);
-        margin-top: 0.15rem;
+        display: block;
+        margin: 0.1rem 0 0.15rem;
     }
 
     .dm-spellcasting-description {
         font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
         font-size: 0.9rem;
         line-height: 1.35;
-        margin: 0.25rem 0 0.6rem;
+        display: block;
+        margin: 0 0 0.5rem;
         color: var(--dm-text-dark-brown);
     }
 
