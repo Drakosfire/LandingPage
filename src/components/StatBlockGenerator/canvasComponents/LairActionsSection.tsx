@@ -128,7 +128,7 @@ const LairActionsSection: React.FC<CanvasComponentProps> = ({ regionContent, reg
 
             {/* Lair Name - Only show on first page */}
             {startIndex === 0 && lairName && (
-                <p className="dm-lair-name" style={{ fontStyle: 'italic', fontWeight: 600, marginTop: '0.5em' }}>
+                <p className="dm-lair-name" style={{ fontStyle: 'italic', fontWeight: 600, marginTop: '6px' }}>
                     <EditableText
                         value={lairName}
                         onChange={updateLairName}
@@ -142,7 +142,7 @@ const LairActionsSection: React.FC<CanvasComponentProps> = ({ regionContent, reg
 
             {/* Lair Description (Sensory Flavor) - Only show on first page */}
             {startIndex === 0 && lairDescription && (
-                <p className="dm-lair-flavor" style={{ fontStyle: 'italic', marginTop: '0.5em', marginBottom: '0.75em' }}>
+                <p className="dm-lair-flavor" style={{ fontStyle: 'italic', marginTop: '6px', marginBottom: '9px' }}>
                     <EditableText
                         value={lairDescription}
                         onChange={updateLairDescription}

@@ -27,14 +27,18 @@
 @layer theme {
 
     /* ===== Identity Header (Creature/Character Name) ===== */
-    .dm-identity-header {
+    /* CRITICAL: Include measurement layer selectors for consistent measurement */
+    .dm-identity-header,
+    .dm-canvas-measurement-layer .dm-identity-header {
         text-align: left;
         color: var(--dm-text-header-brown);
         position: relative;
     }
 
     .dm-monster-name,
-    .dm-character-name {
+    .dm-character-name,
+    .dm-canvas-measurement-layer .dm-monster-name,
+    .dm-canvas-measurement-layer .dm-character-name {
         font-family: 'BookInsanityRemake', 'NodestoCapsCondensed', serif;
         font-size: 2.2rem;
         letter-spacing: 0.02em;
@@ -43,7 +47,9 @@
     }
 
     .dm-monster-meta,
-    .dm-character-meta {
+    .dm-character-meta,
+    .dm-canvas-measurement-layer .dm-monster-meta,
+    .dm-canvas-measurement-layer .dm-character-meta {
         font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
         font-size: 1rem;
         margin: 0.3rem 0 0;
@@ -51,7 +57,9 @@
     }
 
     /* ===== Stat Summary Block ===== */
-    .dm-stat-summary {
+    /* CRITICAL: Include measurement layer selectors for consistent measurement */
+    .dm-stat-summary,
+    .dm-canvas-measurement-layer .dm-stat-summary {
         font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
         font-size: 0.95rem;
         background: rgba(255, 255, 255, 0.65);
@@ -61,18 +69,22 @@
         box-shadow: 0 0 6px var(--dm-shadow-subtle);
     }
 
-    .dm-stat-summary dt {
+    .dm-stat-summary dt,
+    .dm-canvas-measurement-layer .dm-stat-summary dt {
         font-weight: 700;
         color: var(--dm-text-header-brown);
     }
 
-    .dm-stat-summary dd {
+    .dm-stat-summary dd,
+    .dm-canvas-measurement-layer .dm-stat-summary dd {
         font-weight: 600;
         margin-bottom: 0.4rem;
     }
 
     /* ===== Quick Facts ===== */
-    .dm-quickfacts {
+    /* CRITICAL: Include measurement layer selectors for consistent measurement */
+    .dm-quickfacts,
+    .dm-canvas-measurement-layer .dm-quickfacts {
         font-family: 'ScalySansRemake', 'Open Sans', sans-serif;
         font-size: 0.95rem;
         background: rgba(255, 249, 237, 0.8);
@@ -82,23 +94,28 @@
         box-shadow: 0 0 4px var(--dm-shadow-subtle);
     }
 
-    .dm-quickfacts-row {
+    .dm-quickfacts-row,
+    .dm-canvas-measurement-layer .dm-quickfacts-row {
         display: flex;
         gap: 0.3rem;
         margin-bottom: 0.25rem;
     }
 
-    .dm-quickfacts-row strong {
+    .dm-quickfacts-row strong,
+    .dm-canvas-measurement-layer .dm-quickfacts-row strong {
         color: var(--dm-text-header-brown);
         font-weight: 700;
     }
 
-    .dm-quickfacts-row span {
+    .dm-quickfacts-row span,
+    .dm-canvas-measurement-layer .dm-quickfacts-row span {
         font-weight: 600;
     }
 
     /* ===== Ability Scores Table ===== */
-    .dm-ability-table {
+    /* CRITICAL: Include measurement layer selectors for consistent measurement */
+    .dm-ability-table,
+    .dm-canvas-measurement-layer .dm-ability-table {
         width: 100%;
         border-collapse: collapse;
         text-align: center;
@@ -108,7 +125,8 @@
         box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
     }
 
-    .dm-ability-table th {
+    .dm-ability-table th,
+    .dm-canvas-measurement-layer .dm-ability-table th {
         background: linear-gradient(180deg,
                 rgba(143, 36, 28, 0.9) 0%,
                 rgba(90, 22, 18, 0.9) 100%);
@@ -117,12 +135,14 @@
         font-weight: 700;
     }
 
-    .dm-ability-table td {
+    .dm-ability-table td,
+    .dm-canvas-measurement-layer .dm-ability-table td {
         padding: 0.5rem 0;
         color: var(--dm-text-dark-brown);
     }
 
-    .dm-ability-value {
+    .dm-ability-value,
+    .dm-canvas-measurement-layer .dm-ability-value {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -130,7 +150,8 @@
         font-weight: 700;
     }
 
-    .dm-ability-value span:last-child {
+    .dm-ability-value span:last-child,
+    .dm-canvas-measurement-layer .dm-ability-value span:last-child {
         font-size: 0.85rem;
         font-weight: 600;
         color: var(--dm-text-header-brown);
@@ -225,30 +246,38 @@
     }
 
     /* ===== Spellcasting Components ===== */
-    .dm-spellcasting-table {
+    /* CRITICAL: Include measurement layer selectors for consistent measurement */
+    .dm-spellcasting-table,
+    .dm-canvas-measurement-layer .dm-spellcasting-table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 0.4rem;
     }
 
     .dm-spellcasting-table th,
-    .dm-spellcasting-table td {
+    .dm-spellcasting-table td,
+    .dm-canvas-measurement-layer .dm-spellcasting-table th,
+    .dm-canvas-measurement-layer .dm-spellcasting-table td {
         text-align: left;
         padding: 0.3rem 0.4rem;
         border-bottom: 1px solid rgba(88, 24, 13, 0.2);
     }
 
-    .dm-spellcasting-table th {
+    .dm-spellcasting-table th,
+    .dm-canvas-measurement-layer .dm-spellcasting-table th {
         background: rgba(161, 29, 24, 0.12);
         font-weight: 700;
         color: var(--dm-text-header-brown);
     }
 
-    .dm-spellcasting-list-section {
+    /* CRITICAL: Include measurement layer selectors for consistent measurement */
+    .dm-spellcasting-list-section,
+    .dm-canvas-measurement-layer .dm-spellcasting-list-section {
         margin-top: 0.75rem;
     }
 
-    .dm-spellcasting-subheading {
+    .dm-spellcasting-subheading,
+    .dm-canvas-measurement-layer .dm-spellcasting-subheading {
         font-family: 'BookInsanityRemake', serif;
         color: var(--dm-text-header-brown);
         margin: 0 0 0.4rem;
@@ -257,7 +286,8 @@
         letter-spacing: 0.04em;
     }
 
-    .dm-spellcasting-deflist {
+    .dm-spellcasting-deflist,
+    .dm-canvas-measurement-layer .dm-spellcasting-deflist {
         margin: 0;
         padding: 0;
     }

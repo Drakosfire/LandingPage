@@ -167,6 +167,12 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const canonicalWidthLockRef = useRef<boolean>(false);
     const [scale, setScale] = useState(1);
     const [fontsReady, setFontsReady] = useState(false);
+    
+    // Phase 4 A2: Load theme CSS early so we can pass ready signal to MeasurementLayer
+    const { isLoaded: themeLoaded, error: themeError } = usePHBTheme(DND_CSS_BASE_URL, {
+        debug: process.env.NODE_ENV !== 'production',
+    });
+    
     const [measuredColumnWidth, setMeasuredColumnWidth] = useState<number | null>(null);
     const [hasCanonicalWidthLock, setHasCanonicalWidthLock] = useState(false);
     // Spike branch: fully eliminate live DOM scrollHeight; always use canonical height
@@ -318,9 +324,10 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     }), [page.pageVariables]);
 
     const layout = useCanvasLayout({
-        componentInstances: fontsReady ? page.componentInstances : [],
+        // Phase 4 A2: Always pass components - MeasurementLayer gates via `ready` prop
+        componentInstances: page.componentInstances,
         template,
-        dataSources: fontsReady ? (page.dataSources ?? []) : [],
+        dataSources: page.dataSources ?? [],
         componentRegistry: componentRegistry as any,
         pageVariables: pageVariablesWithMargins,
         adapters,
@@ -344,6 +351,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         if (process.env.NODE_ENV !== 'production' && layout.plan) {
             console.log('[StatblockPage] Layout state:', {
                 fontsReady,
+                themeLoaded,
                 componentCount: page.componentInstances.length,
                 layoutPlanExists: !!layout.plan,
                 pageCount: layout.plan?.pages.length ?? 0,
@@ -367,7 +375,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                 );
             }
         }
-    }, [fontsReady, page.componentInstances.length, layout.plan, layout.baseDimensions]);
+    }, [fontsReady, themeLoaded, page.componentInstances.length, layout.plan, layout.baseDimensions]);
 
     const {
         widthPx: baseWidthPx,
@@ -1022,6 +1030,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     // 1. Fonts are ready AND canonical width is available (canonicalColumnWidthPx is not null)
     // 2. OR truly fresh mount (fonts not ready yet, will wait anyway)
     // The measurement layer uses canonicalColumnWidthPx directly, so as long as it's available, measurement is safe.
+    // Phase 4 A2: MeasurementLayer now handles CSS/font readiness via `ready` prop
     const measurementHostReady = fontsReady && (canonicalColumnWidthPx != null || (!isLikelyRefresh && isFreshMount && planPageCount === 0));
     const canonicalWidthMismatchStartRef = useRef<number | null>(null);
     const canonicalWidthMismatchTimeoutRef = useRef<number | null>(null);
@@ -1178,7 +1187,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             }
             layout.onMeasurements(updates);
         },
-        [fontsReady, hasCanonicalWidthLock, layout, measurementHostReady, measurementStatus, planPageCount, measurementLayerFontsReady]
+        [fontsReady, themeLoaded, hasCanonicalWidthLock, layout, measurementHostReady, measurementStatus, planPageCount, measurementLayerFontsReady]
     );
 
     useEffect(() => {
@@ -1206,12 +1215,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         });
     }, [layout.plan]);
 
-    // Load D&D PHB theme CSS via ThemeLoader (wrapped in @layer theme)
-    // This ensures Canvas structural CSS (@layer canvas-structure) has higher priority
-    const { isLoaded: themeLoaded, error: themeError } = usePHBTheme(DND_CSS_BASE_URL, {
-        debug: process.env.NODE_ENV !== 'production',
-    });
-
+    // Theme hook moved to top of component (before useCanvasLayout) to gate measurements
     // Log theme loading status in development
     useEffect(() => {
         if (process.env.NODE_ENV !== 'production') {
@@ -1410,7 +1414,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
 
     useEffect(() => {
         // Only verify fonts if portal exists, fonts are loaded, and we're ready to render (but fonts not yet verified)
-        // CRITICAL: We need fontsReady to be true before checking fonts in measurement layer
+        // Phase 4 A2: MeasurementLayer now handles CSS/font readiness via `ready` prop
         if (!measurementPortalNode || !measurementHostReady || !fontsReady || measurementStatus === 'complete') {
             setMeasurementLayerFontsReady(false);
             return;
@@ -1774,6 +1778,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                                     coordinator={measurementCoordinator}
                                     measuredColumnWidth={measurementColumnWidthPx}
                                     stagingMode="embedded"
+                                    ready={fontsReady && themeLoaded}
                                 />
                             </div>
                         </div>
