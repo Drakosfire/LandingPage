@@ -53,9 +53,9 @@
 
 ### 2.3 Provider Integration
 
-- [ ] T011 Add ruleEngine to context in `src/components/PlayerCharacterGenerator/PlayerCharacterGeneratorProvider.tsx`
-- [ ] T012 Add validation state derived from engine in `PlayerCharacterGeneratorProvider.tsx`
-- [ ] T013 Verify all 77+ existing tests still pass after engine integration
+- [x] T011 Add ruleEngine to context in `src/components/PlayerCharacterGenerator/PlayerCharacterGeneratorProvider.tsx` ✅
+- [x] T012 Add validation state derived from engine in `PlayerCharacterGeneratorProvider.tsx` ✅ (validation + isCharacterValid)
+- [x] T013 Verify all 77+ existing tests still pass after engine integration ✅ 112 tests pass
 
 ---
 
@@ -66,6 +66,7 @@
 **Depends On**: Phase 2 complete
 
 ### 3.1 SRD Race Data
+We can mine this https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 
 - [ ] T014 [P] [US1] Add Mountain Dwarf subrace in `src/components/PlayerCharacterGenerator/data/dnd5e/races.ts`
 - [ ] T015 [P] [US1] Add High Elf and Wood Elf subraces in `data/dnd5e/races.ts`

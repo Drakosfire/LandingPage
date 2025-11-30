@@ -57,18 +57,18 @@ expect.extend({
         const pass = received >= 1 && received <= 30; // Allow wider range for edge cases
         return {
             pass,
-            message: () => 
-                pass 
+            message: () =>
+                pass
                     ? `Expected ${received} not to be a valid ability score`
                     : `Expected ${received} to be a valid ability score (1-30)`
         };
     },
-    
+
     /**
      * Check if object has all required character fields
      */
     toBeValidCharacter(received: any) {
-        const hasRequiredFields = 
+        const hasRequiredFields =
             typeof received === 'object' &&
             received !== null &&
             typeof received.id === 'string' &&
@@ -77,10 +77,10 @@ expect.extend({
             typeof received.system === 'string' &&
             typeof received.createdAt === 'string' &&
             typeof received.updatedAt === 'string';
-        
+
         return {
             pass: hasRequiredFields,
-            message: () => 
+            message: () =>
                 hasRequiredFields
                     ? `Expected object not to be a valid character`
                     : `Expected object to have all required character fields (id, name, level, system, createdAt, updatedAt)`

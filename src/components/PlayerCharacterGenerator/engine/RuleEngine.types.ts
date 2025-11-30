@@ -10,12 +10,12 @@
 /**
  * Character creation wizard steps
  */
-export type CreationStep = 
-    | 'abilityScores' 
-    | 'race' 
-    | 'class' 
-    | 'background' 
-    | 'equipment' 
+export type CreationStep =
+    | 'abilityScores'
+    | 'race'
+    | 'class'
+    | 'background'
+    | 'equipment'
     | 'review';
 
 /**
@@ -29,16 +29,16 @@ export type ValidationSeverity = 'error' | 'warning' | 'info';
 export interface ValidationError {
     /** Machine-readable error code (e.g., 'SKILL_COUNT_INVALID') */
     code: string;
-    
+
     /** Human-readable error message */
     message: string;
-    
+
     /** Which wizard step this error relates to */
     step: CreationStep;
-    
+
     /** Specific field within the step (optional) */
     field?: string;
-    
+
     /** Severity level */
     severity: ValidationSeverity;
 }
@@ -49,13 +49,13 @@ export interface ValidationError {
 export interface ValidationResult {
     /** True if no errors (warnings/info allowed) */
     isValid: boolean;
-    
+
     /** Errors that MUST be fixed */
     errors: ValidationError[];
-    
+
     /** Warnings that SHOULD be fixed */
     warnings: ValidationError[];
-    
+
     /** Informational messages */
     info: ValidationError[];
 }
@@ -66,10 +66,10 @@ export interface ValidationResult {
 export interface SkillChoice {
     /** Number of skills to choose */
     count: number;
-    
+
     /** Available skill names to choose from */
     options: string[];
-    
+
     /** Currently selected skill names */
     selected: string[];
 }
@@ -80,13 +80,13 @@ export interface SkillChoice {
 export interface EquipmentOption {
     /** Unique identifier */
     id: string;
-    
+
     /** Display name */
     name: string;
-    
+
     /** Items included in this option */
     items: EquipmentItem[];
-    
+
     /** Description of the option */
     description?: string;
 }
@@ -97,13 +97,13 @@ export interface EquipmentOption {
 export interface EquipmentItem {
     /** Item identifier */
     id: string;
-    
+
     /** Item name */
     name: string;
-    
+
     /** Quantity */
     quantity: number;
-    
+
     /** Item type */
     type: 'weapon' | 'armor' | 'gear' | 'tool' | 'pack';
 }
@@ -115,13 +115,13 @@ export interface EquipmentItem {
 export interface EquipmentChoiceGroup {
     /** Unique identifier for this choice group */
     id: string;
-    
+
     /** Description (e.g., "Choose one of the following") */
     description: string;
-    
+
     /** Available options */
     options: EquipmentOption[];
-    
+
     /** Index of selected option (undefined if not yet chosen) */
     selectedIndex?: number;
 }
@@ -132,28 +132,28 @@ export interface EquipmentChoiceGroup {
 export interface DerivedStats {
     /** Armor Class */
     armorClass: number;
-    
+
     /** Initiative bonus */
     initiative: number;
-    
+
     /** Base walking speed */
     speed: number;
-    
+
     /** Maximum hit points */
     maxHitPoints: number;
-    
+
     /** Current hit points (defaults to max) */
     currentHitPoints: number;
-    
+
     /** Proficiency bonus */
     proficiencyBonus: number;
-    
+
     /** Passive Perception */
     passivePerception: number;
-    
+
     /** Spell save DC (if spellcaster) */
     spellSaveDC?: number;
-    
+
     /** Spell attack bonus (if spellcaster) */
     spellAttackBonus?: number;
 }
@@ -207,13 +207,13 @@ export const mergeValidationResults = (...results: ValidationResult[]): Validati
         warnings: [],
         info: []
     };
-    
+
     for (const result of results) {
         merged.errors.push(...result.errors);
         merged.warnings.push(...result.warnings);
         merged.info.push(...result.info);
     }
-    
+
     merged.isValid = merged.errors.length === 0;
     return merged;
 };

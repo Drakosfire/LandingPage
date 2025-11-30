@@ -40,13 +40,13 @@ export class DnD5eRuleEngine implements RuleEngine<
     DnD5eSpell
 > {
     // ===== IDENTITY =====
-    
+
     readonly systemId = 'dnd5e';
     readonly systemName = 'D&D 5th Edition (SRD)';
     readonly version = '1.0.0';
 
     // ===== INJECTED DATA =====
-    
+
     private races: DnD5eRace[];
     private classes: DnD5eClass[];
     private backgrounds: DnD5eBackground[];
@@ -84,15 +84,15 @@ export class DnD5eRuleEngine implements RuleEngine<
         // Will aggregate results from all step validators
         const steps: CreationStep[] = [
             'abilityScores',
-            'race', 
+            'race',
             'class',
             'background',
             'equipment',
             'review'
         ];
-        
+
         const results = steps.map(step => this.validateStep(character, step));
-        
+
         // Merge all results
         const merged: ValidationResult = {
             isValid: true,
@@ -100,13 +100,13 @@ export class DnD5eRuleEngine implements RuleEngine<
             warnings: [],
             info: []
         };
-        
+
         for (const result of results) {
             merged.errors.push(...result.errors);
             merged.warnings.push(...result.warnings);
             merged.info.push(...result.info);
         }
-        
+
         merged.isValid = merged.errors.length === 0;
         return merged;
     }
@@ -270,7 +270,7 @@ export class DnD5eRuleEngine implements RuleEngine<
         const conMod = this.getAbilityModifier(character.abilityScores.constitution);
         const dexMod = this.getAbilityModifier(character.abilityScores.dexterity);
         const wisMod = this.getAbilityModifier(character.abilityScores.wisdom);
-        
+
         return {
             armorClass: 10 + dexMod, // Base AC without armor
             initiative: dexMod,
@@ -294,16 +294,16 @@ export class DnD5eRuleEngine implements RuleEngine<
         // TODO: T026 - Implement in Phase 3
         const race = this.races.find(r => r.id === raceId);
         if (!race) return baseScores;
-        
+
         const modified = { ...baseScores };
-        
+
         for (const bonus of race.abilityBonuses) {
             const ability = bonus.ability as keyof AbilityScores;
             if (ability in modified) {
                 modified[ability] += bonus.bonus;
             }
         }
-        
+
         return modified;
     }
 
@@ -318,10 +318,10 @@ export class DnD5eRuleEngine implements RuleEngine<
         const conMod = this.getAbilityModifier(character.abilityScores.constitution);
         const classData = this.classes.find(c => c.id === character.class?.id);
         const hitDie = classData?.hitDie ?? 8;
-        
+
         // If hitDieRoll is 0, use average (rounded up)
         const hpFromDie = hitDieRoll > 0 ? hitDieRoll : Math.ceil(hitDie / 2) + 1;
-        
+
         return Math.max(1, hpFromDie + conMod);
     }
 
@@ -355,12 +355,12 @@ export class DnD5eRuleEngine implements RuleEngine<
         const conMod = this.getAbilityModifier(character.abilityScores.constitution);
         const classData = this.classes.find(c => c.id === character.class?.id);
         const hitDie = classData?.hitDie ?? 8;
-        
+
         // Level 1: Max hit die + CON modifier
         // Additional levels: Average + CON modifier (for now, simplified)
         const level1HP = hitDie + conMod;
         const additionalHP = (character.level - 1) * (Math.ceil(hitDie / 2) + 1 + conMod);
-        
+
         return Math.max(1, level1HP + additionalHP);
     }
 }

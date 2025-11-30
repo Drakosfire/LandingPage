@@ -7,8 +7,10 @@
  * @module PlayerCharacterGenerator
  */
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, ReactNode } from 'react';
 import { Character, createEmptyCharacter, DnD5eCharacter, createEmptyDnD5eCharacter } from './types';
+import { DnD5eRuleEngine, createDnD5eRuleEngine } from './engine';
+import type { ValidationResult } from './engine';
 
 /**
  * Player Character Generator context type
@@ -16,29 +18,39 @@ import { Character, createEmptyCharacter, DnD5eCharacter, createEmptyDnD5eCharac
 interface PlayerCharacterGeneratorContextType {
     // ===== CHARACTER STATE =====
     character: Character | null;
-    
+
     // ===== CHARACTER MUTATIONS =====
     setCharacter: (character: Character) => void;
     updateCharacter: (updates: Partial<Character>) => void;
     resetCharacter: () => void;
-    
+
     // ===== D&D 5E SPECIFIC =====
     updateDnD5eData: (updates: Partial<DnD5eCharacter>) => void;
-    
-    // ===== VALIDATION =====
-    validationErrors: ValidationError[];
-    setValidationErrors: (errors: ValidationError[]) => void;
-    
-    // ===== PROJECT MANAGEMENT (Phase 7) =====
+
+    // ===== RULE ENGINE =====
+    ruleEngine: DnD5eRuleEngine;
+
+    // ===== VALIDATION (from Rule Engine) =====
+    validation: ValidationResult;
+    isCharacterValid: boolean;
+
+    // ===== LEGACY VALIDATION (deprecated - use validation from engine) =====
+    /** @deprecated Use validation from ruleEngine instead */
+    validationErrors: LegacyValidationError[];
+    /** @deprecated Use validation from ruleEngine instead */
+    setValidationErrors: (errors: LegacyValidationError[]) => void;
+
+    // ===== PROJECT MANAGEMENT (Phase 4) =====
     // currentProject: CharacterProject | null;
     // saveProject: () => Promise<void>;
     // loadProject: (id: string) => Promise<void>;
 }
 
 /**
- * Validation error type (temporary - will move to types/)
+ * Legacy validation error type (deprecated - use ValidationResult from engine)
+ * @deprecated Use ValidationResult from ./engine instead
  */
-interface ValidationError {
+interface LegacyValidationError {
     level: 'error' | 'warning' | 'info';
     step: number;
     field?: string;
@@ -63,19 +75,47 @@ interface PlayerCharacterGeneratorProviderProps {
  * Provides character state and mutations to all child components.
  */
 export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGeneratorProviderProps> = ({ children }) => {
+    // ===== RULE ENGINE (singleton instance) =====
+    const ruleEngine = useMemo(() => {
+        console.log('🎲 [PlayerCharacterGenerator] Creating D&D 5e Rule Engine');
+        return createDnD5eRuleEngine();
+    }, []);
+
     // ===== STATE =====
     const [character, setCharacter] = useState<Character | null>(() => {
         // Phase 0: Just create empty D&D 5e character
-        // Phase 1+: Try to restore from localStorage
+        // Phase 4+: Try to restore from localStorage
         const empty = createEmptyCharacter();
         empty.dnd5eData = createEmptyDnD5eCharacter();
         return empty;
     });
-    
-    const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
-    
+
+    const [validationErrors, setValidationErrors] = useState<LegacyValidationError[]>([]);
+
+    // ===== DERIVED VALIDATION (from Rule Engine) =====
+    const validation = useMemo<ValidationResult>(() => {
+        if (!character?.dnd5eData) {
+            return { isValid: false, errors: [], warnings: [], info: [] };
+        }
+        return ruleEngine.validateCharacter(character.dnd5eData);
+    }, [character?.dnd5eData, ruleEngine]);
+
+    const isCharacterValid = useMemo(() => {
+        if (!character?.dnd5eData) return false;
+        return ruleEngine.isCharacterComplete(character.dnd5eData);
+    }, [character?.dnd5eData, ruleEngine]);
+
+    // Log validation changes in development
+    useEffect(() => {
+        if (validation.errors.length > 0) {
+            console.log('⚠️ [PlayerCharacterGenerator] Validation errors:', validation.errors.length);
+        } else if (isCharacterValid) {
+            console.log('✅ [PlayerCharacterGenerator] Character is valid');
+        }
+    }, [validation, isCharacterValid]);
+
     // ===== CHARACTER MUTATIONS =====
-    
+
     /**
      * Update entire character
      */
@@ -83,7 +123,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         console.log('📝 [PlayerCharacterGenerator] Setting character:', newCharacter.name);
         setCharacter(newCharacter);
     }, []);
-    
+
     /**
      * Update character fields (shallow merge)
      */
@@ -95,7 +135,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
             return updated;
         });
     }, []);
-    
+
     /**
      * Reset to empty character
      */
@@ -106,7 +146,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         setCharacter(empty);
         setValidationErrors([]);
     }, []);
-    
+
     /**
      * Update D&D 5e-specific data
      */
@@ -116,7 +156,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
                 console.warn('⚠️ [PlayerCharacterGenerator] Cannot update D&D 5e data: character not initialized');
                 return prev;
             }
-            
+
             const updated = {
                 ...prev,
                 dnd5eData: {
@@ -125,23 +165,33 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
                 },
                 updatedAt: new Date().toISOString()
             };
-            
+
             console.log('📝 [PlayerCharacterGenerator] Updated D&D 5e data');
             return updated;
         });
     }, []);
-    
+
     // ===== CONTEXT VALUE =====
     const contextValue: PlayerCharacterGeneratorContextType = {
+        // Character state
         character,
         setCharacter: handleSetCharacter,
         updateCharacter,
         resetCharacter,
         updateDnD5eData,
+
+        // Rule Engine
+        ruleEngine,
+
+        // Validation (from engine)
+        validation,
+        isCharacterValid,
+
+        // Legacy validation (deprecated)
         validationErrors,
         setValidationErrors
     };
-    
+
     return (
         <PlayerCharacterGeneratorContext.Provider value={contextValue}>
             {children}

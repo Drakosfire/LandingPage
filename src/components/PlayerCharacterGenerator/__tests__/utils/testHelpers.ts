@@ -6,12 +6,12 @@
  * @module CharacterGenerator/__tests__/utils
  */
 
-import { 
-    Character, 
+import {
+    Character,
     createEmptyCharacter,
     DnD5eCharacter,
     createEmptyDnD5eCharacter,
-    DnD5eRace 
+    DnD5eRace
 } from '../../types';
 import { HILL_DWARF } from '../../data/dnd5e/races';
 
@@ -21,7 +21,7 @@ import { HILL_DWARF } from '../../data/dnd5e/races';
 export const createTestCharacter = (overrides?: Partial<Character>): Character => {
     const base = createEmptyCharacter();
     base.dnd5eData = createEmptyDnD5eCharacter();
-    
+
     return {
         ...base,
         name: 'Test Character',
@@ -34,7 +34,7 @@ export const createTestCharacter = (overrides?: Partial<Character>): Character =
  */
 export const createTestDnD5eCharacter = (overrides?: Partial<DnD5eCharacter>): DnD5eCharacter => {
     const base = createEmptyDnD5eCharacter();
-    
+
     return {
         ...base,
         ...overrides
@@ -67,7 +67,7 @@ export const createHillDwarfCharacter = (): Character => {
         name: 'Thorin Ironforge',
         level: 1
     });
-    
+
     if (character.dnd5eData) {
         character.dnd5eData.race = HILL_DWARF;
         character.dnd5eData.abilityScores = {
@@ -79,7 +79,7 @@ export const createHillDwarfCharacter = (): Character => {
             charisma: 8
         };
     }
-    
+
     return character;
 };
 

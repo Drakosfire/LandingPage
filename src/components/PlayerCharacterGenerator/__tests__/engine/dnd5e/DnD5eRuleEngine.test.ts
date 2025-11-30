@@ -75,7 +75,7 @@ describe('DnD5eRuleEngine', () => {
 
         it('validateCharacter should return a ValidationResult', () => {
             const result = engine.validateCharacter(testCharacter);
-            
+
             expect(result).toBeDefined();
             expect(typeof result.isValid).toBe('boolean');
             expect(Array.isArray(result.errors)).toBe(true);
@@ -85,7 +85,7 @@ describe('DnD5eRuleEngine', () => {
 
         it('validateStep should accept all CreationStep values', () => {
             const steps = ['abilityScores', 'race', 'class', 'background', 'equipment', 'review'] as const;
-            
+
             for (const step of steps) {
                 const result = engine.validateStep(testCharacter, step);
                 expect(result).toBeDefined();
@@ -130,7 +130,7 @@ describe('DnD5eRuleEngine', () => {
 
         it('getValidSkillChoices should return a SkillChoice object', () => {
             const skillChoice = engine.getValidSkillChoices(testCharacter);
-            
+
             expect(skillChoice).toBeDefined();
             expect(typeof skillChoice.count).toBe('number');
             expect(Array.isArray(skillChoice.options)).toBe(true);
@@ -166,7 +166,7 @@ describe('DnD5eRuleEngine', () => {
 
         it('calculateDerivedStats should return a DerivedStats object', () => {
             const stats = engine.calculateDerivedStats(testCharacter);
-            
+
             expect(stats).toBeDefined();
             expect(typeof stats.armorClass).toBe('number');
             expect(typeof stats.initiative).toBe('number');
@@ -198,9 +198,9 @@ describe('DnD5eRuleEngine', () => {
                 wisdom: 10,
                 charisma: 8
             };
-            
+
             const modified = engine.applyRacialBonuses(baseScores, 'unknown-race');
-            
+
             // With no race data, should return same scores
             expect(modified).toEqual(baseScores);
         });
@@ -213,7 +213,7 @@ describe('DnD5eRuleEngine', () => {
                 13: 5, 14: 5, 15: 5, 16: 5,
                 17: 6, 18: 6, 19: 6, 20: 6
             };
-            
+
             for (const [level, expected] of Object.entries(expectedBonuses)) {
                 expect(engine.getProficiencyBonus(Number(level))).toBe(expected);
             }
