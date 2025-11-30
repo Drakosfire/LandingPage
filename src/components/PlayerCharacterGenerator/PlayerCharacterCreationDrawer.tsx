@@ -1,14 +1,14 @@
 /**
- * CharacterCreationDrawer Component
+ * PlayerCharacterCreationDrawer Component
  * 
- * Main drawer for character creation with wizard-style workflow.
+ * Main drawer for player character creation with wizard-style workflow.
  * Adapted from StatBlockGenerationDrawer but with D&D Beyond-style step progression.
  * 
  * Features:
  * - Tab 1: Character Creation (wizard with 5 steps)
  * - Tab 2: Portrait Generation
  * 
- * @module CharacterGenerator
+ * @module PlayerCharacterGenerator
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,12 +17,12 @@ import { useMediaQuery } from '@mantine/hooks';
 import { IconUsers, IconPhoto } from '@tabler/icons-react';
 import CharacterCreationWizard from './creationDrawerComponents/CharacterCreationWizard';
 
-interface CharacterCreationDrawerProps {
+interface PlayerCharacterCreationDrawerProps {
     opened: boolean;
     onClose: () => void;
 }
 
-const CharacterCreationDrawer: React.FC<CharacterCreationDrawerProps> = ({
+const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps> = ({
     opened,
     onClose,
 }) => {
@@ -100,7 +100,7 @@ const CharacterCreationDrawer: React.FC<CharacterCreationDrawerProps> = ({
     );
 };
 
-export default CharacterCreationDrawer;
+export default PlayerCharacterCreationDrawer;
 
 
 

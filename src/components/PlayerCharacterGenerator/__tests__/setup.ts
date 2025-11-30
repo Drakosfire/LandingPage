@@ -98,3 +98,11 @@ export const expectConsoleLog = (fn: () => void, expectedMessage: string) => {
     consoleSpy.mockRestore();
 };
 
+// Placeholder test to prevent "no tests" error
+// This file is a setup/utility module, not a test suite
+describe('Test Setup', () => {
+    it('should have custom matchers available', () => {
+        expect(10).toBeValidAbilityScore();
+    });
+});
+

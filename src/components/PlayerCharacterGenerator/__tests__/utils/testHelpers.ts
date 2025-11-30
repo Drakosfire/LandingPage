@@ -83,3 +83,13 @@ export const createHillDwarfCharacter = (): Character => {
     return character;
 };
 
+// Placeholder test to prevent "no tests" error
+// This file is a utility module, not a test suite
+describe('Test Helpers', () => {
+    it('should create a valid test character', () => {
+        const character = createTestCharacter();
+        expect(character).toBeDefined();
+        expect(character.name).toBe('Test Character');
+    });
+});
+

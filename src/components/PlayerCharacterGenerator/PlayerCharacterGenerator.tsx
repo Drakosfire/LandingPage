@@ -1,13 +1,13 @@
 /**
- * CharacterGenerator Main Component
+ * PlayerCharacterGenerator Main Component
  * 
- * D&D 5e character creation tool with AI generation and manual workflows.
+ * D&D 5e player character creation tool with AI generation and manual workflows.
  * Canvas-first architecture matching StatblockGenerator pattern.
  * 
  * Phase 1: Canvas-based character sheet with wizard-style creation drawer
  * Phase 2+: Full character creation workflow with all features
  * 
- * @module CharacterGenerator
+ * @module PlayerCharacterGenerator
  */
 
 import React, { useState, useEffect } from 'react';
@@ -15,19 +15,19 @@ import '@mantine/core/styles.css';
 import '../../styles/mantineOverrides.css';
 import '../../styles/DesignSystem.css';
 
-import { CharacterGeneratorProvider } from './CharacterGeneratorProvider';
+import { PlayerCharacterGeneratorProvider } from './PlayerCharacterGeneratorProvider';
 import { UnifiedHeader } from '../UnifiedHeader';
 import { CHARACTER_GENERATOR_APP } from '../../context/AppContext';
 import { createCharacterToolboxSections } from './characterToolboxConfig';
 import { DND_CSS_BASE_URL } from '../../config';
 import Footer from '../Footer';
 import CharacterCanvas from './shared/CharacterCanvas';
-import CharacterCreationDrawer from './CharacterCreationDrawer';
+import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
 
 /**
  * Inner component (has access to context)
  */
-const CharacterGeneratorInner: React.FC = () => {
+const PlayerCharacterGeneratorInner: React.FC = () => {
     const [creationDrawerOpen, setCreationDrawerOpen] = useState(false);
 
     // Load D&D 5e PHB CSS
@@ -38,7 +38,7 @@ const CharacterGeneratorInner: React.FC = () => {
         cssLink.id = 'dnd-phb-css';
         document.head.appendChild(cssLink);
 
-        console.log('📜 [CharacterGen] Loaded D&D PHB CSS from:', cssLink.href);
+        console.log('📜 [PlayerCharacterGen] Loaded D&D PHB CSS from:', cssLink.href);
 
         return () => {
             const existing = document.getElementById('dnd-phb-css');
@@ -55,16 +55,16 @@ const CharacterGeneratorInner: React.FC = () => {
 
     // Placeholder handlers for UnifiedHeader
     const handleProjectsClick = () => {
-        console.log('📂 [CharacterGen] Projects (Phase 2+)');
+        console.log('📂 [PlayerCharacterGen] Projects (Phase 2+)');
     };
 
     const handleGenerationClick = () => {
-        console.log('🎨 [CharacterGen] Opening creation drawer');
+        console.log('🎨 [PlayerCharacterGen] Opening creation drawer');
         setCreationDrawerOpen(true);
     };
 
     return (
-        <div className="generator-layout" data-testid="character-generator">
+        <div className="generator-layout" data-testid="player-character-generator">
             {/* UnifiedHeader */}
             <UnifiedHeader
                 app={CHARACTER_GENERATOR_APP}
@@ -101,8 +101,8 @@ const CharacterGeneratorInner: React.FC = () => {
                 </div>
             </div>
 
-            {/* Character Creation Drawer */}
-            <CharacterCreationDrawer
+            {/* Player Character Creation Drawer */}
+            <PlayerCharacterCreationDrawer
                 opened={creationDrawerOpen}
                 onClose={() => setCreationDrawerOpen(false)}
             />
@@ -114,16 +114,16 @@ const CharacterGeneratorInner: React.FC = () => {
 };
 
 /**
- * CharacterGenerator Main Component
+ * PlayerCharacterGenerator Main Component
  * 
- * Wraps the app in CharacterGeneratorProvider
+ * Wraps the app in PlayerCharacterGeneratorProvider
  */
-export const CharacterGenerator: React.FC = () => {
+export const PlayerCharacterGenerator: React.FC = () => {
     return (
-        <CharacterGeneratorProvider>
-            <CharacterGeneratorInner />
-        </CharacterGeneratorProvider>
+        <PlayerCharacterGeneratorProvider>
+            <PlayerCharacterGeneratorInner />
+        </PlayerCharacterGeneratorProvider>
     );
 };
 
-export default CharacterGenerator;
+export default PlayerCharacterGenerator;

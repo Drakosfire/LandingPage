@@ -1,19 +1,19 @@
 /**
- * CharacterGenerator Context Provider
+ * PlayerCharacterGenerator Context Provider
  * 
- * Centralized state management for character creation and editing.
+ * Centralized state management for player character creation and editing.
  * Follows the proven StatBlockGeneratorProvider pattern.
  * 
- * @module CharacterGenerator
+ * @module PlayerCharacterGenerator
  */
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Character, createEmptyCharacter, DnD5eCharacter, createEmptyDnD5eCharacter } from './types';
 
 /**
- * Character Generator context type
+ * Player Character Generator context type
  */
-interface CharacterGeneratorContextType {
+interface PlayerCharacterGeneratorContextType {
     // ===== CHARACTER STATE =====
     character: Character | null;
     
@@ -48,21 +48,21 @@ interface ValidationError {
 /**
  * Context
  */
-const CharacterGeneratorContext = createContext<CharacterGeneratorContextType | undefined>(undefined);
+const PlayerCharacterGeneratorContext = createContext<PlayerCharacterGeneratorContextType | undefined>(undefined);
 
 /**
  * Provider Props
  */
-interface CharacterGeneratorProviderProps {
+interface PlayerCharacterGeneratorProviderProps {
     children: ReactNode;
 }
 
 /**
- * CharacterGenerator Provider Component
+ * PlayerCharacterGenerator Provider Component
  * 
  * Provides character state and mutations to all child components.
  */
-export const CharacterGeneratorProvider: React.FC<CharacterGeneratorProviderProps> = ({ children }) => {
+export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGeneratorProviderProps> = ({ children }) => {
     // ===== STATE =====
     const [character, setCharacter] = useState<Character | null>(() => {
         // Phase 0: Just create empty D&D 5e character
@@ -80,7 +80,7 @@ export const CharacterGeneratorProvider: React.FC<CharacterGeneratorProviderProp
      * Update entire character
      */
     const handleSetCharacter = useCallback((newCharacter: Character) => {
-        console.log('📝 [CharacterGenerator] Setting character:', newCharacter.name);
+        console.log('📝 [PlayerCharacterGenerator] Setting character:', newCharacter.name);
         setCharacter(newCharacter);
     }, []);
     
@@ -91,7 +91,7 @@ export const CharacterGeneratorProvider: React.FC<CharacterGeneratorProviderProp
         setCharacter(prev => {
             if (!prev) return prev;
             const updated = { ...prev, ...updates };
-            console.log('📝 [CharacterGenerator] Updated character:', updated.name);
+            console.log('📝 [PlayerCharacterGenerator] Updated character:', updated.name);
             return updated;
         });
     }, []);
@@ -100,7 +100,7 @@ export const CharacterGeneratorProvider: React.FC<CharacterGeneratorProviderProp
      * Reset to empty character
      */
     const resetCharacter = useCallback(() => {
-        console.log('🔄 [CharacterGenerator] Resetting character');
+        console.log('🔄 [PlayerCharacterGenerator] Resetting character');
         const empty = createEmptyCharacter();
         empty.dnd5eData = createEmptyDnD5eCharacter();
         setCharacter(empty);
@@ -113,7 +113,7 @@ export const CharacterGeneratorProvider: React.FC<CharacterGeneratorProviderProp
     const updateDnD5eData = useCallback((updates: Partial<DnD5eCharacter>) => {
         setCharacter(prev => {
             if (!prev || !prev.dnd5eData) {
-                console.warn('⚠️ [CharacterGenerator] Cannot update D&D 5e data: character not initialized');
+                console.warn('⚠️ [PlayerCharacterGenerator] Cannot update D&D 5e data: character not initialized');
                 return prev;
             }
             
@@ -126,13 +126,13 @@ export const CharacterGeneratorProvider: React.FC<CharacterGeneratorProviderProp
                 updatedAt: new Date().toISOString()
             };
             
-            console.log('📝 [CharacterGenerator] Updated D&D 5e data');
+            console.log('📝 [PlayerCharacterGenerator] Updated D&D 5e data');
             return updated;
         });
     }, []);
     
     // ===== CONTEXT VALUE =====
-    const contextValue: CharacterGeneratorContextType = {
+    const contextValue: PlayerCharacterGeneratorContextType = {
         character,
         setCharacter: handleSetCharacter,
         updateCharacter,
@@ -143,22 +143,25 @@ export const CharacterGeneratorProvider: React.FC<CharacterGeneratorProviderProp
     };
     
     return (
-        <CharacterGeneratorContext.Provider value={contextValue}>
+        <PlayerCharacterGeneratorContext.Provider value={contextValue}>
             {children}
-        </CharacterGeneratorContext.Provider>
+        </PlayerCharacterGeneratorContext.Provider>
     );
 };
 
 /**
- * Hook to use CharacterGenerator context
+ * Hook to use PlayerCharacterGenerator context
  * 
- * @throws {Error} if used outside CharacterGeneratorProvider
+ * @throws {Error} if used outside PlayerCharacterGeneratorProvider
  */
-export const useCharacterGenerator = (): CharacterGeneratorContextType => {
-    const context = useContext(CharacterGeneratorContext);
+export const usePlayerCharacterGenerator = (): PlayerCharacterGeneratorContextType => {
+    const context = useContext(PlayerCharacterGeneratorContext);
     if (!context) {
-        throw new Error('useCharacterGenerator must be used within CharacterGeneratorProvider');
+        throw new Error('usePlayerCharacterGenerator must be used within PlayerCharacterGeneratorProvider');
     }
     return context;
 };
+
+// Alias for backward compatibility during migration
+export const useCharacterGenerator = usePlayerCharacterGenerator;
 
