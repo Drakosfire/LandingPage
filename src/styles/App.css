@@ -26,16 +26,22 @@ body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *) {
 
 /* App-wide container styling */
 .main-content {
-  /* width: 100%; */
-  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 0;
-  /* Remove conflicting left padding */
+}
+
+/* Direct children expand to full width, then use their own max-width for centering */
+.main-content>* {
+  width: 100%;
 }
 
 @media (min-width: 768px) {
   .main-content {
     margin-left: 80px;
-    /* Ensure this doesn't affect Mantine components */
+    width: calc(100% - 80px);
   }
 }
 

@@ -55,11 +55,11 @@ const MainContent: React.FC<{ children: ReactNode }> = ({ children }) => {
   const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
   const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
 
-  // Remove margin-left when NavBar is hidden (UnifiedHeader routes)
+  // Remove margin-left and reset width when NavBar is hidden (UnifiedHeader routes)
   const noMargin = isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute;
 
   return (
-    <div className="main-content" style={noMargin ? { marginLeft: 0 } : undefined}>
+    <div className="main-content" style={noMargin ? { marginLeft: 0, width: '100%' } : undefined}>
       {children}
     </div>
   );
