@@ -34,27 +34,10 @@ interface PlayerCharacterGeneratorContextType {
     validation: ValidationResult;
     isCharacterValid: boolean;
 
-    // ===== LEGACY VALIDATION (deprecated - use validation from engine) =====
-    /** @deprecated Use validation from ruleEngine instead */
-    validationErrors: LegacyValidationError[];
-    /** @deprecated Use validation from ruleEngine instead */
-    setValidationErrors: (errors: LegacyValidationError[]) => void;
-
     // ===== PROJECT MANAGEMENT (Phase 4) =====
     // currentProject: CharacterProject | null;
     // saveProject: () => Promise<void>;
     // loadProject: (id: string) => Promise<void>;
-}
-
-/**
- * Legacy validation error type (deprecated - use ValidationResult from engine)
- * @deprecated Use ValidationResult from ./engine instead
- */
-interface LegacyValidationError {
-    level: 'error' | 'warning' | 'info';
-    step: number;
-    field?: string;
-    message: string;
 }
 
 /**
@@ -89,8 +72,6 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         empty.dnd5eData = createEmptyDnD5eCharacter();
         return empty;
     });
-
-    const [validationErrors, setValidationErrors] = useState<LegacyValidationError[]>([]);
 
     // ===== DERIVED VALIDATION (from Rule Engine) =====
     const validation = useMemo<ValidationResult>(() => {
@@ -144,7 +125,6 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         const empty = createEmptyCharacter();
         empty.dnd5eData = createEmptyDnD5eCharacter();
         setCharacter(empty);
-        setValidationErrors([]);
     }, []);
 
     /**
@@ -185,11 +165,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
 
         // Validation (from engine)
         validation,
-        isCharacterValid,
-
-        // Legacy validation (deprecated)
-        validationErrors,
-        setValidationErrors
+        isCharacterValid
     };
 
     return (
@@ -211,7 +187,3 @@ export const usePlayerCharacterGenerator = (): PlayerCharacterGeneratorContextTy
     }
     return context;
 };
-
-// Alias for backward compatibility during migration
-export const useCharacterGenerator = usePlayerCharacterGenerator;
-
