@@ -21,7 +21,7 @@ import {
     Badge,
     Divider
 } from '@mantine/core';
-import { useCharacterGenerator } from '../CharacterGeneratorProvider';
+import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import { 
     DnD5eAbilityScores,
     AbilityScoreMethod,
@@ -46,7 +46,7 @@ import { AbilityScoreDisplay } from './AbilityScoreDisplay';
  * Step 1: Ability Score Assignment Component
  */
 export const Step1AbilityScores: React.FC = () => {
-    const { character, updateDnD5eData } = useCharacterGenerator();
+    const { character, updateDnD5eData } = usePlayerCharacterGenerator();
     
     // State
     const [method, setMethod] = useState<AbilityScoreMethod>('pointBuy');

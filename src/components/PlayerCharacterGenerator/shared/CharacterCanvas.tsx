@@ -11,7 +11,7 @@
 import React, { useMemo } from 'react';
 import '../../../styles/canvas/index.css';         // Shared canvas styles
 import '../../../styles/CharacterComponents.css';  // Character-specific styles
-import { useCharacterGenerator } from '../CharacterGeneratorProvider';
+import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
 // Helper to calculate ability modifier
 const abilityModifier = (score: number): string => {
@@ -20,7 +20,7 @@ const abilityModifier = (score: number): string => {
 };
 
 const CharacterCanvas: React.FC = () => {
-    const { character } = useCharacterGenerator();
+    const { character } = usePlayerCharacterGenerator();
 
     const canvasContent = useMemo(() => {
         const hasCharacter = character?.name && character.name.trim().length > 0;

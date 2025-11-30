@@ -217,7 +217,7 @@ export class DnD5eRuleEngine implements RuleEngine<
      */
     getSubraces(baseRaceId: string): DnD5eRace[] {
         // TODO: T025 - Implement in Phase 3
-        return this.races.filter(race => race.parentRaceId === baseRaceId);
+        return this.races.filter(race => race.baseRace === baseRaceId);
     }
 
     // ===== CHOICE HELPERS =====
@@ -270,6 +270,7 @@ export class DnD5eRuleEngine implements RuleEngine<
         const conMod = this.getAbilityModifier(character.abilityScores.constitution);
         const dexMod = this.getAbilityModifier(character.abilityScores.dexterity);
         const wisMod = this.getAbilityModifier(character.abilityScores.wisdom);
+        const totalLevel = this.getTotalLevel(character.classes);
 
         return {
             armorClass: 10 + dexMod, // Base AC without armor
@@ -277,7 +278,7 @@ export class DnD5eRuleEngine implements RuleEngine<
             speed: character.race?.speed?.walk ?? 30,
             maxHitPoints: this.calculateMaxHP(character),
             currentHitPoints: this.calculateMaxHP(character),
-            proficiencyBonus: this.getProficiencyBonus(character.level),
+            proficiencyBonus: this.getProficiencyBonus(totalLevel),
             passivePerception: 10 + wisMod,
             spellSaveDC: undefined, // TODO: Calculate if spellcaster
             spellAttackBonus: undefined // TODO: Calculate if spellcaster
@@ -316,8 +317,10 @@ export class DnD5eRuleEngine implements RuleEngine<
     calculateLevelUpHP(character: DnD5eCharacter, hitDieRoll: number): number {
         // TODO: T084 - Implement in Phase 7
         const conMod = this.getAbilityModifier(character.abilityScores.constitution);
-        const classData = this.classes.find(c => c.id === character.class?.id);
-        const hitDie = classData?.hitDie ?? 8;
+        // Get primary class (first class entry)
+        const primaryClass = character.classes[0];
+        const classData = primaryClass ? this.classes.find(c => c.id === primaryClass.name.toLowerCase()) : undefined;
+        const hitDie = classData?.hitDie ?? primaryClass?.hitDie ?? 8;
 
         // If hitDieRoll is 0, use average (rounded up)
         const hpFromDie = hitDieRoll > 0 ? hitDieRoll : Math.ceil(hitDie / 2) + 1;
@@ -347,19 +350,32 @@ export class DnD5eRuleEngine implements RuleEngine<
     }
 
     /**
+     * Get total character level from all class levels
+     * @param classes - Array of class levels
+     * @returns Total level (sum of all class levels)
+     */
+    private getTotalLevel(classes: DnD5eCharacter['classes']): number {
+        if (!classes || classes.length === 0) return 1;
+        return classes.reduce((total, cls) => total + cls.level, 0);
+    }
+
+    /**
      * Calculate max HP for a character
      * @param character - Character to calculate HP for
      * @returns Maximum HP
      */
     private calculateMaxHP(character: DnD5eCharacter): number {
         const conMod = this.getAbilityModifier(character.abilityScores.constitution);
-        const classData = this.classes.find(c => c.id === character.class?.id);
-        const hitDie = classData?.hitDie ?? 8;
+        // Get primary class (first class entry)
+        const primaryClass = character.classes[0];
+        const classData = primaryClass ? this.classes.find(c => c.id === primaryClass.name.toLowerCase()) : undefined;
+        const hitDie = classData?.hitDie ?? primaryClass?.hitDie ?? 8;
+        const totalLevel = this.getTotalLevel(character.classes);
 
         // Level 1: Max hit die + CON modifier
         // Additional levels: Average + CON modifier (for now, simplified)
         const level1HP = hitDie + conMod;
-        const additionalHP = (character.level - 1) * (Math.ceil(hitDie / 2) + 1 + conMod);
+        const additionalHP = (totalLevel - 1) * (Math.ceil(hitDie / 2) + 1 + conMod);
 
         return Math.max(1, level1HP + additionalHP);
     }
