@@ -112,7 +112,7 @@ const ChatInterface: React.FC = () => {
                             ? `Ask the ${'Rules Lawyer'} a question...`
                             : 'Select a ruleset to query...'
                     }
-                    disabled={isLoadingEmbeddings || !embeddingsLoaded || isLoading}
+                    disabled={isLoading}
                 />
                 <button type="submit" disabled={isLoadingEmbeddings || !embeddingsLoaded || isLoading || !message.trim()}>
                     Send
