@@ -63,8 +63,6 @@ const FALLBACK_MARGIN_MM = 10;
 const MM_TO_PX = 96 / 25.4;
 const PX_PER_INCH = 96;
 const MM_PER_INCH = 25.4;
-const COLUMN_WIDTH_EPSILON = 0.5;
-const roundColumnWidth = (value: number) => Math.round(value * 100) / 100;
 
 type LengthUnit = 'px' | 'mm' | 'in';
 
@@ -90,8 +88,6 @@ const resolveColumnGapPx = (columns: PageVariables['columns']): number => {
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
-const CANONICAL_WIDTH_FORCED_LOCK_TIMEOUT_MS = 1500;
 
 const renderEntry = (
     entry: CanvasLayoutEntry,
@@ -186,7 +182,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     // FIXED: Track last sent height to prevent redundant setRegionHeight calls
     // This ref persists across effect re-runs, preventing excessive state updates
     const lastSentHeightRef = useRef<number>(0);
-    const canonicalWidthLockRef = useRef<boolean>(false);
     const [scale, setScale] = useState(1);
     const [fontsReady, setFontsReady] = useState(false);
 
@@ -194,9 +189,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const { isLoaded: themeLoaded, error: themeError } = usePHBTheme(DND_CSS_BASE_URL, {
         debug: process.env.NODE_ENV !== 'production',
     });
-
-    const [measuredColumnWidth, setMeasuredColumnWidth] = useState<number | null>(null);
-    const [hasCanonicalWidthLock, setHasCanonicalWidthLock] = useState(false);
     // Spike branch: fully eliminate live DOM scrollHeight; always use canonical height
     const [forceCanonicalHeight, setForceCanonicalHeight] = useState<boolean>(true);
     const REGION_HEIGHT_HOLD_TIMEOUT_MS = 400;
@@ -435,21 +427,18 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         observer.observe(node);
         return () => observer.disconnect();
     }, [baseWidthPx, baseHeightPx, layout.plan?.pages.length]); // Re-run when page count changes
+    // Phase 5: Simplified - release hold when fonts and plan are ready
+    // Canvas MeasurementPortal handles width synchronization internally
     useEffect(() => {
         if (!fontsReady || !layout.plan) {
             activateRegionHeightHold('awaiting-fonts-or-plan');
             return clearRegionHeightHoldTimer;
         }
 
-        if (hasCanonicalWidthLock) {
-            releaseRegionHeightHold('canonical-width-lock');
-            return clearRegionHeightHoldTimer;
-        }
-
-        activateRegionHeightHold('awaiting-canonical-lock');
+        // Fonts and plan ready - release hold after brief timeout for stability
         regionHeightHoldTimerRef.current = window.setTimeout(() => {
             regionHeightHoldTimerRef.current = null;
-            releaseRegionHeightHold('hold-timeout');
+            releaseRegionHeightHold('fonts-and-plan-ready');
         }, REGION_HEIGHT_HOLD_TIMEOUT_MS);
 
         return clearRegionHeightHoldTimer;
@@ -457,7 +446,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         activateRegionHeightHold,
         clearRegionHeightHoldTimer,
         fontsReady,
-        hasCanonicalWidthLock,
         layout.plan,
         releaseRegionHeightHold,
         REGION_HEIGHT_HOLD_TIMEOUT_MS,
@@ -555,99 +543,8 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             });
         }
 
-        // Measure the visible column width for accurate measurement layer sizing
-        const visibleColumn = visibleFrame.querySelector('.canvas-column');
-        if (visibleColumn) {
-            const colWidth = visibleColumn.getBoundingClientRect().width;
-            const preTransformWidth = colWidth / scale;
-            const canonicalWidth = canonicalColumnWidthPx;
-            const canonicalRounded = canonicalWidth != null ? roundColumnWidth(canonicalWidth) : null;
-            const roundedPreTransform = roundColumnWidth(preTransformWidth);
-            const widthMatchesCanonical = canonicalRounded != null
-                ? Math.abs(roundedPreTransform - canonicalRounded) <= COLUMN_WIDTH_EPSILON
-                : false;
-
-            if (canonicalRounded != null) {
-                if (widthMatchesCanonical) {
-                    if (!canonicalWidthLockRef.current) {
-                        canonicalWidthLockRef.current = true;
-                        setHasCanonicalWidthLock(true);
-                        releaseRegionHeightHold('canonical-width-lock');
-                    }
-                    canonicalWidthMismatchStartRef.current = null;
-                    canonicalWidthForcedLockRef.current = false;
-                    if (canonicalWidthMismatchTimeoutRef.current != null) {
-                        window.clearTimeout(canonicalWidthMismatchTimeoutRef.current);
-                        canonicalWidthMismatchTimeoutRef.current = null;
-                    }
-                    if (measuredColumnWidth !== null) {
-                        setMeasuredColumnWidth(null);
-                    }
-                } else {
-                    if (canonicalWidthMismatchStartRef.current == null) {
-                        canonicalWidthMismatchStartRef.current = Date.now();
-                    }
-                    if (canonicalWidthLockRef.current && !canonicalWidthForcedLockRef.current) {
-                        canonicalWidthLockRef.current = false;
-                        setHasCanonicalWidthLock(false);
-                        activateRegionHeightHold('canonical-width-mismatch');
-                    } else if (!canonicalWidthForcedLockRef.current) {
-                        activateRegionHeightHold('canonical-width-mismatch');
-                    }
-
-                    if (!canonicalWidthForcedLockRef.current && canonicalWidthMismatchTimeoutRef.current == null) {
-                        const diffSnapshot = Number(Math.abs(roundedPreTransform - canonicalRounded).toFixed(2));
-                        canonicalWidthMismatchTimeoutRef.current = window.setTimeout(() => {
-                            canonicalWidthMismatchTimeoutRef.current = null;
-                            canonicalWidthMismatchStartRef.current = null;
-                            canonicalWidthForcedLockRef.current = true;
-                            canonicalWidthLockRef.current = true;
-                            setHasCanonicalWidthLock(true);
-                            releaseRegionHeightHold('canonical-width-lock-forced');
-                            console.warn('[StatblockPage] Forced canonical width lock after timeout', {
-                                timeoutMs: CANONICAL_WIDTH_FORCED_LOCK_TIMEOUT_MS,
-                                postTransform: colWidth,
-                                scale,
-                                roundedPreTransform,
-                                canonicalRounded,
-                                diff: diffSnapshot,
-                            });
-                        }, CANONICAL_WIDTH_FORCED_LOCK_TIMEOUT_MS);
-                    }
-
-                    if (process.env.NODE_ENV !== 'production') {
-                        console.debug('[StatblockPage] Canonical width clamp active, ignoring mismatched measurement', {
-                            postTransform: colWidth,
-                            scale,
-                            roundedPreTransform,
-                            canonicalRounded,
-                            diff: Number(Math.abs(roundedPreTransform - canonicalRounded).toFixed(2)),
-                            mismatchDuration: canonicalWidthMismatchStartRef.current
-                                ? Date.now() - canonicalWidthMismatchStartRef.current
-                                : null,
-                        });
-                    }
-                }
-            } else if (
-                measuredColumnWidth == null ||
-                Math.abs(preTransformWidth - measuredColumnWidth) > COLUMN_WIDTH_EPSILON
-            ) {
-                setMeasuredColumnWidth(preTransformWidth);
-            }
-
-            if (process.env.NODE_ENV !== 'production') {
-                // eslint-disable-next-line no-console
-                console.debug('[StatblockPage] Measured visible column width:', {
-                    postTransform: colWidth,
-                    scale,
-                    preTransform: preTransformWidth,
-                    canonical: canonicalRounded ?? 'n/a',
-                    source: canonicalRounded != null
-                        ? (widthMatchesCanonical ? 'canonical' : 'canonical (clamped)')
-                        : 'measured',
-                });
-            }
-        }
+        // Phase 5: Width lock removed - Canvas MeasurementPortal uses canonical widths directly
+        // No need to compare visible column width to canonical anymore
 
         const updateRegionHeight = () => {
             // Measure the COLUMN, not the frame
@@ -685,7 +582,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                     layoutHasPending: layout.hasPendingLayout,
                     fontsReady,
                     holdActive: regionHeightHoldActive,
-                    canonicalWidthLocked: hasCanonicalWidthLock,
+                    // Phase 5: Width lock removed - Canvas owns widths
                     pendingQueuedHeight: pendingRegionHeightRef.current,
                     pendingLatestMeasurement: pendingRegionLatestHeightRef.current,
                     forceCanonicalHeight,
@@ -766,7 +663,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                             scale: metadata.scaleSnapshot ?? scale,
                             previousSentHeight,
                             heightDiff: Number(heightDiff.toFixed(2)),
-                            canonicalLock: hasCanonicalWidthLock,
+                            // Phase 5: Width lock removed
                             holdActive: regionHeightHoldActive,
                             timestamp: Date.now(),
                             mode,
@@ -867,7 +764,8 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             const usableHeight = fullColumnHeight / scale;
             const heightCeiling = Math.max(baseContentHeightPx, 0);
             const cappedHeight = Math.min(usableHeight, heightCeiling);
-            const shouldHoldCanonicalHeight = regionHeightHoldActive || !hasCanonicalWidthLock;
+            // Phase 5: Simplified - use canonical height when hold is active
+            const shouldHoldCanonicalHeight = regionHeightHoldActive;
             const targetHeight = shouldHoldCanonicalHeight ? heightCeiling : cappedHeight;
 
             // DEBUG: Log detailed measurement info to diagnose height discrepancy
@@ -938,8 +836,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         canonicalRegionHeightPx,
         scale,
         canonicalColumnWidthPx,
-        measuredColumnWidth,
-        hasCanonicalWidthLock,
         regionHeightHoldActive,
         layout.hasPendingLayout,
         forceCanonicalHeight,
@@ -963,12 +859,11 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             if (process.env.NODE_ENV !== 'production') {
                 console.log('📏 [StatblockPage] First measurement cycle completed', {
                     planPageCount,
-                    hasCanonicalWidthLock,
                     measurementEntryCount,
                 });
             }
         }
-    }, [measurementStatus, planPageCount, hasCanonicalWidthLock, measurementEntryCount]);
+    }, [measurementStatus, planPageCount, measurementEntryCount]);
 
     // Reset on mount/remount (handles refresh case)
     // This ensures each mount/refresh is treated as fresh until first measurement completes
@@ -988,7 +883,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                 fontsReady,
                 hasComponentsButNoPlan: mountTimeHasComponentsButNoPlan,
                 isLikelyRefresh: mountTimeIsLikelyRefresh,
-                willRequireCanonicalLock: mountTimeIsLikelyRefresh && !hasCanonicalWidthLock,
+                // Phase 5: Width lock removed - Canvas owns widths
             });
         }
         return () => {
@@ -1011,20 +906,8 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     // 1. Fonts are ready AND canonical width is available (canonicalColumnWidthPx is not null)
     // 2. OR truly fresh mount (fonts not ready yet, will wait anyway)
     // The measurement layer uses canonicalColumnWidthPx directly, so as long as it's available, measurement is safe.
-    // Phase 4 A2: MeasurementLayer now handles CSS/font readiness via `ready` prop
-    const measurementHostReady = fontsReady && (canonicalColumnWidthPx != null || (!isLikelyRefresh && isFreshMount && planPageCount === 0));
-    const canonicalWidthMismatchStartRef = useRef<number | null>(null);
-    const canonicalWidthMismatchTimeoutRef = useRef<number | null>(null);
-    const canonicalWidthForcedLockRef = useRef(false);
-
-    useEffect(() => {
-        return () => {
-            if (canonicalWidthMismatchTimeoutRef.current != null) {
-                window.clearTimeout(canonicalWidthMismatchTimeoutRef.current);
-                canonicalWidthMismatchTimeoutRef.current = null;
-            }
-        };
-    }, []);
+    // Phase 5: Simplified - measurement is ready when fonts loaded and Canvas has calculated dimensions
+    const measurementHostReady = fontsReady && canonicalColumnWidthPx != null;
 
     const handleMeasurements = React.useCallback(
         (updates: MeasurementRecord[]) => {
@@ -1033,15 +916,13 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                 const isLikelyRefresh = fontsReady && componentCount > 0 && planPageCount === 0 && !hasCompletedMeasurementCycleRef.current;
 
                 if (process.env.NODE_ENV !== 'production') {
-                    console.log('📏 [StatblockPage] Ignoring measurement batch until canonical width lock', {
+                    console.log('📏 [StatblockPage] Ignoring measurement batch - host not ready', {
                         batchSize: updates.length,
                         measurementStatus,
-                        hasCanonicalWidthLock,
                         planPageCount,
                         fontsReady,
                         componentCount,
                         isLikelyRefresh,
-                        reason: isLikelyRefresh ? 'refresh-detected-require-lock' : 'waiting-for-canonical-lock',
                     });
                 }
                 return;
@@ -1111,7 +992,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             }
             layout.onMeasurements(updates);
         },
-        [fontsReady, themeLoaded, hasCanonicalWidthLock, layout, measurementHostReady, measurementStatus, planPageCount]
+        [fontsReady, themeLoaded, layout, measurementHostReady, measurementStatus, planPageCount]
     );
 
     useEffect(() => {
@@ -1155,10 +1036,9 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     useEffect(() => {
         if (!measurementHostReady && measurementEntryCount > 0 && measurementStatus !== 'complete') {
             if (process.env.NODE_ENV !== 'production') {
-                console.log('📏 [StatblockPage] Deferring measurement staging until canonical width lock', {
+                console.log('📏 [StatblockPage] Deferring measurement staging - host not ready', {
                     measurementEntryCount,
                     measurementStatus,
-                    hasCanonicalWidthLock,
                     measurementHostReady,
                 });
             }
