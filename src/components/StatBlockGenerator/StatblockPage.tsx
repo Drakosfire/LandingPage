@@ -13,17 +13,39 @@ import { DND_CSS_BASE_URL } from '../../config';
 import { usePHBTheme } from '../../hooks/useTheme';
 import '../../styles/canvas/index.css';         // Shared canvas styles
 import '../../styles/StatblockComponents.css';  // StatBlock-specific styles
-import type { CanvasLayoutEntry, BasePageDimensions, MeasurementEntry, MeasurementRecord } from 'dungeonmind-canvas';
+import type {
+    CanvasLayoutEntry,
+    BasePageDimensions,
+    MeasurementEntry,
+    MeasurementRecord,
+    CanvasConfig,
+    FrameConfig,
+} from 'dungeonmind-canvas';
 import { CanvasLayoutProvider } from 'dungeonmind-canvas';
 import { useCanvasLayout } from 'dungeonmind-canvas';
 import { CanvasPage } from 'dungeonmind-canvas';
-import { MeasurementLayer, MeasurementCoordinator } from 'dungeonmind-canvas';
-import { COMPONENT_VERTICAL_SPACING_PX, isComponentDebugEnabled, isRegionHeightDebugEnabled } from 'dungeonmind-canvas';
+import { MeasurementLayer, MeasurementCoordinator, MeasurementPortal } from 'dungeonmind-canvas';
+import { COMPONENT_VERTICAL_SPACING_PX, isComponentDebugEnabled, isRegionHeightDebugEnabled, computeBasePageDimensions } from 'dungeonmind-canvas';
 import { createStatblockAdapters } from './canvasAdapters';
 import {
     REGION_HEIGHT_MIN_ABS_DIFF_PX,
     shouldSkipRegionHeightUpdate,
 } from './regionHeightUtils';
+
+/**
+ * PHB Theme Frame Configuration.
+ * These values describe the CSS dimensions of the PHB theme containers.
+ * Canvas uses these to calculate accurate dimensions without consumer calculations.
+ */
+const PHB_FRAME_CONFIG: FrameConfig = {
+    verticalBorderPx: 12.5,       // CSS: border: 6.25px 5px (top + bottom = 12.5px)
+    horizontalBorderPx: 10,       // CSS: border: 6.25px 5px (left + right = 10px)
+    columnPaddingPx: 10,          // CSS: padding: 8px 5px (left + right = 10px)
+    columnVerticalPaddingPx: 16,  // CSS: padding: 8px 5px (top + bottom = 16px)
+    componentGapPx: 12,           // CSS: gap: 12px
+    pageFontSizePx: 12.8504,      // .page.phb computed font-size
+    frameFontSizePx: 12.0189,     // .monster.frame computed font-size
+};
 
 interface StatblockPageProps {
     page: StatblockPageDocument;
@@ -167,12 +189,12 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const canonicalWidthLockRef = useRef<boolean>(false);
     const [scale, setScale] = useState(1);
     const [fontsReady, setFontsReady] = useState(false);
-    
+
     // Phase 4 A2: Load theme CSS early so we can pass ready signal to MeasurementLayer
     const { isLoaded: themeLoaded, error: themeError } = usePHBTheme(DND_CSS_BASE_URL, {
         debug: process.env.NODE_ENV !== 'production',
     });
-    
+
     const [measuredColumnWidth, setMeasuredColumnWidth] = useState<number | null>(null);
     const [hasCanonicalWidthLock, setHasCanonicalWidthLock] = useState(false);
     // Spike branch: fully eliminate live DOM scrollHeight; always use canonical height
@@ -323,13 +345,21 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         },
     }), [page.pageVariables]);
 
+    // Phase 5: Create unified Canvas config
+    // Consumer provides config, Canvas calculates all dimensions internally
+    const canvasConfig = useMemo<CanvasConfig>(() => ({
+        pageVariables: pageVariablesWithMargins,
+        frameConfig: PHB_FRAME_CONFIG,
+        ready: fontsReady && themeLoaded,
+    }), [pageVariablesWithMargins, fontsReady, themeLoaded]);
+
     const layout = useCanvasLayout({
-        // Phase 4 A2: Always pass components - MeasurementLayer gates via `ready` prop
+        // Phase 5: Use new config API - Canvas owns all dimension calculations
         componentInstances: page.componentInstances,
         template,
         dataSources: page.dataSources ?? [],
         componentRegistry: componentRegistry as any,
-        pageVariables: pageVariablesWithMargins,
+        config: canvasConfig,
         adapters,
     });
 
@@ -384,7 +414,10 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         topMarginPx: baseTopMarginPx,
         bottomMarginPx: baseBottomMarginPx,
     }: BasePageDimensions = layout.baseDimensions;
-    const canonicalRegionHeightPx = Math.max(baseContentHeightPx, 0);
+
+    // Phase 5: Get region height from Canvas-calculated dimensions
+    // Canvas now owns this calculation via config.frameConfig.verticalBorderPx
+    const canonicalRegionHeightPx = layout.dimensions?.regionHeightPx ?? 0;
 
     const leftMarginPx = (pageVariablesWithMargins.margins?.leftMm ?? FALLBACK_MARGIN_MM) * MM_TO_PX;
     const rightMarginPx = (pageVariablesWithMargins.margins?.rightMm ?? FALLBACK_MARGIN_MM) * MM_TO_PX;
@@ -396,31 +429,9 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         [columnConfig]
     );
 
-    const canonicalColumnWidthPx = useMemo(() => {
-        if (!columnCount || columnCount <= 0) {
-            return null;
-        }
-
-        const availableWidth = baseWidthPx - leftMarginPx - rightMarginPx;
-        const totalGap = columnGapPx * Math.max(0, columnCount - 1);
-        const usableWidth = Math.max(0, availableWidth - totalGap);
-
-        if (usableWidth <= 0) {
-            return null;
-        }
-
-        return usableWidth / columnCount;
-    }, [baseWidthPx, leftMarginPx, rightMarginPx, columnGapPx, columnCount]);
-
-    useEffect(() => {
-        setMeasuredColumnWidth(null);
-        if (canonicalWidthLockRef.current) {
-            canonicalWidthLockRef.current = false;
-            setHasCanonicalWidthLock(false);
-        }
-    }, [canonicalColumnWidthPx]);
-
-    const effectiveColumnWidthPx = measuredColumnWidth ?? canonicalColumnWidthPx ?? null;
+    // Phase 5: Get column width from Canvas-calculated dimensions
+    // Consumer no longer calculates widths - Canvas owns this via pageVariables + margins
+    const canonicalColumnWidthPx = layout.dimensions?.columnWidthPx ?? null;
 
     useLayoutEffect(() => {
         if (typeof ResizeObserver === 'undefined') {
@@ -1387,30 +1398,9 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         });
     }, [layout?.plan, fontsReady]);
 
-    const safeColumnCount = Math.max(columnCount, 1);
-    const fallbackColumnWidthPx = Math.max(
-        0,
-        (baseWidthPx - (safeColumnCount - 1) * columnGapPx) / safeColumnCount
-    );
-    // CRITICAL: Measurement layer MUST use canonical width, not measured width.
-    // The measurement layer renders at a known ratio (canonical width), independent of visible DOM width.
-    // Using measuredColumnWidth would cause wrong-width measurements on refresh when DOM is clamped.
-    const measurementColumnWidthPx = canonicalColumnWidthPx ?? fallbackColumnWidthPx;
-
-    // DIAGNOSTIC: Log width selection to debug measurement width mismatch
-    if (process.env.NODE_ENV !== 'production' && measurementStatus === 'measuring') {
-        console.log('📐 [StatblockPage] Measurement width selection', {
-            canonicalColumnWidthPx,
-            fallbackColumnWidthPx,
-            measurementColumnWidthPx,
-            usingFallback: canonicalColumnWidthPx == null,
-            baseWidthPx,
-            columnGapPx,
-            columnCount,
-            leftMarginPx,
-            rightMarginPx,
-        });
-    }
+    // Phase 5: Canvas owns width calculations - use layout.dimensions
+    // No more fallback/canonical/measured width juggling in consumer
+    const measurementColumnWidthPx = layout.dimensions?.columnWidthPx;
 
     useEffect(() => {
         // Only verify fonts if portal exists, fonts are loaded, and we're ready to render (but fonts not yet verified)
@@ -1708,6 +1698,17 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
         layout.measurementEntries,
     ]);
 
+    // Phase 5: Render function for MeasurementPortal
+    // CRITICAL: Must be before any early returns to maintain hook order
+    const renderMeasurementComponent = useCallback((entry: MeasurementEntry) =>
+        renderEntry(entry, componentRegistry, {
+            mode: pageVariablesWithMargins.mode,
+            pageVariables: pageVariablesWithPagination,
+            dataSources: page.dataSources ?? [],
+        }, isEditMode, onUpdateData),
+        [componentRegistry, pageVariablesWithMargins.mode, pageVariablesWithPagination, page.dataSources, isEditMode, onUpdateData]
+    );
+
     // Show loading state while fonts load
     if (!fontsReady) {
         return (
@@ -1718,76 +1719,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             </div>
         );
     }
-
-    const measurementPortal = measurementPortalNode && shouldRenderMeasurementPortal
-        ? createPortal(
-            <div
-                className="dm-canvas-measurement-layer"
-                aria-hidden
-                data-measurement-status={measurementStatus}
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: `${baseWidthPx}px`,
-                    height: `${baseHeightPx}px`,
-                    overflow: 'visible',
-                    pointerEvents: 'none',
-                    visibility: 'hidden',
-                }}
-            >
-                <div
-                    className="page phb"
-                    style={{
-                        width: `${baseWidthPx}px`,
-                        height: `${baseHeightPx}px`,
-                        margin: 0,
-                        transform: undefined,
-                        transformOrigin: 'top left',
-                    }}
-                >
-                    <div className="columnWrapper">
-                        <div className="monster frame wide" style={{ height: 'auto', width: measurementColumnWidthPx != null ? `${measurementColumnWidthPx}px` : `${fallbackColumnWidthPx}px`, maxWidth: measurementColumnWidthPx != null ? `${measurementColumnWidthPx}px` : `${fallbackColumnWidthPx}px` }}>
-                            <div
-                                className="canvas-column"
-                                style={{
-                                    // Phase 1: Use IDENTICAL structural styles as visible layer
-                                    // to guarantee measurement width === visible width
-                                    width: `${measurementColumnWidthPx ?? fallbackColumnWidthPx}px`,
-                                    boxSizing: 'border-box',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    flex: 'none',
-                                    flexShrink: 0,
-                                    flexGrow: 0,
-                                    minWidth: 0,
-                                    overflow: 'hidden',
-                                }}
-                            >
-                                <MeasurementLayer
-                                    entries={layout.measurementEntries}
-                                    renderComponent={(entry: MeasurementEntry) =>
-                                        renderEntry(entry, componentRegistry, {
-                                            mode: pageVariablesWithMargins.mode,
-                                            pageVariables: pageVariablesWithPagination,
-                                            dataSources: page.dataSources ?? [],
-                                        }, isEditMode, onUpdateData)
-                                    }
-                                    onMeasurements={handleMeasurements}
-                                    onMeasurementComplete={layout.onMeasurementComplete}
-                                    coordinator={measurementCoordinator}
-                                    measuredColumnWidth={measurementColumnWidthPx}
-                                    stagingMode="embedded"
-                                    ready={fontsReady && themeLoaded}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>,
-            measurementPortalNode
-        )
-        : null;
 
     return (
         <>
@@ -1806,7 +1737,17 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                     </div>
                 </div>
             </div>
-            {measurementPortal}
+            {/* Phase 5: Canvas-owned MeasurementPortal - one line! */}
+            {layout.dimensions && (
+                <MeasurementPortal
+                    config={canvasConfig}
+                    dimensions={layout.dimensions}
+                    entries={layout.measurementEntries}
+                    renderComponent={renderMeasurementComponent}
+                    onMeasurements={handleMeasurements}
+                    onMeasurementComplete={layout.onMeasurementComplete}
+                />
+            )}
         </>
     );
 };

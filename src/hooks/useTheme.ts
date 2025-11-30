@@ -99,11 +99,24 @@ export function useTheme(
             const combinedCSS = allCSS.join('\n\n');
             // Pass baseUrl for relative URL rewriting (fonts, images, etc.)
             ThemeLoader._injectLayeredCSS(combinedCSS, 'dm-theme-layer', baseUrl);
+
+            // CRITICAL FIX: Wait for browser to compute/apply CSS before marking as loaded
+            // CSS injection is synchronous, but style computation happens in subsequent render cycles.
+            // Without this delay, measurements may be taken before styles are fully applied.
+            // Using double RAF ensures styles are computed after the next paint.
+            await new Promise<void>((resolve) => {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        resolve();
+                    });
+                });
+            });
+
             hasLoadedRef.current = true;
             setIsLoaded(true);
 
             if (debug) {
-                console.log(`✅ [useTheme] Theme loaded: ${combinedCSS.length} bytes from ${allCSS.length} files`);
+                console.log(`✅ [useTheme] Theme loaded and applied: ${combinedCSS.length} bytes from ${allCSS.length} files`);
                 console.log(`   Base URL for relative paths: ${baseUrl}`);
             }
         }
