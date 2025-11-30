@@ -204,10 +204,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const regionHeightHoldTimerRef = useRef<number | null>(null);
     const pendingRegionHeightRef = useRef<number | null>(null);
     const pendingRegionLatestHeightRef = useRef<number | null>(null);
-    const [measurementPortalNode, setMeasurementPortalNode] = useState<HTMLDivElement | null>(null);
     const previousMeasurementStatusRef = useRef<string | undefined>(undefined);
-    const measurementAttachLoggedRef = useRef(false);
-    const measurementWidthLoggedRef = useRef(false);
     // Track if we've completed at least one measurement cycle to distinguish fresh mount from refresh
     const hasCompletedMeasurementCycleRef = useRef(false);
 
@@ -266,33 +263,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     // Create statblock adapters (memoized)
     const adapters = useMemo(() => createStatblockAdapters(), []);
 
-    useEffect(() => {
-        if (typeof document === 'undefined') {
-            return undefined;
-        }
-        const node = document.createElement('div');
-        node.className = 'dm-measurement-staging-root';
-        node.setAttribute('aria-hidden', 'true');
-        Object.assign(node.style, {
-            position: 'fixed',
-            top: '0px',
-            left: '0px',
-            width: '0px',
-            height: '0px',
-            pointerEvents: 'none',
-            zIndex: '-1',
-        });
-        document.body.appendChild(node);
-        setMeasurementPortalNode(node);
-        return () => {
-            if (node.parentNode) {
-                node.parentNode.removeChild(node);
-            }
-        };
-    }, []);
-
-
-    // DEBUG: Log edit mode prop
     // Wait for custom fonts to load before measuring
     useLayoutEffect(() => {
         if (typeof document === 'undefined' || !document.fonts) {
@@ -1048,58 +1018,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const canonicalWidthForcedLockRef = useRef(false);
 
     useEffect(() => {
-        if (measurementStatus !== 'measuring') {
-            measurementWidthLoggedRef.current = false;
-        }
-
-        if (
-            !measurementWidthDebugEnabled ||
-            !measurementPortalNode ||
-            !measurementHostReady ||
-            !fontsReady ||
-            measurementStatus !== 'measuring' ||
-            measurementWidthLoggedRef.current
-        ) {
-            return undefined;
-        }
-
-        measurementWidthLoggedRef.current = true;
-
-        const logWidths = () => {
-            const visibleColumn = document.querySelector<HTMLDivElement>('.dm-canvas-responsive .canvas-column');
-            const measurementColumn = measurementPortalNode.querySelector<HTMLDivElement>(
-                '.dm-canvas-measurement-layer .canvas-column'
-            );
-
-            const visibleWidth = visibleColumn ? visibleColumn.getBoundingClientRect().width : null;
-            const measurementWidth = measurementColumn ? measurementColumn.getBoundingClientRect().width : null;
-            const unscaledVisibleWidth = visibleWidth != null ? visibleWidth / scale : null;
-
-            console.log('📏 [MeasurementWidthDebug] Column widths', {
-                measurementStatus,
-                visibleWidthScaled: visibleWidth != null ? Number(visibleWidth.toFixed(2)) : 'N/A',
-                visibleWidthUnscaled: unscaledVisibleWidth != null ? Number(unscaledVisibleWidth.toFixed(2)) : 'N/A',
-                measurementWidth: measurementWidth != null ? Number(measurementWidth.toFixed(2)) : 'N/A',
-                scale,
-                portalReady: !!measurementPortalNode,
-            });
-        };
-
-        const rafId = requestAnimationFrame(() => {
-            requestAnimationFrame(logWidths);
-        });
-
-        return () => cancelAnimationFrame(rafId);
-    }, [
-        measurementWidthDebugEnabled,
-        measurementPortalNode,
-        measurementHostReady,
-        fontsReady,
-        measurementStatus,
-        scale,
-    ]);
-
-    useEffect(() => {
         return () => {
             if (canonicalWidthMismatchTimeoutRef.current != null) {
                 window.clearTimeout(canonicalWidthMismatchTimeoutRef.current);
@@ -1107,11 +1025,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             }
         };
     }, []);
-
-    // CRITICAL: Verify fonts are actually rendered in measurement layer DOM before allowing measurement.
-    // On refresh, fonts may be cached and load() resolves immediately, but the measurement layer DOM
-    // might not have applied fonts yet. We need to verify fonts are actually used, not just loaded.
-    const [measurementLayerFontsReady, setMeasurementLayerFontsReady] = useState(false);
 
     const handleMeasurements = React.useCallback(
         (updates: MeasurementRecord[]) => {
@@ -1198,7 +1111,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             }
             layout.onMeasurements(updates);
         },
-        [fontsReady, themeLoaded, hasCanonicalWidthLock, layout, measurementHostReady, measurementStatus, planPageCount, measurementLayerFontsReady]
+        [fontsReady, themeLoaded, hasCanonicalWidthLock, layout, measurementHostReady, measurementStatus, planPageCount]
     );
 
     useEffect(() => {
@@ -1251,12 +1164,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
             }
         }
     }, [measurementEntryCount, measurementHostReady, measurementStatus]);
-
-    useEffect(() => {
-        if (measurementStatus === 'idle' || measurementStatus === 'complete') {
-            measurementAttachLoggedRef.current = false;
-        }
-    }, [measurementStatus]);
 
     const scaledHeightPx = baseHeightPx * scale;
     const pageCount = Math.max(1, layout.plan?.pages.length ?? 1);
@@ -1401,302 +1308,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     // Phase 5: Canvas owns width calculations - use layout.dimensions
     // No more fallback/canonical/measured width juggling in consumer
     const measurementColumnWidthPx = layout.dimensions?.columnWidthPx;
-
-    useEffect(() => {
-        // Only verify fonts if portal exists, fonts are loaded, and we're ready to render (but fonts not yet verified)
-        // Phase 4 A2: MeasurementLayer now handles CSS/font readiness via `ready` prop
-        if (!measurementPortalNode || !measurementHostReady || !fontsReady || measurementStatus === 'complete') {
-            setMeasurementLayerFontsReady(false);
-            return;
-        }
-
-        // Wait for measurement layer DOM to render, then verify fonts are actually applied
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-        const verifyFontsInMeasurementLayer = (): void => {
-            // Find a test element in the measurement layer
-            const testElement = measurementPortalNode.querySelector('.dm-measurement-entry');
-            if (!testElement) {
-                // Measurement layer not rendered yet, wait a bit more
-                timeoutId = setTimeout(verifyFontsInMeasurementLayer, 50);
-                return;
-            }
-
-            // Verify fonts are actually applied (not fallback fonts)
-            const computedStyle = window.getComputedStyle(testElement);
-            const fontFamily = computedStyle.fontFamily;
-
-            // Check if D&D fonts are actually being used (not fallback like Arial, sans-serif)
-            const hasDndFonts = fontFamily.includes('ScalySansRemake') ||
-                fontFamily.includes('NodestoCapsCondensed') ||
-                fontFamily.includes('BookInsanity');
-
-            if (!hasDndFonts) {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.warn('📏 [StatblockPage] Fonts not yet applied in measurement layer, retrying...', {
-                        fontFamily,
-                        testElement: testElement.className,
-                    });
-                }
-                // Fonts not applied yet, wait a bit more
-                timeoutId = setTimeout(verifyFontsInMeasurementLayer, 50);
-                return;
-            }
-
-            // Fonts are applied - allow measurement to proceed
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('✅ [StatblockPage] Fonts verified in measurement layer', {
-                    fontFamily,
-                });
-            }
-            setMeasurementLayerFontsReady(true);
-        };
-
-        // Start verification after a brief delay to allow DOM to render
-        timeoutId = setTimeout(verifyFontsInMeasurementLayer, 0);
-        return () => {
-            if (timeoutId !== null) {
-                clearTimeout(timeoutId);
-            }
-            setMeasurementLayerFontsReady(false);
-        };
-    }, [measurementPortalNode, measurementHostReady, fontsReady, measurementStatus]);
-
-    // Block measurement callbacks until fonts are verified in the measurement layer DOM
-    // This prevents wrong-height measurements on refresh when fonts aren't applied yet
-    const shouldAcceptMeasurements = measurementLayerFontsReady;
-
-    // CRITICAL: Only render measurement portal components AFTER fonts are ready
-    // fontsReady already includes waiting for fonts to be rendered (document.fonts.ready + double RAF)
-    // This prevents ResizeObserver from firing before fonts are applied
-    const shouldRenderMeasurementPortal =
-        Boolean(measurementPortalNode) &&
-        measurementHostReady &&
-        fontsReady &&
-        measurementStatus !== 'complete' &&
-        measurementEntryCount > 0;
-
-    useEffect(() => {
-        if (process.env.NODE_ENV === 'production') {
-            return;
-        }
-        if (!fontsReady) {
-            return;
-        }
-        if (!measurementHostReady) {
-            return;
-        }
-        if (measurementAttachLoggedRef.current) {
-            return;
-        }
-        if (!layout.plan || layout.plan.pages.length === 0) {
-            return;
-        }
-        if (typeof document === 'undefined' || typeof window === 'undefined') {
-            return;
-        }
-
-        measurementAttachLoggedRef.current = true;
-        let mutationObserver: MutationObserver | null = null;
-        let timeoutId: number | null = null;
-        let loggedSuccessfully = false;
-        const maxWaitMs = 2000; // 2 seconds max wait
-        const startTime = Date.now();
-
-        // Get all measurement keys for diagnostic purposes
-        const allMeasurementKeys = Array.from(layout.measurementEntries.map(e => e.measurementKey));
-
-        const findComponent05 = (): { element: Element | null; location: 'visible' | 'measurement-portal' | null; actualId?: string } => {
-            // Check visible canvas first (where entries should be after measurement completes)
-            // Try both ID formats: component-05 (zero-padded) and component-5 (non-padded)
-            const visibleElement05 = document.querySelector('.dm-canvas-renderer .canvas-entry[data-entry-id="component-05"]');
-            if (visibleElement05) {
-                return { element: visibleElement05, location: 'visible', actualId: 'component-05' };
-            }
-            const visibleElement5 = document.querySelector('.dm-canvas-renderer .canvas-entry[data-entry-id="component-5"]');
-            if (visibleElement5) {
-                return { element: visibleElement5, location: 'visible', actualId: 'component-5' };
-            }
-
-            // Check measurement portal (entries might still be measuring)
-            // Measurement keys use format: component-5:block (non-padded)
-            const measurementElement5 = document.querySelector('[data-measurement-key^="component-5:"]');
-            if (measurementElement5) {
-                return { element: measurementElement5, location: 'measurement-portal', actualId: 'component-5' };
-            }
-            const measurementElement05 = document.querySelector('[data-measurement-key^="component-05:"]');
-            if (measurementElement05) {
-                return { element: measurementElement05, location: 'measurement-portal', actualId: 'component-05' };
-            }
-
-            return { element: null, location: null };
-        };
-
-        const logEntryBounds = (result: { element: Element | null; location: 'visible' | 'measurement-portal' | null; actualId?: string }) => {
-            const elapsedMs = Date.now() - startTime;
-
-            if (!result.element) {
-                // Diagnostic: check what entries DO exist
-                const allVisibleEntries = Array.from(document.querySelectorAll('.canvas-entry')).map(el => ({
-                    id: el.getAttribute('data-entry-id'),
-                    className: el.className,
-                    spanTop: el.getAttribute('data-span-top'),
-                }));
-                const allMeasurementEntries = Array.from(document.querySelectorAll('[data-measurement-key]')).map(el => ({
-                    key: el.getAttribute('data-measurement-key'),
-                    className: el.className,
-                }));
-
-                // Find component-05/component-5 entries in plan
-                const planComponent05Entries = layout.plan?.pages.flatMap(page =>
-                    page.columns.flatMap(col =>
-                        col.entries
-                            .filter(e => e.instance.id === 'component-05' || e.instance.id === 'component-5')
-                            .map(e => ({
-                                id: e.instance.id,
-                                page: page.pageNumber,
-                                column: col.columnNumber,
-                                spanTop: e.span?.top,
-                                spanBottom: e.span?.bottom,
-                            }))
-                    )
-                ) ?? [];
-
-                console.log('📐 [MeasurementDebug] Entry bounds', {
-                    id: 'component-05',
-                    missing: true,
-                    elapsedMs,
-                    measurementStatus,
-                    measurementHostReady,
-                    hasCanonicalWidthLock,
-                    planPageCount,
-                    canonicalColumnWidthPx,
-                    measurementColumnWidthPx,
-                    visibleEntryCount: allVisibleEntries.length,
-                    measurementEntryCount: allMeasurementEntries.length,
-                    visibleEntryIds: allVisibleEntries.map(e => e.id).filter(Boolean),
-                    visibleEntryIdsWithSpans: allVisibleEntries
-                        .filter(e => e.id && (e.id.includes('component-0') || e.id.includes('component-5')))
-                        .map(e => ({ id: e.id, spanTop: e.spanTop })),
-                    measurementKeys: allMeasurementKeys.filter(k => k.startsWith('component-5') || k.startsWith('component-05')).slice(0, 10),
-                    planComponent05Entries,
-                    diagnostic: {
-                        hasCanvasRenderer: !!document.querySelector('.dm-canvas-renderer'),
-                        hasMeasurementLayer: !!document.querySelector('.dm-canvas-measurement-layer'),
-                        planHasComponent05: planComponent05Entries.length > 0,
-                    },
-                });
-                return;
-            }
-
-            const rect = result.element.getBoundingClientRect();
-            const measurementKey = result.element.getAttribute('data-measurement-key');
-            const entryId = result.element.getAttribute('data-entry-id');
-            const spanTop = result.element.getAttribute('data-span-top');
-            const spanBottom = result.element.getAttribute('data-span-bottom');
-
-            console.log('📐 [MeasurementDebug] Entry bounds', {
-                id: 'component-05',
-                actualId: result.actualId,
-                location: result.location,
-                width: Number(rect.width.toFixed(2)),
-                height: Number(rect.height.toFixed(2)),
-                top: Number(rect.top.toFixed(2)),
-                left: Number(rect.left.toFixed(2)),
-                measurementKey,
-                entryId,
-                spanTop,
-                spanBottom,
-                elapsedMs,
-                measurementStatus,
-                measurementHostReady,
-                hasCanonicalWidthLock,
-                planPageCount,
-                canonicalColumnWidthPx,
-                measurementColumnWidthPx,
-                scale,
-            });
-        };
-
-        const checkAndLog = () => {
-            const result = findComponent05();
-            if (result.element) {
-                loggedSuccessfully = true;
-                logEntryBounds(result);
-                if (mutationObserver) {
-                    mutationObserver.disconnect();
-                    mutationObserver = null;
-                }
-                if (timeoutId != null) {
-                    window.clearTimeout(timeoutId);
-                    timeoutId = null;
-                }
-                return;
-            }
-
-            // Check timeout
-            if (Date.now() - startTime >= maxWaitMs) {
-                logEntryBounds(result);
-                if (mutationObserver) {
-                    mutationObserver.disconnect();
-                    mutationObserver = null;
-                }
-                measurementAttachLoggedRef.current = false;
-                return;
-            }
-        };
-
-        // Initial check
-        checkAndLog();
-        if (loggedSuccessfully) {
-            return;
-        }
-
-        // Set up MutationObserver to watch for DOM changes
-        const targetNode = document.querySelector('.dm-canvas-renderer') || document.body;
-        if (targetNode) {
-            mutationObserver = new MutationObserver(() => {
-                checkAndLog();
-            });
-
-            mutationObserver.observe(targetNode, {
-                childList: true,
-                subtree: true,
-                attributes: true,
-                attributeFilter: ['data-entry-id', 'data-measurement-key'],
-            });
-        }
-
-        // Fallback timeout
-        timeoutId = window.setTimeout(() => {
-            checkAndLog();
-        }, maxWaitMs);
-
-        return () => {
-            if (mutationObserver) {
-                mutationObserver.disconnect();
-            }
-            if (timeoutId != null) {
-                window.clearTimeout(timeoutId);
-            }
-            if (!loggedSuccessfully) {
-                measurementAttachLoggedRef.current = false;
-            }
-        };
-    }, [
-        canonicalColumnWidthPx,
-        measurementColumnWidthPx,
-        measurementHostReady,
-        measurementStatus,
-        measurementEntryCount,
-        planPageCount,
-        scale,
-        shouldRenderMeasurementPortal,
-        hasCanonicalWidthLock,
-        fontsReady,
-        layout.plan,
-        layout.measurementEntries,
-    ]);
 
     // Phase 5: Render function for MeasurementPortal
     // CRITICAL: Must be before any early returns to maintain hook order
