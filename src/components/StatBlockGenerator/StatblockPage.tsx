@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 
 import type {
     CanvasComponentProps,
@@ -24,8 +23,8 @@ import type {
 import { CanvasLayoutProvider } from 'dungeonmind-canvas';
 import { useCanvasLayout } from 'dungeonmind-canvas';
 import { CanvasPage } from 'dungeonmind-canvas';
-import { MeasurementLayer, MeasurementCoordinator, MeasurementPortal } from 'dungeonmind-canvas';
-import { COMPONENT_VERTICAL_SPACING_PX, isComponentDebugEnabled, isRegionHeightDebugEnabled, computeBasePageDimensions } from 'dungeonmind-canvas';
+import { MeasurementCoordinator, MeasurementPortal } from 'dungeonmind-canvas';
+import { COMPONENT_VERTICAL_SPACING_PX, isComponentDebugEnabled, isRegionHeightDebugEnabled } from 'dungeonmind-canvas';
 import { createStatblockAdapters } from './canvasAdapters';
 import {
     REGION_HEIGHT_MIN_ABS_DIFF_PX,
@@ -174,9 +173,6 @@ const readForceCanonicalHeightPreference = (): boolean => {
     return true;
 };
 
-const readMeasurementWidthDebugPreference = (): boolean =>
-    parseBooleanPreference(process.env.REACT_APP_CANVAS_DEBUG_MEASUREMENT_WIDTH) === true;
-
 const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, componentRegistry, isEditMode, onUpdateData, measurementCoordinator }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     // FIXED: Track last sent height to prevent redundant setRegionHeight calls
@@ -185,7 +181,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const [scale, setScale] = useState(1);
     const [fontsReady, setFontsReady] = useState(false);
 
-    // Phase 4 A2: Load theme CSS early so we can pass ready signal to MeasurementLayer
+    // Load theme CSS early so we can pass ready signal to Canvas
     const { isLoaded: themeLoaded, error: themeError } = usePHBTheme(DND_CSS_BASE_URL, {
         debug: process.env.NODE_ENV !== 'production',
     });
@@ -850,7 +846,6 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const measurementStatus = layout.measurementStatus ?? 'idle';
     const measurementEntryCount = layout.measurementEntries.length;
     const planPageCount = layout.plan?.pages.length ?? 0;
-    const measurementWidthDebugEnabled = readMeasurementWidthDebugPreference();
 
     // Track completion of first measurement cycle to distinguish fresh mount from refresh
     useEffect(() => {
