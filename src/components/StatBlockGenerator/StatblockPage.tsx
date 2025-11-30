@@ -143,36 +143,6 @@ const SPELLCASTING_HEIGHT_LOG_COOLDOWN_MS = 1500;
 const isSpellcastingVerboseLoggingEnabled = (): boolean =>
     typeof window !== 'undefined' && Boolean((window as any).__SPELLCASTING_LOG_VERBOSE__);
 
-const parseBooleanPreference = (value?: string | null): boolean | undefined => {
-    if (typeof value === 'string') {
-        const normalized = value.trim().toLowerCase();
-        if (['1', 'true', 'yes', 'on', 'enable', 'enabled'].includes(normalized)) {
-            return true;
-        }
-        if (['0', 'false', 'no', 'off', 'disable', 'disabled'].includes(normalized)) {
-            return false;
-        }
-    }
-    return undefined;
-};
-
-const CANONICAL_HEIGHT_STORAGE_KEY = 'canvas:forceCanonicalHeight';
-
-const readForceCanonicalHeightPreference = (): boolean => {
-    const envValue = parseBooleanPreference(process.env.REACT_APP_CANVAS_FORCE_CANONICAL_HEIGHT);
-    if (envValue !== undefined) {
-        return envValue;
-    }
-    if (typeof window !== 'undefined' && window.localStorage) {
-        const stored = window.localStorage.getItem(CANONICAL_HEIGHT_STORAGE_KEY);
-        const parsedStored = parseBooleanPreference(stored);
-        if (parsedStored !== undefined) {
-            return parsedStored;
-        }
-    }
-    return true;
-};
-
 const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, componentRegistry, isEditMode, onUpdateData, measurementCoordinator }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     // FIXED: Track last sent height to prevent redundant setRegionHeight calls
@@ -185,8 +155,8 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
     const { isLoaded: themeLoaded, error: themeError } = usePHBTheme(DND_CSS_BASE_URL, {
         debug: process.env.NODE_ENV !== 'production',
     });
-    // Spike branch: fully eliminate live DOM scrollHeight; always use canonical height
-    const [forceCanonicalHeight, setForceCanonicalHeight] = useState<boolean>(true);
+    // Phase 5: Always use canonical height - no live DOM measurement feedback loops
+    const forceCanonicalHeight = true;
     const REGION_HEIGHT_HOLD_TIMEOUT_MS = 400;
     const [regionHeightHoldActive, setRegionHeightHoldActive] = useState(true);
     const regionHeightHoldTimerRef = useRef<number | null>(null);
@@ -746,7 +716,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                         note: 'Using canonical height to prevent feedback loop - measurement ignored',
                     });
                 }
-                // Always use canonical height when forceCanonicalHeight is enabled
+                // Always use canonical height (prevents feedback loops from live DOM measurement)
                 applyRegionHeightTarget(canonicalRegionHeightPx, 'canonical', {
                     measurementSource: 'canonical-base-content',
                     fullColumnHeight: canonicalRegionHeightPx,
@@ -754,66 +724,7 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
                     heightCeiling: canonicalRegionHeightPx,
                     scaleSnapshot: scale,
                 });
-                return;
             }
-
-            const usableHeight = fullColumnHeight / scale;
-            const heightCeiling = Math.max(baseContentHeightPx, 0);
-            const cappedHeight = Math.min(usableHeight, heightCeiling);
-            // Phase 5: Simplified - use canonical height when hold is active
-            const shouldHoldCanonicalHeight = regionHeightHoldActive;
-            const targetHeight = shouldHoldCanonicalHeight ? heightCeiling : cappedHeight;
-
-            // DEBUG: Log detailed measurement info to diagnose height discrepancy
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('📏 [StatblockPage] Column height measurement details', {
-                    scale,
-                    columnMeasurements: {
-                        getBoundingClientRect: columnRect.height,
-                        scrollHeight: columnScrollHeight,
-                        clientHeight: columnClientHeight,
-                        offsetHeight: columnOffsetHeight,
-                    },
-                    frameMeasurements: {
-                        getBoundingClientRect: frameRect.height,
-                        scrollHeight: frameScrollHeight,
-                        clientHeight: frameClientHeight,
-                        offsetHeight: frameOffsetHeight,
-                    },
-                    selected: {
-                        fullColumnHeight,
-                        source: measurementSource,
-                    },
-                    calculated: {
-                        usableHeight,
-                        heightCeiling,
-                        cappedHeight,
-                    },
-                    note: 'usableHeight = fullColumnHeight / scale (pre-transform height for pagination)',
-                });
-            }
-
-            if (isSpellcastingDebugEnabled() && Math.abs(usableHeight - cappedHeight) > 0.5) {
-                console.log('📏 [Spellcasting Debug] Region height measurement', {
-                    usableHeight,
-                    heightCeiling,
-                    cappedHeight,
-                    scale,
-                    columnRect: {
-                        height: columnRect.height,
-                        top: columnRect.top,
-                        bottom: columnRect.bottom,
-                    },
-                });
-            }
-
-            applyRegionHeightTarget(targetHeight, 'measurement', {
-                measurementSource,
-                fullColumnHeight,
-                usableHeight,
-                heightCeiling,
-                scaleSnapshot: scale,
-            });
         };
 
         const observer = new ResizeObserver(() => {
