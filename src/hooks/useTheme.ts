@@ -1,22 +1,22 @@
 /**
- * useTheme - React hook for loading CSS themes with layer injection
+ * useTheme - React hook for loading CSS themes
  * 
- * Automatically loads theme CSS on mount and cleans up on unmount.
- * Uses ThemeLoader to ensure themes are wrapped in @layer theme,
- * giving Canvas structural CSS higher priority.
+ * SIMPLIFIED: This hook now just observes the ThemeLoader singleton.
+ * All state management happens in ThemeLoader (survives React remounts).
  * 
  * Usage:
- *   const { isLoaded, error } = useTheme(DND_CSS_BASE_URL, ['all.css', 'bundle.css', 'style.css', '5ePHBstyle.css']);
+ *   const { isLoaded, error } = usePHBTheme(DND_CSS_BASE_URL);
+ *   
+ *   // Wait for theme before measuring
+ *   const ready = fontsReady && isLoaded;
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { ThemeLoader, ThemeLoadResult } from '../utils/ThemeLoader';
+import { useState, useEffect, useMemo } from 'react';
+import { ThemeLoader, ThemeLoadingState } from '../utils/ThemeLoader';
 
 export interface UseThemeOptions {
     /** Whether to enable debug logging */
     debug?: boolean;
-    /** Whether to unload theme on unmount (default: false for shared themes) */
-    unloadOnUnmount?: boolean;
 }
 
 export interface UseThemeResult {
@@ -26,143 +26,97 @@ export interface UseThemeResult {
     isLoading: boolean;
     /** Error message if loading failed */
     error: string | null;
-    /** Results from loading each CSS file */
-    results: ThemeLoadResult[];
-    /** Manually reload the theme */
+    /** Manually reload the theme (forces re-fetch) */
     reload: () => Promise<void>;
     /** Manually unload the theme */
     unload: () => void;
 }
 
 /**
- * Hook to load a theme from a base URL with multiple CSS files
+ * Hook to load a theme from a base URL with multiple CSS files.
+ * 
+ * SAFE FOR STRICT MODE: Uses ThemeLoader singleton for state.
+ * Multiple component instances share the same loading state.
  */
 export function useTheme(
     baseUrl: string | undefined,
     cssFiles: string[],
     options: UseThemeOptions = {}
 ): UseThemeResult {
-    const { debug = false, unloadOnUnmount = false } = options;
+    const { debug = false } = options;
 
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [results, setResults] = useState<ThemeLoadResult[]>([]);
+    // Subscribe to singleton state changes
+    const [state, setState] = useState<ThemeLoadingState>(ThemeLoader.getState());
 
-    const hasLoadedRef = useRef(false);
+    // Memoize the URL list to prevent unnecessary effect triggers
+    const urlsKey = useMemo(() => cssFiles.join(','), [cssFiles]);
 
-    const loadTheme = async () => {
+    useEffect(() => {
+        // Configure debug mode
+        ThemeLoader.configure({ debug });
+
+        // Subscribe to state changes from singleton
+        const unsubscribe = ThemeLoader.subscribe((newState) => {
+            setState(newState);
+        });
+
+        return unsubscribe;
+    }, [debug]);
+
+    useEffect(() => {
         if (!baseUrl || cssFiles.length === 0) {
             if (debug) console.log('🎨 [useTheme] No baseUrl or cssFiles, skipping');
             return;
         }
 
-        // Skip if already loaded (avoid double-loading in React strict mode)
-        if (hasLoadedRef.current && ThemeLoader.isLoaded()) {
-            if (debug) console.log('🎨 [useTheme] Theme already loaded, skipping');
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        // Configure ThemeLoader
-        ThemeLoader.configure({ debug });
-
         // Build full URLs
         const urls = cssFiles.map(file => `${baseUrl}/${file}`);
 
-        if (debug) console.log('🎨 [useTheme] Loading theme:', urls);
-
-        // Fetch all CSS files and combine into a single layer injection
-        const allCSS: string[] = [];
-        const loadResults: ThemeLoadResult[] = [];
-
-        for (const url of urls) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                const cssText = await response.text();
-                allCSS.push(`/* Source: ${url} */\n${cssText}`);
-                loadResults.push({ success: true, url, cssLength: cssText.length });
-            } catch (err) {
-                const message = err instanceof Error ? err.message : 'Unknown error';
-                loadResults.push({ success: false, url, error: message });
-                console.error(`❌ [useTheme] Failed to load ${url}:`, message);
-            }
-        }
-
-        // Inject combined CSS into theme layer
-        if (allCSS.length > 0) {
-            const combinedCSS = allCSS.join('\n\n');
-            // Pass baseUrl for relative URL rewriting (fonts, images, etc.)
-            ThemeLoader._injectLayeredCSS(combinedCSS, 'dm-theme-layer', baseUrl);
-
-            // CRITICAL FIX: Wait for browser to compute/apply CSS before marking as loaded
-            // CSS injection is synchronous, but style computation happens in subsequent render cycles.
-            // Without this delay, measurements may be taken before styles are fully applied.
-            // Using double RAF ensures styles are computed after the next paint.
-            await new Promise<void>((resolve) => {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        resolve();
-                    });
-                });
-            });
-
-            hasLoadedRef.current = true;
-            setIsLoaded(true);
-
-            if (debug) {
-                console.log(`✅ [useTheme] Theme loaded and applied: ${combinedCSS.length} bytes from ${allCSS.length} files`);
-                console.log(`   Base URL for relative paths: ${baseUrl}`);
-            }
-        }
-
-        // Check for any failures
-        const failures = loadResults.filter(r => !r.success);
-        if (failures.length > 0) {
-            setError(`Failed to load ${failures.length} CSS file(s)`);
-        }
-
-        setResults(loadResults);
-        setIsLoading(false);
-    };
-
-    const unload = () => {
-        ThemeLoader.unloadTheme();
-        hasLoadedRef.current = false;
-        setIsLoaded(false);
-        setResults([]);
-    };
-
-    useEffect(() => {
-        loadTheme();
-
-        return () => {
-            if (unloadOnUnmount) {
-                unload();
-            }
-        };
+        // Trigger load (IDEMPOTENT - safe to call multiple times)
+        // If already loaded, this returns immediately.
+        // If already loading, this returns the existing promise.
+        ThemeLoader.ensureLoaded(urls, baseUrl).catch((err) => {
+            // Error is captured in singleton state, but log for visibility
+            console.error('❌ [useTheme] Theme loading failed:', err);
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [baseUrl, cssFiles.join(',')]);
+    }, [baseUrl, urlsKey]);
+
+    const reload = async (): Promise<void> => {
+        if (!baseUrl || cssFiles.length === 0) return;
+
+        // Force reload by unloading first
+        ThemeLoader.unloadTheme();
+
+        const urls = cssFiles.map(file => `${baseUrl}/${file}`);
+        await ThemeLoader.ensureLoaded(urls, baseUrl);
+    };
+
+    const unload = (): void => {
+        ThemeLoader.unloadTheme();
+    };
+
+    const error = ThemeLoader.getError();
 
     return {
-        isLoaded,
-        isLoading,
-        error,
-        results,
-        reload: loadTheme,
+        isLoaded: state === 'loaded',
+        isLoading: state === 'loading',
+        error: error?.message ?? null,
+        reload,
         unload,
     };
 }
 
 /**
- * Hook to load the D&D PHB theme specifically
+ * Hook to load the D&D PHB theme specifically.
+ * 
+ * Usage:
+ *   const { isLoaded } = usePHBTheme(DND_CSS_BASE_URL);
  */
-export function usePHBTheme(baseUrl: string | undefined, options?: UseThemeOptions): UseThemeResult {
+export function usePHBTheme(
+    baseUrl: string | undefined, 
+    options?: UseThemeOptions
+): UseThemeResult {
     return useTheme(
         baseUrl,
         ['all.css', 'bundle.css', 'style.css', '5ePHBstyle.css'],
@@ -171,4 +125,3 @@ export function usePHBTheme(baseUrl: string | undefined, options?: UseThemeOptio
 }
 
 export default useTheme;
-
