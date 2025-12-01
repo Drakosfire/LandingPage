@@ -208,6 +208,92 @@ export interface FlexibleBonusConfig {
     allowStacking: boolean;
 }
 
+// ===== SPELLCASTING TYPES (T035j) =====
+
+/**
+ * Caster type classification
+ */
+export type CasterType = 'full' | 'half' | 'pact' | 'none';
+
+/**
+ * Character's computed spellcasting information (T035j)
+ * Returned by getSpellcastingInfo() - contains all computed spellcasting state
+ */
+export interface SpellcastingInfo {
+    /** Is this character a spellcaster? */
+    isSpellcaster: boolean;
+
+    /** Caster type (full/half/pact/none) */
+    casterType: CasterType;
+
+    /** Primary spellcasting class (first class with spellcasting) */
+    spellcastingClass?: string;
+
+    /** Spellcasting ability (intelligence/wisdom/charisma) */
+    spellcastingAbility?: AbilityName;
+
+    /** Spell save DC = 8 + proficiency + ability modifier */
+    spellSaveDC?: number;
+
+    /** Spell attack bonus = proficiency + ability modifier */
+    spellAttackBonus?: number;
+
+    /** Number of cantrips known */
+    cantripsKnown: number;
+
+    /** Cantrip IDs the character knows */
+    knownCantrips: string[];
+
+    /** For known-spell casters: max spells known */
+    maxSpellsKnown?: number;
+
+    /** For prepared-spell casters: max spells that can be prepared */
+    maxPreparedSpells?: number;
+
+    /** Spell preparation formula (e.g., 'WIS_MOD + LEVEL') */
+    prepareFormula?: string;
+
+    /** Currently known spell IDs */
+    knownSpells: string[];
+
+    /** Currently prepared spell IDs (for prepared casters) */
+    preparedSpells: string[];
+
+    /** Spell slots by level: { 1: { total: 2, used: 0 }, 2: { total: 0, used: 0 }, ... } */
+    spellSlots: Record<number, { total: number; used: number }>;
+
+    /** For Warlocks: Pact Magic slot info */
+    pactMagic?: {
+        slotCount: number;
+        slotLevel: number;
+        slotsUsed: number;
+    };
+
+    /** Can cast rituals without using spell slots? */
+    ritualCasting: boolean;
+
+    /** Subclass-granted spells (always prepared, don't count against limit) */
+    bonusSpells: string[];
+
+    /** Class spell list ID for filtering available spells */
+    spellListId?: string;
+}
+
+/**
+ * Empty spellcasting info for non-casters
+ */
+export const EMPTY_SPELLCASTING_INFO: SpellcastingInfo = {
+    isSpellcaster: false,
+    casterType: 'none',
+    cantripsKnown: 0,
+    knownCantrips: [],
+    knownSpells: [],
+    preparedSpells: [],
+    spellSlots: {},
+    ritualCasting: false,
+    bonusSpells: []
+};
+
 /**
  * Factory function to create an empty ValidationResult
  */

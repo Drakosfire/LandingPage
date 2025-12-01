@@ -1007,6 +1007,235 @@ describe('DnD5eRuleEngine', () => {
                 expect(hasPack).toBe(true);
             });
         });
+
+        describe('Spellcasting Methods (T035m-o)', () => {
+            let wizardCharacter: DnD5eCharacter;
+            let clericCharacter: DnD5eCharacter;
+            let fighterCharacter: DnD5eCharacter;
+
+            beforeEach(() => {
+                wizardCharacter = {
+                    ...createEmptyDnD5eCharacter(),
+                    classes: [{
+                        name: 'Wizard',
+                        level: 3,
+                        hitDie: 6,
+                        features: []
+                    }],
+                    abilityScores: {
+                        strength: 8,
+                        dexterity: 14,
+                        constitution: 14,
+                        intelligence: 16, // +3 mod
+                        wisdom: 12,
+                        charisma: 10
+                    }
+                };
+
+                clericCharacter = {
+                    ...createEmptyDnD5eCharacter(),
+                    classes: [{
+                        name: 'Cleric',
+                        level: 1,
+                        hitDie: 8,
+                        subclass: 'Life Domain',
+                        features: []
+                    }],
+                    abilityScores: {
+                        strength: 14,
+                        dexterity: 10,
+                        constitution: 14,
+                        intelligence: 8,
+                        wisdom: 16, // +3 mod
+                        charisma: 12
+                    }
+                };
+
+                fighterCharacter = {
+                    ...createEmptyDnD5eCharacter(),
+                    classes: [{
+                        name: 'Fighter',
+                        level: 1,
+                        hitDie: 10,
+                        features: []
+                    }]
+                };
+            });
+
+            describe('getSpellcastingInfo (T035m)', () => {
+                it('should return correct info for Wizard', () => {
+                    const info = engine.getSpellcastingInfo(wizardCharacter);
+
+                    expect(info.isSpellcaster).toBe(true);
+                    expect(info.casterType).toBe('full');
+                    expect(info.spellcastingClass).toBe('Wizard');
+                    expect(info.spellcastingAbility).toBe('intelligence');
+                    
+                    // Level 3 Wizard: Prof +2, INT +3 = spell save DC 13, attack +5
+                    expect(info.spellSaveDC).toBe(13);
+                    expect(info.spellAttackBonus).toBe(5);
+                    
+                    // Level 3 Wizard: 3 cantrips
+                    expect(info.cantripsKnown).toBe(3);
+                    
+                    // Wizard is a prepared caster
+                    expect(info.prepareFormula).toBe('INT_MOD + LEVEL');
+                    expect(info.maxPreparedSpells).toBe(6); // 3 + 3
+                    
+                    // Full caster level 3: 4 1st-level, 2 2nd-level slots
+                    expect(info.spellSlots[1]?.total).toBe(4);
+                    expect(info.spellSlots[2]?.total).toBe(2);
+                    
+                    expect(info.ritualCasting).toBe(true);
+                });
+
+                it('should return correct info for Cleric', () => {
+                    const info = engine.getSpellcastingInfo(clericCharacter);
+
+                    expect(info.isSpellcaster).toBe(true);
+                    expect(info.casterType).toBe('full');
+                    expect(info.spellcastingClass).toBe('Cleric');
+                    expect(info.spellcastingAbility).toBe('wisdom');
+                    
+                    // Level 1 Cleric: Prof +2, WIS +3 = spell save DC 13, attack +5
+                    expect(info.spellSaveDC).toBe(13);
+                    expect(info.spellAttackBonus).toBe(5);
+                    
+                    // Level 1 Cleric: 3 cantrips
+                    expect(info.cantripsKnown).toBe(3);
+                    
+                    // Cleric is a prepared caster
+                    expect(info.prepareFormula).toBe('WIS_MOD + LEVEL');
+                    expect(info.maxPreparedSpells).toBe(4); // 3 + 1
+                    
+                    // Full caster level 1: 2 1st-level slots
+                    expect(info.spellSlots[1]?.total).toBe(2);
+                    
+                    expect(info.ritualCasting).toBe(true);
+                });
+
+                it('should return non-caster info for Fighter', () => {
+                    const info = engine.getSpellcastingInfo(fighterCharacter);
+
+                    expect(info.isSpellcaster).toBe(false);
+                    expect(info.casterType).toBe('none');
+                    expect(info.spellcastingClass).toBeUndefined();
+                    expect(info.cantripsKnown).toBe(0);
+                    expect(info.ritualCasting).toBe(false);
+                });
+
+                it('should return correct info for Warlock (Pact Magic)', () => {
+                    const warlockCharacter: DnD5eCharacter = {
+                        ...createEmptyDnD5eCharacter(),
+                        classes: [{
+                            name: 'Warlock',
+                            level: 2,
+                            hitDie: 8,
+                            subclass: 'The Fiend',
+                            features: []
+                        }],
+                        abilityScores: {
+                            strength: 8,
+                            dexterity: 14,
+                            constitution: 14,
+                            intelligence: 10,
+                            wisdom: 12,
+                            charisma: 16 // +3 mod
+                        }
+                    };
+
+                    const info = engine.getSpellcastingInfo(warlockCharacter);
+
+                    expect(info.isSpellcaster).toBe(true);
+                    expect(info.casterType).toBe('pact');
+                    expect(info.spellcastingClass).toBe('Warlock');
+                    expect(info.spellcastingAbility).toBe('charisma');
+                    
+                    // Warlock is a known caster
+                    expect(info.maxSpellsKnown).toBe(3); // Level 2 warlock knows 3 spells
+                    
+                    // Pact Magic: Level 2 = 2 slots at 1st level
+                    expect(info.pactMagic).toBeDefined();
+                    expect(info.pactMagic!.slotCount).toBe(2);
+                    expect(info.pactMagic!.slotLevel).toBe(1);
+                });
+
+                it('should return correct info for Paladin (half-caster)', () => {
+                    const paladinCharacter: DnD5eCharacter = {
+                        ...createEmptyDnD5eCharacter(),
+                        classes: [{
+                            name: 'Paladin',
+                            level: 2,
+                            hitDie: 10,
+                            features: []
+                        }],
+                        abilityScores: {
+                            strength: 16,
+                            dexterity: 10,
+                            constitution: 14,
+                            intelligence: 8,
+                            wisdom: 12,
+                            charisma: 14 // +2 mod
+                        }
+                    };
+
+                    const info = engine.getSpellcastingInfo(paladinCharacter);
+
+                    expect(info.isSpellcaster).toBe(true);
+                    expect(info.casterType).toBe('half');
+                    expect(info.spellcastingAbility).toBe('charisma');
+                    
+                    // Level 2 Paladin: 0 cantrips (Paladins don't get cantrips)
+                    expect(info.cantripsKnown).toBe(0);
+                    
+                    // Half-caster level 2: 2 1st-level slots
+                    expect(info.spellSlots[1]?.total).toBe(2);
+                });
+            });
+
+            describe('getAvailableSpells (T035o)', () => {
+                it('should return wizard cantrips', () => {
+                    const cantrips = engine.getAvailableSpells(wizardCharacter, 0);
+
+                    expect(cantrips.length).toBeGreaterThan(0);
+                    
+                    // Should include Fire Bolt (wizard cantrip)
+                    const fireBolt = cantrips.find(s => s.id === 'fire-bolt');
+                    expect(fireBolt).toBeDefined();
+                    expect(fireBolt!.level).toBe(0);
+                    expect(fireBolt!.classes).toContain('wizard');
+                });
+
+                it('should return cleric 1st-level spells', () => {
+                    const spells = engine.getAvailableSpells(clericCharacter, 1);
+
+                    expect(spells.length).toBeGreaterThan(0);
+                    
+                    // Should include Cure Wounds (cleric spell)
+                    const cureWounds = spells.find(s => s.id === 'cure-wounds');
+                    expect(cureWounds).toBeDefined();
+                    expect(cureWounds!.level).toBe(1);
+                    expect(cureWounds!.classes).toContain('cleric');
+                });
+
+                it('should return empty for non-spellcasters', () => {
+                    const spells = engine.getAvailableSpells(fighterCharacter, 1);
+                    expect(spells).toEqual([]);
+                });
+
+                it('should filter by correct class list', () => {
+                    // Wizard cantrips should not include Sacred Flame (Cleric only)
+                    const wizardCantrips = engine.getAvailableSpells(wizardCharacter, 0);
+                    const hasSacredFlame = wizardCantrips.some(s => s.id === 'sacred-flame');
+                    expect(hasSacredFlame).toBe(false);
+
+                    // Cleric cantrips should include Sacred Flame
+                    const clericCantrips = engine.getAvailableSpells(clericCharacter, 0);
+                    const clericHasSacredFlame = clericCantrips.some(s => s.id === 'sacred-flame');
+                    expect(clericHasSacredFlame).toBe(true);
+                });
+            });
+        });
     });
 });
 

@@ -154,7 +154,7 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [x] T035h [US1] Implement `getSubclassLevel(classId)` in `DnD5eRuleEngine.ts` ✅ (returns 1 for Cleric/Sorcerer/Warlock)
 - [x] T035i [US1] Add subclass validation to `validateClass()` ✅ Error if L1 class without subclass
 
-### 3.2c Spellcasting System (NEW)
+### 3.2c Spellcasting System ✅ COMPLETE
 
 **Reference**: `research/RESEARCH-Spellcasting-System.md` ✅ Complete
 
@@ -163,13 +163,13 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - Half casters: `HUMAN_PALADIN_L3` (prepared), `LIGHTFOOT_HALFLING_RANGER_L3` (known)
 - Pact Magic: `TIEFLING_WARLOCK_L1` (L1), `TIEFLING_WARLOCK_L3` (slot upgrade)
 
-- [ ] T035j [US1] Add `SpellcastingInfo` type to `RuleEngine.types.ts`
-- [ ] T035k [US1] Create `spells.ts` with SRD cantrips and level 1 spells in `data/dnd5e/spells.ts` 💡 **Option**: Import from 5etools `/data/spells/` JSON filtered for SRD. Use `fromClassList` pattern for class spell lists.
-- [ ] T035l [US1] Add spellcasting config per class (ability, known vs prepared, cantrips) to `classes.ts`
-- [ ] T035m [US1] Implement `getSpellcastingInfo(character)` in `DnD5eRuleEngine.ts`
-- [ ] T035n [US1] Implement spell slot calculation by level in `DnD5eRuleEngine.ts`
-- [ ] T035o [US1] Implement `getAvailableSpells(character, spellLevel)` in `DnD5eRuleEngine.ts`
-- [ ] T035p [US1] Add spellcasting tests covering known vs prepared casters
+- [x] T035j [US1] Add `SpellcastingInfo` type to `RuleEngine.types.ts` ✅ Full character spellcasting state type
+- [x] T035k [US1] Create `spells.ts` with SRD cantrips and level 1 spells ✅ 23 cantrips + 22 1st-level spells (45 total)
+- [x] T035l [US1] Spellcasting config per class ✅ Already in classes.ts from T027-T030
+- [x] T035m [US1] Implement `getSpellcastingInfo(character)` ✅ Full/half/pact caster support
+- [x] T035n [US1] Implement spell slot calculation ✅ Uses class.spellSlots data
+- [x] T035o [US1] Implement `getAvailableSpells(character, spellLevel)` ✅ Filters by class list
+- [x] T035p [US1] Add spellcasting tests ✅ 9 new tests covering all caster types
 
 ### 3.3 SRD Background Data
 

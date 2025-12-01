@@ -18,10 +18,10 @@ import type {
     AbilityName,
     AbilityBonusChoice,
     FlexibleBonusConfig,
-    createEmptyValidationResult,
-    createValidationError,
-    mergeValidationResults
+    SpellcastingInfo,
+    CasterType
 } from '../RuleEngine.types';
+import { EMPTY_SPELLCASTING_INFO } from '../RuleEngine.types';
 
 import type { DnD5eCharacter } from '../../types/dnd5e/character.types';
 import type { DnD5eRace } from '../../types/dnd5e/race.types';
@@ -618,14 +618,264 @@ export class DnD5eRuleEngine implements RuleEngine<
     }
 
     /**
-     * Get available spells at a level
+     * Get available spells at a level for a character (T035o)
+     * Filters by class spell list and spell level
      * @param character - Current character
      * @param spellLevel - Spell level (0 for cantrips)
      * @returns Array of available spells
      */
     getAvailableSpells(character: DnD5eCharacter, spellLevel: number): DnD5eSpell[] {
-        // TODO: Implement when spellcasting is added
-        return this.spells.filter(spell => spell.level === spellLevel);
+        // Get primary spellcasting class
+        const spellcastingClass = this.getSpellcastingClass(character);
+        if (!spellcastingClass) {
+            return [];
+        }
+
+        const classId = spellcastingClass.toLowerCase();
+
+        // Filter spells by level and class
+        return this.spells.filter(spell => 
+            spell.level === spellLevel && 
+            spell.classes.includes(classId)
+        );
+    }
+
+    // ===== SPELLCASTING METHODS (T035m-n) =====
+
+    /**
+     * Get comprehensive spellcasting info for a character (T035m)
+     * @param character - Character to analyze
+     * @returns Full spellcasting state
+     */
+    getSpellcastingInfo(character: DnD5eCharacter): SpellcastingInfo {
+        const spellcastingClass = this.getSpellcastingClass(character);
+        if (!spellcastingClass) {
+            return { ...EMPTY_SPELLCASTING_INFO };
+        }
+
+        const classId = spellcastingClass.toLowerCase();
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData || !classData.spellcasting) {
+            return { ...EMPTY_SPELLCASTING_INFO };
+        }
+
+        const spellcasting = classData.spellcasting;
+        const totalLevel = this.getTotalLevel(character.classes);
+        const classLevel = character.classes.find(c => 
+            c.name.toLowerCase() === classId
+        )?.level ?? 1;
+
+        // Determine caster type
+        const casterType = this.getCasterType(classId);
+
+        // Get ability modifier
+        const abilityName = spellcasting.ability as AbilityName;
+        const abilityMod = this.getAbilityModifier(
+            character.abilityScores[abilityName]
+        );
+        const profBonus = this.getProficiencyBonus(totalLevel);
+
+        // Calculate spell save DC and attack bonus
+        const spellSaveDC = 8 + profBonus + abilityMod;
+        const spellAttackBonus = profBonus + abilityMod;
+
+        // Get cantrips known
+        const cantripsKnown = spellcasting.cantripsKnown[classLevel] ?? 0;
+
+        // Get spell slots
+        const spellSlots = this.calculateSpellSlots(classId, classLevel, casterType);
+
+        // Calculate max spells known/prepared
+        let maxSpellsKnown: number | undefined;
+        let maxPreparedSpells: number | undefined;
+        let prepareFormula: string | undefined;
+
+        if (spellcasting.spellsKnown) {
+            // Known caster (Bard, Ranger, Sorcerer, Warlock)
+            maxSpellsKnown = spellcasting.spellsKnown[classLevel] ?? 0;
+        } else if (spellcasting.preparedSpells) {
+            // Prepared caster (Cleric, Druid, Paladin, Wizard)
+            prepareFormula = spellcasting.preparedSpells.formula;
+            maxPreparedSpells = this.calculateMaxPreparedSpells(
+                prepareFormula, 
+                abilityMod, 
+                classLevel
+            );
+        }
+
+        // Get bonus spells from subclass
+        const bonusSpells = this.getSubclassBonusSpells(character, classId);
+
+        // Check ritual casting
+        const ritualCasting = spellcasting.ritualCasting ?? false;
+
+        // Handle Pact Magic (Warlock)
+        let pactMagic: SpellcastingInfo['pactMagic'] | undefined;
+        if (spellcasting.pactMagic) {
+            const pactSlots = this.getPactMagicSlots(classLevel);
+            pactMagic = {
+                slotCount: pactSlots.slotCount,
+                slotLevel: pactSlots.slotLevel,
+                slotsUsed: character.spellcasting?.spellSlots?.[pactSlots.slotLevel]?.used ?? 0
+            };
+        }
+
+        return {
+            isSpellcaster: true,
+            casterType,
+            spellcastingClass: spellcastingClass,
+            spellcastingAbility: abilityName,
+            spellSaveDC,
+            spellAttackBonus,
+            cantripsKnown,
+            knownCantrips: character.spellcasting?.cantrips ?? [],
+            maxSpellsKnown,
+            maxPreparedSpells,
+            prepareFormula,
+            knownSpells: character.spellcasting?.spellsKnown ?? [],
+            preparedSpells: character.spellcasting?.spellsPrepared ?? [],
+            spellSlots,
+            pactMagic,
+            ritualCasting,
+            bonusSpells,
+            spellListId: spellcasting.spellListId
+        };
+    }
+
+    /**
+     * Get the primary spellcasting class for a character
+     */
+    private getSpellcastingClass(character: DnD5eCharacter): string | null {
+        for (const classLevel of character.classes) {
+            const classId = classLevel.name.toLowerCase();
+            const classData = this.classes.find(c => c.id === classId);
+            if (classData?.spellcasting) {
+                return classLevel.name;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Determine caster type for a class
+     */
+    private getCasterType(classId: string): CasterType {
+        const fullCasters = ['bard', 'cleric', 'druid', 'sorcerer', 'wizard'];
+        const halfCasters = ['paladin', 'ranger'];
+        const pactCasters = ['warlock'];
+
+        if (fullCasters.includes(classId)) return 'full';
+        if (halfCasters.includes(classId)) return 'half';
+        if (pactCasters.includes(classId)) return 'pact';
+        return 'none';
+    }
+
+    /**
+     * Calculate spell slots for a class at a given level (T035n)
+     */
+    private calculateSpellSlots(
+        classId: string, 
+        classLevel: number,
+        casterType: CasterType
+    ): Record<number, { total: number; used: number }> {
+        const slots: Record<number, { total: number; used: number }> = {};
+
+        // Get class data
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData?.spellcasting?.spellSlots) {
+            return slots;
+        }
+
+        // Get slots from class data
+        const classSlots = classData.spellcasting.spellSlots[classLevel];
+        if (classSlots) {
+            for (let i = 0; i < classSlots.length; i++) {
+                const slotCount = classSlots[i];
+                if (slotCount > 0) {
+                    slots[i + 1] = { total: slotCount, used: 0 };
+                }
+            }
+        }
+
+        return slots;
+    }
+
+    /**
+     * Get Pact Magic slot info for a Warlock level
+     */
+    private getPactMagicSlots(level: number): { slotCount: number; slotLevel: number } {
+        // Pact Magic progression (SRD)
+        const progression: Record<number, { slotCount: number; slotLevel: number }> = {
+            1: { slotCount: 1, slotLevel: 1 },
+            2: { slotCount: 2, slotLevel: 1 },
+            3: { slotCount: 2, slotLevel: 2 },
+            // Future levels would continue...
+        };
+
+        return progression[level] ?? { slotCount: 0, slotLevel: 0 };
+    }
+
+    /**
+     * Calculate max prepared spells from formula
+     */
+    private calculateMaxPreparedSpells(
+        formula: string, 
+        abilityMod: number, 
+        classLevel: number
+    ): number {
+        // Parse formulas like 'WIS_MOD + LEVEL', 'INT_MOD + LEVEL', 'CHA_MOD + HALF_LEVEL'
+        let result = 0;
+
+        if (formula.includes('_MOD')) {
+            result += abilityMod;
+        }
+
+        if (formula.includes('HALF_LEVEL')) {
+            result += Math.floor(classLevel / 2);
+        } else if (formula.includes('LEVEL')) {
+            result += classLevel;
+        }
+
+        // Minimum of 1
+        return Math.max(1, result);
+    }
+
+    /**
+     * Get subclass-granted bonus spells
+     */
+    private getSubclassBonusSpells(
+        character: DnD5eCharacter, 
+        classId: string
+    ): string[] {
+        const bonusSpells: string[] = [];
+
+        // Find the class entry with a subclass
+        const classEntry = character.classes.find(c => 
+            c.name.toLowerCase() === classId && c.subclass
+        );
+
+        if (!classEntry?.subclass) {
+            return bonusSpells;
+        }
+
+        // Get subclass data
+        const subclass = this.getSubclassById(
+            classId, 
+            classEntry.subclass.toLowerCase().replace(/\s+/g, '-')
+        );
+
+        if (subclass?.spellsGranted) {
+            // Get all spells granted at current level or below
+            const classLevel = classEntry.level;
+            for (const [levelStr, spells] of Object.entries(subclass.spellsGranted)) {
+                const level = parseInt(levelStr);
+                if (level <= classLevel) {
+                    bonusSpells.push(...spells);
+                }
+            }
+        }
+
+        return bonusSpells;
     }
 
     // ===== CALCULATIONS =====
@@ -778,12 +1028,13 @@ export const createDnD5eRuleEngine = (): DnD5eRuleEngine => {
     // Note: Importing dynamically to avoid circular dependencies
     const { SRD_RACES } = require('../../data/dnd5e/races');
     const { SRD_CLASSES } = require('../../data/dnd5e/classes');
+    const { SRD_SPELLS } = require('../../data/dnd5e/spells');
 
     return new DnD5eRuleEngine(
         SRD_RACES,   // races (T024) ✅
         SRD_CLASSES, // classes (T033) ✅
         [],          // backgrounds (TODO: T037)
-        []           // spells (TODO: Phase spellcasting)
+        SRD_SPELLS   // spells (T035k) ✅
     );
 };
 
