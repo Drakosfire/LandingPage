@@ -720,6 +720,223 @@ describe('DnD5eRuleEngine', () => {
             });
         });
 
+        describe('Subclass Methods (T035g-i)', () => {
+            describe('getAvailableSubclasses (T035g)', () => {
+                it('should return subclasses for Fighter', () => {
+                    const subclasses = engine.getAvailableSubclasses('fighter');
+                    expect(subclasses.length).toBeGreaterThan(0);
+                    expect(subclasses[0].id).toBe('champion');
+                });
+
+                it('should return Life Domain for Cleric', () => {
+                    const subclasses = engine.getAvailableSubclasses('cleric');
+                    expect(subclasses.length).toBeGreaterThan(0);
+                    expect(subclasses[0].id).toBe('life-domain');
+                    expect(subclasses[0].name).toBe('Life Domain');
+                });
+
+                it('should return Draconic Bloodline for Sorcerer', () => {
+                    const subclasses = engine.getAvailableSubclasses('sorcerer');
+                    expect(subclasses.length).toBeGreaterThan(0);
+                    expect(subclasses[0].id).toBe('draconic-bloodline');
+                });
+
+                it('should return The Fiend for Warlock', () => {
+                    const subclasses = engine.getAvailableSubclasses('warlock');
+                    expect(subclasses.length).toBeGreaterThan(0);
+                    expect(subclasses[0].id).toBe('the-fiend');
+                });
+
+                it('should return empty array for unknown class', () => {
+                    const subclasses = engine.getAvailableSubclasses('nonexistent');
+                    expect(subclasses).toEqual([]);
+                });
+            });
+
+            describe('getSubclassLevel (T035h)', () => {
+                it('should return 1 for Cleric (L1 subclass)', () => {
+                    expect(engine.getSubclassLevel('cleric')).toBe(1);
+                });
+
+                it('should return 1 for Sorcerer (L1 subclass)', () => {
+                    expect(engine.getSubclassLevel('sorcerer')).toBe(1);
+                });
+
+                it('should return 1 for Warlock (L1 subclass)', () => {
+                    expect(engine.getSubclassLevel('warlock')).toBe(1);
+                });
+
+                it('should return 2 for Druid (L2 subclass)', () => {
+                    expect(engine.getSubclassLevel('druid')).toBe(2);
+                });
+
+                it('should return 2 for Wizard (L2 subclass)', () => {
+                    expect(engine.getSubclassLevel('wizard')).toBe(2);
+                });
+
+                it('should return 3 for Fighter (L3 subclass)', () => {
+                    expect(engine.getSubclassLevel('fighter')).toBe(3);
+                });
+
+                it('should return 3 for Rogue (L3 subclass)', () => {
+                    expect(engine.getSubclassLevel('rogue')).toBe(3);
+                });
+
+                it('should return 0 for unknown class', () => {
+                    expect(engine.getSubclassLevel('nonexistent')).toBe(0);
+                });
+            });
+
+            describe('requiresLevel1Subclass', () => {
+                it('should return true for Cleric', () => {
+                    expect(engine.requiresLevel1Subclass('cleric')).toBe(true);
+                });
+
+                it('should return true for Sorcerer', () => {
+                    expect(engine.requiresLevel1Subclass('sorcerer')).toBe(true);
+                });
+
+                it('should return true for Warlock', () => {
+                    expect(engine.requiresLevel1Subclass('warlock')).toBe(true);
+                });
+
+                it('should return false for Fighter (L3)', () => {
+                    expect(engine.requiresLevel1Subclass('fighter')).toBe(false);
+                });
+
+                it('should return false for Wizard (L2)', () => {
+                    expect(engine.requiresLevel1Subclass('wizard')).toBe(false);
+                });
+
+                it('should return false for Barbarian (L3)', () => {
+                    expect(engine.requiresLevel1Subclass('barbarian')).toBe(false);
+                });
+            });
+
+            describe('getClassById', () => {
+                it('should find class by ID', () => {
+                    const fighter = engine.getClassById('fighter');
+                    expect(fighter).toBeDefined();
+                    expect(fighter!.name).toBe('Fighter');
+                });
+
+                it('should return undefined for unknown class', () => {
+                    expect(engine.getClassById('nonexistent')).toBeUndefined();
+                });
+            });
+
+            describe('getSubclassById', () => {
+                it('should find subclass by class and subclass ID', () => {
+                    const champion = engine.getSubclassById('fighter', 'champion');
+                    expect(champion).toBeDefined();
+                    expect(champion!.name).toBe('Champion');
+                });
+
+                it('should find Life Domain', () => {
+                    const lifeDomain = engine.getSubclassById('cleric', 'life-domain');
+                    expect(lifeDomain).toBeDefined();
+                    expect(lifeDomain!.name).toBe('Life Domain');
+                });
+
+                it('should return undefined for unknown subclass', () => {
+                    expect(engine.getSubclassById('fighter', 'nonexistent')).toBeUndefined();
+                });
+
+                it('should return undefined for unknown class', () => {
+                    expect(engine.getSubclassById('nonexistent', 'champion')).toBeUndefined();
+                });
+            });
+        });
+
+        describe('L1 Subclass Validation (T035i)', () => {
+            let testCharacter: DnD5eCharacter;
+
+            beforeEach(() => {
+                testCharacter = createEmptyDnD5eCharacter();
+            });
+
+            it('should fail validation for Cleric without subclass', () => {
+                testCharacter.classes = [{
+                    name: 'Cleric',
+                    level: 1,
+                    hitDie: 8,
+                    features: []
+                    // No subclass!
+                }];
+
+                const result = engine.validateStep(testCharacter, 'class');
+                
+                expect(result.isValid).toBe(false);
+                expect(result.errors.some(e => e.code === 'SUBCLASS_REQUIRED_L1')).toBe(true);
+            });
+
+            it('should fail validation for Sorcerer without subclass', () => {
+                testCharacter.classes = [{
+                    name: 'Sorcerer',
+                    level: 1,
+                    hitDie: 6,
+                    features: []
+                }];
+
+                const result = engine.validateStep(testCharacter, 'class');
+                
+                expect(result.isValid).toBe(false);
+                expect(result.errors.some(e => e.code === 'SUBCLASS_REQUIRED_L1')).toBe(true);
+            });
+
+            it('should fail validation for Warlock without subclass', () => {
+                testCharacter.classes = [{
+                    name: 'Warlock',
+                    level: 1,
+                    hitDie: 8,
+                    features: []
+                }];
+
+                const result = engine.validateStep(testCharacter, 'class');
+                
+                expect(result.isValid).toBe(false);
+                expect(result.errors.some(e => e.code === 'SUBCLASS_REQUIRED_L1')).toBe(true);
+            });
+
+            it('should pass validation for Cleric with Life Domain', () => {
+                testCharacter.classes = [{
+                    name: 'Cleric',
+                    level: 1,
+                    hitDie: 8,
+                    subclass: 'Life Domain',
+                    features: []
+                }];
+
+                const result = engine.validateStep(testCharacter, 'class');
+                
+                expect(result.isValid).toBe(true);
+                expect(result.errors.length).toBe(0);
+            });
+
+            it('should pass validation for Fighter without subclass (L3 subclass)', () => {
+                testCharacter.classes = [{
+                    name: 'Fighter',
+                    level: 1,
+                    hitDie: 10,
+                    features: []
+                    // No subclass needed at L1
+                }];
+
+                const result = engine.validateStep(testCharacter, 'class');
+                
+                expect(result.isValid).toBe(true);
+            });
+
+            it('should fail validation for character with no class', () => {
+                testCharacter.classes = [];
+
+                const result = engine.validateStep(testCharacter, 'class');
+                
+                expect(result.isValid).toBe(false);
+                expect(result.errors.some(e => e.code === 'CLASS_REQUIRED')).toBe(true);
+            });
+        });
+
         describe('getEquipmentChoices (T035)', () => {
             it('should return empty array for unknown class', () => {
                 const choices = engine.getEquipmentChoices('nonexistent');

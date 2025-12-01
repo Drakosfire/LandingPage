@@ -136,23 +136,23 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [x] T034 [US1] Implement `getValidSkillChoices(character)` in `DnD5eRuleEngine.ts` ✅ Returns class skill options + tracks selected
 - [x] T035 [US1] Implement `getEquipmentChoices(classId)` in `DnD5eRuleEngine.ts` ✅ Transforms class equipment to EquipmentChoiceGroup[]
 
-### 3.2b Level 1 Subclasses (NEW - CRITICAL)
+### 3.2b Level 1 Subclasses ✅ COMPLETE
 
 **These classes require subclass selection at level 1:**
-- Cleric → Divine Domain
-- Sorcerer → Sorcerous Origin  
-- Warlock → Otherworldly Patron
+- Cleric → Life Domain
+- Sorcerer → Draconic Bloodline  
+- Warlock → The Fiend
 
 **🧪 Test Fixtures**: Use `HILL_DWARF_CLERIC_L1`, `DRAGONBORN_SORCERER_L1`, `TIEFLING_WARLOCK_L1` to verify L1 subclass handling
 
-- [ ] T035b [US1] Create `subclasses.ts` with `Subclass` interface in `src/components/PlayerCharacterGenerator/data/dnd5e/subclasses.ts`
-- [ ] T035c [US1] Add Life Domain (Cleric) subclass data
-- [ ] T035d [US1] Add Draconic Bloodline (Sorcerer) subclass data
-- [ ] T035e [US1] Add The Fiend (Warlock) subclass data
-- [ ] T035f [US1] Create subclass data tests in `__tests__/data/dnd5e/subclasses.test.ts`
-- [ ] T035g [US1] Implement `getAvailableSubclasses(classId)` in `DnD5eRuleEngine.ts`
-- [ ] T035h [US1] Implement `getSubclassLevel(classId)` in `DnD5eRuleEngine.ts` (returns 1 for Cleric/Sorcerer/Warlock)
-- [ ] T035i [US1] Add subclass validation to `validateClass.ts` - error if Cleric/Sorcerer/Warlock without subclass
+- [x] T035b [US1] Create `subclasses.ts` with `Subclass` interface ✅ Already exists in class.types.ts as DnD5eSubclass
+- [x] T035c [US1] Add Life Domain (Cleric) subclass data ✅ Exists in classes.ts
+- [x] T035d [US1] Add Draconic Bloodline (Sorcerer) subclass data ✅ Exists in classes.ts
+- [x] T035e [US1] Add The Fiend (Warlock) subclass data ✅ Exists in classes.ts
+- [x] T035f [US1] Create subclass tests ✅ 31 new tests in DnD5eRuleEngine.test.ts
+- [x] T035g [US1] Implement `getAvailableSubclasses(classId)` in `DnD5eRuleEngine.ts` ✅
+- [x] T035h [US1] Implement `getSubclassLevel(classId)` in `DnD5eRuleEngine.ts` ✅ (returns 1 for Cleric/Sorcerer/Warlock)
+- [x] T035i [US1] Add subclass validation to `validateClass()` ✅ Error if L1 class without subclass
 
 ### 3.2c Spellcasting System (NEW)
 

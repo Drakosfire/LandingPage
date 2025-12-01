@@ -100,6 +100,29 @@ export interface RuleEngine<
      */
     getSubraces(baseRaceId: string): TRace[];
 
+    // ===== SUBCLASS METHODS =====
+
+    /**
+     * Get available subclasses for a class
+     * @param classId - ID of the class
+     * @returns Array of subclass options (typed as partial class with subclass info)
+     */
+    getAvailableSubclasses(classId: string): unknown[];
+
+    /**
+     * Get the level at which a class chooses its subclass
+     * @param classId - ID of the class
+     * @returns Level number (1, 2, or 3 for D&D 5e; 0 if no subclass)
+     */
+    getSubclassLevel(classId: string): number;
+
+    /**
+     * Check if a class requires subclass selection at level 1
+     * @param classId - ID of the class
+     * @returns True if subclass must be chosen at character creation
+     */
+    requiresLevel1Subclass(classId: string): boolean;
+
     // ===== CHOICE HELPERS =====
 
     /**

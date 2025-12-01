@@ -25,7 +25,7 @@ import type {
 
 import type { DnD5eCharacter } from '../../types/dnd5e/character.types';
 import type { DnD5eRace } from '../../types/dnd5e/race.types';
-import type { DnD5eClass } from '../../types/dnd5e/class.types';
+import type { DnD5eClass, DnD5eSubclass } from '../../types/dnd5e/class.types';
 import type { DnD5eBackground } from '../../types/dnd5e/background.types';
 import type { DnD5eSpell } from '../../types/dnd5e/spell.types';
 
@@ -181,8 +181,59 @@ export class DnD5eRuleEngine implements RuleEngine<
     }
 
     private validateClass(character: DnD5eCharacter): ValidationResult {
-        // TODO: T040 - Implement in Phase 2
-        return { isValid: true, errors: [], warnings: [], info: [] };
+        const result: ValidationResult = {
+            isValid: true,
+            errors: [],
+            warnings: [],
+            info: []
+        };
+
+        // Check if character has at least one class
+        if (!character.classes || character.classes.length === 0) {
+            result.isValid = false;
+            result.errors.push({
+                code: 'CLASS_REQUIRED',
+                message: 'Character must have at least one class',
+                step: 'class',
+                field: 'classes',
+                severity: 'error'
+            });
+            return result;
+        }
+
+        // Check each class for L1 subclass requirement
+        for (const classLevel of character.classes) {
+            const classId = classLevel.name.toLowerCase();
+            
+            // Check if this class requires L1 subclass
+            if (this.requiresLevel1Subclass(classId)) {
+                if (!classLevel.subclass) {
+                    result.isValid = false;
+                    result.errors.push({
+                        code: 'SUBCLASS_REQUIRED_L1',
+                        message: `${classLevel.name} requires a subclass selection at level 1`,
+                        step: 'class',
+                        field: 'subclass',
+                        severity: 'error'
+                    });
+                } else {
+                    // Validate that the chosen subclass exists
+                    const validSubclass = this.getSubclassById(classId, classLevel.subclass.toLowerCase().replace(/\s+/g, '-'));
+                    if (!validSubclass) {
+                        result.isValid = false;
+                        result.errors.push({
+                            code: 'SUBCLASS_INVALID',
+                            message: `Invalid subclass "${classLevel.subclass}" for ${classLevel.name}`,
+                            step: 'class',
+                            field: 'subclass',
+                            severity: 'error'
+                        });
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     private validateBackground(character: DnD5eCharacter): ValidationResult {
@@ -277,6 +328,60 @@ export class DnD5eRuleEngine implements RuleEngine<
      */
     getRaceById(raceId: string): DnD5eRace | undefined {
         return this.races.find(race => race.id === raceId);
+    }
+
+    // ===== SUBCLASS METHODS (T035g-h) =====
+
+    /**
+     * Get available subclasses for a class
+     * @param classId - Class ID (e.g., 'fighter', 'cleric')
+     * @returns Array of subclass definitions
+     */
+    getAvailableSubclasses(classId: string): DnD5eSubclass[] {
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData) return [];
+        return classData.subclasses || [];
+    }
+
+    /**
+     * Get the level at which a class chooses its subclass
+     * @param classId - Class ID
+     * @returns Level number (1, 2, or 3 for D&D 5e; 0 if class not found)
+     */
+    getSubclassLevel(classId: string): number {
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData) return 0;
+        return classData.subclassLevel;
+    }
+
+    /**
+     * Check if a class requires subclass selection at level 1
+     * Critical for: Cleric (Divine Domain), Sorcerer (Sorcerous Origin), Warlock (Otherworldly Patron)
+     * @param classId - Class ID
+     * @returns True if subclass must be chosen at character creation
+     */
+    requiresLevel1Subclass(classId: string): boolean {
+        return this.getSubclassLevel(classId) === 1;
+    }
+
+    /**
+     * Get a specific class by ID
+     * @param classId - Class ID (e.g., 'fighter', 'wizard')
+     * @returns Class definition or undefined
+     */
+    getClassById(classId: string): DnD5eClass | undefined {
+        return this.classes.find(c => c.id === classId);
+    }
+
+    /**
+     * Get a specific subclass by class and subclass ID
+     * @param classId - Class ID
+     * @param subclassId - Subclass ID
+     * @returns Subclass definition or undefined
+     */
+    getSubclassById(classId: string, subclassId: string): DnD5eSubclass | undefined {
+        const subclasses = this.getAvailableSubclasses(classId);
+        return subclasses.find(s => s.id === subclassId);
     }
 
     // ===== FLEXIBLE ABILITY BONUSES (T026d-e) =====
