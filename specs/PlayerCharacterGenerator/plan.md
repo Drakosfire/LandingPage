@@ -924,6 +924,30 @@ Now:        Build D&D 5e engine in PlayerCharacterGenerator
 
 ---
 
+## 🔗 External Data References
+
+### Primary SRD Data Sources
+
+| Source | URL | Use Case |
+|--------|-----|----------|
+| **5e.tools** | https://5e.tools | Comprehensive D&D 5e reference (classes, spells, items) |
+| **5etools GitHub** | https://github.com/5etools-mirror-3/5etools-src | JSON data files in `/data/` folder |
+| **Foundry VTT dnd5e** | https://github.com/foundryvtt/dnd5e | Data structure patterns, advancement system |
+| **D&D SRD PDF** | https://media.wizards.com/2016/downloads/DND/SRD-OGL_V5.1.pdf | Official SRD text for verification |
+
+### Key 5etools Data Paths
+```
+/data/class/          # Class JSON (features, subclasses, spell progression)
+/data/spells/         # Complete spell database with class lists
+/data/races.json      # Race data with traits and subraces
+/data/items.json      # Equipment, weapons, armor
+/data/backgrounds.json # Background features and proficiencies
+```
+
+**Note**: Use 5etools for comprehensive data cross-reference, Foundry for architectural patterns, SRD PDF for official rulings.
+
+---
+
 ## 📖 Research Documents
 
 ### Spellcasting System Research
