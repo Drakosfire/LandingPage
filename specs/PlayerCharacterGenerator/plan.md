@@ -991,6 +991,60 @@ Key findings for implementation:
 
 ---
 
+## 🧪 Test Character Fixtures
+
+**Location**: `__tests__/fixtures/testCharacters.ts`  
+**Status**: ✅ Complete (December 2025)
+
+Pre-built character fixtures for integration testing and stress-testing the engine.
+
+### Standard Characters (6)
+
+| ID | Character | Level | Race | Class | Tests |
+|----|-----------|-------|------|-------|-------|
+| L1-S1 | Marcus Steelhand | 1 | Human | Fighter | Point buy, +1 all stats |
+| L1-S2 | Brenna Stoneheart | 1 | Hill Dwarf | Cleric (Life) | L1 subclass, prepared caster |
+| L1-S3 | Tharivol Nightwhisper | 1 | Wood Elf | Rogue | DEX build, expertise |
+| L2-S1 | Korgan Ironfist | 2 | Mountain Dwarf | Barbarian | Rage, unarmored defense |
+| L3-S1 | Aerindel Starweaver | 3 | High Elf | Wizard (Evocation) | Spellbook, ritual casting |
+| L3-S2 | Elena Brightshield | 3 | Human | Paladin (Devotion) | Half-caster, Divine Smite |
+
+### Edge Case Characters (5)
+
+| ID | Character | Level | Key Tests |
+|----|-----------|-------|-----------|
+| EDGE-L1-1 | Lyria Moonsong (Half-Elf Bard) | 1 | **Flexible ability bonuses** (+1 to 2 chosen stats) |
+| EDGE-L1-2 | Mordecai Ashborne (Tiefling Warlock) | 1 | **L1 subclass** + **Pact Magic** (short rest slots) |
+| EDGE-L1-3 | Rhogar Flamescale (Dragonborn Sorcerer) | 1 | **L1 subclass** + **Natural AC** (13+DEX) |
+| EDGE-L3-1 | Merric Goodbarrel (Halfling Ranger) | 3 | **Small race** + Half-caster |
+| EDGE-L3-2 | Mordecai Ashborne (Tiefling Warlock) | 3 | **Pact Magic upgrade** (slots → 2nd level) |
+
+### When to Use Test Fixtures
+
+| Phase | Task Range | Fixture Usage |
+|-------|------------|---------------|
+| **Phase 3.4** | T033-T035 | Use `HUMAN_FIGHTER_L1`, `HILL_DWARF_CLERIC_L1` to test `getAvailableClasses()`, skill/equipment choices |
+| **Phase 3.5** | T035b-T035i | Use edge cases for L1 subclass selection (Cleric, Sorcerer, Warlock) |
+| **Phase 3.6** | T035j-T035p | Use all caster characters to test spellcasting engine methods |
+| **Phase 3.7** | T036-T048 | Use `HALF_ELF_BARD_L1` for flexible bonus UI, standard chars for validation |
+| **Phase 4** | T049-T058 | Full integration: create characters through wizard, compare to fixtures |
+| **Phase 5** | T059-T069 | E2E: build characters matching fixture specs, verify final state |
+
+### Helper Functions
+
+```typescript
+import { 
+    getCharactersByLevel,    // Get all L1, L2, or L3 fixtures
+    getCharactersByClass,    // Get all fighters, wizards, etc.
+    getCharactersByRace,     // Get all elves, dwarves, etc.
+    ALL_TEST_CHARACTERS,     // All 11 fixtures
+    STANDARD_CHARACTERS,     // 6 common builds
+    EDGE_CASE_CHARACTERS     // 5 edge cases
+} from './__tests__/fixtures/testCharacters';
+```
+
+---
+
 **Last Updated**: December 1, 2025  
 **Status**: Ready for Implementation  
 **Next Phase**: Phase 3.2 - Caster Classes (using research findings)

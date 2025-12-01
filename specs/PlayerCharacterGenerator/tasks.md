@@ -3,8 +3,8 @@
 **Generated**: November 30, 2025  
 **Updated**: December 1, 2025 (GPT-5 Review Integration)  
 **Source**: spec.md + plan.md  
-**Total Tasks**: 107  
-**Estimated Hours**: 112-156h
+**Total Tasks**: 114 (107 + 7 integration tests)  
+**Estimated Hours**: 116-162h
 
 ---
 
@@ -72,6 +72,22 @@
 **Independent Test**: Complete all 6 wizard steps → valid level 1 character sheet  
 **Depends On**: Phase 2 complete
 
+### 📦 Test Fixtures Available
+
+**Location**: `__tests__/fixtures/testCharacters.ts` ✅ Complete
+
+| Fixture | Usage |
+|---------|-------|
+| `HUMAN_FIGHTER_L1` | Basic martial, point buy validation |
+| `HILL_DWARF_CLERIC_L1` | L1 subclass, prepared caster, domain spells |
+| `HALF_ELF_BARD_L1` | **Flexible ability bonuses** (choose 2 stats) |
+| `TIEFLING_WARLOCK_L1` | L1 subclass, **Pact Magic** |
+| `DRAGONBORN_SORCERER_L1` | L1 subclass, natural AC |
+| `HIGH_ELF_WIZARD_L3` | Spellbook, ritual casting, 2nd-level slots |
+| `HUMAN_PALADIN_L3` | Half-caster progression |
+
+**When to Use**: After T035p (spellcasting), use fixtures to validate engine produces correct character state
+
 ### 3.1 SRD Race Data ✅ COMPLETE
 Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 
@@ -117,6 +133,8 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - Sorcerer → Sorcerous Origin  
 - Warlock → Otherworldly Patron
 
+**🧪 Test Fixtures**: Use `HILL_DWARF_CLERIC_L1`, `DRAGONBORN_SORCERER_L1`, `TIEFLING_WARLOCK_L1` to verify L1 subclass handling
+
 - [ ] T035b [US1] Create `subclasses.ts` with `Subclass` interface in `src/components/PlayerCharacterGenerator/data/dnd5e/subclasses.ts`
 - [ ] T035c [US1] Add Life Domain (Cleric) subclass data
 - [ ] T035d [US1] Add Draconic Bloodline (Sorcerer) subclass data
@@ -129,6 +147,11 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 ### 3.2c Spellcasting System (NEW)
 
 **Reference**: `research/RESEARCH-Spellcasting-System.md` ✅ Complete
+
+**🧪 Test Fixtures**: 
+- Full casters: `HILL_DWARF_CLERIC_L1` (prepared), `HALF_ELF_BARD_L1` (known), `HIGH_ELF_WIZARD_L3` (spellbook)
+- Half casters: `HUMAN_PALADIN_L3` (prepared), `LIGHTFOOT_HALFLING_RANGER_L3` (known)
+- Pact Magic: `TIEFLING_WARLOCK_L1` (L1), `TIEFLING_WARLOCK_L3` (slot upgrade)
 
 - [ ] T035j [US1] Add `SpellcastingInfo` type to `RuleEngine.types.ts`
 - [ ] T035k [US1] Create `spells.ts` with SRD cantrips and level 1 spells in `data/dnd5e/spells.ts`
@@ -161,7 +184,7 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [ ] T047 [US1] Create `RaceSelectionStep.tsx` in `src/components/PlayerCharacterGenerator/creationDrawerComponents/RaceSelectionStep.tsx`
 - [ ] T048 [US1] Create `RaceCard.tsx` component in `src/components/PlayerCharacterGenerator/components/RaceCard.tsx`
 - [ ] T049 [US1] Create `SubraceSelector.tsx` component in `src/components/PlayerCharacterGenerator/components/SubraceSelector.tsx`
-- [ ] T049b [US1] Create `FlexibleAbilityBonusSelector.tsx` for Half-Elf +1/+1 choice in `components/FlexibleAbilityBonusSelector.tsx`
+- [ ] T049b [US1] Create `FlexibleAbilityBonusSelector.tsx` for Half-Elf +1/+1 choice in `components/FlexibleAbilityBonusSelector.tsx` 🧪 Use `HALF_ELF_BARD_L1` fixture to test
 
 #### Step 3: Class Selection (with Level 1 Subclass)
 - [ ] T050 [US1] Create `ClassSelectionStep.tsx` in `creationDrawerComponents/ClassSelectionStep.tsx`
@@ -196,6 +219,31 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [ ] T065 [US1] Create `componentRegistry.ts` in `canvasComponents/componentRegistry.ts`
 - [ ] T066 [US1] Implement `calculateDerivedStats()` in `DnD5eRuleEngine.ts`
 - [ ] T067 [US1] Update `CharacterCanvas.tsx` to use component registry in `shared/CharacterCanvas.tsx`
+
+### 3.8 Integration Testing with Test Fixtures 🧪
+
+**Goal**: Validate engine produces correct output for all test character scenarios  
+**Fixtures**: `__tests__/fixtures/testCharacters.ts`
+
+| Test | Fixture | Validates |
+|------|---------|-----------|
+| T067b | `HUMAN_FIGHTER_L1` | Point buy, racial bonuses, martial class |
+| T067c | `HILL_DWARF_CLERIC_L1` | L1 subclass, prepared caster, domain spells |
+| T067d | `HALF_ELF_BARD_L1` | Flexible ability bonuses, known caster |
+| T067e | `TIEFLING_WARLOCK_L1` | Pact Magic, L1 subclass (Fiend) |
+| T067f | `DRAGONBORN_SORCERER_L1` | Natural AC (Draconic Resilience), L1 subclass |
+| T067g | `HIGH_ELF_WIZARD_L3` | Spellbook, 2nd-level slots, ritual casting |
+| T067h | `TIEFLING_WARLOCK_L3` | Pact Magic slot upgrade (1st→2nd) |
+
+- [ ] T067b [US1] Create `engine.integration.test.ts` in `__tests__/engine/` - validate engine builds `HUMAN_FIGHTER_L1` correctly
+- [ ] T067c [US1] Add integration test: build `HILL_DWARF_CLERIC_L1` through engine, verify L1 subclass and prepared spells
+- [ ] T067d [US1] Add integration test: build `HALF_ELF_BARD_L1` through engine, verify flexible bonus application
+- [ ] T067e [US1] Add integration test: build `TIEFLING_WARLOCK_L1` through engine, verify Pact Magic slots
+- [ ] T067f [US1] Add integration test: build `DRAGONBORN_SORCERER_L1` through engine, verify Draconic Resilience AC
+- [ ] T067g [US1] Add integration test: build `HIGH_ELF_WIZARD_L3` through engine, verify spellbook and 2nd-level slots
+- [ ] T067h [US1] Add integration test: build `TIEFLING_WARLOCK_L3` through engine, verify slot level upgrade
+
+**Completion Criteria**: All 11 test fixture characters can be built through the engine and match expected state
 
 ---
 
@@ -369,10 +417,10 @@ After Phase 3 completes, these phases are independent:
 
 | Metric | Value |
 |--------|-------|
-| **Total Tasks** | 107 |
+| **Total Tasks** | 114 |
 | **Setup Tasks** | 3 (✅ complete) |
 | **Foundational Tasks** | 10 (✅ complete) |
-| **US1 Tasks** | 70 (includes new subclass/spellcasting tasks) |
+| **US1 Tasks** | 77 (includes subclass/spellcasting + 7 integration tests) |
 | **US2 Tasks** | 6 |
 | **US3 Tasks** | 2 |
 | **US4 Tasks** | 6 |
