@@ -924,6 +924,31 @@ Now:        Build D&D 5e engine in PlayerCharacterGenerator
 
 ---
 
-**Last Updated**: November 30, 2025  
+## 📖 Research Documents
+
+### Spellcasting System Research
+
+**Document**: `research/RESEARCH-Spellcasting-System.md`  
+**Status**: ✅ Complete (December 2025)
+
+Key findings for implementation:
+
+| Topic | Summary |
+|-------|---------|
+| **Caster Types** | Known (Bard, Ranger, Sorcerer, Warlock) vs Prepared (Cleric, Druid, Paladin, Wizard) |
+| **Spellcasting Ability** | INT: Wizard / WIS: Cleric, Druid, Ranger / CHA: Bard, Paladin, Sorcerer, Warlock |
+| **Spell Save DC** | 8 + proficiency + ability modifier |
+| **Spell Attack** | proficiency + ability modifier |
+| **Full Caster Slots** | L1: 2×1st, L2: 3×1st, L3: 4×1st + 2×2nd |
+| **Half Caster Slots** | L1: none, L2: 2×1st, L3: 3×1st |
+| **Warlock Pact Magic** | L1: 1×1st, L2: 2×1st, L3: 2×2nd (all slots same level, refresh on short rest) |
+| **Ritual Casting** | Bard, Cleric, Druid, Wizard (different rules each) |
+| **Domain Spells** | Always prepared, don't count against limit (Life Domain: Bless, Cure Wounds) |
+
+**Use For**: Tasks T028-T030 (caster classes), T035j-p (spellcasting system)
+
+---
+
+**Last Updated**: December 1, 2025  
 **Status**: Ready for Implementation  
-**Next Phase**: Phase 0 - Rule Engine Interface
+**Next Phase**: Phase 3.2 - Caster Classes (using research findings)

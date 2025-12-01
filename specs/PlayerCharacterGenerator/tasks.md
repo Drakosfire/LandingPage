@@ -101,9 +101,9 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 ### 3.2 SRD Class Data
 
 - [x] T027 [P] [US1] Create `classes.ts` with Barbarian, Fighter, Monk, Rogue in `src/components/PlayerCharacterGenerator/data/dnd5e/classes.ts` ✅ 4 martial classes complete
-- [ ] T028 [P] [US1] Add Bard, Cleric, Druid classes to `data/dnd5e/classes.ts` ⏳ BLOCKED: Awaiting spellcasting research
-- [ ] T029 [P] [US1] Add Paladin, Ranger classes to `data/dnd5e/classes.ts` ⏳ BLOCKED: Awaiting spellcasting research
-- [ ] T030 [P] [US1] Add Sorcerer, Warlock, Wizard classes to `data/dnd5e/classes.ts` ⏳ BLOCKED: Awaiting spellcasting research
+- [ ] T028 [P] [US1] Add Bard, Cleric, Druid classes to `data/dnd5e/classes.ts` 🔓 UNBLOCKED: See `research/RESEARCH-Spellcasting-System.md`
+- [ ] T029 [P] [US1] Add Paladin, Ranger classes to `data/dnd5e/classes.ts` 🔓 UNBLOCKED: See spellcasting research
+- [ ] T030 [P] [US1] Add Sorcerer, Warlock, Wizard classes to `data/dnd5e/classes.ts` 🔓 UNBLOCKED: See spellcasting research
 - [ ] T031 [US1] Create `classFeatures.ts` with level 1-3 features in `src/components/PlayerCharacterGenerator/data/dnd5e/classFeatures.ts` ℹ️ Features embedded in classes.ts
 - [x] T032 [US1] Create class data tests in `src/components/PlayerCharacterGenerator/__tests__/data/dnd5e/classes.test.ts` ✅ 68 tests
 - [ ] T033 [US1] Implement `getAvailableClasses()` in `DnD5eRuleEngine.ts`
@@ -127,6 +127,8 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [ ] T035i [US1] Add subclass validation to `validateClass.ts` - error if Cleric/Sorcerer/Warlock without subclass
 
 ### 3.2c Spellcasting System (NEW)
+
+**Reference**: `research/RESEARCH-Spellcasting-System.md` ✅ Complete
 
 - [ ] T035j [US1] Add `SpellcastingInfo` type to `RuleEngine.types.ts`
 - [ ] T035k [US1] Create `spells.ts` with SRD cantrips and level 1 spells in `data/dnd5e/spells.ts`
