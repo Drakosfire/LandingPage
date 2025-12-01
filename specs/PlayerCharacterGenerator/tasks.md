@@ -1,25 +1,32 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
+**Updated**: December 1, 2025 (GPT-5 Review Integration)  
 **Source**: spec.md + plan.md  
-**Total Tasks**: 67  
-**Estimated Hours**: 92-130h
+**Total Tasks**: 107  
+**Estimated Hours**: 112-156h
 
 ---
 
 ## 📋 Task Summary
 
-| Phase | Description | Tasks | Est. Hours |
-|-------|-------------|-------|------------|
-| **Phase 1** | Setup | 3 | 1h |
-| **Phase 2** | Foundational (Rule Engine) | 10 | 4-6h |
-| **Phase 3** | US1 - Manual Character Creation | 38 | 58-82h |
-| **Phase 4** | US4 - Save and Load | 6 | 6-8h |
-| **Phase 5** | US2 - AI Generation | 6 | 12-16h |
-| **Phase 6** | US3 - Portrait Generation | 2 | 4-6h |
-| **Phase 7** | US5 - Character Leveling | 4 | 8-10h |
-| **Phase 8** | US6 - Export | 3 | 4-6h |
-| **Phase 9** | Polish | 3 | 2-4h |
+| Phase | Description | Tasks | Est. Hours | Status |
+|-------|-------------|-------|------------|--------|
+| **Phase 1** | Setup | 3 | 1h | ✅ Complete |
+| **Phase 2** | Foundational (Rule Engine) | 10 | 4-6h | ✅ Complete |
+| **Phase 3** | US1 - Manual Character Creation | 54 | 78-108h | 🔄 In Progress |
+| **Phase 4** | US4 - Save and Load | 6 | 6-8h | ⏳ Pending |
+| **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending |
+| **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
+| **Phase 7** | US5 - Character Leveling | 4 | 8-10h | ⏳ Pending |
+| **Phase 8** | US6 - Export | 3 | 4-6h | ⏳ Pending |
+| **Phase 9** | Polish | 3 | 2-4h | ⏳ Pending |
+
+**Changes from GPT-5 Review**:
+- Added Level 1 subclass tasks (Cleric, Sorcerer, Warlock)
+- Added spellcasting info tasks
+- Added flexible ability bonus tasks (Half-Elf)
+- Moved subclass selection to Phase 3 for level 1 classes
 
 ---
 
@@ -65,22 +72,31 @@
 **Independent Test**: Complete all 6 wizard steps → valid level 1 character sheet  
 **Depends On**: Phase 2 complete
 
-### 3.1 SRD Race Data
-We can mine this https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
+### 3.1 SRD Race Data ✅ COMPLETE
+Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 
-- [ ] T014 [P] [US1] Add Mountain Dwarf subrace in `src/components/PlayerCharacterGenerator/data/dnd5e/races.ts`
-- [ ] T015 [P] [US1] Add High Elf and Wood Elf subraces in `data/dnd5e/races.ts`
-- [ ] T016 [P] [US1] Add Lightfoot and Stout Halfling subraces in `data/dnd5e/races.ts`
-- [ ] T017 [P] [US1] Add Human race (no subrace) in `data/dnd5e/races.ts`
-- [ ] T018 [P] [US1] Add Dragonborn race with ancestry choice in `data/dnd5e/races.ts`
-- [ ] T019 [P] [US1] Add Forest and Rock Gnome subraces in `data/dnd5e/races.ts`
-- [ ] T020 [P] [US1] Add Half-Elf race (+2 CHA, +1 to two others) in `data/dnd5e/races.ts`
-- [ ] T021 [P] [US1] Add Half-Orc race in `data/dnd5e/races.ts`
-- [ ] T022 [P] [US1] Add Tiefling race in `data/dnd5e/races.ts`
-- [ ] T023 [US1] Create race data tests in `src/components/PlayerCharacterGenerator/__tests__/data/dnd5e/races.test.ts`
+- [x] T014 [P] [US1] Add Mountain Dwarf subrace in `src/components/PlayerCharacterGenerator/data/dnd5e/races.ts` ✅
+- [x] T015 [P] [US1] Add High Elf and Wood Elf subraces in `data/dnd5e/races.ts` ✅
+- [x] T016 [P] [US1] Add Lightfoot and Stout Halfling subraces in `data/dnd5e/races.ts` ✅
+- [x] T017 [P] [US1] Add Human race (no subrace) in `data/dnd5e/races.ts` ✅
+- [x] T018 [P] [US1] Add Dragonborn race with ancestry choice in `data/dnd5e/races.ts` ✅
+- [x] T019 [P] [US1] Add Forest and Rock Gnome subraces in `data/dnd5e/races.ts` ✅
+- [x] T020 [P] [US1] Add Half-Elf race (+2 CHA, +1 to two others) in `data/dnd5e/races.ts` ✅
+- [x] T021 [P] [US1] Add Half-Orc race in `data/dnd5e/races.ts` ✅
+- [x] T022 [P] [US1] Add Tiefling race in `data/dnd5e/races.ts` ✅
+- [x] T023 [US1] Create race data tests in `src/components/PlayerCharacterGenerator/__tests__/data/dnd5e/races.test.ts` ✅ 50+ tests
 - [ ] T024 [US1] Implement `getAvailableRaces()` in `DnD5eRuleEngine.ts`
 - [ ] T025 [US1] Implement `getSubraces(baseRaceId)` in `DnD5eRuleEngine.ts`
 - [ ] T026 [US1] Implement `applyRacialBonuses()` in `DnD5eRuleEngine.ts`
+
+### 3.1b Flexible Ability Bonuses (NEW - Half-Elf)
+
+- [ ] T026b [US1] Add `FlexibleBonusConfig` type to `RuleEngine.types.ts`
+- [ ] T026c [US1] Add `AbilityBonusChoice` type to `RuleEngine.types.ts`
+- [ ] T026d [US1] Implement `hasFlexibleAbilityBonuses(raceId)` in `DnD5eRuleEngine.ts`
+- [ ] T026e [US1] Implement `getFlexibleAbilityBonusOptions(raceId)` in `DnD5eRuleEngine.ts`
+- [ ] T026f [US1] Update `applyRacialBonuses()` to accept `bonusChoices` parameter
+- [ ] T026g [US1] Add tests for flexible bonus validation (Half-Elf +1/+1 can't stack)
 
 ### 3.2 SRD Class Data
 
@@ -93,6 +109,32 @@ We can mine this https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [ ] T033 [US1] Implement `getAvailableClasses()` in `DnD5eRuleEngine.ts`
 - [ ] T034 [US1] Implement `getValidSkillChoices(character)` in `DnD5eRuleEngine.ts`
 - [ ] T035 [US1] Implement `getEquipmentChoices(classId)` in `DnD5eRuleEngine.ts`
+
+### 3.2b Level 1 Subclasses (NEW - CRITICAL)
+
+**These classes require subclass selection at level 1:**
+- Cleric → Divine Domain
+- Sorcerer → Sorcerous Origin  
+- Warlock → Otherworldly Patron
+
+- [ ] T035b [US1] Create `subclasses.ts` with `Subclass` interface in `src/components/PlayerCharacterGenerator/data/dnd5e/subclasses.ts`
+- [ ] T035c [US1] Add Life Domain (Cleric) subclass data
+- [ ] T035d [US1] Add Draconic Bloodline (Sorcerer) subclass data
+- [ ] T035e [US1] Add The Fiend (Warlock) subclass data
+- [ ] T035f [US1] Create subclass data tests in `__tests__/data/dnd5e/subclasses.test.ts`
+- [ ] T035g [US1] Implement `getAvailableSubclasses(classId)` in `DnD5eRuleEngine.ts`
+- [ ] T035h [US1] Implement `getSubclassLevel(classId)` in `DnD5eRuleEngine.ts` (returns 1 for Cleric/Sorcerer/Warlock)
+- [ ] T035i [US1] Add subclass validation to `validateClass.ts` - error if Cleric/Sorcerer/Warlock without subclass
+
+### 3.2c Spellcasting System (NEW)
+
+- [ ] T035j [US1] Add `SpellcastingInfo` type to `RuleEngine.types.ts`
+- [ ] T035k [US1] Create `spells.ts` with SRD cantrips and level 1 spells in `data/dnd5e/spells.ts`
+- [ ] T035l [US1] Add spellcasting config per class (ability, known vs prepared, cantrips) to `classes.ts`
+- [ ] T035m [US1] Implement `getSpellcastingInfo(character)` in `DnD5eRuleEngine.ts`
+- [ ] T035n [US1] Implement spell slot calculation by level in `DnD5eRuleEngine.ts`
+- [ ] T035o [US1] Implement `getAvailableSpells(character, spellLevel)` in `DnD5eRuleEngine.ts`
+- [ ] T035p [US1] Add spellcasting tests covering known vs prepared casters
 
 ### 3.3 SRD Background Data
 
@@ -113,17 +155,32 @@ We can mine this https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 
 ### 3.5 Wizard Steps UI
 
+#### Step 2: Race Selection
 - [ ] T047 [US1] Create `RaceSelectionStep.tsx` in `src/components/PlayerCharacterGenerator/creationDrawerComponents/RaceSelectionStep.tsx`
 - [ ] T048 [US1] Create `RaceCard.tsx` component in `src/components/PlayerCharacterGenerator/components/RaceCard.tsx`
 - [ ] T049 [US1] Create `SubraceSelector.tsx` component in `src/components/PlayerCharacterGenerator/components/SubraceSelector.tsx`
+- [ ] T049b [US1] Create `FlexibleAbilityBonusSelector.tsx` for Half-Elf +1/+1 choice in `components/FlexibleAbilityBonusSelector.tsx`
+
+#### Step 3: Class Selection (with Level 1 Subclass)
 - [ ] T050 [US1] Create `ClassSelectionStep.tsx` in `creationDrawerComponents/ClassSelectionStep.tsx`
 - [ ] T051 [US1] Create `ClassCard.tsx` component in `components/ClassCard.tsx`
 - [ ] T052 [US1] Create `SkillSelector.tsx` component in `components/SkillSelector.tsx`
 - [ ] T053 [US1] Create `EquipmentChoiceSelector.tsx` component in `components/EquipmentChoiceSelector.tsx`
+- [ ] T053b [US1] Create `SubclassSelector.tsx` for level 1 subclass selection (Cleric/Sorcerer/Warlock) in `components/SubclassSelector.tsx`
+- [ ] T053c [US1] Create `SubclassCard.tsx` component in `components/SubclassCard.tsx`
+- [ ] T053d [US1] Create `SpellSelector.tsx` for caster cantrip/spell selection in `components/SpellSelector.tsx`
+
+#### Step 4: Background Selection
 - [ ] T054 [US1] Create `BackgroundSelectionStep.tsx` in `creationDrawerComponents/BackgroundSelectionStep.tsx`
 - [ ] T055 [US1] Create `BackgroundCard.tsx` component in `components/BackgroundCard.tsx`
+
+#### Step 5: Equipment
 - [ ] T056 [US1] Create `EquipmentStep.tsx` in `creationDrawerComponents/EquipmentStep.tsx`
+
+#### Step 6: Review
 - [ ] T057 [US1] Create `ReviewStep.tsx` in `creationDrawerComponents/ReviewStep.tsx`
+
+#### Integration
 - [ ] T058 [US1] Wire all steps into `CharacterCreationWizard.tsx`
 
 ### 3.6 Canvas Enhancement
@@ -187,8 +244,13 @@ We can mine this https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 **Independent Test**: Level 1 character → level up → verify HP, features, subclass  
 **Depends On**: Phase 3 complete
 
+**Note**: Level 1 subclasses (Cleric, Sorcerer, Warlock) are handled in Phase 3.
+This phase handles:
+- Level 2 subclass: Wizard (School of Evocation)
+- Level 3 subclasses: Barbarian (Berserker), Bard (Lore), Druid (Land), Fighter (Champion), Monk (Open Hand), Paladin (Devotion), Ranger (Hunter), Rogue (Thief)
+
 - [ ] T082 [US5] Create `levelUp.ts` with HP calculation, feature lookup in `src/components/PlayerCharacterGenerator/engine/dnd5e/levelUp.ts`
-- [ ] T083 [US5] Create `subclasses.ts` with SRD subclasses in `src/components/PlayerCharacterGenerator/data/dnd5e/subclasses.ts`
+- [ ] T083 [US5] Add level 2-3 SRD subclasses to `subclasses.ts` (Wizard at 2, others at 3)
 - [ ] T084 [US5] Implement `calculateLevelUpHP()` in `DnD5eRuleEngine.ts`
 - [ ] T085 [US5] Create `LevelUpWizard.tsx` in `src/components/PlayerCharacterGenerator/creationDrawerComponents/LevelUpWizard.tsx`
 
@@ -269,20 +331,22 @@ After Phase 3 completes, these phases are independent:
 
 ### MVP Scope (Recommended)
 **Phase 1 + Phase 2 + Phase 3 (US1 only)**
-- Delivers: Complete manual character creation
+- Delivers: Complete manual character creation (including level 1 subclasses, spellcasting, flexible bonuses)
 - Excludes: AI, portraits, save/load, leveling, export
-- Estimated: 63-89 hours
-- Value: Core product works end-to-end
+- Estimated: 83-113 hours
+- Value: Core product works end-to-end with ALL level 1 features
 
 ### Incremental Delivery
-1. **Sprint 1**: Phase 1-2 (Foundation + Rule Engine) - 5-7h
-2. **Sprint 2**: Phase 3.1-3.3 (Data: Races, Classes, Backgrounds) - 16-24h
-3. **Sprint 3**: Phase 3.4 (Validation) - 6-8h
-4. **Sprint 4**: Phase 3.5 (Wizard UI) - 20-28h
-5. **Sprint 5**: Phase 3.6 (Canvas) - 8-12h
-6. **Sprint 6**: Phase 4-5 (Save/Load + AI) - 18-24h
-7. **Sprint 7**: Phase 6-8 (Portrait, Leveling, Export) - 16-22h
-8. **Sprint 8**: Phase 9 (Polish) - 2-4h
+1. **Sprint 1**: Phase 1-2 (Foundation + Rule Engine) - 5-7h ✅ COMPLETE
+2. **Sprint 2**: Phase 3.1 (Race Data) - 4-6h ✅ COMPLETE
+3. **Sprint 3**: Phase 3.1b + 3.2 (Flexible bonuses + Classes) - 12-18h
+4. **Sprint 4**: Phase 3.2b + 3.2c (Level 1 Subclasses + Spellcasting) - 12-18h
+5. **Sprint 5**: Phase 3.3-3.4 (Backgrounds + Validation) - 10-14h
+6. **Sprint 6**: Phase 3.5 (Wizard UI with subclass/spell selectors) - 24-32h
+7. **Sprint 7**: Phase 3.6 (Canvas) - 8-12h
+8. **Sprint 8**: Phase 4-5 (Save/Load + AI) - 18-24h
+9. **Sprint 9**: Phase 6-8 (Portrait, Leveling, Export) - 16-22h
+10. **Sprint 10**: Phase 9 (Polish) - 2-4h
 
 ---
 
@@ -303,10 +367,10 @@ After Phase 3 completes, these phases are independent:
 
 | Metric | Value |
 |--------|-------|
-| **Total Tasks** | 91 |
-| **Setup Tasks** | 3 |
-| **Foundational Tasks** | 10 |
-| **US1 Tasks** | 54 |
+| **Total Tasks** | 107 |
+| **Setup Tasks** | 3 (✅ complete) |
+| **Foundational Tasks** | 10 (✅ complete) |
+| **US1 Tasks** | 70 (includes new subclass/spellcasting tasks) |
 | **US2 Tasks** | 6 |
 | **US3 Tasks** | 2 |
 | **US4 Tasks** | 6 |
@@ -314,10 +378,18 @@ After Phase 3 completes, these phases are independent:
 | **US6 Tasks** | 3 |
 | **Polish Tasks** | 3 |
 | **Parallel Opportunities** | 25+ tasks |
-| **MVP Tasks** | 67 (Phase 1-3) |
+| **MVP Tasks** | 83 (Phase 1-3) |
+
+**New Tasks Added (GPT-5 Review)**:
+- T026b-T026g: Flexible ability bonuses (6 tasks)
+- T035b-T035i: Level 1 subclasses (8 tasks)
+- T035j-T035p: Spellcasting system (7 tasks)
+- T049b: FlexibleAbilityBonusSelector UI (1 task)
+- T053b-T053d: Subclass/Spell selection UI (3 tasks)
 
 ---
 
 **Generated by speckit.tasks workflow**  
+**Updated**: December 1, 2025 (GPT-5 Review Integration)  
 **Ready for implementation**
 

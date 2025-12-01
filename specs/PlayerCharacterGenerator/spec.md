@@ -80,9 +80,9 @@ A player wants to save their character for later editing and be able to load pre
 
 ### User Story 5 - Character Leveling (1→2→3) (Priority: P3)
 
-A player wants to level up their existing character from level 1 to level 2 or 3, making appropriate choices (HP increase, new features, subclass at level 3).
+A player wants to level up their existing character from level 1 to level 2 or 3, making appropriate choices (HP increase, new features, subclass selection for classes that gain it at levels 2-3).
 
-**Why this priority**: Extends the value of created characters but requires complete level 1 creation first. Subclass choice at level 3 is a critical D&D milestone.
+**Why this priority**: Extends the value of created characters but requires complete level 1 creation first. Note: Cleric, Sorcerer, Warlock select subclass at level 1 (handled in US1), while other classes select at levels 2-3.
 
 **Independent Test**: Can be tested by taking a level 1 character through level-up process and verifying correct HP, features, and subclass options.
 
@@ -131,6 +131,25 @@ A player wants to export their character as a PDF for printing or as JSON for ba
 - **FR-006**: System MUST handle background skill duplicates by prompting for replacement skill selection
 - **FR-007**: System MUST calculate all derived stats correctly: AC, HP, Initiative, Proficiency Bonus, Spell Save DC, Spell Attack Bonus
 
+#### Level 1 Subclasses (CRITICAL)
+
+- **FR-028**: System MUST require subclass selection at level 1 for Cleric (Divine Domain), Sorcerer (Sorcerous Origin), and Warlock (Otherworldly Patron)
+- **FR-029**: System MUST include SRD subclasses: Life Domain (Cleric), Draconic Bloodline (Sorcerer), The Fiend (Warlock)
+- **FR-030**: Class selection step MUST dynamically show subclass selector when user picks Cleric, Sorcerer, or Warlock
+
+#### Flexible Racial Bonuses
+
+- **FR-031**: System MUST support races with choice-based ability bonuses (e.g., Half-Elf: +2 CHA fixed, +1 to two other abilities of player's choice)
+- **FR-032**: Race selection step MUST display ability bonus selector when race has flexible bonuses
+- **FR-033**: System MUST validate that flexible bonus choices do not duplicate (e.g., Half-Elf cannot put both +1s into same ability)
+
+#### Spellcasting
+
+- **FR-034**: System MUST calculate spellcasting stats for all caster classes: Spell Save DC, Spell Attack Bonus, Cantrips Known, Spells Known/Prepared
+- **FR-035**: System MUST display correct spell slots per spell level based on class and character level
+- **FR-036**: System MUST differentiate between "spells known" casters (Bard, Sorcerer, Ranger, Warlock) and "prepared spell" casters (Cleric, Druid, Paladin, Wizard)
+- **FR-037**: System MUST allow spell selection for spellcasting classes (cantrips and level 1 spells at minimum)
+
 #### Validation
 
 - **FR-008**: System MUST validate character completeness before allowing finalization (all required choices made)
@@ -161,7 +180,7 @@ A player wants to export their character as a PDF for printing or as JSON for ba
 #### Leveling
 
 - **FR-020**: System MUST support character advancement from level 1 to level 2 to level 3
-- **FR-021**: System MUST enforce subclass selection at the appropriate level for each class
+- **FR-021**: System MUST enforce subclass selection at the appropriate level for each class (level 1 for Cleric/Sorcerer/Warlock handled in character creation; level 2 for Wizard; level 3 for all others)
 - **FR-022**: System MUST correctly calculate HP increases (hit die roll/average + CON modifier)
 
 #### Export
@@ -172,12 +191,14 @@ A player wants to export their character as a PDF for printing or as JSON for ba
 ### Key Entities
 
 - **Character**: The core entity representing a player character with abilities, race, class, background, equipment, features, and derived stats. Identified by UUID (generated on creation, frontend or backend). Character name is display-only and not required to be unique.
-- **Race**: Defines racial traits, ability bonuses, speed, size, languages, and subrace options
-- **Class**: Defines hit die, saving throws, skill options, proficiencies, features by level, and subclass options
+- **Race**: Defines racial traits, ability bonuses (fixed or choice-based), speed, size, languages, and subrace options. Supports flexible bonuses via `AbilityBonus` type with `isChoice` flag.
+- **Class**: Defines hit die, saving throws, skill options, proficiencies, features by level, subclass options, and spellcasting info. Some classes (Cleric, Sorcerer, Warlock) require subclass at level 1.
+- **Subclass**: Defines subclass-specific features, spells, and abilities. Required at level 1 for some classes, level 2-3 for others.
 - **Background**: Defines skill proficiencies, tool proficiencies, languages, feature, and starting equipment
 - **Spell**: Represents a spell with level, school, casting time, range, components, duration, and description (for spellcasting classes)
 - **Equipment**: Represents items, weapons, and armor with properties relevant to character sheet display
 - **CharacterProject**: Wrapper entity for save/load containing character data plus metadata (name, last modified, owner)
+- **SpellcastingInfo**: Derived entity containing spell save DC, attack bonus, cantrips known, spells known/prepared, and spell slots by level
 
 ## Success Criteria *(mandatory)*
 
@@ -203,6 +224,15 @@ A player wants to export their character as a PDF for printing or as JSON for ba
 - Q: AI generation rate limits? → A: Anonymous users: 5 total. Logged-in users: unlimited. (Future: usage tracking/limit system)
 - Q: Offline capability requirements? → A: Partial offline - Manual creation works offline (localStorage), AI/cloud features require connection
 - Q: Character storage limits? → A: Anonymous: 5 in localStorage only. Logged-in: 50 cloud characters
+
+### Session 2025-12-01 (GPT-5 Review Integration)
+
+- Q: Should subclass selection be in Phase 3 or Phase 7? → A: **Phase 3 (CRITICAL)** - Cleric, Sorcerer, Warlock require subclass at level 1. Cannot be deferred.
+- Q: How should flexible racial bonuses work (Half-Elf +1/+1 choice)? → A: Add `isChoice` flag to ability bonus type, UI prompts for selection, validation prevents duplicates
+- Q: Should spellcasting be fully modeled? → A: Yes - add `getSpellcastingInfo()` to RuleEngine returning cantrips known, spells known/prepared, spell slots, save DC, attack bonus
+- Q: What level 1 subclasses are SRD? → A: Life Domain (Cleric), Draconic Bloodline (Sorcerer), The Fiend (Warlock)
+- Q: Should we add DSL/JSON rules now? → A: No - build procedural TypeScript first, consider declarative rules at extraction time
+- Q: Should we add RuleContext pattern? → A: Defer - can add incrementally if validation logic becomes complex
 
 ## Assumptions
 

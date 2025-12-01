@@ -104,20 +104,35 @@ export interface RuleEngine<TCharacter, TRace, TClass, TBackground> {
   
   /** Get spells available at character's level */
   getAvailableSpells(character: TCharacter, spellLevel: number): Spell[];
+  
+  /** Get subclasses for a given class (SRD subclasses only) */
+  getAvailableSubclasses(classId: string): Subclass[];
+  
+  /** Get level at which class gains subclass (1, 2, or 3) */
+  getSubclassLevel(classId: string): number;
 
   // ===== CALCULATIONS =====
   
   /** Calculate all derived stats (AC, HP, etc.) */
   calculateDerivedStats(character: TCharacter): DerivedStats;
   
-  /** Apply racial bonuses to ability scores */
-  applyRacialBonuses(baseScores: AbilityScores, raceId: string): AbilityScores;
+  /** Apply racial bonuses to ability scores (handles both fixed and choice-based) */
+  applyRacialBonuses(baseScores: AbilityScores, raceId: string, bonusChoices?: AbilityBonusChoice[]): AbilityScores;
   
   /** Calculate HP for level-up */
   calculateLevelUpHP(character: TCharacter, hitDieRoll: number): number;
   
   /** Get proficiency bonus for level */
   getProficiencyBonus(level: number): number;
+  
+  /** Get spellcasting info for character (null if non-caster) */
+  getSpellcastingInfo(character: TCharacter): SpellcastingInfo | null;
+  
+  /** Check if race has flexible ability bonuses (e.g., Half-Elf) */
+  hasFlexibleAbilityBonuses(raceId: string): boolean;
+  
+  /** Get flexible ability bonus options for a race */
+  getFlexibleAbilityBonusOptions(raceId: string): FlexibleBonusConfig | null;
 }
 
 // ===== SUPPORTING TYPES =====
@@ -156,6 +171,60 @@ export interface EquipmentChoiceGroup {
   description: string;            // "Choose one of the following"
   options: EquipmentOption[];
   selectedIndex?: number;
+}
+
+// ===== SPELLCASTING TYPES (NEW) =====
+
+export interface SpellcastingInfo {
+  ability: AbilityName;           // 'intelligence' | 'wisdom' | 'charisma'
+  saveDC: number;                 // 8 + proficiency + ability mod
+  attackBonus: number;            // proficiency + ability mod
+  cantripsKnown: number;          // Number of cantrips known
+  spellsKnown: number | null;     // null = prepared caster (Cleric, Druid, etc.)
+  preparedSpellCount: number | null;  // null = known caster (Bard, Sorcerer, etc.)
+  spellSlots: Record<number, number>; // spell level -> slots available
+  ritualCasting: boolean;
+  spellcastingFocus?: string;     // e.g., "arcane focus" or "holy symbol"
+}
+
+// ===== FLEXIBLE ABILITY BONUS TYPES (NEW) =====
+
+export interface AbilityBonus {
+  ability: AbilityName | 'choice';  // 'choice' = player picks
+  bonus: number;
+  isChoice: boolean;
+  choiceCount?: number;             // e.g., 2 for Half-Elf's +1/+1
+  excludeAbilities?: AbilityName[]; // Can't pick these (e.g., CHA for Half-Elf)
+}
+
+export interface AbilityBonusChoice {
+  ability: AbilityName;
+  bonus: number;
+}
+
+export interface FlexibleBonusConfig {
+  choiceCount: number;              // How many abilities to choose
+  bonusPerChoice: number;           // +1 per choice typically
+  excludeAbilities: AbilityName[];  // Already has fixed bonus
+  description: string;              // "Choose two abilities to increase by 1"
+}
+
+// ===== SUBCLASS TYPES (NEW) =====
+
+export interface Subclass {
+  id: string;
+  name: string;
+  classId: string;                  // Parent class
+  description: string;
+  features: SubclassFeature[];      // Level-gated features
+  spells?: string[];                // Domain/Origin spells if applicable
+}
+
+export interface SubclassFeature {
+  id: string;
+  name: string;
+  level: number;                    // Level gained
+  description: string;
 }
 ```
 
@@ -284,46 +353,43 @@ interface PlayerCharacterGeneratorContextType {
 **Goal**: All 9 SRD races + 12 SRD classes fully defined
 **Depends On**: Phase 0 complete
 
-#### 1.1 Race Data Completion (4-6h)
+#### 1.1 Race Data Completion (4-6h) ✅ MOSTLY COMPLETE
 
 **Files to Create/Update**:
-- `data/dnd5e/races.ts` - Add remaining 8 races
+- `data/dnd5e/races.ts` - All 13 SRD races/subraces ✅ DONE
 
-**Races to Add**:
-```typescript
-// Already done: Hill Dwarf
-// TODO:
-- Mountain Dwarf (dwarf subrace)
-- High Elf (elf subrace)  
-- Wood Elf (elf subrace)
-- Lightfoot Halfling (halfling subrace)
-- Stout Halfling (halfling subrace)
-- Human (no subrace)
-- Dragonborn (no subrace, but ancestry choice)
-- Forest Gnome (gnome subrace)
-- Rock Gnome (gnome subrace)
-- Half-Elf (no subrace, +2 CHA, +1 to two others)
-- Half-Orc (no subrace)
-- Tiefling (no subrace)
-```
+**Races Added** (as of Phase 3.1 commit):
+- ✅ Hill Dwarf, Mountain Dwarf
+- ✅ High Elf, Wood Elf  
+- ✅ Lightfoot Halfling, Stout Halfling
+- ✅ Human
+- ✅ Dragonborn (with 10 ancestry options)
+- ✅ Forest Gnome, Rock Gnome
+- ✅ Half-Elf (**flexible +1/+1 bonuses**)
+- ✅ Half-Orc
+- ✅ Tiefling
 
-**Engine Integration**:
+**Engine Integration** (remaining):
 - [ ] Wire races into `DnD5eRuleEngine.getAvailableRaces()`
 - [ ] Implement `getSubraces(baseRaceId)`
-- [ ] Implement `applyRacialBonuses()`
+- [ ] Implement `applyRacialBonuses()` with flexible bonus support
+- [ ] Implement `hasFlexibleAbilityBonuses(raceId)` for Half-Elf
+- [ ] Implement `getFlexibleAbilityBonusOptions(raceId)`
 
 **Test Coverage**:
-- [ ] Each race has correct ability bonuses
-- [ ] Each race has correct traits
-- [ ] Subraces properly inherit from base race
-- [ ] Language choices validated
+- ✅ Each race has correct ability bonuses
+- ✅ Each race has correct traits
+- ✅ Subraces properly inherit from base race
+- [ ] Flexible bonus validation (Half-Elf +1/+1 can't stack)
 - [ ] Engine returns correct races
 
-#### 1.2 Class Data Creation (8-12h)
+#### 1.2 Class Data Creation (12-16h) - EXPANDED
 
 **Files to Create**:
 - `data/dnd5e/classes.ts` - All 12 SRD classes
 - `data/dnd5e/classFeatures.ts` - Level 1-3 features
+- `data/dnd5e/subclasses.ts` - **Level 1 subclasses (CRITICAL)**
+- `data/dnd5e/spells.ts` - Cantrips and level 1 spells for casters
 
 **Classes to Define**:
 ```typescript
@@ -336,20 +402,44 @@ const SRD_CLASSES = [
   
   // Spellcasters
   'Bard',       // d8, DEX/CHA saves, Spellcasting, Bardic Inspiration
-  'Cleric',     // d8, WIS/CHA saves, Spellcasting, Divine Domain (level 1!)
+  'Cleric',     // d8, WIS/CHA saves, Spellcasting, Divine Domain (LEVEL 1 SUBCLASS!)
   'Druid',      // d8, INT/WIS saves, Spellcasting, Druidic
   'Paladin',    // d10, WIS/CHA saves, Divine Sense, Lay on Hands
   'Ranger',     // d10, STR/DEX saves, Favored Enemy, Natural Explorer
-  'Sorcerer',   // d6, CON/CHA saves, Spellcasting, Sorcerous Origin (level 1!)
-  'Warlock',    // d8, WIS/CHA saves, Pact Magic, Otherworldly Patron (level 1!)
+  'Sorcerer',   // d6, CON/CHA saves, Spellcasting, Sorcerous Origin (LEVEL 1 SUBCLASS!)
+  'Warlock',    // d8, WIS/CHA saves, Pact Magic, Otherworldly Patron (LEVEL 1 SUBCLASS!)
   'Wizard',     // d6, INT/WIS saves, Spellcasting, Arcane Recovery
 ];
+```
+
+**CRITICAL: Level 1 Subclasses** (must be in Phase 1, NOT Phase 7):
+```typescript
+const LEVEL_1_SUBCLASSES = {
+  cleric: ['Life Domain'],        // SRD only
+  sorcerer: ['Draconic Bloodline'], // SRD only
+  warlock: ['The Fiend'],         // SRD only
+};
+```
+
+**Spellcasting Data**:
+```typescript
+// Per-class spellcasting info
+interface ClassSpellcasting {
+  ability: 'intelligence' | 'wisdom' | 'charisma';
+  type: 'known' | 'prepared';     // Bard/Sorcerer = known, Cleric/Druid = prepared
+  cantripsKnownByLevel: number[]; // Index by level
+  spellsKnownByLevel?: number[];  // For 'known' casters
+  ritualCasting: boolean;
+}
 ```
 
 **Engine Integration**:
 - [ ] Wire classes into `DnD5eRuleEngine.getAvailableClasses()`
 - [ ] Implement `getValidSkillChoices(character)`
 - [ ] Implement `getEquipmentChoices(classId)`
+- [ ] Implement `getAvailableSubclasses(classId)`
+- [ ] Implement `getSubclassLevel(classId)` - returns 1 for Cleric/Sorcerer/Warlock, 2 for Wizard, 3 for others
+- [ ] Implement `getSpellcastingInfo(character)` - returns cantrips, spells, slots, DC, attack bonus
 
 **Test Coverage**:
 - [ ] Each class has correct hit die
@@ -357,6 +447,8 @@ const SRD_CLASSES = [
 - [ ] Skill choices within limits
 - [ ] Level 1 features present
 - [ ] Engine returns correct skill options
+- [ ] **Level 1 subclass required for Cleric/Sorcerer/Warlock**
+- [ ] **Spellcasting stats calculated correctly**
 
 ---
 
@@ -568,6 +660,10 @@ Response:
 
 **Goal**: Level characters from 1→2→3
 
+**Note**: Level 1 subclasses (Cleric, Sorcerer, Warlock) are handled in Phase 1. This phase covers:
+- Level 2 subclass: Wizard (School of Evocation - SRD)
+- Level 3 subclasses: All other classes
+
 #### 7.1 Level-Up Logic (4-5h)
 
 **Files to Create**:
@@ -576,12 +672,21 @@ Response:
 **Engine Methods**:
 - [ ] `calculateLevelUpHP(character, hitDieRoll)`
 - [ ] Get features for new level
-- [ ] Subclass selection at appropriate level
+- [ ] Subclass selection for Wizard (level 2), all others (level 3)
 
-#### 7.2 Subclass Implementation (4-5h)
+#### 7.2 Level 2-3 Subclass Data (4-5h)
 
-**Files to Create**:
-- `data/dnd5e/subclasses.ts`
+**Files to Update**:
+- `data/dnd5e/subclasses.ts` - Add remaining SRD subclasses
+
+**SRD Subclasses by Level**:
+```typescript
+// Level 1 (done in Phase 1): Cleric (Life), Sorcerer (Draconic), Warlock (Fiend)
+// Level 2: Wizard (Evocation)
+// Level 3: Barbarian (Berserker), Bard (Lore), Druid (Land), 
+//          Fighter (Champion), Monk (Open Hand), Paladin (Devotion),
+//          Ranger (Hunter), Rogue (Thief)
+```
 
 ---
 
@@ -609,18 +714,20 @@ Response:
 
 | Task | Est. Hours | Dependencies |
 |------|------------|--------------|
-| 1.1 Race data (8 races) | 4-6h | Phase 0 |
-| 1.2 Class data (12 classes) | 8-12h | Phase 0 |
-| 2.1 Step validators | 4-5h | 1.1, 1.2 |
+| 1.1 Race data (13 races) | ✅ 4-6h | Phase 0 |
+| 1.2 Class data (12 classes) | 12-16h | Phase 0 |
+| 1.3 **Level 1 subclasses** (NEW) | 4-6h | 1.2 |
+| 1.4 **Spellcasting data** (NEW) | 4-6h | 1.2 |
+| 2.1 Step validators | 6-8h | 1.1, 1.2, 1.3, 1.4 |
 | 2.2 Full validation | 2-3h | 2.1 |
-| 3.1 Race selection UI | 6-8h | 2.2 |
-| 3.2 Class selection UI | 10-14h | 2.2 |
+| 3.1 Race selection UI (with flexible bonus selector) | 8-10h | 2.2 |
+| 3.2 Class selection UI (with subclass for Cleric/Sorcerer/Warlock) | 12-16h | 2.2 |
 | 3.3 Background data + UI | 6-8h | 2.2 |
 | 3.4 Equipment step | 6-8h | 3.2 |
 | 3.5 Review step | 4-6h | 3.1-3.4 |
 | 4.1 Canvas components | 4-6h | 3.5 |
 | 4.2 Live preview | 4-6h | 4.1 |
-| **P1 Total** | **58-82h** | |
+| **P1 Total** | **72-100h** | |
 
 ### P2 - Essential Features
 
