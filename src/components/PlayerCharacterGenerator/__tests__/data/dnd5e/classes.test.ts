@@ -1,10 +1,10 @@
 /**
- * D&D 5e SRD Classes Tests - Martial, Half-Caster, and Full Caster Classes
+ * D&D 5e SRD Classes Tests - All SRD Classes
  * 
  * Tests for all SRD class data:
  * - Martial: Barbarian, Fighter, Monk, Rogue
  * - Half-Casters: Paladin, Ranger
- * - Full Casters: Bard, Cleric, Druid
+ * - Full Casters: Bard, Cleric, Druid, Sorcerer, Warlock, Wizard
  * 
  * Verifies SRD accuracy and data structure integrity.
  * 
@@ -21,6 +21,9 @@ import {
     BARD,
     CLERIC,
     DRUID,
+    SORCERER,
+    WARLOCK,
+    WIZARD,
     SRD_MARTIAL_CLASSES,
     SRD_HALF_CASTER_CLASSES,
     SRD_FULL_CASTER_CLASSES,
@@ -30,6 +33,7 @@ import {
     MONK_MARTIAL_ARTS_DIE,
     ROGUE_SNEAK_ATTACK_DICE,
     FULL_CASTER_SPELL_SLOTS,
+    PACT_MAGIC_SLOTS,
     BARD_SPELLS_KNOWN,
     BARD_CANTRIPS_KNOWN,
     CLERIC_CANTRIPS_KNOWN,
@@ -69,8 +73,8 @@ describe('SRD Classes', () => {
             expect(classIds).toContain('ranger');
         });
 
-        it('should export exactly 3 full caster classes', () => {
-            expect(SRD_FULL_CASTER_CLASSES).toHaveLength(3);
+        it('should export exactly 6 full caster classes', () => {
+            expect(SRD_FULL_CASTER_CLASSES).toHaveLength(6);
         });
 
         it('should export the correct full caster classes', () => {
@@ -78,20 +82,26 @@ describe('SRD Classes', () => {
             expect(classIds).toContain('bard');
             expect(classIds).toContain('cleric');
             expect(classIds).toContain('druid');
+            expect(classIds).toContain('sorcerer');
+            expect(classIds).toContain('warlock');
+            expect(classIds).toContain('wizard');
         });
 
         it('SRD_CASTER_CLASSES should contain all casters (full + half)', () => {
-            expect(SRD_CASTER_CLASSES).toHaveLength(5);
+            expect(SRD_CASTER_CLASSES).toHaveLength(8);
             const classIds = SRD_CASTER_CLASSES.map(cls => cls.id);
             expect(classIds).toContain('bard');
             expect(classIds).toContain('cleric');
             expect(classIds).toContain('druid');
+            expect(classIds).toContain('sorcerer');
+            expect(classIds).toContain('warlock');
+            expect(classIds).toContain('wizard');
             expect(classIds).toContain('paladin');
             expect(classIds).toContain('ranger');
         });
 
-        it('SRD_CLASSES should contain all 9 classes', () => {
-            expect(SRD_CLASSES).toHaveLength(9);
+        it('SRD_CLASSES should contain all 12 classes', () => {
+            expect(SRD_CLASSES).toHaveLength(12);
             const allIds = SRD_CLASSES.map(cls => cls.id);
             expect(allIds).toContain('barbarian');
             expect(allIds).toContain('fighter');
@@ -102,6 +112,9 @@ describe('SRD Classes', () => {
             expect(allIds).toContain('bard');
             expect(allIds).toContain('cleric');
             expect(allIds).toContain('druid');
+            expect(allIds).toContain('sorcerer');
+            expect(allIds).toContain('warlock');
+            expect(allIds).toContain('wizard');
         });
     });
 
@@ -965,6 +978,358 @@ describe('SRD Classes', () => {
     });
 
     // ==========================================================================
+    // SORCERER TESTS (FULL CASTER - L1 SUBCLASS)
+    // ==========================================================================
+
+    describe('Sorcerer class', () => {
+        it('should have correct basic properties', () => {
+            expect(SORCERER.id).toBe('sorcerer');
+            expect(SORCERER.name).toBe('Sorcerer');
+            expect(SORCERER.hitDie).toBe(6);
+            expect(SORCERER.source).toBe('SRD');
+        });
+
+        it('should have CHA as primary ability', () => {
+            expect(SORCERER.primaryAbility).toContain('charisma');
+        });
+
+        it('should save on CON and CHA', () => {
+            expect(SORCERER.savingThrows).toContain('constitution');
+            expect(SORCERER.savingThrows).toContain('charisma');
+        });
+
+        it('should have NO armor proficiency', () => {
+            expect(SORCERER.armorProficiencies).toHaveLength(0);
+        });
+
+        it('should have limited weapon proficiencies', () => {
+            expect(SORCERER.weaponProficiencies).toContain('daggers');
+            expect(SORCERER.weaponProficiencies).toContain('light crossbows');
+            expect(SORCERER.weaponProficiencies).not.toContain('martial weapons');
+        });
+
+        it('should choose 2 skills from sorcerer list', () => {
+            expect(SORCERER.skillChoices.choose).toBe(2);
+            expect(SORCERER.skillChoices.from).toContain('Arcana');
+            expect(SORCERER.skillChoices.from).toContain('Persuasion');
+        });
+
+        it('should have Spellcasting and Sorcerous Origin at level 1', () => {
+            const l1Features = SORCERER.features[1];
+            const featureIds = l1Features.map(f => f.id);
+            expect(featureIds).toContain('spellcasting-sorcerer');
+            expect(featureIds).toContain('sorcerous-origin');
+        });
+
+        it('should have Font of Magic at level 2', () => {
+            const l2Features = SORCERER.features[2];
+            const featureIds = l2Features.map(f => f.id);
+            expect(featureIds).toContain('font-of-magic');
+        });
+
+        it('should have Metamagic at level 3', () => {
+            const l3Features = SORCERER.features[3];
+            const featureIds = l3Features.map(f => f.id);
+            expect(featureIds).toContain('metamagic');
+        });
+
+        it('should choose subclass (Sorcerous Origin) at Level 1!', () => {
+            expect(SORCERER.subclassLevel).toBe(1);
+            expect(SORCERER.subclasses).toHaveLength(1);
+            expect(SORCERER.subclasses[0].id).toBe('draconic-bloodline');
+        });
+
+        it('should have spellcasting with Charisma ability', () => {
+            expect(SORCERER.spellcasting).toBeDefined();
+            expect(SORCERER.spellcasting?.ability).toBe('charisma');
+        });
+
+        it('should be a known-spell caster (no preparedSpells)', () => {
+            expect(SORCERER.spellcasting?.spellsKnown).toBeDefined();
+            expect(SORCERER.spellcasting?.preparedSpells).toBeUndefined();
+        });
+
+        it('should have 4 cantrips at all levels 1-3', () => {
+            expect(SORCERER.spellcasting?.cantripsKnown[1]).toBe(4);
+            expect(SORCERER.spellcasting?.cantripsKnown[2]).toBe(4);
+            expect(SORCERER.spellcasting?.cantripsKnown[3]).toBe(4);
+        });
+
+        it('should have correct spells known at levels 1-3', () => {
+            expect(SORCERER.spellcasting?.spellsKnown?.[1]).toBe(2);
+            expect(SORCERER.spellcasting?.spellsKnown?.[2]).toBe(3);
+            expect(SORCERER.spellcasting?.spellsKnown?.[3]).toBe(4);
+        });
+
+        it('should NOT have ritual casting', () => {
+            expect(SORCERER.spellcasting?.ritualCasting).toBe(false);
+        });
+
+        it('should use full caster spell slot progression', () => {
+            expect(SORCERER.spellcasting?.spellSlots).toBe(FULL_CASTER_SPELL_SLOTS);
+        });
+    });
+
+    describe('Draconic Bloodline subclass', () => {
+        const draconicBloodline = SORCERER.subclasses[0];
+
+        it('should have correct basic properties', () => {
+            expect(draconicBloodline.id).toBe('draconic-bloodline');
+            expect(draconicBloodline.name).toBe('Draconic Bloodline');
+            expect(draconicBloodline.className).toBe('sorcerer');
+        });
+
+        it('should grant features at level 1 (not level 3!)', () => {
+            const l1Features = draconicBloodline.features[1];
+            expect(l1Features).toBeDefined();
+            const featureIds = l1Features?.map(f => f.id);
+            expect(featureIds).toContain('dragon-ancestor');
+            expect(featureIds).toContain('draconic-resilience');
+        });
+    });
+
+    // ==========================================================================
+    // WARLOCK TESTS (PACT MAGIC - DIFFERENT SYSTEM!)
+    // ==========================================================================
+
+    describe('Warlock class', () => {
+        it('should have correct basic properties', () => {
+            expect(WARLOCK.id).toBe('warlock');
+            expect(WARLOCK.name).toBe('Warlock');
+            expect(WARLOCK.hitDie).toBe(8);
+            expect(WARLOCK.source).toBe('SRD');
+        });
+
+        it('should have CHA as primary ability', () => {
+            expect(WARLOCK.primaryAbility).toContain('charisma');
+        });
+
+        it('should save on WIS and CHA', () => {
+            expect(WARLOCK.savingThrows).toContain('wisdom');
+            expect(WARLOCK.savingThrows).toContain('charisma');
+        });
+
+        it('should have light armor proficiency only', () => {
+            expect(WARLOCK.armorProficiencies).toContain('light armor');
+            expect(WARLOCK.armorProficiencies).not.toContain('medium armor');
+        });
+
+        it('should have simple weapons only', () => {
+            expect(WARLOCK.weaponProficiencies).toContain('simple weapons');
+            expect(WARLOCK.weaponProficiencies).not.toContain('martial weapons');
+        });
+
+        it('should choose 2 skills from warlock list', () => {
+            expect(WARLOCK.skillChoices.choose).toBe(2);
+            expect(WARLOCK.skillChoices.from).toContain('Arcana');
+            expect(WARLOCK.skillChoices.from).toContain('Deception');
+            expect(WARLOCK.skillChoices.from).toContain('Investigation');
+        });
+
+        it('should have Otherworldly Patron and Pact Magic at level 1', () => {
+            const l1Features = WARLOCK.features[1];
+            const featureIds = l1Features.map(f => f.id);
+            expect(featureIds).toContain('otherworldly-patron');
+            expect(featureIds).toContain('pact-magic');
+        });
+
+        it('should have Eldritch Invocations at level 2', () => {
+            const l2Features = WARLOCK.features[2];
+            const featureIds = l2Features.map(f => f.id);
+            expect(featureIds).toContain('eldritch-invocations');
+        });
+
+        it('should have Pact Boon at level 3', () => {
+            const l3Features = WARLOCK.features[3];
+            const featureIds = l3Features.map(f => f.id);
+            expect(featureIds).toContain('pact-boon');
+        });
+
+        it('should choose subclass (Otherworldly Patron) at Level 1!', () => {
+            expect(WARLOCK.subclassLevel).toBe(1);
+            expect(WARLOCK.subclasses).toHaveLength(1);
+            expect(WARLOCK.subclasses[0].id).toBe('the-fiend');
+        });
+
+        it('should have spellcasting with Charisma ability', () => {
+            expect(WARLOCK.spellcasting).toBeDefined();
+            expect(WARLOCK.spellcasting?.ability).toBe('charisma');
+        });
+
+        it('should use Pact Magic system (not regular slots!)', () => {
+            expect(WARLOCK.spellcasting?.pactMagic).toBe(true);
+        });
+
+        it('should be a known-spell caster', () => {
+            expect(WARLOCK.spellcasting?.spellsKnown).toBeDefined();
+            expect(WARLOCK.spellcasting?.preparedSpells).toBeUndefined();
+        });
+
+        it('should have 2 cantrips at all levels 1-3', () => {
+            expect(WARLOCK.spellcasting?.cantripsKnown[1]).toBe(2);
+            expect(WARLOCK.spellcasting?.cantripsKnown[2]).toBe(2);
+            expect(WARLOCK.spellcasting?.cantripsKnown[3]).toBe(2);
+        });
+
+        it('should have correct spells known at levels 1-3', () => {
+            expect(WARLOCK.spellcasting?.spellsKnown?.[1]).toBe(2);
+            expect(WARLOCK.spellcasting?.spellsKnown?.[2]).toBe(3);
+            expect(WARLOCK.spellcasting?.spellsKnown?.[3]).toBe(4);
+        });
+
+        it('should NOT have ritual casting (without invocation)', () => {
+            expect(WARLOCK.spellcasting?.ritualCasting).toBe(false);
+        });
+    });
+
+    describe('The Fiend patron subclass', () => {
+        const theFiend = WARLOCK.subclasses[0];
+
+        it('should have correct basic properties', () => {
+            expect(theFiend.id).toBe('the-fiend');
+            expect(theFiend.name).toBe('The Fiend');
+            expect(theFiend.className).toBe('warlock');
+        });
+
+        it('should grant Dark One\'s Blessing at level 1', () => {
+            const l1Features = theFiend.features[1];
+            expect(l1Features).toBeDefined();
+            const featureIds = l1Features?.map(f => f.id);
+            expect(featureIds).toContain('dark-ones-blessing');
+        });
+
+        it('should have expanded spell list', () => {
+            expect(theFiend.expandedSpellList).toBeDefined();
+            expect(theFiend.expandedSpellList?.[1]).toContain('burning-hands');
+            expect(theFiend.expandedSpellList?.[1]).toContain('command');
+        });
+    });
+
+    describe('Pact Magic spell slot progression', () => {
+        it('should have 1 slot at level 1 (1st-level)', () => {
+            expect(PACT_MAGIC_SLOTS[1].slotCount).toBe(1);
+            expect(PACT_MAGIC_SLOTS[1].slotLevel).toBe(1);
+        });
+
+        it('should have 2 slots at level 2 (1st-level)', () => {
+            expect(PACT_MAGIC_SLOTS[2].slotCount).toBe(2);
+            expect(PACT_MAGIC_SLOTS[2].slotLevel).toBe(1);
+        });
+
+        it('should upgrade to 2nd-level slots at level 3', () => {
+            expect(PACT_MAGIC_SLOTS[3].slotCount).toBe(2);
+            expect(PACT_MAGIC_SLOTS[3].slotLevel).toBe(2);
+        });
+    });
+
+    // ==========================================================================
+    // WIZARD TESTS (FULL CASTER - SPELLBOOK)
+    // ==========================================================================
+
+    describe('Wizard class', () => {
+        it('should have correct basic properties', () => {
+            expect(WIZARD.id).toBe('wizard');
+            expect(WIZARD.name).toBe('Wizard');
+            expect(WIZARD.hitDie).toBe(6);
+            expect(WIZARD.source).toBe('SRD');
+        });
+
+        it('should have INT as primary ability', () => {
+            expect(WIZARD.primaryAbility).toContain('intelligence');
+        });
+
+        it('should save on INT and WIS', () => {
+            expect(WIZARD.savingThrows).toContain('intelligence');
+            expect(WIZARD.savingThrows).toContain('wisdom');
+        });
+
+        it('should have NO armor proficiency', () => {
+            expect(WIZARD.armorProficiencies).toHaveLength(0);
+        });
+
+        it('should have limited weapon proficiencies (same as sorcerer)', () => {
+            expect(WIZARD.weaponProficiencies).toContain('daggers');
+            expect(WIZARD.weaponProficiencies).toContain('quarterstaffs');
+            expect(WIZARD.weaponProficiencies).toContain('light crossbows');
+        });
+
+        it('should choose 2 skills from wizard list', () => {
+            expect(WIZARD.skillChoices.choose).toBe(2);
+            expect(WIZARD.skillChoices.from).toContain('Arcana');
+            expect(WIZARD.skillChoices.from).toContain('History');
+            expect(WIZARD.skillChoices.from).toContain('Investigation');
+        });
+
+        it('should have Spellcasting and Arcane Recovery at level 1', () => {
+            const l1Features = WIZARD.features[1];
+            const featureIds = l1Features.map(f => f.id);
+            expect(featureIds).toContain('spellcasting-wizard');
+            expect(featureIds).toContain('arcane-recovery');
+        });
+
+        it('should have Arcane Tradition at level 2', () => {
+            const l2Features = WIZARD.features[2];
+            const featureIds = l2Features.map(f => f.id);
+            expect(featureIds).toContain('arcane-tradition');
+        });
+
+        it('should have subclass at level 2 (not 1 or 3)', () => {
+            expect(WIZARD.subclassLevel).toBe(2);
+            expect(WIZARD.subclasses).toHaveLength(1);
+            expect(WIZARD.subclasses[0].id).toBe('school-of-evocation');
+        });
+
+        it('should have spellcasting with Intelligence ability', () => {
+            expect(WIZARD.spellcasting).toBeDefined();
+            expect(WIZARD.spellcasting?.ability).toBe('intelligence');
+        });
+
+        it('should be a prepared-spell caster (prepares from spellbook)', () => {
+            expect(WIZARD.spellcasting?.preparedSpells).toBeDefined();
+            expect(WIZARD.spellcasting?.preparedSpells?.formula).toBe('INT_MOD + LEVEL');
+            expect(WIZARD.spellcasting?.spellsKnown).toBeUndefined();
+        });
+
+        it('should have 3 cantrips at all levels 1-3', () => {
+            expect(WIZARD.spellcasting?.cantripsKnown[1]).toBe(3);
+            expect(WIZARD.spellcasting?.cantripsKnown[2]).toBe(3);
+            expect(WIZARD.spellcasting?.cantripsKnown[3]).toBe(3);
+        });
+
+        it('should have ritual casting (from spellbook)', () => {
+            expect(WIZARD.spellcasting?.ritualCasting).toBe(true);
+        });
+
+        it('should have spellbook with starting spells and spells per level', () => {
+            expect(WIZARD.spellcasting?.spellbook).toBeDefined();
+            expect(WIZARD.spellcasting?.spellbook?.startingSpells).toBe(6);
+            expect(WIZARD.spellcasting?.spellbook?.spellsPerLevel).toBe(2);
+        });
+
+        it('should use full caster spell slot progression', () => {
+            expect(WIZARD.spellcasting?.spellSlots).toBe(FULL_CASTER_SPELL_SLOTS);
+        });
+    });
+
+    describe('School of Evocation subclass', () => {
+        const evocation = WIZARD.subclasses[0];
+
+        it('should have correct basic properties', () => {
+            expect(evocation.id).toBe('school-of-evocation');
+            expect(evocation.name).toBe('School of Evocation');
+            expect(evocation.className).toBe('wizard');
+        });
+
+        it('should grant features at level 2', () => {
+            const l2Features = evocation.features[2];
+            expect(l2Features).toBeDefined();
+            const featureIds = l2Features?.map(f => f.id);
+            expect(featureIds).toContain('evocation-savant');
+            expect(featureIds).toContain('sculpt-spells');
+        });
+    });
+
+    // ==========================================================================
     // FULL CASTER SPELL SLOTS TESTS
     // ==========================================================================
 
@@ -1016,10 +1381,13 @@ describe('SRD Classes', () => {
             expect(getClassById('bard')).toBe(BARD);
             expect(getClassById('cleric')).toBe(CLERIC);
             expect(getClassById('druid')).toBe(DRUID);
+            expect(getClassById('sorcerer')).toBe(SORCERER);
+            expect(getClassById('warlock')).toBe(WARLOCK);
+            expect(getClassById('wizard')).toBe(WIZARD);
         });
 
         it('should return undefined for unknown class', () => {
-            expect(getClassById('wizard')).toBeUndefined();
+            expect(getClassById('artificer')).toBeUndefined();
             expect(getClassById('unknown')).toBeUndefined();
         });
     });
@@ -1060,9 +1428,9 @@ describe('SRD Classes', () => {
     });
 
     describe('getSpellcasterClasses', () => {
-        it('should return all 5 caster classes (full + half)', () => {
+        it('should return all 8 caster classes (6 full + 2 half)', () => {
             const casters = getSpellcasterClasses();
-            expect(casters).toHaveLength(5);
+            expect(casters).toHaveLength(8);
         });
 
         it('should include full caster classes', () => {
@@ -1070,6 +1438,9 @@ describe('SRD Classes', () => {
             expect(casters.map(c => c.id)).toContain('bard');
             expect(casters.map(c => c.id)).toContain('cleric');
             expect(casters.map(c => c.id)).toContain('druid');
+            expect(casters.map(c => c.id)).toContain('sorcerer');
+            expect(casters.map(c => c.id)).toContain('warlock');
+            expect(casters.map(c => c.id)).toContain('wizard');
         });
 
         it('should include half-caster classes', () => {
@@ -1084,6 +1455,9 @@ describe('SRD Classes', () => {
             expect(isSpellcaster('bard')).toBe(true);
             expect(isSpellcaster('cleric')).toBe(true);
             expect(isSpellcaster('druid')).toBe(true);
+            expect(isSpellcaster('sorcerer')).toBe(true);
+            expect(isSpellcaster('warlock')).toBe(true);
+            expect(isSpellcaster('wizard')).toBe(true);
         });
 
         it('should return true for half-caster classes', () => {

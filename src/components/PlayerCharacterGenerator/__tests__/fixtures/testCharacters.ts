@@ -1485,7 +1485,7 @@ export function getCharactersByLevel(level: number): Character[] {
  * Get characters by class
  */
 export function getCharactersByClass(className: string): Character[] {
-    return ALL_TEST_CHARACTERS.filter(c => 
+    return ALL_TEST_CHARACTERS.filter(c =>
         c.dnd5eData?.classes.some(cls => cls.name.toLowerCase() === className.toLowerCase())
     );
 }
@@ -1498,4 +1498,15 @@ export function getCharactersByRace(raceName: string): Character[] {
         c.dnd5eData?.race?.name.toLowerCase().includes(raceName.toLowerCase())
     );
 }
+
+// =============================================================================
+// FIXTURE VALIDATION TESTS
+// =============================================================================
+
+// Placeholder test to satisfy Jest's requirement for test files
+test('testCharacters fixture exports characters', () => {
+    expect(ALL_TEST_CHARACTERS.length).toBeGreaterThan(0);
+    expect(STANDARD_CHARACTERS.length).toBe(6);
+    expect(EDGE_CASE_CHARACTERS.length).toBe(5);
+});
 
