@@ -132,9 +132,9 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [x] T030 [P] [US1] Add Sorcerer, Warlock, Wizard classes to `data/dnd5e/classes.ts` ✅ 3 full casters (all 12 SRD classes complete!)
 - [ ] T031 [US1] Create `classFeatures.ts` with level 1-3 features in `src/components/PlayerCharacterGenerator/data/dnd5e/classFeatures.ts` ℹ️ Features embedded in classes.ts. **5etools pattern**: Consider reference-based approach (`"Second Wind|Fighter|1"`) for feature reuse across classes (e.g., Extra Attack)
 - [x] T032 [US1] Create class data tests in `src/components/PlayerCharacterGenerator/__tests__/data/dnd5e/classes.test.ts` ✅ 218 tests
-- [ ] T033 [US1] Implement `getAvailableClasses()` in `DnD5eRuleEngine.ts`
-- [ ] T034 [US1] Implement `getValidSkillChoices(character)` in `DnD5eRuleEngine.ts`
-- [ ] T035 [US1] Implement `getEquipmentChoices(classId)` in `DnD5eRuleEngine.ts`
+- [x] T033 [US1] Implement `getAvailableClasses()` in `DnD5eRuleEngine.ts` ✅ Returns all 12 SRD classes
+- [x] T034 [US1] Implement `getValidSkillChoices(character)` in `DnD5eRuleEngine.ts` ✅ Returns class skill options + tracks selected
+- [x] T035 [US1] Implement `getEquipmentChoices(classId)` in `DnD5eRuleEngine.ts` ✅ Transforms class equipment to EquipmentChoiceGroup[]
 
 ### 3.2b Level 1 Subclasses (NEW - CRITICAL)
 

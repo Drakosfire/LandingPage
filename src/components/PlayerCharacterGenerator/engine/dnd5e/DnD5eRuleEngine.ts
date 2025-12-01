@@ -406,15 +406,35 @@ export class DnD5eRuleEngine implements RuleEngine<
     /**
      * Get valid skill choices for current character state
      * @param character - Current character
-     * @returns Skill choice object
+     * @returns Skill choice object with count, options, and selected
      */
     getValidSkillChoices(character: DnD5eCharacter): SkillChoice {
-        // TODO: T034 - Implement in Phase 3
-        // Will look up class skill options and return available choices
+        // Get primary class (first class in multiclass scenarios)
+        const primaryClass = character.classes[0];
+        if (!primaryClass) {
+            return { count: 0, options: [], selected: [] };
+        }
+
+        // Find class data
+        const classData = this.classes.find(
+            c => c.id === primaryClass.name.toLowerCase()
+        );
+        if (!classData) {
+            return { count: 0, options: [], selected: [] };
+        }
+
+        // Get skill choices from class
+        const skillChoices = classData.skillChoices;
+
+        // Get already selected skills from character's proficiencies
+        const selectedSkills = character.proficiencies?.skills ?? [];
+
         return {
-            count: 0,
-            options: [],
-            selected: []
+            count: skillChoices.choose,
+            options: skillChoices.from,
+            selected: selectedSkills.filter(skill => 
+                skillChoices.from.includes(skill)
+            )
         };
     }
 
@@ -424,8 +444,72 @@ export class DnD5eRuleEngine implements RuleEngine<
      * @returns Array of equipment choice groups
      */
     getEquipmentChoices(classId: string): EquipmentChoiceGroup[] {
-        // TODO: T035 - Implement in Phase 3
-        return [];
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData) return [];
+
+        // Transform class equipment options into EquipmentChoiceGroup format
+        return classData.equipmentOptions.map(equipOption => ({
+            id: equipOption.groupId,
+            description: `Choose ${equipOption.choose} of the following`,
+            options: equipOption.options.map(choice => ({
+                id: choice.id,
+                name: choice.description, // Use description as display name
+                items: choice.items.map(itemId => ({
+                    id: itemId,
+                    name: this.formatItemName(itemId),
+                    quantity: 1, // Will be expanded for items like 'javelin' x4
+                    type: this.getItemType(itemId)
+                })),
+                description: choice.description
+            })),
+            selectedIndex: undefined
+        }));
+    }
+
+    /**
+     * Format an item ID into a readable name
+     * @param itemId - Item ID (e.g., 'greataxe', 'martial-melee-choice')
+     * @returns Formatted name
+     */
+    private formatItemName(itemId: string): string {
+        // Handle special placeholder choices
+        if (itemId.endsWith('-choice')) {
+            return itemId
+                .replace('-choice', '')
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase());
+        }
+        // Convert kebab-case to Title Case
+        return itemId
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    /**
+     * Determine item type from ID
+     * @param itemId - Item ID
+     * @returns Item type
+     */
+    private getItemType(itemId: string): 'weapon' | 'armor' | 'gear' | 'tool' | 'pack' {
+        if (itemId.includes('pack')) return 'pack';
+        if (itemId.includes('armor') || itemId.includes('shield') || 
+            itemId.includes('mail') || itemId.includes('leather')) return 'armor';
+        if (itemId.includes('tool') || itemId.includes('kit')) return 'tool';
+        
+        // Most class starting equipment is weapons
+        const weapons = [
+            'greataxe', 'handaxe', 'javelin', 'longsword', 'shortsword', 
+            'rapier', 'scimitar', 'mace', 'dagger', 'quarterstaff',
+            'crossbow', 'shortbow', 'longbow', 'sling', 'dart',
+            'warhammer', 'light-hammer', 'battleaxe', 'greatsword'
+        ];
+        if (weapons.some(w => itemId.includes(w)) || 
+            itemId.includes('martial') || itemId.includes('simple') || 
+            itemId.includes('weapon')) {
+            return 'weapon';
+        }
+
+        return 'gear';
     }
 
     /**
@@ -585,16 +669,16 @@ export class DnD5eRuleEngine implements RuleEngine<
  * Create a default D&D 5e Rule Engine instance with SRD data
  */
 export const createDnD5eRuleEngine = (): DnD5eRuleEngine => {
-    // Import SRD race data
+    // Import SRD data
     // Note: Importing dynamically to avoid circular dependencies
-    // Classes, backgrounds, and spells will be added in subsequent phases
     const { SRD_RACES } = require('../../data/dnd5e/races');
+    const { SRD_CLASSES } = require('../../data/dnd5e/classes');
 
     return new DnD5eRuleEngine(
-        SRD_RACES,  // races (T024)
-        [],         // classes (TODO: T033)
-        [],         // backgrounds (TODO: T037)
-        []          // spells (TODO: Phase spellcasting)
+        SRD_RACES,   // races (T024) ✅
+        SRD_CLASSES, // classes (T033) ✅
+        [],          // backgrounds (TODO: T037)
+        []           // spells (TODO: Phase spellcasting)
     );
 };
 

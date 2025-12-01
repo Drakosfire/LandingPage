@@ -584,5 +584,212 @@ describe('DnD5eRuleEngine', () => {
             });
         });
     });
+
+    // ===== T033-T035: Class Data Integration Tests =====
+
+    describe('Class Data Integration (T033-T035)', () => {
+        describe('getAvailableClasses (T033)', () => {
+            it('should return all 12 SRD classes', () => {
+                const classes = engine.getAvailableClasses();
+                expect(classes.length).toBe(12);
+            });
+
+            it('should include all expected class IDs', () => {
+                const classes = engine.getAvailableClasses();
+                const classIds = classes.map(c => c.id);
+
+                // Martial classes
+                expect(classIds).toContain('barbarian');
+                expect(classIds).toContain('fighter');
+                expect(classIds).toContain('monk');
+                expect(classIds).toContain('rogue');
+
+                // Half-casters
+                expect(classIds).toContain('paladin');
+                expect(classIds).toContain('ranger');
+
+                // Full casters
+                expect(classIds).toContain('bard');
+                expect(classIds).toContain('cleric');
+                expect(classIds).toContain('druid');
+                expect(classIds).toContain('sorcerer');
+                expect(classIds).toContain('warlock');
+                expect(classIds).toContain('wizard');
+            });
+
+            it('should return classes with valid structure', () => {
+                const classes = engine.getAvailableClasses();
+                
+                for (const cls of classes) {
+                    expect(cls.id).toBeDefined();
+                    expect(cls.name).toBeDefined();
+                    expect(cls.hitDie).toBeGreaterThanOrEqual(6);
+                    expect(cls.hitDie).toBeLessThanOrEqual(12);
+                    expect(cls.savingThrows.length).toBe(2);
+                    expect(cls.skillChoices.choose).toBeGreaterThan(0);
+                    expect(cls.skillChoices.from.length).toBeGreaterThan(0);
+                }
+            });
+        });
+
+        describe('getValidSkillChoices (T034)', () => {
+            let testCharacter: DnD5eCharacter;
+
+            beforeEach(() => {
+                testCharacter = createEmptyDnD5eCharacter();
+            });
+
+            it('should return empty choices for character without class', () => {
+                testCharacter.classes = [];
+                const skillChoice = engine.getValidSkillChoices(testCharacter);
+
+                expect(skillChoice.count).toBe(0);
+                expect(skillChoice.options).toEqual([]);
+                expect(skillChoice.selected).toEqual([]);
+            });
+
+            it('should return Fighter skill choices (2 from list)', () => {
+                testCharacter.classes = [{
+                    name: 'Fighter',
+                    level: 1,
+                    hitDie: 10,
+                    features: []
+                }];
+
+                const skillChoice = engine.getValidSkillChoices(testCharacter);
+
+                expect(skillChoice.count).toBe(2);
+                expect(skillChoice.options).toContain('Acrobatics');
+                expect(skillChoice.options).toContain('Athletics');
+                expect(skillChoice.options).toContain('Intimidation');
+                expect(skillChoice.options).toContain('Perception');
+            });
+
+            it('should return Rogue skill choices (4 from list)', () => {
+                testCharacter.classes = [{
+                    name: 'Rogue',
+                    level: 1,
+                    hitDie: 8,
+                    features: []
+                }];
+
+                const skillChoice = engine.getValidSkillChoices(testCharacter);
+
+                expect(skillChoice.count).toBe(4);
+                expect(skillChoice.options).toContain('Stealth');
+                expect(skillChoice.options).toContain('Acrobatics');
+                expect(skillChoice.options).toContain('Sleight of Hand');
+            });
+
+            it('should return Bard skill choices (3 from ANY)', () => {
+                testCharacter.classes = [{
+                    name: 'Bard',
+                    level: 1,
+                    hitDie: 8,
+                    features: []
+                }];
+
+                const skillChoice = engine.getValidSkillChoices(testCharacter);
+
+                expect(skillChoice.count).toBe(3);
+                // Bards can choose any skill
+                expect(skillChoice.options.length).toBe(18);
+            });
+
+            it('should track already selected skills', () => {
+                testCharacter.classes = [{
+                    name: 'Fighter',
+                    level: 1,
+                    hitDie: 10,
+                    features: []
+                }];
+                testCharacter.proficiencies = {
+                    skills: ['Athletics', 'Perception'],
+                    savingThrows: [],
+                    armor: [],
+                    weapons: [],
+                    tools: [],
+                    languages: []
+                };
+
+                const skillChoice = engine.getValidSkillChoices(testCharacter);
+
+                expect(skillChoice.selected).toContain('Athletics');
+                expect(skillChoice.selected).toContain('Perception');
+                expect(skillChoice.selected.length).toBe(2);
+            });
+        });
+
+        describe('getEquipmentChoices (T035)', () => {
+            it('should return empty array for unknown class', () => {
+                const choices = engine.getEquipmentChoices('nonexistent');
+                expect(choices).toEqual([]);
+            });
+
+            it('should return Fighter equipment choices', () => {
+                const choices = engine.getEquipmentChoices('fighter');
+
+                expect(choices.length).toBeGreaterThan(0);
+                
+                // Each choice group should have valid structure
+                for (const choice of choices) {
+                    expect(choice.id).toBeDefined();
+                    expect(choice.description).toBeDefined();
+                    expect(choice.options.length).toBeGreaterThan(0);
+                    expect(choice.selectedIndex).toBeUndefined();
+                }
+            });
+
+            it('should return Barbarian equipment choices with correct options', () => {
+                const choices = engine.getEquipmentChoices('barbarian');
+
+                // Barbarian has: weapon choice, second weapon choice, pack, javelins
+                expect(choices.length).toBeGreaterThanOrEqual(3);
+
+                // Find the weapon choice
+                const weaponChoice = choices.find(c => c.id === 'barbarian-weapon-1');
+                expect(weaponChoice).toBeDefined();
+                expect(weaponChoice!.options.length).toBe(2); // Greataxe or martial melee
+            });
+
+            it('should return Wizard equipment choices', () => {
+                const choices = engine.getEquipmentChoices('wizard');
+
+                expect(choices.length).toBeGreaterThan(0);
+
+                // Wizard should have spellbook
+                const hasSpellbook = choices.some(c => 
+                    c.options.some(opt => 
+                        opt.items.some(item => item.id === 'spellbook')
+                    )
+                );
+                expect(hasSpellbook).toBe(true);
+            });
+
+            it('should format item names correctly', () => {
+                const choices = engine.getEquipmentChoices('fighter');
+                
+                // Check that at least one item has a formatted name
+                const allItems = choices.flatMap(c => c.options.flatMap(o => o.items));
+                const hasFormattedName = allItems.some(item => 
+                    item.name.charAt(0) === item.name.charAt(0).toUpperCase()
+                );
+                expect(hasFormattedName).toBe(true);
+            });
+
+            it('should identify item types correctly', () => {
+                const choices = engine.getEquipmentChoices('fighter');
+                const allItems = choices.flatMap(c => c.options.flatMap(o => o.items));
+
+                // Should have weapons
+                const hasWeapon = allItems.some(item => item.type === 'weapon');
+                expect(hasWeapon).toBe(true);
+
+                // Should have pack
+                const hasPack = allItems.some(item => item.type === 'pack');
+                expect(hasPack).toBe(true);
+            });
+        });
+    });
 });
 
