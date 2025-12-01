@@ -45,7 +45,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // CLASS LIST TESTS
     // ==========================================================================
-    
+
     describe('Class list exports', () => {
         it('should export exactly 4 martial classes', () => {
             expect(SRD_MARTIAL_CLASSES).toHaveLength(4);
@@ -108,7 +108,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // BARBARIAN TESTS
     // ==========================================================================
-    
+
     describe('Barbarian class', () => {
         it('should have correct basic properties', () => {
             expect(BARBARIAN.id).toBe('barbarian');
@@ -184,7 +184,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // FIGHTER TESTS
     // ==========================================================================
-    
+
     describe('Fighter class', () => {
         it('should have correct basic properties', () => {
             expect(FIGHTER.id).toBe('fighter');
@@ -264,7 +264,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // MONK TESTS
     // ==========================================================================
-    
+
     describe('Monk class', () => {
         it('should have correct basic properties', () => {
             expect(MONK.id).toBe('monk');
@@ -339,15 +339,15 @@ describe('SRD Classes', () => {
             // d4 at levels 1-4
             expect(MONK_MARTIAL_ARTS_DIE[1]).toBe(4);
             expect(MONK_MARTIAL_ARTS_DIE[4]).toBe(4);
-            
+
             // d6 at levels 5-10
             expect(MONK_MARTIAL_ARTS_DIE[5]).toBe(6);
             expect(MONK_MARTIAL_ARTS_DIE[10]).toBe(6);
-            
+
             // d8 at levels 11-16
             expect(MONK_MARTIAL_ARTS_DIE[11]).toBe(8);
             expect(MONK_MARTIAL_ARTS_DIE[16]).toBe(8);
-            
+
             // d10 at levels 17-20
             expect(MONK_MARTIAL_ARTS_DIE[17]).toBe(10);
             expect(MONK_MARTIAL_ARTS_DIE[20]).toBe(10);
@@ -357,7 +357,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // ROGUE TESTS
     // ==========================================================================
-    
+
     describe('Rogue class', () => {
         it('should have correct basic properties', () => {
             expect(ROGUE.id).toBe('rogue');
@@ -436,15 +436,15 @@ describe('SRD Classes', () => {
             // 1d6 at levels 1-2
             expect(ROGUE_SNEAK_ATTACK_DICE[1]).toBe(1);
             expect(ROGUE_SNEAK_ATTACK_DICE[2]).toBe(1);
-            
+
             // 2d6 at levels 3-4
             expect(ROGUE_SNEAK_ATTACK_DICE[3]).toBe(2);
             expect(ROGUE_SNEAK_ATTACK_DICE[4]).toBe(2);
-            
+
             // 5d6 at levels 9-10
             expect(ROGUE_SNEAK_ATTACK_DICE[9]).toBe(5);
             expect(ROGUE_SNEAK_ATTACK_DICE[10]).toBe(5);
-            
+
             // 10d6 at levels 19-20
             expect(ROGUE_SNEAK_ATTACK_DICE[19]).toBe(10);
             expect(ROGUE_SNEAK_ATTACK_DICE[20]).toBe(10);
@@ -454,7 +454,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // BARD TESTS (Full Caster - Known Spells)
     // ==========================================================================
-    
+
     describe('Bard class', () => {
         it('should have correct basic properties', () => {
             expect(BARD.id).toBe('bard');
@@ -547,7 +547,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // CLERIC TESTS (Full Caster - Prepared Spells)
     // ==========================================================================
-    
+
     describe('Cleric class', () => {
         it('should have correct basic properties', () => {
             expect(CLERIC.id).toBe('cleric');
@@ -633,7 +633,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // DRUID TESTS (Full Caster - Prepared Spells)
     // ==========================================================================
-    
+
     describe('Druid class', () => {
         it('should have correct basic properties', () => {
             expect(DRUID.id).toBe('druid');
@@ -967,7 +967,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // FULL CASTER SPELL SLOTS TESTS
     // ==========================================================================
-    
+
     describe('Full Caster Spell Slots', () => {
         it('should have correct slots at level 1', () => {
             const slots = FULL_CASTER_SPELL_SLOTS[1];
@@ -998,7 +998,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // HELPER FUNCTION TESTS
     // ==========================================================================
-    
+
     describe('getClassById', () => {
         it('should find martial class by ID', () => {
             expect(getClassById('barbarian')).toBe(BARBARIAN);
@@ -1102,7 +1102,7 @@ describe('SRD Classes', () => {
     // ==========================================================================
     // DATA INTEGRITY TESTS
     // ==========================================================================
-    
+
     describe('Data integrity', () => {
         it('all classes should have unique IDs', () => {
             const ids = SRD_CLASSES.map(cls => cls.id);
@@ -1150,12 +1150,12 @@ describe('SRD Classes', () => {
         it('all feature IDs should be unique within a class', () => {
             SRD_CLASSES.forEach(cls => {
                 const allFeatureIds: string[] = [];
-                
+
                 // Collect class features
                 Object.values(cls.features).forEach(levelFeatures => {
                     levelFeatures.forEach(f => allFeatureIds.push(f.id));
                 });
-                
+
                 const uniqueIds = new Set(allFeatureIds);
                 expect(uniqueIds.size).toBe(allFeatureIds.length);
             });

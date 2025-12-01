@@ -770,15 +770,15 @@ export const ROGUE: DnD5eClass = {
  * Shared by Bard, Cleric, Druid, Sorcerer, Wizard
  */
 export const FULL_CASTER_SPELL_SLOTS: Record<number, number[]> = {
-    1:  [2, 0, 0, 0, 0, 0, 0, 0, 0],
-    2:  [3, 0, 0, 0, 0, 0, 0, 0, 0],
-    3:  [4, 2, 0, 0, 0, 0, 0, 0, 0],
-    4:  [4, 3, 0, 0, 0, 0, 0, 0, 0],
-    5:  [4, 3, 2, 0, 0, 0, 0, 0, 0],
-    6:  [4, 3, 3, 0, 0, 0, 0, 0, 0],
-    7:  [4, 3, 3, 1, 0, 0, 0, 0, 0],
-    8:  [4, 3, 3, 2, 0, 0, 0, 0, 0],
-    9:  [4, 3, 3, 3, 1, 0, 0, 0, 0],
+    1: [2, 0, 0, 0, 0, 0, 0, 0, 0],
+    2: [3, 0, 0, 0, 0, 0, 0, 0, 0],
+    3: [4, 2, 0, 0, 0, 0, 0, 0, 0],
+    4: [4, 3, 0, 0, 0, 0, 0, 0, 0],
+    5: [4, 3, 2, 0, 0, 0, 0, 0, 0],
+    6: [4, 3, 3, 0, 0, 0, 0, 0, 0],
+    7: [4, 3, 3, 1, 0, 0, 0, 0, 0],
+    8: [4, 3, 3, 2, 0, 0, 0, 0, 0],
+    9: [4, 3, 3, 3, 1, 0, 0, 0, 0],
     10: [4, 3, 3, 3, 2, 0, 0, 0, 0],
     11: [4, 3, 3, 3, 2, 1, 0, 0, 0],
     12: [4, 3, 3, 3, 2, 1, 0, 0, 0],
@@ -1774,6 +1774,580 @@ export const RANGER: DnD5eClass = {
 };
 
 // ============================================================================
+// SORCERER
+// ============================================================================
+
+/**
+ * Sorcerer cantrips known (4 at all levels 1-3)
+ */
+const SORCERER_CANTRIPS_KNOWN: Record<number, number> = {
+    1: 4,
+    2: 4,
+    3: 4
+};
+
+/**
+ * Sorcerer spells known progression
+ */
+const SORCERER_SPELLS_KNOWN: Record<number, number> = {
+    1: 2,
+    2: 3,
+    3: 4
+};
+
+/**
+ * Sorcerer equipment options
+ */
+const SORCERER_EQUIPMENT: EquipmentOption[] = [
+    {
+        groupId: 'sorcerer-weapon',
+        choose: 1,
+        options: [
+            {
+                id: 'light-crossbow-bolts',
+                description: 'A light crossbow and 20 bolts',
+                items: ['light-crossbow', 'crossbow-bolts-20']
+            },
+            {
+                id: 'simple-weapon',
+                description: 'Any simple weapon',
+                items: ['simple-weapon-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'sorcerer-focus',
+        choose: 1,
+        options: [
+            {
+                id: 'component-pouch',
+                description: 'A component pouch',
+                items: ['component-pouch']
+            },
+            {
+                id: 'arcane-focus',
+                description: 'An arcane focus',
+                items: ['arcane-focus']
+            }
+        ]
+    },
+    {
+        groupId: 'sorcerer-pack',
+        choose: 1,
+        options: [
+            {
+                id: 'dungeoneer-pack',
+                description: "A dungeoneer's pack",
+                items: ['dungeoneers-pack']
+            },
+            {
+                id: 'explorer-pack',
+                description: "An explorer's pack",
+                items: ['explorers-pack']
+            }
+        ]
+    },
+    {
+        groupId: 'sorcerer-daggers',
+        choose: 1,
+        options: [
+            {
+                id: 'two-daggers',
+                description: 'Two daggers',
+                items: ['dagger', 'dagger']
+            }
+        ]
+    }
+];
+
+/**
+ * Draconic Bloodline subclass (SRD) - Chosen at Level 1!
+ */
+const DRACONIC_BLOODLINE: DnD5eSubclass = {
+    id: 'draconic-bloodline',
+    name: 'Draconic Bloodline',
+    className: 'sorcerer',
+    description: 'Your innate magic comes from draconic magic that was mingled with your blood or that of your ancestors. Most often, sorcerers with this origin trace their descent back to a mighty sorcerer of ancient times who made a bargain with a dragon or who might even have claimed a dragon parent.',
+    features: {
+        1: [
+            {
+                id: 'dragon-ancestor',
+                name: 'Dragon Ancestor',
+                description: 'At 1st level, you choose one type of dragon as your ancestor. The damage type associated with each dragon is used by features you gain later.\n\n**Draconic Ancestry:**\nBlack - Acid | Blue - Lightning | Brass - Fire | Bronze - Lightning | Copper - Acid | Gold - Fire | Green - Poison | Red - Fire | Silver - Cold | White - Cold\n\nYou can speak, read, and write Draconic. Additionally, whenever you make a Charisma check when interacting with dragons, your proficiency bonus is doubled if it applies to the check.',
+                source: 'class',
+                sourceDetails: 'Draconic Bloodline'
+            },
+            {
+                id: 'draconic-resilience',
+                name: 'Draconic Resilience',
+                description: 'As magic flows through your body, it causes physical traits of your dragon ancestors to emerge. At 1st level, your hit point maximum increases by 1 and increases by 1 again whenever you gain a level in this class.\n\nAdditionally, parts of your skin are covered by a thin sheen of dragon-like scales. When you aren\'t wearing armor, your AC equals 13 + your Dexterity modifier.',
+                source: 'class',
+                sourceDetails: 'Draconic Bloodline'
+            }
+        ]
+    },
+    source: 'SRD'
+};
+
+/**
+ * Sorcerer class - Full Caster (CHA, Known Spells)
+ * NOTE: Subclass chosen at Level 1!
+ */
+export const SORCERER: DnD5eClass = {
+    id: 'sorcerer',
+    name: 'Sorcerer',
+    hitDie: 6,
+    primaryAbility: ['charisma'],
+    savingThrows: ['constitution', 'charisma'],
+    armorProficiencies: [],
+    weaponProficiencies: ['daggers', 'darts', 'slings', 'quarterstaffs', 'light crossbows'],
+    skillChoices: {
+        choose: 2,
+        from: ['Arcana', 'Deception', 'Insight', 'Intimidation', 'Persuasion', 'Religion']
+    },
+    equipmentOptions: SORCERER_EQUIPMENT,
+    startingGold: { dice: '3d4', multiplier: 10 },
+    features: {
+        1: [
+            {
+                id: 'spellcasting-sorcerer',
+                name: 'Spellcasting',
+                description: 'An event in your past, or in the life of a parent or ancestor, left an indelible mark on you, infusing you with arcane magic. This font of magic, whatever its origin, fuels your spells.',
+                source: 'class',
+                sourceDetails: 'Sorcerer Level 1'
+            },
+            {
+                id: 'sorcerous-origin',
+                name: 'Sorcerous Origin',
+                description: 'Choose a sorcerous origin, which describes the source of your innate magical power. The Draconic Bloodline is detailed at the end of the class description. Your choice grants you features when you choose it at 1st level and again at 6th, 14th, and 18th level.',
+                source: 'class',
+                sourceDetails: 'Sorcerer Level 1'
+            }
+        ],
+        2: [
+            {
+                id: 'font-of-magic',
+                name: 'Font of Magic',
+                description: 'At 2nd level, you tap into a deep wellspring of magic within yourself. This wellspring is represented by sorcery points, which allow you to create a variety of magical effects.\n\n**Sorcery Points.** You have 2 sorcery points, and you gain more as you reach higher levels. You can never have more sorcery points than shown on the table for your level. You regain all spent sorcery points when you finish a long rest.\n\n**Flexible Casting.** You can use your sorcery points to gain additional spell slots, or sacrifice spell slots to gain additional sorcery points.',
+                source: 'class',
+                sourceDetails: 'Sorcerer Level 2',
+                limitedUse: {
+                    maxUses: 2, // Equal to sorcerer level
+                    currentUses: 2,
+                    resetOn: 'long'
+                }
+            }
+        ],
+        3: [
+            {
+                id: 'metamagic',
+                name: 'Metamagic',
+                description: 'At 3rd level, you gain the ability to twist your spells to suit your needs. You gain two of the following Metamagic options of your choice. You gain another one at 10th and 17th level.\n\nYou can use only one Metamagic option on a spell when you cast it, unless otherwise noted.\n\n**Careful Spell, Distant Spell, Empowered Spell, Extended Spell, Heightened Spell, Quickened Spell, Subtle Spell, Twinned Spell**',
+                source: 'class',
+                sourceDetails: 'Sorcerer Level 3'
+            }
+        ]
+    },
+    subclasses: [DRACONIC_BLOODLINE],
+    subclassLevel: 1, // Sorcerer chooses subclass at Level 1!
+    spellcasting: {
+        ability: 'charisma',
+        cantripsKnown: SORCERER_CANTRIPS_KNOWN,
+        spellsKnown: SORCERER_SPELLS_KNOWN,
+        spellSlots: FULL_CASTER_SPELL_SLOTS,
+        spellListId: 'sorcerer',
+        ritualCasting: false // Sorcerers cannot ritual cast
+    },
+    description: 'A spellcaster who draws on inherent magic from a gift or bloodline. Sorcerers carry a magical birthright conferred upon them by an exotic bloodline, some otherworldly influence, or exposure to unknown cosmic forces.',
+    source: 'SRD'
+};
+
+// ============================================================================
+// WARLOCK
+// ============================================================================
+
+/**
+ * Warlock cantrips known (2 at all levels 1-3)
+ */
+const WARLOCK_CANTRIPS_KNOWN: Record<number, number> = {
+    1: 2,
+    2: 2,
+    3: 2
+};
+
+/**
+ * Warlock spells known progression
+ */
+const WARLOCK_SPELLS_KNOWN: Record<number, number> = {
+    1: 2,
+    2: 3,
+    3: 4
+};
+
+/**
+ * Warlock Pact Magic slots - DIFFERENT from regular spell slots!
+ * All slots are the SAME level, and refresh on SHORT REST.
+ * Format: { slotCount: number, slotLevel: number }
+ */
+export const PACT_MAGIC_SLOTS: Record<number, { slotCount: number; slotLevel: number }> = {
+    1: { slotCount: 1, slotLevel: 1 },  // 1 slot at 1st-level
+    2: { slotCount: 2, slotLevel: 1 },  // 2 slots at 1st-level
+    3: { slotCount: 2, slotLevel: 2 },  // 2 slots at 2nd-level (slots UPGRADE!)
+    // Higher levels: slots continue to upgrade
+    // L5: 2 slots at 3rd-level
+    // L7: 2 slots at 4th-level
+    // L9: 2 slots at 5th-level
+    // L11+: 3 slots at 5th-level
+};
+
+/**
+ * Warlock equipment options
+ */
+const WARLOCK_EQUIPMENT: EquipmentOption[] = [
+    {
+        groupId: 'warlock-weapon',
+        choose: 1,
+        options: [
+            {
+                id: 'light-crossbow-bolts',
+                description: 'A light crossbow and 20 bolts',
+                items: ['light-crossbow', 'crossbow-bolts-20']
+            },
+            {
+                id: 'simple-weapon',
+                description: 'Any simple weapon',
+                items: ['simple-weapon-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'warlock-focus',
+        choose: 1,
+        options: [
+            {
+                id: 'component-pouch',
+                description: 'A component pouch',
+                items: ['component-pouch']
+            },
+            {
+                id: 'arcane-focus',
+                description: 'An arcane focus',
+                items: ['arcane-focus']
+            }
+        ]
+    },
+    {
+        groupId: 'warlock-pack',
+        choose: 1,
+        options: [
+            {
+                id: 'scholars-pack',
+                description: "A scholar's pack",
+                items: ['scholars-pack']
+            },
+            {
+                id: 'dungeoneer-pack',
+                description: "A dungeoneer's pack",
+                items: ['dungeoneers-pack']
+            }
+        ]
+    },
+    {
+        groupId: 'warlock-armor',
+        choose: 1,
+        options: [
+            {
+                id: 'leather-daggers',
+                description: 'Leather armor, any simple weapon, and two daggers',
+                items: ['leather-armor', 'simple-weapon-choice', 'dagger', 'dagger']
+            }
+        ]
+    }
+];
+
+/**
+ * The Fiend patron subclass (SRD) - Chosen at Level 1!
+ */
+const THE_FIEND: DnD5eSubclass = {
+    id: 'the-fiend',
+    name: 'The Fiend',
+    className: 'warlock',
+    description: 'You have made a pact with a fiend from the lower planes of existence, a being whose aims are evil, even if you strive against those aims. Such beings desire the corruption or destruction of all things, ultimately including you.',
+    features: {
+        1: [
+            {
+                id: 'dark-ones-blessing',
+                name: "Dark One's Blessing",
+                description: 'Starting at 1st level, when you reduce a hostile creature to 0 hit points, you gain temporary hit points equal to your Charisma modifier + your warlock level (minimum of 1).',
+                source: 'class',
+                sourceDetails: 'The Fiend'
+            }
+        ]
+    },
+    // Expanded spell list - these become available to learn, not auto-known
+    expandedSpellList: {
+        1: ['burning-hands', 'command'],
+        2: ['blindness-deafness', 'scorching-ray']
+        // 3: ['fireball', 'stinking-cloud'] // 3rd-level spells at warlock level 5
+    },
+    source: 'SRD'
+};
+
+/**
+ * Warlock class - Pact Magic (CHA, Known Spells)
+ * NOTE: Subclass chosen at Level 1!
+ * NOTE: Uses Pact Magic, NOT regular spell slots!
+ */
+export const WARLOCK: DnD5eClass = {
+    id: 'warlock',
+    name: 'Warlock',
+    hitDie: 8,
+    primaryAbility: ['charisma'],
+    savingThrows: ['wisdom', 'charisma'],
+    armorProficiencies: ['light armor'],
+    weaponProficiencies: ['simple weapons'],
+    skillChoices: {
+        choose: 2,
+        from: ['Arcana', 'Deception', 'History', 'Intimidation', 'Investigation', 'Nature', 'Religion']
+    },
+    equipmentOptions: WARLOCK_EQUIPMENT,
+    startingGold: { dice: '4d4', multiplier: 10 },
+    features: {
+        1: [
+            {
+                id: 'otherworldly-patron',
+                name: 'Otherworldly Patron',
+                description: 'At 1st level, you have struck a bargain with an otherworldly being of your choice. The Fiend is detailed at the end of the class description. Your choice grants you features at 1st level and again at 6th, 10th, and 14th level.',
+                source: 'class',
+                sourceDetails: 'Warlock Level 1'
+            },
+            {
+                id: 'pact-magic',
+                name: 'Pact Magic',
+                description: 'Your arcane research and the magic bestowed on you by your patron have given you facility with spells.\n\n**Spell Slots.** The Warlock table shows how many spell slots you have. The table also shows what the level of those slots is; all of your spell slots are the same level. To cast one of your warlock spells of 1st level or higher, you must expend a spell slot. You regain all expended spell slots when you finish a short or long rest.\n\nFor example, when you are 5th level, you have two 3rd-level spell slots. To cast the 1st-level spell witch bolt, you must spend one of those slots, and you cast it as a 3rd-level spell.',
+                source: 'class',
+                sourceDetails: 'Warlock Level 1'
+            }
+        ],
+        2: [
+            {
+                id: 'eldritch-invocations',
+                name: 'Eldritch Invocations',
+                description: 'In your study of occult lore, you have unearthed eldritch invocations, fragments of forbidden knowledge that imbue you with an abiding magical ability.\n\nAt 2nd level, you gain two eldritch invocations of your choice. When you gain certain warlock levels, you gain additional invocations of your choice.\n\nAdditionally, when you gain a level in this class, you can choose one of the invocations you know and replace it with another invocation that you could learn at that level.\n\n**Example Invocations:** Agonizing Blast, Armor of Shadows, Beast Speech, Devil\'s Sight, Eldritch Sight, Eyes of the Rune Keeper, Fiendish Vigor, Mask of Many Faces, Misty Visions, Thief of Five Fates',
+                source: 'class',
+                sourceDetails: 'Warlock Level 2'
+            }
+        ],
+        3: [
+            {
+                id: 'pact-boon',
+                name: 'Pact Boon',
+                description: 'At 3rd level, your otherworldly patron bestows a gift upon you for your loyal service. You gain one of the following features of your choice:\n\n**Pact of the Chain.** You learn the find familiar spell and can cast it as a ritual. The spell doesn\'t count against your number of spells known. When you cast the spell, you can choose one of the normal forms for your familiar or one of the following special forms: imp, pseudodragon, quasit, or sprite.\n\n**Pact of the Blade.** You can use your action to create a pact weapon in your empty hand. You can choose the form that this melee weapon takes each time you create it. You are proficient with it while you wield it.\n\n**Pact of the Tome.** Your patron gives you a grimoire called a Book of Shadows. When you gain this feature, choose three cantrips from any class\'s spell list. While the book is on your person, you can cast those cantrips at will.',
+                source: 'class',
+                sourceDetails: 'Warlock Level 3'
+            }
+        ]
+    },
+    subclasses: [THE_FIEND],
+    subclassLevel: 1, // Warlock chooses patron at Level 1!
+    spellcasting: {
+        ability: 'charisma',
+        cantripsKnown: WARLOCK_CANTRIPS_KNOWN,
+        spellsKnown: WARLOCK_SPELLS_KNOWN,
+        // Warlock uses Pact Magic, not regular slots!
+        // The spellSlots field here is a placeholder - actual slots come from PACT_MAGIC_SLOTS
+        spellSlots: {
+            1: [1, 0, 0, 0, 0, 0, 0, 0, 0],  // 1 1st-level slot
+            2: [2, 0, 0, 0, 0, 0, 0, 0, 0],  // 2 1st-level slots
+            3: [0, 2, 0, 0, 0, 0, 0, 0, 0]   // 2 2nd-level slots (all upgrade!)
+        },
+        spellListId: 'warlock',
+        ritualCasting: false, // Warlocks cannot ritual cast (unless Pact of the Tome + Book of Ancient Secrets)
+        pactMagic: true // Flag to indicate this uses Pact Magic system
+    },
+    description: 'A wielder of magic that is derived from a bargain with an extraplanar entity. Warlocks are seekers of the knowledge that lies hidden in the fabric of the multiverse. Through pacts made with mysterious beings of supernatural power, warlocks unlock magical effects both subtle and spectacular.',
+    source: 'SRD'
+};
+
+// ============================================================================
+// WIZARD
+// ============================================================================
+
+/**
+ * Wizard cantrips known (3 at all levels 1-3)
+ */
+const WIZARD_CANTRIPS_KNOWN: Record<number, number> = {
+    1: 3,
+    2: 3,
+    3: 3
+};
+
+/**
+ * Wizard equipment options
+ */
+const WIZARD_EQUIPMENT: EquipmentOption[] = [
+    {
+        groupId: 'wizard-weapon',
+        choose: 1,
+        options: [
+            {
+                id: 'quarterstaff',
+                description: 'A quarterstaff',
+                items: ['quarterstaff']
+            },
+            {
+                id: 'dagger',
+                description: 'A dagger',
+                items: ['dagger']
+            }
+        ]
+    },
+    {
+        groupId: 'wizard-focus',
+        choose: 1,
+        options: [
+            {
+                id: 'component-pouch',
+                description: 'A component pouch',
+                items: ['component-pouch']
+            },
+            {
+                id: 'arcane-focus',
+                description: 'An arcane focus',
+                items: ['arcane-focus']
+            }
+        ]
+    },
+    {
+        groupId: 'wizard-pack',
+        choose: 1,
+        options: [
+            {
+                id: 'scholars-pack',
+                description: "A scholar's pack",
+                items: ['scholars-pack']
+            },
+            {
+                id: 'explorer-pack',
+                description: "An explorer's pack",
+                items: ['explorers-pack']
+            }
+        ]
+    },
+    {
+        groupId: 'wizard-spellbook',
+        choose: 1,
+        options: [
+            {
+                id: 'spellbook',
+                description: 'A spellbook',
+                items: ['spellbook']
+            }
+        ]
+    }
+];
+
+/**
+ * School of Evocation subclass (SRD) - Chosen at Level 2
+ */
+const SCHOOL_OF_EVOCATION: DnD5eSubclass = {
+    id: 'school-of-evocation',
+    name: 'School of Evocation',
+    className: 'wizard',
+    description: 'You focus your study on magic that creates powerful elemental effects such as bitter cold, searing flame, rolling thunder, crackling lightning, and burning acid. Some evokers find employment in military forces, serving as artillery to blast enemy armies from afar.',
+    features: {
+        2: [
+            {
+                id: 'evocation-savant',
+                name: 'Evocation Savant',
+                description: 'Beginning when you select this school at 2nd level, the gold and time you must spend to copy an evocation spell into your spellbook is halved.',
+                source: 'class',
+                sourceDetails: 'School of Evocation'
+            },
+            {
+                id: 'sculpt-spells',
+                name: 'Sculpt Spells',
+                description: 'Beginning at 2nd level, you can create pockets of relative safety within the effects of your evocation spells. When you cast an evocation spell that affects other creatures that you can see, you can choose a number of them equal to 1 + the spell\'s level. The chosen creatures automatically succeed on their saving throws against the spell, and they take no damage if they would normally take half damage on a successful save.',
+                source: 'class',
+                sourceDetails: 'School of Evocation'
+            }
+        ]
+    },
+    source: 'SRD'
+};
+
+/**
+ * Wizard class - Full Caster (INT, Prepared from Spellbook)
+ * NOTE: Unique spellbook mechanic - starts with 6 spells, gains 2 per level
+ */
+export const WIZARD: DnD5eClass = {
+    id: 'wizard',
+    name: 'Wizard',
+    hitDie: 6,
+    primaryAbility: ['intelligence'],
+    savingThrows: ['intelligence', 'wisdom'],
+    armorProficiencies: [],
+    weaponProficiencies: ['daggers', 'darts', 'slings', 'quarterstaffs', 'light crossbows'],
+    skillChoices: {
+        choose: 2,
+        from: ['Arcana', 'History', 'Insight', 'Investigation', 'Medicine', 'Religion']
+    },
+    equipmentOptions: WIZARD_EQUIPMENT,
+    startingGold: { dice: '4d4', multiplier: 10 },
+    features: {
+        1: [
+            {
+                id: 'spellcasting-wizard',
+                name: 'Spellcasting',
+                description: 'As a student of arcane magic, you have a spellbook containing spells that show the first glimmerings of your true power.\n\n**Spellbook.** At 1st level, you have a spellbook containing six 1st-level wizard spells of your choice. Your spellbook is the repository of the wizard spells you know, except your cantrips, which are fixed in your mind.',
+                source: 'class',
+                sourceDetails: 'Wizard Level 1'
+            },
+            {
+                id: 'arcane-recovery',
+                name: 'Arcane Recovery',
+                description: 'You have learned to regain some of your magical energy by studying your spellbook. Once per day when you finish a short rest, you can choose expended spell slots to recover. The spell slots can have a combined level that is equal to or less than half your wizard level (rounded up), and none of the slots can be 6th level or higher.\n\nFor example, if you\'re a 4th-level wizard, you can recover up to two levels worth of spell slots. You can recover either a 2nd-level spell slot or two 1st-level spell slots.',
+                source: 'class',
+                sourceDetails: 'Wizard Level 1',
+                limitedUse: {
+                    maxUses: 1,
+                    currentUses: 1,
+                    resetOn: 'long'
+                }
+            }
+        ],
+        2: [
+            {
+                id: 'arcane-tradition',
+                name: 'Arcane Tradition',
+                description: 'When you reach 2nd level, you choose an arcane tradition, shaping your practice of magic through one of eight schools. The School of Evocation is detailed at the end of the class description. Your choice grants you features at 2nd level and again at 6th, 10th, and 14th level.',
+                source: 'class',
+                sourceDetails: 'Wizard Level 2'
+            }
+        ],
+        3: [] // Features come from subclass
+    },
+    subclasses: [SCHOOL_OF_EVOCATION],
+    subclassLevel: 2,
+    spellcasting: {
+        ability: 'intelligence',
+        cantripsKnown: WIZARD_CANTRIPS_KNOWN,
+        preparedSpells: {
+            formula: 'INT_MOD + LEVEL' // Prepares from spellbook
+        },
+        spellSlots: FULL_CASTER_SPELL_SLOTS,
+        spellListId: 'wizard',
+        ritualCasting: true, // Wizards can ritual cast from spellbook WITHOUT preparing!
+        spellbook: {
+            startingSpells: 6, // 6 1st-level spells at creation
+            spellsPerLevel: 2  // Gain 2 spells per level
+        }
+    },
+    description: 'A scholarly magic-user capable of manipulating the structures of reality. Wizards are supreme magic-users, defined and united as a class by the spells they cast. Drawing on the subtle weave of magic that permeates the cosmos, wizards cast spells of explosive fire, arcing lightning, subtle deception, and brute-force mind control.',
+    source: 'SRD'
+};
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -1797,13 +2371,14 @@ export const SRD_HALF_CASTER_CLASSES: DnD5eClass[] = [
 
 /**
  * All SRD full caster classes
- * T028: Bard, Cleric, Druid
- * T030: Sorcerer, Warlock, Wizard - TODO
  */
 export const SRD_FULL_CASTER_CLASSES: DnD5eClass[] = [
     BARD,
     CLERIC,
-    DRUID
+    DRUID,
+    SORCERER,
+    WARLOCK,
+    WIZARD
 ];
 
 /**
