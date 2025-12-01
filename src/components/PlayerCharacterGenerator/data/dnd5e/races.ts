@@ -19,35 +19,35 @@ import { DnD5eRace } from '../../types';
  * Shared Dwarf racial traits (common to all dwarf subraces)
  */
 const DWARF_BASE_TRAITS: DnD5eRace['traits'] = [
-    {
-        id: 'darkvision',
-        name: 'Darkvision',
-        description: 'Accustomed to life underground, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
-        type: 'passive'
-    },
-    {
-        id: 'dwarven-resilience',
-        name: 'Dwarven Resilience',
-        description: 'You have advantage on saving throws against poison, and you have resistance against poison damage.',
-        type: 'passive'
-    },
-    {
-        id: 'dwarven-combat-training',
-        name: 'Dwarven Combat Training',
-        description: 'You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.',
-        type: 'passive'
-    },
-    {
-        id: 'tool-proficiency',
-        name: 'Tool Proficiency',
-        description: 'You gain proficiency with the artisan\'s tools of your choice: smith\'s tools, brewer\'s supplies, or mason\'s tools.',
-        type: 'passive'
-    },
-    {
-        id: 'stonecunning',
-        name: 'Stonecunning',
-        description: 'Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check, instead of your normal proficiency bonus.',
-        type: 'passive'
+        {
+            id: 'darkvision',
+            name: 'Darkvision',
+            description: 'Accustomed to life underground, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
+            type: 'passive'
+        },
+        {
+            id: 'dwarven-resilience',
+            name: 'Dwarven Resilience',
+            description: 'You have advantage on saving throws against poison, and you have resistance against poison damage.',
+            type: 'passive'
+        },
+        {
+            id: 'dwarven-combat-training',
+            name: 'Dwarven Combat Training',
+            description: 'You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.',
+            type: 'passive'
+        },
+        {
+            id: 'tool-proficiency',
+            name: 'Tool Proficiency',
+            description: 'You gain proficiency with the artisan\'s tools of your choice: smith\'s tools, brewer\'s supplies, or mason\'s tools.',
+            type: 'passive'
+        },
+        {
+            id: 'stonecunning',
+            name: 'Stonecunning',
+            description: 'Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check, instead of your normal proficiency bonus.',
+            type: 'passive'
     }
 ];
 

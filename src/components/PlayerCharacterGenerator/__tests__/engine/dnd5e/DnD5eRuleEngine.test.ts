@@ -419,7 +419,7 @@ describe('DnD5eRuleEngine', () => {
         });
 
         // ===== T026b-g: Flexible Ability Bonuses =====
-        
+
         describe('Flexible Ability Bonuses (T026b-g)', () => {
             describe('hasFlexibleAbilityBonuses (T026d)', () => {
                 it('should return true for Half-Elf', () => {
@@ -440,7 +440,7 @@ describe('DnD5eRuleEngine', () => {
             describe('getFlexibleAbilityBonusOptions (T026e)', () => {
                 it('should return config for Half-Elf', () => {
                     const config = engine.getFlexibleAbilityBonusOptions('half-elf');
-                    
+
                     expect(config).toBeDefined();
                     expect(config?.raceId).toBe('half-elf');
                     expect(config?.choiceCount).toBe(2);
@@ -457,7 +457,7 @@ describe('DnD5eRuleEngine', () => {
             describe('getValidFlexibleBonusAbilities', () => {
                 it('should return 5 abilities for Half-Elf (all except CHA)', () => {
                     const abilities = engine.getValidFlexibleBonusAbilities('half-elf');
-                    
+
                     expect(abilities.length).toBe(5);
                     expect(abilities).toContain('strength');
                     expect(abilities).toContain('dexterity');
@@ -478,9 +478,9 @@ describe('DnD5eRuleEngine', () => {
                         { ability: 'strength' as const, bonus: 1 },
                         { ability: 'intelligence' as const, bonus: 1 }
                     ];
-                    
+
                     const result = engine.validateFlexibleBonusChoices('half-elf', choices);
-                    
+
                     expect(result.isValid).toBe(true);
                     expect(result.errors.length).toBe(0);
                 });
@@ -489,9 +489,9 @@ describe('DnD5eRuleEngine', () => {
                     const choices = [
                         { ability: 'strength' as const, bonus: 1 }
                     ]; // Only 1 choice, need 2
-                    
+
                     const result = engine.validateFlexibleBonusChoices('half-elf', choices);
-                    
+
                     expect(result.isValid).toBe(false);
                     expect(result.errors.some(e => e.code === 'FLEXIBLE_BONUS_COUNT_INVALID')).toBe(true);
                 });
@@ -501,9 +501,9 @@ describe('DnD5eRuleEngine', () => {
                         { ability: 'charisma' as const, bonus: 1 }, // Not allowed!
                         { ability: 'strength' as const, bonus: 1 }
                     ];
-                    
+
                     const result = engine.validateFlexibleBonusChoices('half-elf', choices);
-                    
+
                     expect(result.isValid).toBe(false);
                     expect(result.errors.some(e => e.code === 'FLEXIBLE_BONUS_EXCLUDED_ABILITY')).toBe(true);
                 });
@@ -513,9 +513,9 @@ describe('DnD5eRuleEngine', () => {
                         { ability: 'strength' as const, bonus: 1 },
                         { ability: 'strength' as const, bonus: 1 } // Can't stack!
                     ];
-                    
+
                     const result = engine.validateFlexibleBonusChoices('half-elf', choices);
-                    
+
                     expect(result.isValid).toBe(false);
                     expect(result.errors.some(e => e.code === 'FLEXIBLE_BONUS_NO_STACKING')).toBe(true);
                 });
@@ -524,9 +524,9 @@ describe('DnD5eRuleEngine', () => {
                     const choices = [
                         { ability: 'strength' as const, bonus: 1 }
                     ];
-                    
+
                     const result = engine.validateFlexibleBonusChoices('human', choices);
-                    
+
                     expect(result.isValid).toBe(false);
                     expect(result.errors.some(e => e.code === 'FLEXIBLE_BONUS_NOT_ALLOWED')).toBe(true);
                 });
@@ -552,9 +552,9 @@ describe('DnD5eRuleEngine', () => {
                         { ability: 'strength' as const, bonus: 1 },
                         { ability: 'intelligence' as const, bonus: 1 }
                     ];
-                    
+
                     const modified = engine.applyRacialBonuses(baseScores, 'half-elf', flexibleBonuses);
-                    
+
                     expect(modified.charisma).toBe(12);     // +2 fixed
                     expect(modified.strength).toBe(11);     // +1 flexible
                     expect(modified.intelligence).toBe(11); // +1 flexible
@@ -566,9 +566,9 @@ describe('DnD5eRuleEngine', () => {
                         { ability: 'strength' as const, bonus: 1 }
                         // Only 1 choice when 2 required
                     ];
-                    
+
                     const modified = engine.applyRacialBonuses(baseScores, 'half-elf', invalidChoices);
-                    
+
                     // Only fixed bonus applied, flexible ignored
                     expect(modified.charisma).toBe(12);  // +2 fixed
                     expect(modified.strength).toBe(10); // NOT applied (invalid)
@@ -576,7 +576,7 @@ describe('DnD5eRuleEngine', () => {
 
                 it('should work without flexible bonuses parameter', () => {
                     const modified = engine.applyRacialBonuses(baseScores, 'half-elf');
-                    
+
                     // Only fixed bonus applied
                     expect(modified.charisma).toBe(12);
                     expect(modified.strength).toBe(10);
@@ -619,7 +619,7 @@ describe('DnD5eRuleEngine', () => {
 
             it('should return classes with valid structure', () => {
                 const classes = engine.getAvailableClasses();
-                
+
                 for (const cls of classes) {
                     expect(cls.id).toBeDefined();
                     expect(cls.name).toBeDefined();
@@ -865,7 +865,7 @@ describe('DnD5eRuleEngine', () => {
                 }];
 
                 const result = engine.validateStep(testCharacter, 'class');
-                
+
                 expect(result.isValid).toBe(false);
                 expect(result.errors.some(e => e.code === 'SUBCLASS_REQUIRED_L1')).toBe(true);
             });
@@ -879,7 +879,7 @@ describe('DnD5eRuleEngine', () => {
                 }];
 
                 const result = engine.validateStep(testCharacter, 'class');
-                
+
                 expect(result.isValid).toBe(false);
                 expect(result.errors.some(e => e.code === 'SUBCLASS_REQUIRED_L1')).toBe(true);
             });
@@ -893,7 +893,7 @@ describe('DnD5eRuleEngine', () => {
                 }];
 
                 const result = engine.validateStep(testCharacter, 'class');
-                
+
                 expect(result.isValid).toBe(false);
                 expect(result.errors.some(e => e.code === 'SUBCLASS_REQUIRED_L1')).toBe(true);
             });
@@ -908,7 +908,7 @@ describe('DnD5eRuleEngine', () => {
                 }];
 
                 const result = engine.validateStep(testCharacter, 'class');
-                
+
                 expect(result.isValid).toBe(true);
                 expect(result.errors.length).toBe(0);
             });
@@ -923,7 +923,7 @@ describe('DnD5eRuleEngine', () => {
                 }];
 
                 const result = engine.validateStep(testCharacter, 'class');
-                
+
                 expect(result.isValid).toBe(true);
             });
 
@@ -931,7 +931,7 @@ describe('DnD5eRuleEngine', () => {
                 testCharacter.classes = [];
 
                 const result = engine.validateStep(testCharacter, 'class');
-                
+
                 expect(result.isValid).toBe(false);
                 expect(result.errors.some(e => e.code === 'CLASS_REQUIRED')).toBe(true);
             });
@@ -947,7 +947,7 @@ describe('DnD5eRuleEngine', () => {
                 const choices = engine.getEquipmentChoices('fighter');
 
                 expect(choices.length).toBeGreaterThan(0);
-                
+
                 // Each choice group should have valid structure
                 for (const choice of choices) {
                     expect(choice.id).toBeDefined();
@@ -975,8 +975,8 @@ describe('DnD5eRuleEngine', () => {
                 expect(choices.length).toBeGreaterThan(0);
 
                 // Wizard should have spellbook
-                const hasSpellbook = choices.some(c => 
-                    c.options.some(opt => 
+                const hasSpellbook = choices.some(c =>
+                    c.options.some(opt =>
                         opt.items.some(item => item.id === 'spellbook')
                     )
                 );
@@ -985,10 +985,10 @@ describe('DnD5eRuleEngine', () => {
 
             it('should format item names correctly', () => {
                 const choices = engine.getEquipmentChoices('fighter');
-                
+
                 // Check that at least one item has a formatted name
                 const allItems = choices.flatMap(c => c.options.flatMap(o => o.items));
-                const hasFormattedName = allItems.some(item => 
+                const hasFormattedName = allItems.some(item =>
                     item.name.charAt(0) === item.name.charAt(0).toUpperCase()
                 );
                 expect(hasFormattedName).toBe(true);
@@ -1070,22 +1070,22 @@ describe('DnD5eRuleEngine', () => {
                     expect(info.casterType).toBe('full');
                     expect(info.spellcastingClass).toBe('Wizard');
                     expect(info.spellcastingAbility).toBe('intelligence');
-                    
+
                     // Level 3 Wizard: Prof +2, INT +3 = spell save DC 13, attack +5
                     expect(info.spellSaveDC).toBe(13);
                     expect(info.spellAttackBonus).toBe(5);
-                    
+
                     // Level 3 Wizard: 3 cantrips
                     expect(info.cantripsKnown).toBe(3);
-                    
+
                     // Wizard is a prepared caster
                     expect(info.prepareFormula).toBe('INT_MOD + LEVEL');
                     expect(info.maxPreparedSpells).toBe(6); // 3 + 3
-                    
+
                     // Full caster level 3: 4 1st-level, 2 2nd-level slots
                     expect(info.spellSlots[1]?.total).toBe(4);
                     expect(info.spellSlots[2]?.total).toBe(2);
-                    
+
                     expect(info.ritualCasting).toBe(true);
                 });
 
@@ -1096,21 +1096,21 @@ describe('DnD5eRuleEngine', () => {
                     expect(info.casterType).toBe('full');
                     expect(info.spellcastingClass).toBe('Cleric');
                     expect(info.spellcastingAbility).toBe('wisdom');
-                    
+
                     // Level 1 Cleric: Prof +2, WIS +3 = spell save DC 13, attack +5
                     expect(info.spellSaveDC).toBe(13);
                     expect(info.spellAttackBonus).toBe(5);
-                    
+
                     // Level 1 Cleric: 3 cantrips
                     expect(info.cantripsKnown).toBe(3);
-                    
+
                     // Cleric is a prepared caster
                     expect(info.prepareFormula).toBe('WIS_MOD + LEVEL');
                     expect(info.maxPreparedSpells).toBe(4); // 3 + 1
-                    
+
                     // Full caster level 1: 2 1st-level slots
                     expect(info.spellSlots[1]?.total).toBe(2);
-                    
+
                     expect(info.ritualCasting).toBe(true);
                 });
 
@@ -1150,10 +1150,10 @@ describe('DnD5eRuleEngine', () => {
                     expect(info.casterType).toBe('pact');
                     expect(info.spellcastingClass).toBe('Warlock');
                     expect(info.spellcastingAbility).toBe('charisma');
-                    
+
                     // Warlock is a known caster
                     expect(info.maxSpellsKnown).toBe(3); // Level 2 warlock knows 3 spells
-                    
+
                     // Pact Magic: Level 2 = 2 slots at 1st level
                     expect(info.pactMagic).toBeDefined();
                     expect(info.pactMagic!.slotCount).toBe(2);
@@ -1184,10 +1184,10 @@ describe('DnD5eRuleEngine', () => {
                     expect(info.isSpellcaster).toBe(true);
                     expect(info.casterType).toBe('half');
                     expect(info.spellcastingAbility).toBe('charisma');
-                    
+
                     // Level 2 Paladin: 0 cantrips (Paladins don't get cantrips)
                     expect(info.cantripsKnown).toBe(0);
-                    
+
                     // Half-caster level 2: 2 1st-level slots
                     expect(info.spellSlots[1]?.total).toBe(2);
                 });
@@ -1198,7 +1198,7 @@ describe('DnD5eRuleEngine', () => {
                     const cantrips = engine.getAvailableSpells(wizardCharacter, 0);
 
                     expect(cantrips.length).toBeGreaterThan(0);
-                    
+
                     // Should include Fire Bolt (wizard cantrip)
                     const fireBolt = cantrips.find(s => s.id === 'fire-bolt');
                     expect(fireBolt).toBeDefined();
@@ -1210,7 +1210,7 @@ describe('DnD5eRuleEngine', () => {
                     const spells = engine.getAvailableSpells(clericCharacter, 1);
 
                     expect(spells.length).toBeGreaterThan(0);
-                    
+
                     // Should include Cure Wounds (cleric spell)
                     const cureWounds = spells.find(s => s.id === 'cure-wounds');
                     expect(cureWounds).toBeDefined();
@@ -1234,6 +1234,54 @@ describe('DnD5eRuleEngine', () => {
                     const clericHasSacredFlame = clericCantrips.some(s => s.id === 'sacred-flame');
                     expect(clericHasSacredFlame).toBe(true);
                 });
+            });
+        });
+
+        describe('getAvailableBackgrounds (T037)', () => {
+            it('should return all 6 SRD backgrounds', () => {
+                const backgrounds = engine.getAvailableBackgrounds();
+                expect(backgrounds).toHaveLength(6);
+            });
+
+            it('should include Acolyte background', () => {
+                const backgrounds = engine.getAvailableBackgrounds();
+                const acolyte = backgrounds.find(bg => bg.id === 'acolyte');
+                expect(acolyte).toBeDefined();
+                expect(acolyte!.name).toBe('Acolyte');
+                expect(acolyte!.skillProficiencies).toContain('insight');
+                expect(acolyte!.skillProficiencies).toContain('religion');
+            });
+
+            it('should include Soldier background', () => {
+                const backgrounds = engine.getAvailableBackgrounds();
+                const soldier = backgrounds.find(bg => bg.id === 'soldier');
+                expect(soldier).toBeDefined();
+                expect(soldier!.name).toBe('Soldier');
+                expect(soldier!.skillProficiencies).toContain('athletics');
+                expect(soldier!.skillProficiencies).toContain('intimidation');
+            });
+
+            it('should have all backgrounds with source SRD', () => {
+                const backgrounds = engine.getAvailableBackgrounds();
+                for (const bg of backgrounds) {
+                    expect(bg.source).toBe('SRD');
+                }
+            });
+
+            it('should have all backgrounds with 2 skill proficiencies', () => {
+                const backgrounds = engine.getAvailableBackgrounds();
+                for (const bg of backgrounds) {
+                    expect(bg.skillProficiencies).toHaveLength(2);
+                }
+            });
+
+            it('should have all backgrounds with features', () => {
+                const backgrounds = engine.getAvailableBackgrounds();
+                for (const bg of backgrounds) {
+                    expect(bg.feature).toBeDefined();
+                    expect(bg.feature.name).toBeDefined();
+                    expect(bg.feature.description).toBeDefined();
+                }
             });
         });
     });

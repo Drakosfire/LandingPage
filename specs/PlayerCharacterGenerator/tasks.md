@@ -171,10 +171,10 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [x] T035o [US1] Implement `getAvailableSpells(character, spellLevel)` ✅ Filters by class list
 - [x] T035p [US1] Add spellcasting tests ✅ 9 new tests covering all caster types
 
-### 3.3 SRD Background Data
+### 3.3 SRD Background Data ✅ COMPLETE
 
-- [ ] T036 [US1] Create `backgrounds.ts` with 6 SRD backgrounds in `src/components/PlayerCharacterGenerator/data/dnd5e/backgrounds.ts`
-- [ ] T037 [US1] Implement `getAvailableBackgrounds()` in `DnD5eRuleEngine.ts`
+- [x] T036 [US1] Create `backgrounds.ts` with 6 SRD backgrounds ✅ Acolyte, Criminal, Folk Hero, Noble, Sage, Soldier
+- [x] T037 [US1] Implement `getAvailableBackgrounds()` in `DnD5eRuleEngine.ts` ✅ Returns all 6 SRD backgrounds
 
 ### 3.4 Validation Implementation
 

@@ -803,7 +803,7 @@ export function getLevel1SpellsByClass(className: string): DnD5eSpell[] {
  */
 export function getRitualSpellsByClass(className: string): DnD5eSpell[] {
     const normalizedClass = className.toLowerCase();
-    return SRD_SPELLS.filter(spell => 
+    return SRD_SPELLS.filter(spell =>
         spell.ritual === true && spell.classes.includes(normalizedClass)
     );
 }

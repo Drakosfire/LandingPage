@@ -182,7 +182,7 @@ export type AbilityName = keyof AbilityScores;
 export interface AbilityBonusChoice {
     /** Which ability to boost */
     ability: AbilityName;
-    
+
     /** Bonus amount (typically +1) */
     bonus: number;
 }
@@ -194,16 +194,16 @@ export interface AbilityBonusChoice {
 export interface FlexibleBonusConfig {
     /** Race ID this config applies to */
     raceId: string;
-    
+
     /** Number of bonus choices to make */
     choiceCount: number;
-    
+
     /** Bonus amount for each choice (typically +1) */
     bonusPerChoice: number;
-    
+
     /** Abilities that are excluded from choice (already have fixed bonus) */
     excludedAbilities: AbilityName[];
-    
+
     /** Can the same ability be chosen multiple times? */
     allowStacking: boolean;
 }

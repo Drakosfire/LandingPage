@@ -56,7 +56,7 @@ export class DnD5eRuleEngine implements RuleEngine<
     private spells: DnD5eSpell[];
 
     // ===== FLEXIBLE BONUS CONFIGURATIONS =====
-    
+
     /**
      * Races that have flexible ability score bonuses
      * Half-Elf: +2 CHA (fixed) + choose two other abilities for +1 each
@@ -204,7 +204,7 @@ export class DnD5eRuleEngine implements RuleEngine<
         // Check each class for L1 subclass requirement
         for (const classLevel of character.classes) {
             const classId = classLevel.name.toLowerCase();
-            
+
             // Check if this class requires L1 subclass
             if (this.requiresLevel1Subclass(classId)) {
                 if (!classLevel.subclass) {
@@ -418,7 +418,7 @@ export class DnD5eRuleEngine implements RuleEngine<
         if (!config) return [];
 
         const allAbilities: AbilityName[] = [
-            'strength', 'dexterity', 'constitution', 
+            'strength', 'dexterity', 'constitution',
             'intelligence', 'wisdom', 'charisma'
         ];
 
@@ -434,7 +434,7 @@ export class DnD5eRuleEngine implements RuleEngine<
      * @returns Validation result
      */
     validateFlexibleBonusChoices(
-        raceId: string, 
+        raceId: string,
         choices: AbilityBonusChoice[]
     ): ValidationResult {
         const result: ValidationResult = {
@@ -537,7 +537,7 @@ export class DnD5eRuleEngine implements RuleEngine<
         return {
             count: skillChoices.choose,
             options: skillChoices.from,
-            selected: selectedSkills.filter(skill => 
+            selected: selectedSkills.filter(skill =>
                 skillChoices.from.includes(skill)
             )
         };
@@ -597,19 +597,19 @@ export class DnD5eRuleEngine implements RuleEngine<
      */
     private getItemType(itemId: string): 'weapon' | 'armor' | 'gear' | 'tool' | 'pack' {
         if (itemId.includes('pack')) return 'pack';
-        if (itemId.includes('armor') || itemId.includes('shield') || 
+        if (itemId.includes('armor') || itemId.includes('shield') ||
             itemId.includes('mail') || itemId.includes('leather')) return 'armor';
         if (itemId.includes('tool') || itemId.includes('kit')) return 'tool';
-        
+
         // Most class starting equipment is weapons
         const weapons = [
-            'greataxe', 'handaxe', 'javelin', 'longsword', 'shortsword', 
+            'greataxe', 'handaxe', 'javelin', 'longsword', 'shortsword',
             'rapier', 'scimitar', 'mace', 'dagger', 'quarterstaff',
             'crossbow', 'shortbow', 'longbow', 'sling', 'dart',
             'warhammer', 'light-hammer', 'battleaxe', 'greatsword'
         ];
-        if (weapons.some(w => itemId.includes(w)) || 
-            itemId.includes('martial') || itemId.includes('simple') || 
+        if (weapons.some(w => itemId.includes(w)) ||
+            itemId.includes('martial') || itemId.includes('simple') ||
             itemId.includes('weapon')) {
             return 'weapon';
         }
@@ -634,8 +634,8 @@ export class DnD5eRuleEngine implements RuleEngine<
         const classId = spellcastingClass.toLowerCase();
 
         // Filter spells by level and class
-        return this.spells.filter(spell => 
-            spell.level === spellLevel && 
+        return this.spells.filter(spell =>
+            spell.level === spellLevel &&
             spell.classes.includes(classId)
         );
     }
@@ -661,7 +661,7 @@ export class DnD5eRuleEngine implements RuleEngine<
 
         const spellcasting = classData.spellcasting;
         const totalLevel = this.getTotalLevel(character.classes);
-        const classLevel = character.classes.find(c => 
+        const classLevel = character.classes.find(c =>
             c.name.toLowerCase() === classId
         )?.level ?? 1;
 
@@ -697,8 +697,8 @@ export class DnD5eRuleEngine implements RuleEngine<
             // Prepared caster (Cleric, Druid, Paladin, Wizard)
             prepareFormula = spellcasting.preparedSpells.formula;
             maxPreparedSpells = this.calculateMaxPreparedSpells(
-                prepareFormula, 
-                abilityMod, 
+                prepareFormula,
+                abilityMod,
                 classLevel
             );
         }
@@ -774,7 +774,7 @@ export class DnD5eRuleEngine implements RuleEngine<
      * Calculate spell slots for a class at a given level (T035n)
      */
     private calculateSpellSlots(
-        classId: string, 
+        classId: string,
         classLevel: number,
         casterType: CasterType
     ): Record<number, { total: number; used: number }> {
@@ -819,8 +819,8 @@ export class DnD5eRuleEngine implements RuleEngine<
      * Calculate max prepared spells from formula
      */
     private calculateMaxPreparedSpells(
-        formula: string, 
-        abilityMod: number, 
+        formula: string,
+        abilityMod: number,
         classLevel: number
     ): number {
         // Parse formulas like 'WIS_MOD + LEVEL', 'INT_MOD + LEVEL', 'CHA_MOD + HALF_LEVEL'
@@ -844,13 +844,13 @@ export class DnD5eRuleEngine implements RuleEngine<
      * Get subclass-granted bonus spells
      */
     private getSubclassBonusSpells(
-        character: DnD5eCharacter, 
+        character: DnD5eCharacter,
         classId: string
     ): string[] {
         const bonusSpells: string[] = [];
 
         // Find the class entry with a subclass
-        const classEntry = character.classes.find(c => 
+        const classEntry = character.classes.find(c =>
             c.name.toLowerCase() === classId && c.subclass
         );
 
@@ -860,7 +860,7 @@ export class DnD5eRuleEngine implements RuleEngine<
 
         // Get subclass data
         const subclass = this.getSubclassById(
-            classId, 
+            classId,
             classEntry.subclass.toLowerCase().replace(/\s+/g, '-')
         );
 
@@ -913,7 +913,7 @@ export class DnD5eRuleEngine implements RuleEngine<
      * @returns Modified ability scores with racial bonuses applied
      */
     applyRacialBonuses(
-        baseScores: AbilityScores, 
+        baseScores: AbilityScores,
         raceId: string,
         flexibleBonuses?: AbilityBonusChoice[]
     ): AbilityScores {
@@ -1028,13 +1028,14 @@ export const createDnD5eRuleEngine = (): DnD5eRuleEngine => {
     // Note: Importing dynamically to avoid circular dependencies
     const { SRD_RACES } = require('../../data/dnd5e/races');
     const { SRD_CLASSES } = require('../../data/dnd5e/classes');
+    const { SRD_BACKGROUNDS } = require('../../data/dnd5e/backgrounds');
     const { SRD_SPELLS } = require('../../data/dnd5e/spells');
 
     return new DnD5eRuleEngine(
-        SRD_RACES,   // races (T024) ✅
-        SRD_CLASSES, // classes (T033) ✅
-        [],          // backgrounds (TODO: T037)
-        SRD_SPELLS   // spells (T035k) ✅
+        SRD_RACES,       // races (T024) ✅
+        SRD_CLASSES,     // classes (T033) ✅
+        SRD_BACKGROUNDS, // backgrounds (T037) ✅
+        SRD_SPELLS       // spells (T035k) ✅
     );
 };
 

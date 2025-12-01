@@ -18,22 +18,22 @@ import type { ValidationResult } from './engine';
 interface PlayerCharacterGeneratorContextType {
     // ===== CHARACTER STATE =====
     character: Character | null;
-
+    
     // ===== CHARACTER MUTATIONS =====
     setCharacter: (character: Character) => void;
     updateCharacter: (updates: Partial<Character>) => void;
     resetCharacter: () => void;
-
+    
     // ===== D&D 5E SPECIFIC =====
     updateDnD5eData: (updates: Partial<DnD5eCharacter>) => void;
-
+    
     // ===== RULE ENGINE =====
     ruleEngine: DnD5eRuleEngine;
 
     // ===== VALIDATION (from Rule Engine) =====
     validation: ValidationResult;
     isCharacterValid: boolean;
-
+    
     // ===== PROJECT MANAGEMENT (Phase 4) =====
     // currentProject: CharacterProject | null;
     // saveProject: () => Promise<void>;
@@ -72,7 +72,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         empty.dnd5eData = createEmptyDnD5eCharacter();
         return empty;
     });
-
+    
     // ===== DERIVED VALIDATION (from Rule Engine) =====
     const validation = useMemo<ValidationResult>(() => {
         if (!character?.dnd5eData) {
@@ -94,9 +94,9 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
             console.log('✅ [PlayerCharacterGenerator] Character is valid');
         }
     }, [validation, isCharacterValid]);
-
+    
     // ===== CHARACTER MUTATIONS =====
-
+    
     /**
      * Update entire character
      */
@@ -104,7 +104,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         console.log('📝 [PlayerCharacterGenerator] Setting character:', newCharacter.name);
         setCharacter(newCharacter);
     }, []);
-
+    
     /**
      * Update character fields (shallow merge)
      */
@@ -116,7 +116,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
             return updated;
         });
     }, []);
-
+    
     /**
      * Reset to empty character
      */
@@ -126,7 +126,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         empty.dnd5eData = createEmptyDnD5eCharacter();
         setCharacter(empty);
     }, []);
-
+    
     /**
      * Update D&D 5e-specific data
      */
@@ -136,7 +136,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
                 console.warn('⚠️ [PlayerCharacterGenerator] Cannot update D&D 5e data: character not initialized');
                 return prev;
             }
-
+            
             const updated = {
                 ...prev,
                 dnd5eData: {
@@ -145,12 +145,12 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
                 },
                 updatedAt: new Date().toISOString()
             };
-
+            
             console.log('📝 [PlayerCharacterGenerator] Updated D&D 5e data');
             return updated;
         });
     }, []);
-
+    
     // ===== CONTEXT VALUE =====
     const contextValue: PlayerCharacterGeneratorContextType = {
         // Character state
@@ -167,7 +167,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         validation,
         isCharacterValid
     };
-
+    
     return (
         <PlayerCharacterGeneratorContext.Provider value={contextValue}>
             {children}
