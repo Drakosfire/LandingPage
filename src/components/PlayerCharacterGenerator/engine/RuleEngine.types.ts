@@ -171,6 +171,44 @@ export interface AbilityScores {
 }
 
 /**
+ * Ability name type (T026b)
+ */
+export type AbilityName = keyof AbilityScores;
+
+/**
+ * A player's choice for flexible ability bonus (T026c)
+ * Used for races like Half-Elf that allow choosing which abilities to boost
+ */
+export interface AbilityBonusChoice {
+    /** Which ability to boost */
+    ability: AbilityName;
+    
+    /** Bonus amount (typically +1) */
+    bonus: number;
+}
+
+/**
+ * Configuration for races with flexible ability bonuses (T026b)
+ * E.g., Half-Elf: +2 CHA fixed, +1 to two other abilities of choice
+ */
+export interface FlexibleBonusConfig {
+    /** Race ID this config applies to */
+    raceId: string;
+    
+    /** Number of bonus choices to make */
+    choiceCount: number;
+    
+    /** Bonus amount for each choice (typically +1) */
+    bonusPerChoice: number;
+    
+    /** Abilities that are excluded from choice (already have fixed bonus) */
+    excludedAbilities: AbilityName[];
+    
+    /** Can the same ability be chosen multiple times? */
+    allowStacking: boolean;
+}
+
+/**
  * Factory function to create an empty ValidationResult
  */
 export const createEmptyValidationResult = (): ValidationResult => ({

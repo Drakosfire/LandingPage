@@ -15,6 +15,9 @@ import type {
     EquipmentChoiceGroup,
     DerivedStats,
     AbilityScores,
+    AbilityName,
+    AbilityBonusChoice,
+    FlexibleBonusConfig,
     createEmptyValidationResult,
     createValidationError,
     mergeValidationResults
@@ -51,6 +54,22 @@ export class DnD5eRuleEngine implements RuleEngine<
     private classes: DnD5eClass[];
     private backgrounds: DnD5eBackground[];
     private spells: DnD5eSpell[];
+
+    // ===== FLEXIBLE BONUS CONFIGURATIONS =====
+    
+    /**
+     * Races that have flexible ability score bonuses
+     * Half-Elf: +2 CHA (fixed) + choose two other abilities for +1 each
+     */
+    private static readonly FLEXIBLE_BONUS_CONFIGS: FlexibleBonusConfig[] = [
+        {
+            raceId: 'half-elf',
+            choiceCount: 2,
+            bonusPerChoice: 1,
+            excludedAbilities: ['charisma'], // Already gets +2 CHA
+            allowStacking: false // Can't put both +1s on same ability
+        }
+    ];
 
     /**
      * Create a new D&D 5e Rule Engine
@@ -184,12 +203,44 @@ export class DnD5eRuleEngine implements RuleEngine<
     // ===== DATA PROVIDERS =====
 
     /**
-     * Get all available races
-     * @returns Array of race definitions
+     * Get all available races (including subraces)
+     * @returns Array of all race definitions
      */
     getAvailableRaces(): DnD5eRace[] {
-        // TODO: T024 - Wire up race data in Phase 3
         return this.races;
+    }
+
+    /**
+     * Get base race options for UI selection
+     * Returns races that have subraces (Dwarf, Elf, etc.) + standalone races (Human, Dragonborn, etc.)
+     * @returns Array of base race options with metadata
+     */
+    getBaseRaceOptions(): Array<{ id: string; name: string; hasSubraces: boolean }> {
+        const baseRaces = new Map<string, { id: string; name: string; hasSubraces: boolean }>();
+
+        for (const race of this.races) {
+            if (race.baseRace) {
+                // This is a subrace - add its base race if not already added
+                if (!baseRaces.has(race.baseRace)) {
+                    baseRaces.set(race.baseRace, {
+                        id: race.baseRace,
+                        name: race.baseRace.charAt(0).toUpperCase() + race.baseRace.slice(1),
+                        hasSubraces: true
+                    });
+                }
+            } else {
+                // This is a standalone race (no subraces)
+                if (!baseRaces.has(race.id)) {
+                    baseRaces.set(race.id, {
+                        id: race.id,
+                        name: race.name,
+                        hasSubraces: false
+                    });
+                }
+            }
+        }
+
+        return Array.from(baseRaces.values());
     }
 
     /**
@@ -212,12 +263,142 @@ export class DnD5eRuleEngine implements RuleEngine<
 
     /**
      * Get subraces for a base race
-     * @param baseRaceId - ID of the base race
+     * @param baseRaceId - ID of the base race (e.g., 'dwarf', 'elf')
      * @returns Array of subrace definitions
      */
     getSubraces(baseRaceId: string): DnD5eRace[] {
-        // TODO: T025 - Implement in Phase 3
         return this.races.filter(race => race.baseRace === baseRaceId);
+    }
+
+    /**
+     * Get a specific race by ID
+     * @param raceId - Race ID (e.g., 'hill-dwarf', 'human')
+     * @returns Race definition or undefined
+     */
+    getRaceById(raceId: string): DnD5eRace | undefined {
+        return this.races.find(race => race.id === raceId);
+    }
+
+    // ===== FLEXIBLE ABILITY BONUSES (T026d-e) =====
+
+    /**
+     * Check if a race has flexible ability bonuses that require player choice
+     * @param raceId - Race ID to check
+     * @returns True if player must choose which abilities to boost
+     */
+    hasFlexibleAbilityBonuses(raceId: string): boolean {
+        return DnD5eRuleEngine.FLEXIBLE_BONUS_CONFIGS.some(
+            config => config.raceId === raceId
+        );
+    }
+
+    /**
+     * Get flexible bonus configuration for a race
+     * @param raceId - Race ID
+     * @returns Configuration object or undefined if race has no flexible bonuses
+     */
+    getFlexibleAbilityBonusOptions(raceId: string): FlexibleBonusConfig | undefined {
+        return DnD5eRuleEngine.FLEXIBLE_BONUS_CONFIGS.find(
+            config => config.raceId === raceId
+        );
+    }
+
+    /**
+     * Get list of valid abilities that can be chosen for flexible bonus
+     * @param raceId - Race ID
+     * @returns Array of ability names that can receive flexible bonus
+     */
+    getValidFlexibleBonusAbilities(raceId: string): AbilityName[] {
+        const config = this.getFlexibleAbilityBonusOptions(raceId);
+        if (!config) return [];
+
+        const allAbilities: AbilityName[] = [
+            'strength', 'dexterity', 'constitution', 
+            'intelligence', 'wisdom', 'charisma'
+        ];
+
+        return allAbilities.filter(
+            ability => !config.excludedAbilities.includes(ability)
+        );
+    }
+
+    /**
+     * Validate flexible bonus choices
+     * @param raceId - Race ID
+     * @param choices - Player's chosen ability bonuses
+     * @returns Validation result
+     */
+    validateFlexibleBonusChoices(
+        raceId: string, 
+        choices: AbilityBonusChoice[]
+    ): ValidationResult {
+        const result: ValidationResult = {
+            isValid: true,
+            errors: [],
+            warnings: [],
+            info: []
+        };
+
+        const config = this.getFlexibleAbilityBonusOptions(raceId);
+        if (!config) {
+            // Race doesn't have flexible bonuses - any choices are invalid
+            if (choices.length > 0) {
+                result.isValid = false;
+                result.errors.push({
+                    code: 'FLEXIBLE_BONUS_NOT_ALLOWED',
+                    message: 'This race does not have flexible ability bonuses',
+                    step: 'race',
+                    field: 'flexibleBonuses',
+                    severity: 'error'
+                });
+            }
+            return result;
+        }
+
+        // Check correct number of choices
+        if (choices.length !== config.choiceCount) {
+            result.isValid = false;
+            result.errors.push({
+                code: 'FLEXIBLE_BONUS_COUNT_INVALID',
+                message: `Must choose exactly ${config.choiceCount} abilities, got ${choices.length}`,
+                step: 'race',
+                field: 'flexibleBonuses',
+                severity: 'error'
+            });
+        }
+
+        // Check no excluded abilities
+        const validAbilities = this.getValidFlexibleBonusAbilities(raceId);
+        for (const choice of choices) {
+            if (!validAbilities.includes(choice.ability)) {
+                result.isValid = false;
+                result.errors.push({
+                    code: 'FLEXIBLE_BONUS_EXCLUDED_ABILITY',
+                    message: `Cannot choose ${choice.ability} - already has fixed racial bonus`,
+                    step: 'race',
+                    field: 'flexibleBonuses',
+                    severity: 'error'
+                });
+            }
+        }
+
+        // Check no stacking if not allowed
+        if (!config.allowStacking) {
+            const chosenAbilities = choices.map(c => c.ability);
+            const uniqueAbilities = new Set(chosenAbilities);
+            if (uniqueAbilities.size !== chosenAbilities.length) {
+                result.isValid = false;
+                result.errors.push({
+                    code: 'FLEXIBLE_BONUS_NO_STACKING',
+                    message: 'Cannot apply multiple bonuses to the same ability',
+                    step: 'race',
+                    field: 'flexibleBonuses',
+                    severity: 'error'
+                });
+            }
+        }
+
+        return result;
     }
 
     // ===== CHOICE HELPERS =====
@@ -286,23 +467,42 @@ export class DnD5eRuleEngine implements RuleEngine<
     }
 
     /**
-     * Apply racial bonuses to ability scores
-     * @param baseScores - Base ability scores
-     * @param raceId - Race ID
-     * @returns Modified ability scores
+     * Apply racial bonuses to ability scores (T026 + T026f)
+     * @param baseScores - Base ability scores (before racial bonuses)
+     * @param raceId - Race ID (e.g., 'hill-dwarf', 'human')
+     * @param flexibleBonuses - Optional player choices for flexible bonuses (Half-Elf +1/+1)
+     * @returns Modified ability scores with racial bonuses applied
      */
-    applyRacialBonuses(baseScores: AbilityScores, raceId: string): AbilityScores {
-        // TODO: T026 - Implement in Phase 3
+    applyRacialBonuses(
+        baseScores: AbilityScores, 
+        raceId: string,
+        flexibleBonuses?: AbilityBonusChoice[]
+    ): AbilityScores {
         const race = this.races.find(r => r.id === raceId);
         if (!race) return baseScores;
 
         const modified = { ...baseScores };
 
+        // Apply fixed racial bonuses
         for (const bonus of race.abilityBonuses) {
             const ability = bonus.ability as keyof AbilityScores;
             if (ability in modified) {
                 modified[ability] += bonus.bonus;
             }
+        }
+
+        // Apply flexible bonuses if provided and valid
+        if (flexibleBonuses && flexibleBonuses.length > 0) {
+            const validation = this.validateFlexibleBonusChoices(raceId, flexibleBonuses);
+            if (validation.isValid) {
+                for (const choice of flexibleBonuses) {
+                    if (choice.ability in modified) {
+                        modified[choice.ability] += choice.bonus;
+                    }
+                }
+            }
+            // If validation fails, flexible bonuses are not applied
+            // The UI should prevent this by validating first
         }
 
         return modified;
@@ -382,11 +582,19 @@ export class DnD5eRuleEngine implements RuleEngine<
 }
 
 /**
- * Create a default D&D 5e Rule Engine instance
- * This will be enhanced as data is added in Phase 3
+ * Create a default D&D 5e Rule Engine instance with SRD data
  */
 export const createDnD5eRuleEngine = (): DnD5eRuleEngine => {
-    // TODO: Import SRD data when available
-    return new DnD5eRuleEngine();
+    // Import SRD race data
+    // Note: Importing dynamically to avoid circular dependencies
+    // Classes, backgrounds, and spells will be added in subsequent phases
+    const { SRD_RACES } = require('../../data/dnd5e/races');
+
+    return new DnD5eRuleEngine(
+        SRD_RACES,  // races (T024)
+        [],         // classes (TODO: T033)
+        [],         // backgrounds (TODO: T037)
+        []          // spells (TODO: Phase spellcasting)
+    );
 };
 

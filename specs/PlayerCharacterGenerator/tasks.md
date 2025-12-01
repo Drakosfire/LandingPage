@@ -85,18 +85,18 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [x] T021 [P] [US1] Add Half-Orc race in `data/dnd5e/races.ts` ✅
 - [x] T022 [P] [US1] Add Tiefling race in `data/dnd5e/races.ts` ✅
 - [x] T023 [US1] Create race data tests in `src/components/PlayerCharacterGenerator/__tests__/data/dnd5e/races.test.ts` ✅ 50+ tests
-- [ ] T024 [US1] Implement `getAvailableRaces()` in `DnD5eRuleEngine.ts`
-- [ ] T025 [US1] Implement `getSubraces(baseRaceId)` in `DnD5eRuleEngine.ts`
-- [ ] T026 [US1] Implement `applyRacialBonuses()` in `DnD5eRuleEngine.ts`
+- [x] T024 [US1] Implement `getAvailableRaces()` in `DnD5eRuleEngine.ts` ✅
+- [x] T025 [US1] Implement `getSubraces(baseRaceId)` in `DnD5eRuleEngine.ts` ✅
+- [x] T026 [US1] Implement `applyRacialBonuses()` in `DnD5eRuleEngine.ts` ✅
 
-### 3.1b Flexible Ability Bonuses (NEW - Half-Elf)
+### 3.1b Flexible Ability Bonuses ✅ COMPLETE
 
-- [ ] T026b [US1] Add `FlexibleBonusConfig` type to `RuleEngine.types.ts`
-- [ ] T026c [US1] Add `AbilityBonusChoice` type to `RuleEngine.types.ts`
-- [ ] T026d [US1] Implement `hasFlexibleAbilityBonuses(raceId)` in `DnD5eRuleEngine.ts`
-- [ ] T026e [US1] Implement `getFlexibleAbilityBonusOptions(raceId)` in `DnD5eRuleEngine.ts`
-- [ ] T026f [US1] Update `applyRacialBonuses()` to accept `bonusChoices` parameter
-- [ ] T026g [US1] Add tests for flexible bonus validation (Half-Elf +1/+1 can't stack)
+- [x] T026b [US1] Add `FlexibleBonusConfig` type to `RuleEngine.types.ts` ✅
+- [x] T026c [US1] Add `AbilityBonusChoice` type to `RuleEngine.types.ts` ✅
+- [x] T026d [US1] Implement `hasFlexibleAbilityBonuses(raceId)` in `DnD5eRuleEngine.ts` ✅
+- [x] T026e [US1] Implement `getFlexibleAbilityBonusOptions(raceId)` in `DnD5eRuleEngine.ts` ✅
+- [x] T026f [US1] Update `applyRacialBonuses()` to accept `bonusChoices` parameter ✅
+- [x] T026g [US1] Add tests for flexible bonus validation (Half-Elf +1/+1 can't stack) ✅
 
 ### 3.2 SRD Class Data
 
