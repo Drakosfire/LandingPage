@@ -1494,7 +1494,7 @@ export function getCharactersByClass(className: string): Character[] {
  * Get characters by race
  */
 export function getCharactersByRace(raceName: string): Character[] {
-    return ALL_TEST_CHARACTERS.filter(c => 
+    return ALL_TEST_CHARACTERS.filter(c =>
         c.dnd5eData?.race?.name.toLowerCase().includes(raceName.toLowerCase())
     );
 }

@@ -1,10 +1,20 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 1, 2025 (GPT-5 Review Integration)  
+**Updated**: December 1, 2025 (5etools Architecture Research)  
 **Source**: spec.md + plan.md  
 **Total Tasks**: 114 (107 + 7 integration tests)  
 **Estimated Hours**: 116-162h
+
+## 📚 Research References
+
+| Document | Key Insights |
+|----------|-------------|
+| `research/RESEARCH-Spellcasting-System.md` | Caster types, slot progressions, Pact Magic |
+| `research/RESEARCH-Equipment-System.md` | Weapon/armor interfaces, proficiency rules |
+| `research/Technical Analysis of 5etools Architecture...md` | **Class-Feature separation**, spell `fromClassList`, progression arrays |
+
+**5etools Strategic Note**: Consider importing filtered 5etools JSON for spell data (T035k) - would save significant manual data entry. See plan.md for details.
 
 ---
 
@@ -120,7 +130,7 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [x] T028 [P] [US1] Add Bard, Cleric, Druid classes to `data/dnd5e/classes.ts` ✅ 3 full casters (known + prepared)
 - [x] T029 [P] [US1] Add Paladin, Ranger classes to `data/dnd5e/classes.ts` ✅ 2 half casters
 - [x] T030 [P] [US1] Add Sorcerer, Warlock, Wizard classes to `data/dnd5e/classes.ts` ✅ 3 full casters (all 12 SRD classes complete!)
-- [ ] T031 [US1] Create `classFeatures.ts` with level 1-3 features in `src/components/PlayerCharacterGenerator/data/dnd5e/classFeatures.ts` ℹ️ Features embedded in classes.ts
+- [ ] T031 [US1] Create `classFeatures.ts` with level 1-3 features in `src/components/PlayerCharacterGenerator/data/dnd5e/classFeatures.ts` ℹ️ Features embedded in classes.ts. **5etools pattern**: Consider reference-based approach (`"Second Wind|Fighter|1"`) for feature reuse across classes (e.g., Extra Attack)
 - [x] T032 [US1] Create class data tests in `src/components/PlayerCharacterGenerator/__tests__/data/dnd5e/classes.test.ts` ✅ 218 tests
 - [ ] T033 [US1] Implement `getAvailableClasses()` in `DnD5eRuleEngine.ts`
 - [ ] T034 [US1] Implement `getValidSkillChoices(character)` in `DnD5eRuleEngine.ts`
@@ -154,7 +164,7 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - Pact Magic: `TIEFLING_WARLOCK_L1` (L1), `TIEFLING_WARLOCK_L3` (slot upgrade)
 
 - [ ] T035j [US1] Add `SpellcastingInfo` type to `RuleEngine.types.ts`
-- [ ] T035k [US1] Create `spells.ts` with SRD cantrips and level 1 spells in `data/dnd5e/spells.ts`
+- [ ] T035k [US1] Create `spells.ts` with SRD cantrips and level 1 spells in `data/dnd5e/spells.ts` 💡 **Option**: Import from 5etools `/data/spells/` JSON filtered for SRD. Use `fromClassList` pattern for class spell lists.
 - [ ] T035l [US1] Add spellcasting config per class (ability, known vs prepared, cantrips) to `classes.ts`
 - [ ] T035m [US1] Implement `getSpellcastingInfo(character)` in `DnD5eRuleEngine.ts`
 - [ ] T035n [US1] Implement spell slot calculation by level in `DnD5eRuleEngine.ts`

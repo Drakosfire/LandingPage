@@ -950,6 +950,32 @@ Now:        Build D&D 5e engine in PlayerCharacterGenerator
 
 ## 📖 Research Documents
 
+### 5etools Architecture Analysis
+
+**Document**: `research/Technical Analysis of 5etools Architecture and Data Structures.docx.md`  
+**Status**: ✅ Complete (December 2025)
+
+Key architectural patterns applicable to our implementation:
+
+| Pattern | 5etools Approach | Our Application |
+|---------|-----------------|-----------------|
+| **Class-Feature Separation** | Features stored separately, referenced by key (`"Second Wind|Fighter|PHB|1"`) | Consider for future refactor: enables reuse (Extra Attack), easier updates |
+| **Spell Class Lists** | `fromClassList`, `fromSubclass` on spells, derived at runtime | Adopt for spell filtering in T035k-T035o |
+| **Progression Arrays** | `spellsKnownProgression[20]`, `cantripProgression[20]` | Already implementing via `ClassSpellcastingInfo` |
+| **Subclass Spells** | `additionalSpells.prepared`, `additionalSpells.expanded` | Matches our `SubclassSpellFeature` pattern |
+| **Equipment Codes** | Type codes: "LA"=Light Armor, "M"=Melee, etc. | Consider for equipment filtering/validation |
+| **Inline Tags** | `{@spell fireball}`, `{@damage 8d6}` for rich text | Future: render descriptions with cross-references |
+
+**Strategic Insights**:
+1. **Data Source**: 5etools `/data/spells/` has complete SRD spell lists we could import
+2. **Validation**: 5etools uses JSON Schema - consider Zod for our TypeScript interfaces
+3. **Feature Reuse**: Class features like "Extra Attack" appear in multiple classes - reference pattern reduces duplication
+4. **Runtime Derivation**: Eldritch Knight gets wizard spells via code, not duplication - apply to spell list filtering
+
+**Future Optimization (Post-MVP)**: Consider direct import of 5etools JSON filtered for SRD, transformed to our TypeScript interfaces. Would dramatically accelerate spell/item data population.
+
+---
+
 ### Spellcasting System Research
 
 **Document**: `research/RESEARCH-Spellcasting-System.md`  
