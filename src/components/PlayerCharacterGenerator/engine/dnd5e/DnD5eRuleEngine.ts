@@ -171,13 +171,138 @@ export class DnD5eRuleEngine implements RuleEngine<
     // ===== PRIVATE VALIDATORS (stubs for Phase 2) =====
 
     private validateAbilityScores(character: DnD5eCharacter): ValidationResult {
-        // TODO: T038 - Implement in Phase 2
-        return { isValid: true, errors: [], warnings: [], info: [] };
+        const result: ValidationResult = {
+            isValid: true,
+            errors: [],
+            warnings: [],
+            info: []
+        };
+
+        const scores = character.abilityScores;
+        const abilities: (keyof typeof scores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
+
+        // Check each ability score is within valid range (1-30)
+        for (const ability of abilities) {
+            const score = scores[ability];
+            if (score < 1 || score > 30) {
+                result.isValid = false;
+                result.errors.push({
+                    code: 'ABILITY_SCORE_OUT_OF_RANGE',
+                    message: `${ability.charAt(0).toUpperCase() + ability.slice(1)} score must be between 1 and 30 (got ${score})`,
+                    step: 'abilityScores',
+                    field: ability,
+                    severity: 'error'
+                });
+            }
+        }
+
+        // Check no ability score is 0 (unset)
+        for (const ability of abilities) {
+            const score = scores[ability];
+            if (score === 0) {
+                result.isValid = false;
+                result.errors.push({
+                    code: 'ABILITY_SCORE_NOT_SET',
+                    message: `${ability.charAt(0).toUpperCase() + ability.slice(1)} score must be assigned`,
+                    step: 'abilityScores',
+                    field: ability,
+                    severity: 'error'
+                });
+            }
+        }
+
+        // Check base scores before racial bonuses (if tracking method)
+        // For point buy: total cost should be <= 27
+        // For standard array: values should be from [15, 14, 13, 12, 10, 8]
+        // Note: This validation is informational since we may not know which method was used
+
+        return result;
     }
 
     private validateRace(character: DnD5eCharacter): ValidationResult {
-        // TODO: T039 - Implement in Phase 2
-        return { isValid: true, errors: [], warnings: [], info: [] };
+        const result: ValidationResult = {
+            isValid: true,
+            errors: [],
+            warnings: [],
+            info: []
+        };
+
+        // Check race is selected
+        if (!character.race) {
+            result.isValid = false;
+            result.errors.push({
+                code: 'RACE_REQUIRED',
+                message: 'A race must be selected',
+                step: 'race',
+                field: 'race',
+                severity: 'error'
+            });
+            return result; // Can't validate further without race
+        }
+
+        // Check race is valid
+        const raceData = this.races.find(r => r.id === character.race?.id);
+        if (!raceData) {
+            result.isValid = false;
+            result.errors.push({
+                code: 'RACE_INVALID',
+                message: `Selected race '${character.race.id}' is not a valid SRD race`,
+                step: 'race',
+                field: 'race',
+                severity: 'error'
+            });
+            return result;
+        }
+
+        // Check if race has subraces and one is required but not selected
+        const baseRace = this.getBaseRaceOptions().find(r => r.id === raceData.baseRace || r.id === raceData.id);
+        if (baseRace) {
+            const subraces = this.getSubraces(baseRace.id);
+            if (subraces.length > 0 && !raceData.baseRace) {
+                // This is a base race with subraces - must select a subrace
+                result.isValid = false;
+                result.errors.push({
+                    code: 'SUBRACE_REQUIRED',
+                    message: `${raceData.name} requires a subrace selection`,
+                    step: 'race',
+                    field: 'subrace',
+                    severity: 'error'
+                });
+            }
+        }
+
+        // Check flexible ability bonus choices (Half-Elf)
+        if (this.hasFlexibleAbilityBonuses(character.race.id)) {
+            const flexibleConfig = this.getFlexibleAbilityBonusOptions(character.race.id);
+            if (flexibleConfig) {
+                const choices = character.flexibleAbilityBonusChoices || [];
+                
+                if (choices.length !== flexibleConfig.choiceCount) {
+                    result.isValid = false;
+                    result.errors.push({
+                        code: 'FLEXIBLE_BONUS_COUNT_INVALID',
+                        message: `${raceData.name} requires ${flexibleConfig.choiceCount} ability score choices, but ${choices.length} were selected`,
+                        step: 'race',
+                        field: 'flexibleAbilityBonuses',
+                        severity: 'error'
+                    });
+                }
+
+                // Validate the flexible bonus choices
+                const flexibleValidation = this.validateFlexibleBonusChoices(character.race.id, choices);
+                if (!flexibleValidation.isValid) {
+                    result.isValid = false;
+                    for (const error of flexibleValidation.errors) {
+                        result.errors.push({
+                            ...error,
+                            step: 'race'
+                        });
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     private validateClass(character: DnD5eCharacter): ValidationResult {
@@ -237,13 +362,78 @@ export class DnD5eRuleEngine implements RuleEngine<
     }
 
     private validateBackground(character: DnD5eCharacter): ValidationResult {
-        // TODO: T041 - Implement in Phase 2
-        return { isValid: true, errors: [], warnings: [], info: [] };
+        const result: ValidationResult = {
+            isValid: true,
+            errors: [],
+            warnings: [],
+            info: []
+        };
+
+        // Check background is selected
+        if (!character.background) {
+            result.isValid = false;
+            result.errors.push({
+                code: 'BACKGROUND_REQUIRED',
+                message: 'A background must be selected',
+                step: 'background',
+                field: 'background',
+                severity: 'error'
+            });
+            return result;
+        }
+
+        // Check background is valid SRD background
+        const backgroundData = this.backgrounds.find(b => b.id === character.background);
+        if (!backgroundData) {
+            result.isValid = false;
+            result.errors.push({
+                code: 'BACKGROUND_INVALID',
+                message: `Selected background '${character.background}' is not a valid SRD background`,
+                step: 'background',
+                field: 'background',
+                severity: 'error'
+            });
+        }
+
+        return result;
     }
 
     private validateEquipment(character: DnD5eCharacter): ValidationResult {
-        // TODO: T042 - Implement in Phase 2
-        return { isValid: true, errors: [], warnings: [], info: [] };
+        const result: ValidationResult = {
+            isValid: true,
+            errors: [],
+            warnings: [],
+            info: []
+        };
+
+        // Equipment validation is optional at character creation
+        // Characters can proceed without making equipment choices
+        // The UI should present choices, but they're not strictly required
+
+        // Check if character has a class to determine equipment options
+        if (!character.classes || character.classes.length === 0) {
+            // Can't validate equipment without class
+            return result;
+        }
+
+        // Note: Full equipment validation would check:
+        // 1. All equipment choice groups have a selection
+        // 2. Selected equipment is valid for the class
+        // 3. Weapon/armor proficiency requirements are met
+        // For now, we allow any state since equipment UI is not yet implemented
+
+        // Add info message if no equipment is selected
+        if (!character.equipment || character.equipment.length === 0) {
+            result.info.push({
+                code: 'EQUIPMENT_NOT_SELECTED',
+                message: 'No starting equipment selected. You can select equipment from your class options.',
+                step: 'equipment',
+                field: 'equipment',
+                severity: 'info'
+            });
+        }
+
+        return result;
     }
 
     private validateReview(character: DnD5eCharacter): ValidationResult {

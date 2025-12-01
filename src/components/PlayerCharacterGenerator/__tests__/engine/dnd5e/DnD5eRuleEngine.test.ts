@@ -10,6 +10,7 @@ import { DnD5eRuleEngine, createDnD5eRuleEngine } from '../../../engine/dnd5e/Dn
 import { isRuleEngine } from '../../../engine/RuleEngine.interface';
 import type { DnD5eCharacter } from '../../../types/dnd5e/character.types';
 import { createEmptyDnD5eCharacter } from '../../../types/dnd5e/character.types';
+import { createTestDnD5eCharacter } from '../../utils/testHelpers';
 
 describe('DnD5eRuleEngine', () => {
     let engine: DnD5eRuleEngine;
@@ -1282,6 +1283,315 @@ describe('DnD5eRuleEngine', () => {
                     expect(bg.feature.name).toBeDefined();
                     expect(bg.feature.description).toBeDefined();
                 }
+            });
+        });
+    });
+
+    // =========================================================================
+    // VALIDATION TESTS (T038-T046)
+    // =========================================================================
+    describe('Validation Methods', () => {
+        describe('validateStep (T043)', () => {
+            describe('abilityScores step (T038)', () => {
+                it('should pass validation for valid ability scores', () => {
+                    const character = createTestDnD5eCharacter({
+                        abilityScores: {
+                            strength: 15,
+                            dexterity: 14,
+                            constitution: 13,
+                            intelligence: 12,
+                            wisdom: 10,
+                            charisma: 8
+                        }
+                    });
+                    const result = engine.validateStep(character, 'abilityScores');
+                    expect(result.isValid).toBe(true);
+                    expect(result.errors).toHaveLength(0);
+                });
+
+                it('should fail validation for ability scores of 0', () => {
+                    const character = createTestDnD5eCharacter({
+                        abilityScores: {
+                            strength: 0,
+                            dexterity: 14,
+                            constitution: 13,
+                            intelligence: 12,
+                            wisdom: 10,
+                            charisma: 8
+                        }
+                    });
+                    const result = engine.validateStep(character, 'abilityScores');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'ABILITY_SCORE_NOT_SET')).toBe(true);
+                });
+
+                it('should fail validation for ability scores over 30', () => {
+                    const character = createTestDnD5eCharacter({
+                        abilityScores: {
+                            strength: 31,
+                            dexterity: 14,
+                            constitution: 13,
+                            intelligence: 12,
+                            wisdom: 10,
+                            charisma: 8
+                        }
+                    });
+                    const result = engine.validateStep(character, 'abilityScores');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'ABILITY_SCORE_OUT_OF_RANGE')).toBe(true);
+                });
+
+                it('should fail validation for multiple invalid scores', () => {
+                    const character = createTestDnD5eCharacter({
+                        abilityScores: {
+                            strength: 0,
+                            dexterity: 0,
+                            constitution: 0,
+                            intelligence: 0,
+                            wisdom: 0,
+                            charisma: 0
+                        }
+                    });
+                    const result = engine.validateStep(character, 'abilityScores');
+                    expect(result.isValid).toBe(false);
+                    // 0 triggers both "out of range" and "not set" for each ability = 12 errors
+                    expect(result.errors.length).toBe(12);
+                });
+            });
+
+            describe('race step (T039)', () => {
+                it('should fail validation when no race selected', () => {
+                    const character = createTestDnD5eCharacter({
+                        race: undefined
+                    });
+                    const result = engine.validateStep(character, 'race');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'RACE_REQUIRED')).toBe(true);
+                });
+
+                it('should pass validation for valid race', () => {
+                    const character = createTestDnD5eCharacter({
+                        race: { id: 'human', name: 'Human' }
+                    });
+                    const result = engine.validateStep(character, 'race');
+                    expect(result.isValid).toBe(true);
+                });
+
+                it('should fail validation for invalid race ID', () => {
+                    const character = createTestDnD5eCharacter({
+                        race: { id: 'invalid-race', name: 'Invalid' }
+                    });
+                    const result = engine.validateStep(character, 'race');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'RACE_INVALID')).toBe(true);
+                });
+
+                it('should pass validation for subrace (Hill Dwarf)', () => {
+                    const character = createTestDnD5eCharacter({
+                        race: { id: 'hill-dwarf', name: 'Hill Dwarf' }
+                    });
+                    const result = engine.validateStep(character, 'race');
+                    expect(result.isValid).toBe(true);
+                });
+
+                it('should validate flexible bonus choices for Half-Elf', () => {
+                    const character = createTestDnD5eCharacter({
+                        race: { id: 'half-elf', name: 'Half-Elf' },
+                        flexibleAbilityBonusChoices: [
+                            { ability: 'strength', bonus: 1 },
+                            { ability: 'wisdom', bonus: 1 }
+                        ]
+                    });
+                    const result = engine.validateStep(character, 'race');
+                    expect(result.isValid).toBe(true);
+                });
+
+                it('should fail validation for Half-Elf with missing flexible bonuses', () => {
+                    const character = createTestDnD5eCharacter({
+                        race: { id: 'half-elf', name: 'Half-Elf' },
+                        flexibleAbilityBonusChoices: [] // Missing required choices
+                    });
+                    const result = engine.validateStep(character, 'race');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'FLEXIBLE_BONUS_COUNT_INVALID')).toBe(true);
+                });
+            });
+
+            describe('class step (T040)', () => {
+                it('should fail validation when no class selected', () => {
+                    const character = createTestDnD5eCharacter({
+                        classes: []
+                    });
+                    const result = engine.validateStep(character, 'class');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'CLASS_REQUIRED')).toBe(true);
+                });
+
+                it('should pass validation for Fighter (no L1 subclass required)', () => {
+                    const character = createTestDnD5eCharacter({
+                        classes: [{ name: 'Fighter', level: 1 }]
+                    });
+                    const result = engine.validateStep(character, 'class');
+                    expect(result.isValid).toBe(true);
+                });
+
+                it('should fail validation for Cleric without subclass', () => {
+                    const character = createTestDnD5eCharacter({
+                        classes: [{ name: 'Cleric', level: 1 }]
+                    });
+                    const result = engine.validateStep(character, 'class');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'SUBCLASS_REQUIRED_L1')).toBe(true);
+                });
+
+                it('should pass validation for Cleric with Life Domain', () => {
+                    const character = createTestDnD5eCharacter({
+                        classes: [{ name: 'Cleric', level: 1, subclass: 'Life Domain' }]
+                    });
+                    const result = engine.validateStep(character, 'class');
+                    expect(result.isValid).toBe(true);
+                });
+
+                it('should fail validation for Warlock without subclass', () => {
+                    const character = createTestDnD5eCharacter({
+                        classes: [{ name: 'Warlock', level: 1 }]
+                    });
+                    const result = engine.validateStep(character, 'class');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'SUBCLASS_REQUIRED_L1')).toBe(true);
+                });
+
+                it('should pass validation for Sorcerer with Draconic Bloodline', () => {
+                    const character = createTestDnD5eCharacter({
+                        classes: [{ name: 'Sorcerer', level: 1, subclass: 'Draconic Bloodline' }]
+                    });
+                    const result = engine.validateStep(character, 'class');
+                    expect(result.isValid).toBe(true);
+                });
+            });
+
+            describe('background step (T041)', () => {
+                it('should fail validation when no background selected', () => {
+                    const character = createTestDnD5eCharacter({
+                        background: undefined
+                    });
+                    const result = engine.validateStep(character, 'background');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'BACKGROUND_REQUIRED')).toBe(true);
+                });
+
+                it('should pass validation for valid background', () => {
+                    const character = createTestDnD5eCharacter({
+                        background: 'soldier'
+                    });
+                    const result = engine.validateStep(character, 'background');
+                    expect(result.isValid).toBe(true);
+                });
+
+                it('should fail validation for invalid background ID', () => {
+                    const character = createTestDnD5eCharacter({
+                        background: 'invalid-background'
+                    });
+                    const result = engine.validateStep(character, 'background');
+                    expect(result.isValid).toBe(false);
+                    expect(result.errors.some(e => e.code === 'BACKGROUND_INVALID')).toBe(true);
+                });
+
+                it('should pass validation for all SRD backgrounds', () => {
+                    const backgrounds = ['acolyte', 'criminal', 'folk-hero', 'noble', 'sage', 'soldier'];
+                    for (const bg of backgrounds) {
+                        const character = createTestDnD5eCharacter({ background: bg });
+                        const result = engine.validateStep(character, 'background');
+                        expect(result.isValid).toBe(true);
+                    }
+                });
+            });
+
+            describe('equipment step (T042)', () => {
+                it('should pass validation even without equipment (optional)', () => {
+                    const character = createTestDnD5eCharacter({
+                        classes: [{ name: 'Fighter', level: 1 }],
+                        equipment: []
+                    });
+                    const result = engine.validateStep(character, 'equipment');
+                    expect(result.isValid).toBe(true);
+                });
+
+                it('should add info message when no equipment selected', () => {
+                    const character = createTestDnD5eCharacter({
+                        classes: [{ name: 'Fighter', level: 1 }],
+                        equipment: []
+                    });
+                    const result = engine.validateStep(character, 'equipment');
+                    expect(result.info.some(i => i.code === 'EQUIPMENT_NOT_SELECTED')).toBe(true);
+                });
+            });
+        });
+
+        describe('validateCharacter (T044)', () => {
+            it('should return valid for complete character', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 15,
+                        dexterity: 14,
+                        constitution: 13,
+                        intelligence: 12,
+                        wisdom: 10,
+                        charisma: 8
+                    },
+                    race: { id: 'human', name: 'Human' },
+                    classes: [{ name: 'Fighter', level: 1 }],
+                    background: 'soldier',
+                    equipment: ['longsword']
+                });
+                const result = engine.validateCharacter(character);
+                expect(result.isValid).toBe(true);
+            });
+
+            it('should aggregate errors from multiple steps', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 0, // Invalid
+                        dexterity: 0,
+                        constitution: 0,
+                        intelligence: 0,
+                        wisdom: 0,
+                        charisma: 0
+                    },
+                    race: undefined, // Missing
+                    classes: [], // Missing
+                    background: undefined // Missing
+                });
+                const result = engine.validateCharacter(character);
+                expect(result.isValid).toBe(false);
+                expect(result.errors.length).toBeGreaterThan(1);
+            });
+        });
+
+        describe('isCharacterComplete (T045)', () => {
+            it('should return true for complete character', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 15,
+                        dexterity: 14,
+                        constitution: 13,
+                        intelligence: 12,
+                        wisdom: 10,
+                        charisma: 8
+                    },
+                    race: { id: 'human', name: 'Human' },
+                    classes: [{ name: 'Fighter', level: 1 }],
+                    background: 'soldier'
+                });
+                expect(engine.isCharacterComplete(character)).toBe(true);
+            });
+
+            it('should return false for incomplete character', () => {
+                const character = createTestDnD5eCharacter({
+                    race: undefined,
+                    classes: []
+                });
+                expect(engine.isCharacterComplete(character)).toBe(false);
             });
         });
     });

@@ -13,6 +13,7 @@ import { DnD5eClass } from './class.types';
 import { DnD5eBackground } from './background.types';
 import { DnD5eSpell } from './spell.types';
 import { DnD5eEquipmentItem, DnD5eWeapon, DnD5eArmor } from './equipment.types';
+import { AbilityBonusChoice } from '../../engine/RuleEngine.types';
 
 /**
  * Complete D&D 5e character
@@ -24,6 +25,9 @@ export interface DnD5eCharacter {
 
     // ===== RACE (D&D 5e race/subrace paradigm) =====
     race?: DnD5eRace;
+
+    // ===== FLEXIBLE ABILITY BONUS CHOICES (Half-Elf +1/+1 choice) =====
+    flexibleAbilityBonusChoices?: AbilityBonusChoice[];
 
     // ===== CLASS (array for future multiclassing support) =====
     classes: DnD5eClassLevel[];
