@@ -971,6 +971,24 @@ Key findings for implementation:
 
 **Use For**: Tasks T028-T030 (caster classes), T035j-p (spellcasting system)
 
+### Equipment System Research
+
+**Document**: `research/RESEARCH-Equipment-System.md`  
+**Status**: ✅ Complete (December 2025)
+
+Key findings for implementation:
+
+| Topic | Summary |
+|-------|---------|
+| **SRDWeapon Interface** | `id`, `name`, `category` (simple/martial), `type` (melee/ranged), `damage`, `twoHandedDamage?`, `properties[]`, `range?`, `weight`, `cost` |
+| **SRDArmor Interface** | `id`, `name`, `category` (light/medium/heavy/shield), `baseAC`, `addDexModifier`, `dexModifierMax?`, `strengthRequirement?`, `stealthDisadvantage`, `weight`, `cost` |
+| **SRDEquipmentPack** | `id`, `name`, `contents[]` (itemId + quantity), `cost` |
+| **Weapon Properties** | Ammunition, Finesse, Heavy, Light, Loading, Reach, Special, Thrown, Two-Handed, Versatile |
+| **Equipment Packs** | Burglar's, Diplomat's, Dungeoneer's, Entertainer's, Explorer's, Priest's, Scholar's |
+| **Starting Gold** | Class-specific dice formulas (e.g., Fighter: 5d4×10 gp, Monk: 5d4 gp) |
+
+**Use For**: Phase 4 (Equipment System), class equipment options validation
+
 ---
 
 **Last Updated**: December 1, 2025  
