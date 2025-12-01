@@ -762,12 +762,623 @@ export const ROGUE: DnD5eClass = {
 };
 
 // ============================================================================
+// BARD (Full Caster - Known Spells)
+// ============================================================================
+
+/**
+ * Full caster spell slot progression (levels 1-20)
+ * Shared by Bard, Cleric, Druid, Sorcerer, Wizard
+ */
+export const FULL_CASTER_SPELL_SLOTS: Record<number, number[]> = {
+    1:  [2, 0, 0, 0, 0, 0, 0, 0, 0],
+    2:  [3, 0, 0, 0, 0, 0, 0, 0, 0],
+    3:  [4, 2, 0, 0, 0, 0, 0, 0, 0],
+    4:  [4, 3, 0, 0, 0, 0, 0, 0, 0],
+    5:  [4, 3, 2, 0, 0, 0, 0, 0, 0],
+    6:  [4, 3, 3, 0, 0, 0, 0, 0, 0],
+    7:  [4, 3, 3, 1, 0, 0, 0, 0, 0],
+    8:  [4, 3, 3, 2, 0, 0, 0, 0, 0],
+    9:  [4, 3, 3, 3, 1, 0, 0, 0, 0],
+    10: [4, 3, 3, 3, 2, 0, 0, 0, 0],
+    11: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+    12: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+    13: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+    14: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+    15: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+    16: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+    17: [4, 3, 3, 3, 2, 1, 1, 1, 1],
+    18: [4, 3, 3, 3, 3, 1, 1, 1, 1],
+    19: [4, 3, 3, 3, 3, 2, 1, 1, 1],
+    20: [4, 3, 3, 3, 3, 2, 2, 1, 1]
+};
+
+/**
+ * Bard equipment options
+ */
+const BARD_EQUIPMENT: EquipmentOption[] = [
+    {
+        groupId: 'bard-weapon',
+        choose: 1,
+        options: [
+            {
+                id: 'rapier',
+                description: 'A rapier',
+                items: ['rapier']
+            },
+            {
+                id: 'longsword',
+                description: 'A longsword',
+                items: ['longsword']
+            },
+            {
+                id: 'simple-weapon',
+                description: 'Any simple weapon',
+                items: ['simple-weapon-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'bard-pack',
+        choose: 1,
+        options: [
+            {
+                id: 'diplomats-pack',
+                description: "A diplomat's pack",
+                items: ['diplomats-pack']
+            },
+            {
+                id: 'entertainers-pack',
+                description: "An entertainer's pack",
+                items: ['entertainers-pack']
+            }
+        ]
+    },
+    {
+        groupId: 'bard-instrument',
+        choose: 1,
+        options: [
+            {
+                id: 'lute',
+                description: 'A lute',
+                items: ['lute']
+            },
+            {
+                id: 'musical-instrument',
+                description: 'Any musical instrument',
+                items: ['musical-instrument-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'bard-standard',
+        choose: 1,
+        options: [
+            {
+                id: 'leather-dagger',
+                description: 'Leather armor and a dagger',
+                items: ['leather-armor', 'dagger']
+            }
+        ]
+    }
+];
+
+/**
+ * Bard spells known progression (levels 1-20)
+ */
+export const BARD_SPELLS_KNOWN: Record<number, number> = {
+    1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 14,
+    11: 15, 12: 15, 13: 16, 14: 18, 15: 19, 16: 19, 17: 20, 18: 22, 19: 22, 20: 22
+};
+
+/**
+ * Bard cantrips known progression
+ */
+export const BARD_CANTRIPS_KNOWN: Record<number, number> = {
+    1: 2, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 4,
+    11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 4, 17: 4, 18: 4, 19: 4, 20: 4
+};
+
+/**
+ * College of Lore subclass (SRD)
+ */
+const COLLEGE_OF_LORE: DnD5eSubclass = {
+    id: 'college-of-lore',
+    name: 'College of Lore',
+    className: 'bard',
+    description: 'Bards of the College of Lore know something about most things, collecting bits of knowledge from sources as diverse as scholarly tomes and peasant tales. Whether singing folk ballads in taverns or elaborate compositions in royal courts, these bards use their gifts to hold audiences spellbound.',
+    features: {
+        3: [
+            {
+                id: 'bonus-proficiencies-lore',
+                name: 'Bonus Proficiencies',
+                description: 'When you join the College of Lore at 3rd level, you gain proficiency with three skills of your choice.',
+                source: 'class',
+                sourceDetails: 'College of Lore'
+            },
+            {
+                id: 'cutting-words',
+                name: 'Cutting Words',
+                description: 'Also at 3rd level, you learn how to use your wit to distract, confuse, and otherwise sap the confidence and competence of others. When a creature that you can see within 60 feet of you makes an attack roll, an ability check, or a damage roll, you can use your reaction to expend one of your uses of Bardic Inspiration, rolling a Bardic Inspiration die and subtracting the number rolled from the creature\'s roll. You can choose to use this feature after the creature makes its roll, but before the DM determines whether the attack roll or ability check succeeds or fails, or before the creature deals its damage. The creature is immune if it can\'t hear you or if it\'s immune to being charmed.',
+                source: 'class',
+                sourceDetails: 'College of Lore'
+            }
+        ]
+    },
+    source: 'SRD'
+};
+
+/**
+ * Bard class (Full Caster - Known Spells)
+ */
+export const BARD: DnD5eClass = {
+    id: 'bard',
+    name: 'Bard',
+    hitDie: 8,
+    primaryAbility: ['charisma'],
+    savingThrows: ['dexterity', 'charisma'],
+    armorProficiencies: ['light armor'],
+    weaponProficiencies: ['simple weapons', 'hand crossbows', 'longswords', 'rapiers', 'shortswords'],
+    toolProficiencies: ['three musical instruments of your choice'],
+    skillChoices: {
+        choose: 3,
+        from: ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival']
+    },
+    equipmentOptions: BARD_EQUIPMENT,
+    startingGold: { dice: '5d4', multiplier: 10 },
+    features: {
+        1: [
+            {
+                id: 'spellcasting-bard',
+                name: 'Spellcasting',
+                description: 'You have learned to untangle and reshape the fabric of reality in harmony with your wishes and music. Your spells are part of your vast repertoire, magic that you can tune to different situations. Charisma is your spellcasting ability for your bard spells.',
+                source: 'class',
+                sourceDetails: 'Bard Level 1'
+            },
+            {
+                id: 'bardic-inspiration',
+                name: 'Bardic Inspiration',
+                description: 'You can inspire others through stirring words or music. To do so, you use a bonus action on your turn to choose one creature other than yourself within 60 feet of you who can hear you. That creature gains one Bardic Inspiration die, a d6. Once within the next 10 minutes, the creature can roll the die and add the number rolled to one ability check, attack roll, or saving throw it makes. The creature can wait until after it rolls the d20 before deciding to use the Bardic Inspiration die, but must decide before the DM says whether the roll succeeds or fails. Once the Bardic Inspiration die is rolled, it is lost. A creature can have only one Bardic Inspiration die at a time. You can use this feature a number of times equal to your Charisma modifier (a minimum of once). You regain any expended uses when you finish a long rest. Your Bardic Inspiration die changes when you reach certain levels in this class. The die becomes a d8 at 5th level, a d10 at 10th level, and a d12 at 15th level.',
+                source: 'class',
+                sourceDetails: 'Bard Level 1'
+            }
+        ],
+        2: [
+            {
+                id: 'jack-of-all-trades',
+                name: 'Jack of All Trades',
+                description: 'Starting at 2nd level, you can add half your proficiency bonus, rounded down, to any ability check you make that doesn\'t already include your proficiency bonus.',
+                source: 'class',
+                sourceDetails: 'Bard Level 2'
+            },
+            {
+                id: 'song-of-rest',
+                name: 'Song of Rest',
+                description: 'Beginning at 2nd level, you can use soothing music or oration to help revitalize your wounded allies during a short rest. If you or any friendly creatures who can hear your performance regain hit points at the end of the short rest by spending one or more Hit Dice, each of those creatures regains an extra 1d6 hit points. The extra hit points increase when you reach certain levels in this class: to 1d8 at 9th level, to 1d10 at 13th level, and to 1d12 at 17th level.',
+                source: 'class',
+                sourceDetails: 'Bard Level 2'
+            }
+        ],
+        3: [
+            {
+                id: 'bard-college',
+                name: 'Bard College',
+                description: 'At 3rd level, you delve into the advanced techniques of a bard college of your choice. The College of Lore is detailed at the end of the class description. Your choice grants you features at 3rd level and again at 6th and 14th level.',
+                source: 'class',
+                sourceDetails: 'Bard Level 3'
+            },
+            {
+                id: 'expertise-bard',
+                name: 'Expertise',
+                description: 'At 3rd level, choose two of your skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies. At 10th level, you can choose another two skill proficiencies to gain this benefit.',
+                source: 'class',
+                sourceDetails: 'Bard Level 3'
+            }
+        ]
+    },
+    subclasses: [COLLEGE_OF_LORE],
+    subclassLevel: 3,
+    spellcasting: {
+        ability: 'charisma',
+        cantripsKnown: BARD_CANTRIPS_KNOWN,
+        spellsKnown: BARD_SPELLS_KNOWN,
+        spellSlots: FULL_CASTER_SPELL_SLOTS,
+        spellListId: 'bard',
+        ritualCasting: true
+    },
+    description: 'An inspiring magician whose power echoes the music of creation. In the worlds of D&D, words and music are not just vibrations of air, but vocalizations with power all their own. The bard is a master of song, speech, and the magic they contain. Bards say that the multiverse was spoken into existence, that the words of the gods gave it shape, and that echoes of these primordial Words of Creation still resound throughout the cosmos.',
+    source: 'SRD'
+};
+
+// ============================================================================
+// CLERIC (Full Caster - Prepared Spells)
+// ============================================================================
+
+/**
+ * Cleric equipment options
+ */
+const CLERIC_EQUIPMENT: EquipmentOption[] = [
+    {
+        groupId: 'cleric-weapon',
+        choose: 1,
+        options: [
+            {
+                id: 'mace',
+                description: 'A mace',
+                items: ['mace']
+            },
+            {
+                id: 'warhammer',
+                description: 'A warhammer (if proficient)',
+                items: ['warhammer']
+            }
+        ]
+    },
+    {
+        groupId: 'cleric-armor',
+        choose: 1,
+        options: [
+            {
+                id: 'scale-mail',
+                description: 'Scale mail',
+                items: ['scale-mail']
+            },
+            {
+                id: 'leather-armor',
+                description: 'Leather armor',
+                items: ['leather-armor']
+            },
+            {
+                id: 'chain-mail',
+                description: 'Chain mail (if proficient)',
+                items: ['chain-mail']
+            }
+        ]
+    },
+    {
+        groupId: 'cleric-weapon-2',
+        choose: 1,
+        options: [
+            {
+                id: 'light-crossbow-bolts',
+                description: 'A light crossbow and 20 bolts',
+                items: ['light-crossbow', 'bolts-20']
+            },
+            {
+                id: 'simple-weapon',
+                description: 'Any simple weapon',
+                items: ['simple-weapon-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'cleric-pack',
+        choose: 1,
+        options: [
+            {
+                id: 'priests-pack',
+                description: "A priest's pack",
+                items: ['priests-pack']
+            },
+            {
+                id: 'explorers-pack',
+                description: "An explorer's pack",
+                items: ['explorers-pack']
+            }
+        ]
+    },
+    {
+        groupId: 'cleric-standard',
+        choose: 1,
+        options: [
+            {
+                id: 'shield-holy-symbol',
+                description: 'A shield and a holy symbol',
+                items: ['shield', 'holy-symbol']
+            }
+        ]
+    }
+];
+
+/**
+ * Cleric cantrips known progression
+ */
+export const CLERIC_CANTRIPS_KNOWN: Record<number, number> = {
+    1: 3, 2: 3, 3: 3, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 4, 10: 5,
+    11: 5, 12: 5, 13: 5, 14: 5, 15: 5, 16: 5, 17: 5, 18: 5, 19: 5, 20: 5
+};
+
+/**
+ * Life Domain subclass (SRD) - Chosen at Level 1
+ */
+const LIFE_DOMAIN: DnD5eSubclass = {
+    id: 'life-domain',
+    name: 'Life Domain',
+    className: 'cleric',
+    description: 'The Life domain focuses on the vibrant positive energy—one of the fundamental forces of the universe—that sustains all life. The gods of life promote vitality and health through healing the sick and wounded, caring for those in need, and driving away the forces of death and undeath.',
+    features: {
+        1: [
+            {
+                id: 'domain-spells-life',
+                name: 'Life Domain Spells',
+                description: 'You gain domain spells at the cleric levels listed. At 1st level: Bless, Cure Wounds. At 3rd level: Lesser Restoration, Spiritual Weapon. At 5th level: Beacon of Hope, Revivify. At 7th level: Death Ward, Guardian of Faith. At 9th level: Mass Cure Wounds, Raise Dead. Once you gain a domain spell, you always have it prepared, and it doesn\'t count against the number of spells you can prepare each day.',
+                source: 'class',
+                sourceDetails: 'Life Domain'
+            },
+            {
+                id: 'bonus-proficiency-life',
+                name: 'Bonus Proficiency',
+                description: 'When you choose this domain at 1st level, you gain proficiency with heavy armor.',
+                source: 'class',
+                sourceDetails: 'Life Domain'
+            },
+            {
+                id: 'disciple-of-life',
+                name: 'Disciple of Life',
+                description: 'Also starting at 1st level, your healing spells are more effective. Whenever you use a spell of 1st level or higher to restore hit points to a creature, the creature regains additional hit points equal to 2 + the spell\'s level.',
+                source: 'class',
+                sourceDetails: 'Life Domain'
+            }
+        ]
+    },
+    source: 'SRD'
+};
+
+/**
+ * Cleric class (Full Caster - Prepared Spells)
+ */
+export const CLERIC: DnD5eClass = {
+    id: 'cleric',
+    name: 'Cleric',
+    hitDie: 8,
+    primaryAbility: ['wisdom'],
+    savingThrows: ['wisdom', 'charisma'],
+    armorProficiencies: ['light armor', 'medium armor', 'shields'],
+    weaponProficiencies: ['simple weapons'],
+    skillChoices: {
+        choose: 2,
+        from: ['History', 'Insight', 'Medicine', 'Persuasion', 'Religion']
+    },
+    equipmentOptions: CLERIC_EQUIPMENT,
+    startingGold: { dice: '5d4', multiplier: 10 },
+    features: {
+        1: [
+            {
+                id: 'spellcasting-cleric',
+                name: 'Spellcasting',
+                description: 'As a conduit for divine power, you can cast cleric spells. Wisdom is your spellcasting ability for your cleric spells. The power of your spells comes from your devotion to your deity. You prepare the list of cleric spells that are available for you to cast, choosing from the cleric spell list. When you do so, choose a number of cleric spells equal to your Wisdom modifier + your cleric level (minimum of one spell).',
+                source: 'class',
+                sourceDetails: 'Cleric Level 1'
+            },
+            {
+                id: 'divine-domain',
+                name: 'Divine Domain',
+                description: 'Choose one domain related to your deity: Knowledge, Life, Light, Nature, Tempest, Trickery, or War. The Life domain is detailed at the end of the class description and provides examples of gods associated with it. Your choice grants you domain spells and other features when you choose it at 1st level. It also grants you additional ways to use Channel Divinity when you gain that feature at 2nd level, and additional benefits at 6th, 8th, and 17th levels.',
+                source: 'class',
+                sourceDetails: 'Cleric Level 1'
+            }
+        ],
+        2: [
+            {
+                id: 'channel-divinity-cleric',
+                name: 'Channel Divinity',
+                description: 'At 2nd level, you gain the ability to channel divine energy directly from your deity, using that energy to fuel magical effects. You start with two such effects: Turn Undead and an effect determined by your domain. Some domains grant you additional effects as you advance in levels, as noted in the domain description. When you use your Channel Divinity, you choose which effect to create. You must then finish a short or long rest to use your Channel Divinity again. Some Channel Divinity effects require saving throws. When you use such an effect from this class, the DC equals your cleric spell save DC.',
+                source: 'class',
+                sourceDetails: 'Cleric Level 2',
+                limitedUse: {
+                    maxUses: 1,
+                    currentUses: 1,
+                    resetOn: 'short'
+                }
+            },
+            {
+                id: 'turn-undead',
+                name: 'Channel Divinity: Turn Undead',
+                description: 'As an action, you present your holy symbol and speak a prayer censuring the undead. Each undead that can see or hear you within 30 feet of you must make a Wisdom saving throw. If the creature fails its saving throw, it is turned for 1 minute or until it takes any damage. A turned creature must spend its turns trying to move as far away from you as it can, and it can\'t willingly move to a space within 30 feet of you. It also can\'t take reactions. For its action, it can use only the Dash action or try to escape from an effect that prevents it from moving. If there\'s nowhere to move, the creature can use the Dodge action.',
+                source: 'class',
+                sourceDetails: 'Cleric Level 2'
+            }
+        ],
+        3: [] // Features come from subclass
+    },
+    subclasses: [LIFE_DOMAIN],
+    subclassLevel: 1, // Cleric chooses domain at level 1!
+    spellcasting: {
+        ability: 'wisdom',
+        cantripsKnown: CLERIC_CANTRIPS_KNOWN,
+        preparedSpells: {
+            formula: 'WIS_MOD + LEVEL'
+        },
+        spellSlots: FULL_CASTER_SPELL_SLOTS,
+        spellListId: 'cleric',
+        ritualCasting: true
+    },
+    description: 'A priestly champion who wields divine magic in service of a higher power. Clerics are intermediaries between the mortal world and the distant planes of the gods. As varied as the gods they serve, clerics strive to embody the handiwork of their deities. No ordinary priest, a cleric is imbued with divine magic.',
+    source: 'SRD'
+};
+
+// ============================================================================
+// DRUID (Full Caster - Prepared Spells)
+// ============================================================================
+
+/**
+ * Druid equipment options
+ */
+const DRUID_EQUIPMENT: EquipmentOption[] = [
+    {
+        groupId: 'druid-shield',
+        choose: 1,
+        options: [
+            {
+                id: 'wooden-shield',
+                description: 'A wooden shield',
+                items: ['shield-wooden']
+            },
+            {
+                id: 'simple-weapon',
+                description: 'Any simple weapon',
+                items: ['simple-weapon-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'druid-weapon',
+        choose: 1,
+        options: [
+            {
+                id: 'scimitar',
+                description: 'A scimitar',
+                items: ['scimitar']
+            },
+            {
+                id: 'simple-melee',
+                description: 'Any simple melee weapon',
+                items: ['simple-melee-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'druid-standard',
+        choose: 1,
+        options: [
+            {
+                id: 'leather-explorer-focus',
+                description: 'Leather armor, an explorer\'s pack, and a druidic focus',
+                items: ['leather-armor', 'explorers-pack', 'druidic-focus']
+            }
+        ]
+    }
+];
+
+/**
+ * Druid cantrips known progression
+ */
+export const DRUID_CANTRIPS_KNOWN: Record<number, number> = {
+    1: 2, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 4,
+    11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 4, 17: 4, 18: 4, 19: 4, 20: 4
+};
+
+/**
+ * Circle of the Land subclass (SRD)
+ */
+const CIRCLE_OF_THE_LAND: DnD5eSubclass = {
+    id: 'circle-of-the-land',
+    name: 'Circle of the Land',
+    className: 'druid',
+    description: 'The Circle of the Land is made up of mystics and sages who safeguard ancient knowledge and rites through a vast oral tradition. These druids meet within sacred circles of trees or standing stones to whisper primal secrets in Druidic. The circle\'s wisest members preside as the chief priests of communities that hold to the Old Faith and serve as advisors to the rulers of those folk.',
+    features: {
+        2: [
+            {
+                id: 'bonus-cantrip-land',
+                name: 'Bonus Cantrip',
+                description: 'When you choose this circle at 2nd level, you learn one additional druid cantrip of your choice.',
+                source: 'class',
+                sourceDetails: 'Circle of the Land'
+            },
+            {
+                id: 'natural-recovery',
+                name: 'Natural Recovery',
+                description: 'Starting at 2nd level, you can regain some of your magical energy by sitting in meditation and communing with nature. During a short rest, you choose expended spell slots to recover. The spell slots can have a combined level that is equal to or less than half your druid level (rounded up), and none of the slots can be 6th level or higher. You can\'t use this feature again until you finish a long rest. For example, when you are a 4th-level druid, you can recover up to two levels worth of spell slots. You can recover either a 2nd-level slot or two 1st-level slots.',
+                source: 'class',
+                sourceDetails: 'Circle of the Land',
+                limitedUse: {
+                    maxUses: 1,
+                    currentUses: 1,
+                    resetOn: 'long'
+                }
+            },
+            {
+                id: 'circle-spells-land',
+                name: 'Circle Spells',
+                description: 'Your mystical connection to the land infuses you with the ability to cast certain spells. At 3rd, 5th, 7th, and 9th level you gain access to circle spells connected to the land where you became a druid. Choose that land—arctic, coast, desert, forest, grassland, mountain, swamp, or Underdark—and consult the associated list of spells. Once you gain access to a circle spell, you always have it prepared, and it doesn\'t count against the number of spells you can prepare each day.',
+                source: 'class',
+                sourceDetails: 'Circle of the Land'
+            }
+        ],
+        3: [] // Circle spells expand at 3rd level
+    },
+    source: 'SRD'
+};
+
+/**
+ * Druid class (Full Caster - Prepared Spells)
+ */
+export const DRUID: DnD5eClass = {
+    id: 'druid',
+    name: 'Druid',
+    hitDie: 8,
+    primaryAbility: ['wisdom'],
+    savingThrows: ['intelligence', 'wisdom'],
+    armorProficiencies: ['light armor', 'medium armor', 'shields'],
+    weaponProficiencies: ['clubs', 'daggers', 'darts', 'javelins', 'maces', 'quarterstaffs', 'scimitars', 'sickles', 'slings', 'spears'],
+    toolProficiencies: ['herbalism kit'],
+    skillChoices: {
+        choose: 2,
+        from: ['Arcana', 'Animal Handling', 'Insight', 'Medicine', 'Nature', 'Perception', 'Religion', 'Survival']
+    },
+    equipmentOptions: DRUID_EQUIPMENT,
+    startingGold: { dice: '2d4', multiplier: 10 },
+    features: {
+        1: [
+            {
+                id: 'druidic',
+                name: 'Druidic',
+                description: 'You know Druidic, the secret language of druids. You can speak the language and use it to leave hidden messages. You and others who know this language automatically spot such a message. Others spot the message\'s presence with a successful DC 15 Wisdom (Perception) check but can\'t decipher it without magic.',
+                source: 'class',
+                sourceDetails: 'Druid Level 1'
+            },
+            {
+                id: 'spellcasting-druid',
+                name: 'Spellcasting',
+                description: 'Drawing on the divine essence of nature itself, you can cast spells to shape that essence to your will. Wisdom is your spellcasting ability for your druid spells, since your magic draws upon your devotion and attunement to nature. You prepare the list of druid spells that are available for you to cast, choosing from the druid spell list. When you do so, choose a number of druid spells equal to your Wisdom modifier + your druid level (minimum of one spell).',
+                source: 'class',
+                sourceDetails: 'Druid Level 1'
+            }
+        ],
+        2: [
+            {
+                id: 'wild-shape',
+                name: 'Wild Shape',
+                description: 'Starting at 2nd level, you can use your action to magically assume the shape of a beast that you have seen before. You can use this feature twice. You regain expended uses when you finish a short or long rest. Your druid level determines the beasts you can transform into. At 2nd level, you can transform into any beast that has a challenge rating of 1/4 or lower that doesn\'t have a flying or swimming speed. At 4th level, CR 1/2, no flying speed. At 8th level, CR 1.',
+                source: 'class',
+                sourceDetails: 'Druid Level 2',
+                limitedUse: {
+                    maxUses: 2,
+                    currentUses: 2,
+                    resetOn: 'short'
+                }
+            },
+            {
+                id: 'druid-circle',
+                name: 'Druid Circle',
+                description: 'At 2nd level, you choose to identify with a circle of druids. The Circle of the Land is detailed at the end of the class description. Your choice grants you features at 2nd level and again at 6th, 10th, and 14th level.',
+                source: 'class',
+                sourceDetails: 'Druid Level 2'
+            }
+        ],
+        3: [] // Features come from subclass
+    },
+    subclasses: [CIRCLE_OF_THE_LAND],
+    subclassLevel: 2,
+    spellcasting: {
+        ability: 'wisdom',
+        cantripsKnown: DRUID_CANTRIPS_KNOWN,
+        preparedSpells: {
+            formula: 'WIS_MOD + LEVEL'
+        },
+        spellSlots: FULL_CASTER_SPELL_SLOTS,
+        spellListId: 'druid',
+        ritualCasting: true
+    },
+    description: 'A priest of the Old Faith, wielding the powers of nature and adopting animal forms. Whether calling on the elemental forces of nature or emulating the creatures of the animal world, druids are an embodiment of nature\'s resilience, cunning, and fury. They claim no mastery over nature. Instead, they see themselves as extensions of nature\'s indomitable will.',
+    source: 'SRD'
+};
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
 /**
- * All SRD martial classes (Phase 1)
- * Caster classes will be added in Phase 2 after spellcasting research
+ * All SRD martial classes (non-spellcasters)
  */
 export const SRD_MARTIAL_CLASSES: DnD5eClass[] = [
     BARBARIAN,
@@ -777,11 +1388,23 @@ export const SRD_MARTIAL_CLASSES: DnD5eClass[] = [
 ];
 
 /**
- * All SRD classes (martial only for now)
- * This will be expanded to include casters after research
+ * All SRD caster classes (Phase 2 - T028/T029/T030)
+ * T028: Bard, Cleric, Druid (full casters)
+ * T029: Paladin, Ranger (half casters) - TODO
+ * T030: Sorcerer, Warlock, Wizard - TODO
+ */
+export const SRD_CASTER_CLASSES: DnD5eClass[] = [
+    BARD,
+    CLERIC,
+    DRUID
+];
+
+/**
+ * All SRD classes (martial + casters)
  */
 export const SRD_CLASSES: DnD5eClass[] = [
-    ...SRD_MARTIAL_CLASSES
+    ...SRD_MARTIAL_CLASSES,
+    ...SRD_CASTER_CLASSES
 ];
 
 /**
