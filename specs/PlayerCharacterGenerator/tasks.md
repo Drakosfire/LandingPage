@@ -101,11 +101,11 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 ### 3.2 SRD Class Data
 
 - [x] T027 [P] [US1] Create `classes.ts` with Barbarian, Fighter, Monk, Rogue in `src/components/PlayerCharacterGenerator/data/dnd5e/classes.ts` ✅ 4 martial classes
-- [x] T028 [P] [US1] Add Bard, Cleric, Druid classes to `data/dnd5e/classes.ts` ✅ 3 full casters (known + prepared spell types)
-- [ ] T029 [P] [US1] Add Paladin, Ranger classes to `data/dnd5e/classes.ts` (half casters)
+- [x] T028 [P] [US1] Add Bard, Cleric, Druid classes to `data/dnd5e/classes.ts` ✅ 3 full casters (known + prepared)
+- [x] T029 [P] [US1] Add Paladin, Ranger classes to `data/dnd5e/classes.ts` ✅ 2 half casters
 - [ ] T030 [P] [US1] Add Sorcerer, Warlock, Wizard classes to `data/dnd5e/classes.ts` (remaining full casters)
 - [ ] T031 [US1] Create `classFeatures.ts` with level 1-3 features in `src/components/PlayerCharacterGenerator/data/dnd5e/classFeatures.ts` ℹ️ Features embedded in classes.ts
-- [x] T032 [US1] Create class data tests in `src/components/PlayerCharacterGenerator/__tests__/data/dnd5e/classes.test.ts` ✅ 117 tests
+- [x] T032 [US1] Create class data tests in `src/components/PlayerCharacterGenerator/__tests__/data/dnd5e/classes.test.ts` ✅ 161 tests
 - [ ] T033 [US1] Implement `getAvailableClasses()` in `DnD5eRuleEngine.ts`
 - [ ] T034 [US1] Implement `getValidSkillChoices(character)` in `DnD5eRuleEngine.ts`
 - [ ] T035 [US1] Implement `getEquipmentChoices(classId)` in `DnD5eRuleEngine.ts`

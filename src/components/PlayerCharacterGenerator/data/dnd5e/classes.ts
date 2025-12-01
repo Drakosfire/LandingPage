@@ -1374,6 +1374,406 @@ export const DRUID: DnD5eClass = {
 };
 
 // ============================================================================
+// PALADIN
+// ============================================================================
+
+/**
+ * Half-caster spell slots (Paladin, Ranger)
+ * No slots at L1, gain spellcasting at L2
+ * Levels 1-20 shown, indices [0] = 1st-level slots, [1] = 2nd-level, etc.
+ */
+const HALF_CASTER_SPELL_SLOTS: Record<number, number[]> = {
+    1: [0, 0, 0, 0, 0, 0, 0, 0, 0],  // No spellcasting
+    2: [2, 0, 0, 0, 0, 0, 0, 0, 0],  // 2 1st-level
+    3: [3, 0, 0, 0, 0, 0, 0, 0, 0],  // 3 1st-level
+    // Levels 4-20 for future expansion
+};
+
+/**
+ * Paladin equipment options
+ */
+const PALADIN_EQUIPMENT: EquipmentOption[] = [
+    {
+        groupId: 'paladin-weapon-1',
+        choose: 1,
+        options: [
+            {
+                id: 'martial-weapon-shield',
+                description: 'A martial weapon and a shield',
+                items: ['martial-weapon-choice', 'shield']
+            },
+            {
+                id: 'two-martial-weapons',
+                description: 'Two martial weapons',
+                items: ['martial-weapon-choice', 'martial-weapon-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'paladin-weapon-2',
+        choose: 1,
+        options: [
+            {
+                id: 'five-javelins',
+                description: 'Five javelins',
+                items: ['javelin', 'javelin', 'javelin', 'javelin', 'javelin']
+            },
+            {
+                id: 'simple-melee',
+                description: 'Any simple melee weapon',
+                items: ['simple-melee-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'paladin-pack',
+        choose: 1,
+        options: [
+            {
+                id: 'priests-pack',
+                description: "A priest's pack",
+                items: ['priests-pack']
+            },
+            {
+                id: 'explorer-pack',
+                description: "An explorer's pack",
+                items: ['explorers-pack']
+            }
+        ]
+    },
+    {
+        groupId: 'paladin-armor',
+        choose: 1,
+        options: [
+            {
+                id: 'chain-mail-symbol',
+                description: 'Chain mail and a holy symbol',
+                items: ['chain-mail', 'holy-symbol']
+            }
+        ]
+    }
+];
+
+/**
+ * Oath of Devotion subclass (SRD)
+ */
+const OATH_OF_DEVOTION: DnD5eSubclass = {
+    id: 'oath-of-devotion',
+    name: 'Oath of Devotion',
+    className: 'paladin',
+    description: 'The Oath of Devotion binds a paladin to the loftiest ideals of justice, virtue, and order. Sometimes called cavaliers, white knights, or holy warriors, these paladins meet the ideal of the knight in shining armor, acting with honor in pursuit of justice and the greater good.',
+    features: {
+        3: [
+            {
+                id: 'oath-spells-devotion',
+                name: 'Oath Spells',
+                description: 'You gain oath spells at the paladin levels listed. Protection from Evil and Good and Sanctuary are always prepared and don\'t count against your prepared spells.',
+                source: 'class',
+                sourceDetails: 'Oath of Devotion'
+            },
+            {
+                id: 'channel-divinity-devotion',
+                name: 'Channel Divinity',
+                description: 'When you take this oath at 3rd level, you gain the following two Channel Divinity options.\n\n**Sacred Weapon.** As an action, you can imbue one weapon that you are holding with positive energy, using your Channel Divinity. For 1 minute, you add your Charisma modifier to attack rolls made with that weapon (with a minimum bonus of +1). The weapon also emits bright light in a 20-foot radius and dim light 20 feet beyond that. If the weapon is not already magical, it becomes magical for the duration.\n\n**Turn the Unholy.** As an action, you present your holy symbol and speak a prayer censuring fiends and undead, using your Channel Divinity. Each fiend or undead that can see or hear you within 30 feet of you must make a Wisdom saving throw. If the creature fails its saving throw, it is turned for 1 minute or until it takes damage.',
+                source: 'class',
+                sourceDetails: 'Oath of Devotion',
+                limitedUse: {
+                    maxUses: 1,
+                    currentUses: 1,
+                    resetOn: 'short'
+                }
+            }
+        ]
+    },
+    spellsGranted: {
+        3: ['protection-from-evil-and-good', 'sanctuary']
+    },
+    source: 'SRD'
+};
+
+/**
+ * Paladin class - Half Caster (CHA, Prepared)
+ */
+export const PALADIN: DnD5eClass = {
+    id: 'paladin',
+    name: 'Paladin',
+    hitDie: 10,
+    primaryAbility: ['strength', 'charisma'],
+    savingThrows: ['wisdom', 'charisma'],
+    armorProficiencies: ['light armor', 'medium armor', 'heavy armor', 'shields'],
+    weaponProficiencies: ['simple weapons', 'martial weapons'],
+    skillChoices: {
+        choose: 2,
+        from: ['Athletics', 'Insight', 'Intimidation', 'Medicine', 'Persuasion', 'Religion']
+    },
+    equipmentOptions: PALADIN_EQUIPMENT,
+    startingGold: { dice: '5d4', multiplier: 10 },
+    features: {
+        1: [
+            {
+                id: 'divine-sense',
+                name: 'Divine Sense',
+                description: 'The presence of strong evil registers on your senses like a noxious odor, and powerful good rings like heavenly music in your ears. As an action, you can open your awareness to detect such forces. Until the end of your next turn, you know the location of any celestial, fiend, or undead within 60 feet of you that is not behind total cover. You know the type (celestial, fiend, or undead) of any being whose presence you sense, but not its identity. Within the same radius, you also detect the presence of any place or object that has been consecrated or desecrated.\n\nYou can use this feature a number of times equal to 1 + your Charisma modifier. When you finish a long rest, you regain all expended uses.',
+                source: 'class',
+                sourceDetails: 'Paladin Level 1',
+                limitedUse: {
+                    maxUses: 1, // Placeholder - depends on CHA mod + 1
+                    currentUses: 1,
+                    resetOn: 'long'
+                }
+            },
+            {
+                id: 'lay-on-hands',
+                name: 'Lay on Hands',
+                description: 'Your blessed touch can heal wounds. You have a pool of healing power that replenishes when you take a long rest. With that pool, you can restore a total number of hit points equal to your paladin level × 5.\n\nAs an action, you can touch a creature and draw power from the pool to restore a number of hit points to that creature, up to the maximum amount remaining in your pool.\n\nAlternatively, you can expend 5 hit points from your pool of healing to cure the target of one disease or neutralize one poison affecting it. You can cure multiple diseases and neutralize multiple poisons with a single use of Lay on Hands, expending hit points separately for each one.',
+                source: 'class',
+                sourceDetails: 'Paladin Level 1',
+                limitedUse: {
+                    maxUses: 5, // Level * 5 at L1
+                    currentUses: 5,
+                    resetOn: 'long'
+                }
+            }
+        ],
+        2: [
+            {
+                id: 'fighting-style-paladin',
+                name: 'Fighting Style',
+                description: 'At 2nd level, you adopt a style of fighting as your specialty. Choose one of the following options. You can\'t take a Fighting Style option more than once, even if you later get to choose again.\n\n**Defense.** While you are wearing armor, you gain a +1 bonus to AC.\n\n**Dueling.** When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.\n\n**Great Weapon Fighting.** When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll. The weapon must have the two-handed or versatile property for you to gain this benefit.\n\n**Protection.** When a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield.',
+                source: 'class',
+                sourceDetails: 'Paladin Level 2'
+            },
+            {
+                id: 'spellcasting-paladin',
+                name: 'Spellcasting',
+                description: 'By 2nd level, you have learned to draw on divine magic through meditation and prayer to cast spells as a cleric does.',
+                source: 'class',
+                sourceDetails: 'Paladin Level 2'
+            },
+            {
+                id: 'divine-smite',
+                name: 'Divine Smite',
+                description: 'Starting at 2nd level, when you hit a creature with a melee weapon attack, you can expend one spell slot to deal radiant damage to the target, in addition to the weapon\'s damage. The extra damage is 2d8 for a 1st-level spell slot, plus 1d8 for each spell level higher than 1st, to a maximum of 5d8. The damage increases by 1d8 if the target is an undead or a fiend, to a maximum of 6d8.',
+                source: 'class',
+                sourceDetails: 'Paladin Level 2'
+            }
+        ],
+        3: [
+            {
+                id: 'divine-health',
+                name: 'Divine Health',
+                description: 'By 3rd level, the divine magic flowing through you makes you immune to disease.',
+                source: 'class',
+                sourceDetails: 'Paladin Level 3'
+            },
+            {
+                id: 'sacred-oath',
+                name: 'Sacred Oath',
+                description: 'When you reach 3rd level, you swear the oath that binds you as a paladin forever. Up to this time you have been in a preparatory stage, committed to the path but not yet sworn to it. The Oath of Devotion is detailed at the end of the class description.\n\nYour oath grants you features at 3rd level and again at 7th, 15th, and 20th level. Those features include oath spells and the Channel Divinity feature.',
+                source: 'class',
+                sourceDetails: 'Paladin Level 3'
+            }
+        ]
+    },
+    subclasses: [OATH_OF_DEVOTION],
+    subclassLevel: 3,
+    spellcasting: {
+        ability: 'charisma',
+        cantripsKnown: { 1: 0, 2: 0, 3: 0 }, // No cantrips
+        preparedSpells: {
+            formula: 'CHA_MOD + HALF_LEVEL' // Half paladin level (rounded down) + CHA mod
+        },
+        spellSlots: HALF_CASTER_SPELL_SLOTS,
+        spellListId: 'paladin',
+        ritualCasting: false // Paladins cannot ritual cast
+    },
+    description: 'A holy warrior bound to a sacred oath. Whether sworn before a god\'s altar and the witness of a priest, in a sacred glade before nature spirits and fey beings, or in a moment of desperation and grief with the dead as the only witness, a paladin\'s oath is a powerful bond.',
+    source: 'SRD'
+};
+
+// ============================================================================
+// RANGER
+// ============================================================================
+
+/**
+ * Ranger spells known progression (L2+)
+ */
+const RANGER_SPELLS_KNOWN: Record<number, number> = {
+    1: 0,  // No spells at L1
+    2: 2,  // Gain spellcasting
+    3: 3
+    // Levels 4+ for future expansion
+};
+
+/**
+ * Ranger equipment options
+ */
+const RANGER_EQUIPMENT: EquipmentOption[] = [
+    {
+        groupId: 'ranger-armor',
+        choose: 1,
+        options: [
+            {
+                id: 'scale-mail',
+                description: 'Scale mail',
+                items: ['scale-mail']
+            },
+            {
+                id: 'leather-armor',
+                description: 'Leather armor',
+                items: ['leather-armor']
+            }
+        ]
+    },
+    {
+        groupId: 'ranger-weapon-1',
+        choose: 1,
+        options: [
+            {
+                id: 'two-shortswords',
+                description: 'Two shortswords',
+                items: ['shortsword', 'shortsword']
+            },
+            {
+                id: 'two-simple-melee',
+                description: 'Two simple melee weapons',
+                items: ['simple-melee-choice', 'simple-melee-choice']
+            }
+        ]
+    },
+    {
+        groupId: 'ranger-pack',
+        choose: 1,
+        options: [
+            {
+                id: 'dungeoneer-pack',
+                description: "A dungeoneer's pack",
+                items: ['dungeoneers-pack']
+            },
+            {
+                id: 'explorer-pack',
+                description: "An explorer's pack",
+                items: ['explorers-pack']
+            }
+        ]
+    },
+    {
+        groupId: 'ranger-ranged',
+        choose: 1,
+        options: [
+            {
+                id: 'longbow-arrows',
+                description: 'A longbow and a quiver of 20 arrows',
+                items: ['longbow', 'arrows-20']
+            }
+        ]
+    }
+];
+
+/**
+ * Hunter subclass (SRD)
+ */
+const HUNTER: DnD5eSubclass = {
+    id: 'hunter',
+    name: 'Hunter',
+    className: 'ranger',
+    description: 'Emulating the Hunter archetype means accepting your place as a bulwark between civilization and the terrors of the wilderness. As you walk the Hunter\'s path, you learn specialized techniques for fighting the threats you face, from rampaging ogres and hordes of orcs to towering giants and terrifying dragons.',
+    features: {
+        3: [
+            {
+                id: 'hunters-prey',
+                name: "Hunter's Prey",
+                description: 'At 3rd level, you gain one of the following features of your choice.\n\n**Colossus Slayer.** Your tenacity can wear down the most potent foes. When you hit a creature with a weapon attack, the creature takes an extra 1d8 damage if it\'s below its hit point maximum. You can deal this extra damage only once per turn.\n\n**Giant Killer.** When a Large or larger creature within 5 feet of you hits or misses you with an attack, you can use your reaction to attack that creature immediately after its attack, provided that you can see the creature.\n\n**Horde Breaker.** Once on each of your turns when you make a weapon attack, you can make another attack with the same weapon against a different creature that is within 5 feet of the original target and within range of your weapon.',
+                source: 'class',
+                sourceDetails: 'Hunter'
+            }
+        ]
+    },
+    source: 'SRD'
+};
+
+/**
+ * Ranger class - Half Caster (WIS, Known Spells)
+ */
+export const RANGER: DnD5eClass = {
+    id: 'ranger',
+    name: 'Ranger',
+    hitDie: 10,
+    primaryAbility: ['dexterity', 'wisdom'],
+    savingThrows: ['strength', 'dexterity'],
+    armorProficiencies: ['light armor', 'medium armor', 'shields'],
+    weaponProficiencies: ['simple weapons', 'martial weapons'],
+    skillChoices: {
+        choose: 3,
+        from: ['Animal Handling', 'Athletics', 'Insight', 'Investigation', 'Nature', 'Perception', 'Stealth', 'Survival']
+    },
+    equipmentOptions: RANGER_EQUIPMENT,
+    startingGold: { dice: '5d4', multiplier: 10 },
+    features: {
+        1: [
+            {
+                id: 'favored-enemy',
+                name: 'Favored Enemy',
+                description: 'Beginning at 1st level, you have significant experience studying, tracking, hunting, and even talking to a certain type of enemy.\n\nChoose a type of favored enemy: aberrations, beasts, celestials, constructs, dragons, elementals, fey, fiends, giants, monstrosities, oozes, plants, or undead. Alternatively, you can select two races of humanoid (such as gnolls and orcs) as favored enemies.\n\nYou have advantage on Wisdom (Survival) checks to track your favored enemies, as well as on Intelligence checks to recall information about them.\n\nWhen you gain this feature, you also learn one language of your choice that is spoken by your favored enemies, if they speak one at all.\n\nYou choose one additional favored enemy, as well as an associated language, at 6th and 14th level.',
+                source: 'class',
+                sourceDetails: 'Ranger Level 1'
+            },
+            {
+                id: 'natural-explorer',
+                name: 'Natural Explorer',
+                description: 'You are particularly familiar with one type of natural environment and are adept at traveling and surviving in such regions. Choose one type of favored terrain: arctic, coast, desert, forest, grassland, mountain, swamp, or the Underdark.\n\nWhen you make an Intelligence or Wisdom check related to your favored terrain, your proficiency bonus is doubled if you are using a skill that you\'re proficient in.\n\nWhile traveling for an hour or more in your favored terrain, you gain the following benefits:\n• Difficult terrain doesn\'t slow your group\'s travel.\n• Your group can\'t become lost except by magical means.\n• Even when you are engaged in another activity while traveling (such as foraging, navigating, or tracking), you remain alert to danger.\n• If you are traveling alone, you can move stealthily at a normal pace.\n• When you forage, you find twice as much food as you normally would.\n• While tracking other creatures, you also learn their exact number, their sizes, and how long ago they passed through the area.',
+                source: 'class',
+                sourceDetails: 'Ranger Level 1'
+            }
+        ],
+        2: [
+            {
+                id: 'fighting-style-ranger',
+                name: 'Fighting Style',
+                description: 'At 2nd level, you adopt a particular style of fighting as your specialty. Choose one of the following options. You can\'t take a Fighting Style option more than once, even if you later get to choose again.\n\n**Archery.** You gain a +2 bonus to attack rolls you make with ranged weapons.\n\n**Defense.** While you are wearing armor, you gain a +1 bonus to AC.\n\n**Dueling.** When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.\n\n**Two-Weapon Fighting.** When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.',
+                source: 'class',
+                sourceDetails: 'Ranger Level 2'
+            },
+            {
+                id: 'spellcasting-ranger',
+                name: 'Spellcasting',
+                description: 'By the time you reach 2nd level, you have learned to use the magical essence of nature to cast spells, much as a druid does.',
+                source: 'class',
+                sourceDetails: 'Ranger Level 2'
+            }
+        ],
+        3: [
+            {
+                id: 'ranger-archetype',
+                name: 'Ranger Archetype',
+                description: 'At 3rd level, you choose an archetype that you strive to emulate. The Hunter archetype is detailed at the end of the class description. Your choice grants you features at 3rd level and again at 7th, 11th, and 15th level.',
+                source: 'class',
+                sourceDetails: 'Ranger Level 3'
+            },
+            {
+                id: 'primeval-awareness',
+                name: 'Primeval Awareness',
+                description: 'Beginning at 3rd level, you can use your action and expend one ranger spell slot to focus your awareness on the region around you. For 1 minute per level of the spell slot you expend, you can sense whether the following types of creatures are present within 1 mile of you (or within up to 6 miles if you are in your favored terrain): aberrations, celestials, dragons, elementals, fey, fiends, and undead. This feature doesn\'t reveal the creatures\' location or number.',
+                source: 'class',
+                sourceDetails: 'Ranger Level 3'
+            }
+        ]
+    },
+    subclasses: [HUNTER],
+    subclassLevel: 3,
+    spellcasting: {
+        ability: 'wisdom',
+        cantripsKnown: { 1: 0, 2: 0, 3: 0 }, // No cantrips
+        spellsKnown: RANGER_SPELLS_KNOWN,
+        spellSlots: HALF_CASTER_SPELL_SLOTS,
+        spellListId: 'ranger',
+        ritualCasting: false // Rangers cannot ritual cast
+    },
+    description: 'A warrior who uses martial prowess and nature magic to combat threats on the edges of civilization. Far from the bustle of cities and towns, past the hedges that shelter the most distant farms from the terrors of the wild, amid the dense-packed trees of trackless forests and across wide and empty plains, rangers keep their unending watch.',
+    source: 'SRD'
+};
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -1388,15 +1788,30 @@ export const SRD_MARTIAL_CLASSES: DnD5eClass[] = [
 ];
 
 /**
- * All SRD caster classes (Phase 2 - T028/T029/T030)
- * T028: Bard, Cleric, Druid (full casters)
- * T029: Paladin, Ranger (half casters) - TODO
+ * All SRD half-caster classes (Paladin, Ranger)
+ */
+export const SRD_HALF_CASTER_CLASSES: DnD5eClass[] = [
+    PALADIN,
+    RANGER
+];
+
+/**
+ * All SRD full caster classes
+ * T028: Bard, Cleric, Druid
  * T030: Sorcerer, Warlock, Wizard - TODO
  */
-export const SRD_CASTER_CLASSES: DnD5eClass[] = [
+export const SRD_FULL_CASTER_CLASSES: DnD5eClass[] = [
     BARD,
     CLERIC,
     DRUID
+];
+
+/**
+ * All SRD caster classes (full + half casters)
+ */
+export const SRD_CASTER_CLASSES: DnD5eClass[] = [
+    ...SRD_FULL_CASTER_CLASSES,
+    ...SRD_HALF_CASTER_CLASSES
 ];
 
 /**

@@ -1,8 +1,11 @@
 /**
- * D&D 5e SRD Classes Tests - Martial and Caster Classes
+ * D&D 5e SRD Classes Tests - Martial, Half-Caster, and Full Caster Classes
  * 
- * Tests for all SRD class data: Barbarian, Fighter, Monk, Rogue (martial)
- * and Bard, Cleric, Druid (casters).
+ * Tests for all SRD class data:
+ * - Martial: Barbarian, Fighter, Monk, Rogue
+ * - Half-Casters: Paladin, Ranger
+ * - Full Casters: Bard, Cleric, Druid
+ * 
  * Verifies SRD accuracy and data structure integrity.
  * 
  * @module CharacterGenerator/__tests__/data/dnd5e/classes
@@ -13,10 +16,14 @@ import {
     FIGHTER,
     MONK,
     ROGUE,
+    PALADIN,
+    RANGER,
     BARD,
     CLERIC,
     DRUID,
     SRD_MARTIAL_CLASSES,
+    SRD_HALF_CASTER_CLASSES,
+    SRD_FULL_CASTER_CLASSES,
     SRD_CASTER_CLASSES,
     SRD_CLASSES,
     FIGHTER_FIGHTING_STYLES,
@@ -52,24 +59,46 @@ describe('SRD Classes', () => {
             expect(classIds).toContain('rogue');
         });
 
-        it('should export exactly 3 caster classes', () => {
-            expect(SRD_CASTER_CLASSES).toHaveLength(3);
+        it('should export exactly 2 half-caster classes', () => {
+            expect(SRD_HALF_CASTER_CLASSES).toHaveLength(2);
         });
 
-        it('should export the correct caster classes', () => {
-            const classIds = SRD_CASTER_CLASSES.map(cls => cls.id);
+        it('should export the correct half-caster classes', () => {
+            const classIds = SRD_HALF_CASTER_CLASSES.map(cls => cls.id);
+            expect(classIds).toContain('paladin');
+            expect(classIds).toContain('ranger');
+        });
+
+        it('should export exactly 3 full caster classes', () => {
+            expect(SRD_FULL_CASTER_CLASSES).toHaveLength(3);
+        });
+
+        it('should export the correct full caster classes', () => {
+            const classIds = SRD_FULL_CASTER_CLASSES.map(cls => cls.id);
             expect(classIds).toContain('bard');
             expect(classIds).toContain('cleric');
             expect(classIds).toContain('druid');
         });
 
-        it('SRD_CLASSES should contain all martial and caster classes', () => {
-            expect(SRD_CLASSES).toHaveLength(7);
+        it('SRD_CASTER_CLASSES should contain all casters (full + half)', () => {
+            expect(SRD_CASTER_CLASSES).toHaveLength(5);
+            const classIds = SRD_CASTER_CLASSES.map(cls => cls.id);
+            expect(classIds).toContain('bard');
+            expect(classIds).toContain('cleric');
+            expect(classIds).toContain('druid');
+            expect(classIds).toContain('paladin');
+            expect(classIds).toContain('ranger');
+        });
+
+        it('SRD_CLASSES should contain all 9 classes', () => {
+            expect(SRD_CLASSES).toHaveLength(9);
             const allIds = SRD_CLASSES.map(cls => cls.id);
             expect(allIds).toContain('barbarian');
             expect(allIds).toContain('fighter');
             expect(allIds).toContain('monk');
             expect(allIds).toContain('rogue');
+            expect(allIds).toContain('paladin');
+            expect(allIds).toContain('ranger');
             expect(allIds).toContain('bard');
             expect(allIds).toContain('cleric');
             expect(allIds).toContain('druid');
@@ -694,6 +723,248 @@ describe('SRD Classes', () => {
     });
 
     // ==========================================================================
+    // PALADIN TESTS (HALF CASTER)
+    // ==========================================================================
+
+    describe('Paladin class', () => {
+        it('should have correct basic properties', () => {
+            expect(PALADIN.id).toBe('paladin');
+            expect(PALADIN.name).toBe('Paladin');
+            expect(PALADIN.hitDie).toBe(10);
+            expect(PALADIN.source).toBe('SRD');
+        });
+
+        it('should have STR and CHA as primary abilities', () => {
+            expect(PALADIN.primaryAbility).toContain('strength');
+            expect(PALADIN.primaryAbility).toContain('charisma');
+        });
+
+        it('should save on WIS and CHA', () => {
+            expect(PALADIN.savingThrows).toContain('wisdom');
+            expect(PALADIN.savingThrows).toContain('charisma');
+        });
+
+        it('should have heavy armor proficiency', () => {
+            expect(PALADIN.armorProficiencies).toContain('heavy armor');
+            expect(PALADIN.armorProficiencies).toContain('shields');
+        });
+
+        it('should have martial weapon proficiency', () => {
+            expect(PALADIN.weaponProficiencies).toContain('martial weapons');
+        });
+
+        it('should choose 2 skills from paladin list', () => {
+            expect(PALADIN.skillChoices.choose).toBe(2);
+            expect(PALADIN.skillChoices.from).toContain('Religion');
+            expect(PALADIN.skillChoices.from).toContain('Persuasion');
+            expect(PALADIN.skillChoices.from).toContain('Athletics');
+        });
+
+        it('should have Divine Sense and Lay on Hands at level 1', () => {
+            const l1Features = PALADIN.features[1];
+            const featureIds = l1Features.map(f => f.id);
+            expect(featureIds).toContain('divine-sense');
+            expect(featureIds).toContain('lay-on-hands');
+        });
+
+        it('should have Spellcasting, Fighting Style, and Divine Smite at level 2', () => {
+            const l2Features = PALADIN.features[2];
+            const featureIds = l2Features.map(f => f.id);
+            expect(featureIds).toContain('spellcasting-paladin');
+            expect(featureIds).toContain('fighting-style-paladin');
+            expect(featureIds).toContain('divine-smite');
+        });
+
+        it('should get Divine Health and Sacred Oath at level 3', () => {
+            const l3Features = PALADIN.features[3];
+            const featureIds = l3Features.map(f => f.id);
+            expect(featureIds).toContain('divine-health');
+            expect(featureIds).toContain('sacred-oath');
+        });
+
+        it('should have Oath of Devotion subclass at level 3', () => {
+            expect(PALADIN.subclassLevel).toBe(3);
+            expect(PALADIN.subclasses).toHaveLength(1);
+            expect(PALADIN.subclasses[0].id).toBe('oath-of-devotion');
+        });
+
+        it('should have spellcasting with Charisma ability', () => {
+            expect(PALADIN.spellcasting).toBeDefined();
+            expect(PALADIN.spellcasting?.ability).toBe('charisma');
+        });
+
+        it('should be a prepared-spell caster (half level formula)', () => {
+            expect(PALADIN.spellcasting?.preparedSpells).toBeDefined();
+            expect(PALADIN.spellcasting?.preparedSpells?.formula).toBe('CHA_MOD + HALF_LEVEL');
+            expect(PALADIN.spellcasting?.spellsKnown).toBeUndefined();
+        });
+
+        it('should NOT have cantrips (half caster)', () => {
+            expect(PALADIN.spellcasting?.cantripsKnown[1]).toBe(0);
+            expect(PALADIN.spellcasting?.cantripsKnown[2]).toBe(0);
+            expect(PALADIN.spellcasting?.cantripsKnown[3]).toBe(0);
+        });
+
+        it('should NOT have ritual casting', () => {
+            expect(PALADIN.spellcasting?.ritualCasting).toBe(false);
+        });
+
+        it('should use half-caster spell slot progression', () => {
+            const slots = PALADIN.spellcasting?.spellSlots;
+            // Level 1: No slots (spellcasting starts at L2)
+            expect(slots?.[1][0]).toBe(0);
+            // Level 2: 2 1st-level slots
+            expect(slots?.[2][0]).toBe(2);
+            // Level 3: 3 1st-level slots
+            expect(slots?.[3][0]).toBe(3);
+        });
+    });
+
+    describe('Oath of Devotion subclass', () => {
+        const oathOfDevotion = PALADIN.subclasses[0];
+
+        it('should have correct basic properties', () => {
+            expect(oathOfDevotion.id).toBe('oath-of-devotion');
+            expect(oathOfDevotion.name).toBe('Oath of Devotion');
+            expect(oathOfDevotion.className).toBe('paladin');
+        });
+
+        it('should grant Channel Divinity at level 3', () => {
+            const l3Features = oathOfDevotion.features[3];
+            expect(l3Features).toBeDefined();
+            const featureIds = l3Features?.map(f => f.id);
+            expect(featureIds).toContain('channel-divinity-devotion');
+        });
+
+        it('should grant oath spells (Protection from Evil/Good, Sanctuary)', () => {
+            expect(oathOfDevotion.spellsGranted).toBeDefined();
+            expect(oathOfDevotion.spellsGranted?.[3]).toContain('protection-from-evil-and-good');
+            expect(oathOfDevotion.spellsGranted?.[3]).toContain('sanctuary');
+        });
+    });
+
+    // ==========================================================================
+    // RANGER TESTS (HALF CASTER)
+    // ==========================================================================
+
+    describe('Ranger class', () => {
+        it('should have correct basic properties', () => {
+            expect(RANGER.id).toBe('ranger');
+            expect(RANGER.name).toBe('Ranger');
+            expect(RANGER.hitDie).toBe(10);
+            expect(RANGER.source).toBe('SRD');
+        });
+
+        it('should have DEX and WIS as primary abilities', () => {
+            expect(RANGER.primaryAbility).toContain('dexterity');
+            expect(RANGER.primaryAbility).toContain('wisdom');
+        });
+
+        it('should save on STR and DEX', () => {
+            expect(RANGER.savingThrows).toContain('strength');
+            expect(RANGER.savingThrows).toContain('dexterity');
+        });
+
+        it('should have medium armor and shield proficiency', () => {
+            expect(RANGER.armorProficiencies).toContain('medium armor');
+            expect(RANGER.armorProficiencies).toContain('shields');
+            expect(RANGER.armorProficiencies).not.toContain('heavy armor');
+        });
+
+        it('should have martial weapon proficiency', () => {
+            expect(RANGER.weaponProficiencies).toContain('martial weapons');
+        });
+
+        it('should choose 3 skills from ranger list', () => {
+            expect(RANGER.skillChoices.choose).toBe(3);
+            expect(RANGER.skillChoices.from).toContain('Stealth');
+            expect(RANGER.skillChoices.from).toContain('Survival');
+            expect(RANGER.skillChoices.from).toContain('Nature');
+            expect(RANGER.skillChoices.from).toContain('Perception');
+        });
+
+        it('should have Favored Enemy and Natural Explorer at level 1', () => {
+            const l1Features = RANGER.features[1];
+            const featureIds = l1Features.map(f => f.id);
+            expect(featureIds).toContain('favored-enemy');
+            expect(featureIds).toContain('natural-explorer');
+        });
+
+        it('should have Spellcasting and Fighting Style at level 2', () => {
+            const l2Features = RANGER.features[2];
+            const featureIds = l2Features.map(f => f.id);
+            expect(featureIds).toContain('spellcasting-ranger');
+            expect(featureIds).toContain('fighting-style-ranger');
+        });
+
+        it('should get Ranger Archetype and Primeval Awareness at level 3', () => {
+            const l3Features = RANGER.features[3];
+            const featureIds = l3Features.map(f => f.id);
+            expect(featureIds).toContain('ranger-archetype');
+            expect(featureIds).toContain('primeval-awareness');
+        });
+
+        it('should have Hunter subclass at level 3', () => {
+            expect(RANGER.subclassLevel).toBe(3);
+            expect(RANGER.subclasses).toHaveLength(1);
+            expect(RANGER.subclasses[0].id).toBe('hunter');
+        });
+
+        it('should have spellcasting with Wisdom ability', () => {
+            expect(RANGER.spellcasting).toBeDefined();
+            expect(RANGER.spellcasting?.ability).toBe('wisdom');
+        });
+
+        it('should be a known-spell caster (like sorcerer)', () => {
+            expect(RANGER.spellcasting?.spellsKnown).toBeDefined();
+            expect(RANGER.spellcasting?.preparedSpells).toBeUndefined();
+        });
+
+        it('should have correct spells known at levels 1-3', () => {
+            expect(RANGER.spellcasting?.spellsKnown?.[1]).toBe(0); // No spells at L1
+            expect(RANGER.spellcasting?.spellsKnown?.[2]).toBe(2);
+            expect(RANGER.spellcasting?.spellsKnown?.[3]).toBe(3);
+        });
+
+        it('should NOT have cantrips (half caster)', () => {
+            expect(RANGER.spellcasting?.cantripsKnown[1]).toBe(0);
+            expect(RANGER.spellcasting?.cantripsKnown[2]).toBe(0);
+            expect(RANGER.spellcasting?.cantripsKnown[3]).toBe(0);
+        });
+
+        it('should NOT have ritual casting', () => {
+            expect(RANGER.spellcasting?.ritualCasting).toBe(false);
+        });
+
+        it('should use half-caster spell slot progression', () => {
+            const slots = RANGER.spellcasting?.spellSlots;
+            // Level 1: No slots (spellcasting starts at L2)
+            expect(slots?.[1][0]).toBe(0);
+            // Level 2: 2 1st-level slots
+            expect(slots?.[2][0]).toBe(2);
+            // Level 3: 3 1st-level slots
+            expect(slots?.[3][0]).toBe(3);
+        });
+    });
+
+    describe('Hunter subclass', () => {
+        const hunter = RANGER.subclasses[0];
+
+        it('should have correct basic properties', () => {
+            expect(hunter.id).toBe('hunter');
+            expect(hunter.name).toBe('Hunter');
+            expect(hunter.className).toBe('ranger');
+        });
+
+        it('should grant Hunter\'s Prey at level 3', () => {
+            const l3Features = hunter.features[3];
+            expect(l3Features).toBeDefined();
+            const featureIds = l3Features?.map(f => f.id);
+            expect(featureIds).toContain('hunters-prey');
+        });
+    });
+
+    // ==========================================================================
     // FULL CASTER SPELL SLOTS TESTS
     // ==========================================================================
     
@@ -736,7 +1007,12 @@ describe('SRD Classes', () => {
             expect(getClassById('rogue')).toBe(ROGUE);
         });
 
-        it('should find caster class by ID', () => {
+        it('should find half-caster class by ID', () => {
+            expect(getClassById('paladin')).toBe(PALADIN);
+            expect(getClassById('ranger')).toBe(RANGER);
+        });
+
+        it('should find full caster class by ID', () => {
             expect(getClassById('bard')).toBe(BARD);
             expect(getClassById('cleric')).toBe(CLERIC);
             expect(getClassById('druid')).toBe(DRUID);
@@ -775,23 +1051,44 @@ describe('SRD Classes', () => {
             expect(martial).toHaveLength(4);
             expect(martial.map(c => c.id)).toEqual(['barbarian', 'fighter', 'monk', 'rogue']);
         });
+
+        it('should NOT include half-casters', () => {
+            const martial = getMartialClasses();
+            expect(martial.map(c => c.id)).not.toContain('paladin');
+            expect(martial.map(c => c.id)).not.toContain('ranger');
+        });
     });
 
     describe('getSpellcasterClasses', () => {
-        it('should return all caster classes', () => {
+        it('should return all 5 caster classes (full + half)', () => {
             const casters = getSpellcasterClasses();
-            expect(casters).toHaveLength(3);
+            expect(casters).toHaveLength(5);
+        });
+
+        it('should include full caster classes', () => {
+            const casters = getSpellcasterClasses();
             expect(casters.map(c => c.id)).toContain('bard');
             expect(casters.map(c => c.id)).toContain('cleric');
             expect(casters.map(c => c.id)).toContain('druid');
         });
+
+        it('should include half-caster classes', () => {
+            const casters = getSpellcasterClasses();
+            expect(casters.map(c => c.id)).toContain('paladin');
+            expect(casters.map(c => c.id)).toContain('ranger');
+        });
     });
 
     describe('isSpellcaster', () => {
-        it('should return true for caster classes', () => {
+        it('should return true for full caster classes', () => {
             expect(isSpellcaster('bard')).toBe(true);
             expect(isSpellcaster('cleric')).toBe(true);
             expect(isSpellcaster('druid')).toBe(true);
+        });
+
+        it('should return true for half-caster classes', () => {
+            expect(isSpellcaster('paladin')).toBe(true);
+            expect(isSpellcaster('ranger')).toBe(true);
         });
 
         it('should return false for martial classes', () => {
