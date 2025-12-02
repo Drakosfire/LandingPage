@@ -208,17 +208,17 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [x] T053d [US1] Create `SpellSelector.tsx` for caster cantrip/spell selection in `components/SpellSelector.tsx` ✅
 
 #### Step 4: Background Selection
-- [ ] T054 [US1] Create `BackgroundSelectionStep.tsx` in `creationDrawerComponents/BackgroundSelectionStep.tsx`
-- [ ] T055 [US1] Create `BackgroundCard.tsx` component in `components/BackgroundCard.tsx`
+- [x] T054 [US1] Create `BackgroundSelectionStep.tsx` in `creationDrawerComponents/BackgroundSelectionStep.tsx` ✅
+- [x] T055 [US1] Create `BackgroundCard.tsx` component in `components/BackgroundCard.tsx` ✅
 
 #### Step 5: Equipment
-- [ ] T056 [US1] Create `EquipmentStep.tsx` in `creationDrawerComponents/EquipmentStep.tsx`
+- [x] T056 [US1] Create `EquipmentStep.tsx` in `creationDrawerComponents/EquipmentStep.tsx` ✅
 
 #### Step 6: Review
-- [ ] T057 [US1] Create `ReviewStep.tsx` in `creationDrawerComponents/ReviewStep.tsx`
+- [x] T057 [US1] Create `ReviewStep.tsx` in `creationDrawerComponents/ReviewStep.tsx` ✅
 
 #### Integration
-- [ ] T058 [US1] Wire all steps into `CharacterCreationWizard.tsx`
+- [x] T058 [US1] Wire all steps into `CharacterCreationWizard.tsx` ✅
 
 ### 3.6 Canvas Enhancement
 

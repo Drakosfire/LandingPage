@@ -27,5 +27,8 @@ export { default as EquipmentChoiceSelector } from './EquipmentChoiceSelector';
 export { default as SubclassSelector } from './SubclassSelector';
 export { default as SpellSelector } from './SpellSelector';
 
+// Background selection components
+export { default as BackgroundCard } from './BackgroundCard';
+
 
 

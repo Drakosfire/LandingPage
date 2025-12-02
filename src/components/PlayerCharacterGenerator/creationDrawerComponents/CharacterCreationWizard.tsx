@@ -9,7 +9,8 @@
  * 3. Class Selection (with L1 subclass, skills, equipment)
  * 4. Spells (casters only, skipped for non-casters)
  * 5. Background Selection
- * 6. Review & Finalize
+ * 6. Equipment Summary
+ * 7. Review & Finalize
  * 
  * @module CharacterGenerator
  */
@@ -19,10 +20,14 @@ import { Stack, Button, Group, Stepper, Text, Box } from '@mantine/core';
 import AbilityScoresStep from './AbilityScoresStep';
 import RaceSelectionStep from './RaceSelectionStep';
 import ClassSelectionStep from './ClassSelectionStep';
+import SpellSelectionStep from './SpellSelectionStep';
+import BackgroundSelectionStep from './BackgroundSelectionStep';
+import EquipmentStep from './EquipmentStep';
+import ReviewStep from './ReviewStep';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
 const WIZARD_STEP_KEY = 'charactergen_wizard_step';
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 const CharacterCreationWizard: React.FC = () => {
     const { character, ruleEngine } = usePlayerCharacterGenerator();
@@ -97,6 +102,7 @@ const CharacterCreationWizard: React.FC = () => {
                     color={isSpellcaster() ? undefined : "gray"}
                 />
                 <Stepper.Step label="Background" description="Choose background" />
+                <Stepper.Step label="Equipment" description="Review gear" />
                 <Stepper.Step label="Review" description="Finalize" />
             </Stepper>
 
@@ -105,9 +111,10 @@ const CharacterCreationWizard: React.FC = () => {
                 {currentStep === 0 && <AbilityScoresStep />}
                 {currentStep === 1 && <RaceSelectionStep />}
                 {currentStep === 2 && <ClassSelectionStep />}
-                {currentStep === 3 && <PlaceholderStep stepName="Spell Selection" />}
-                {currentStep === 4 && <PlaceholderStep stepName="Background" />}
-                {currentStep === 5 && <ReviewStep />}
+                {currentStep === 3 && <SpellSelectionStep />}
+                {currentStep === 4 && <BackgroundSelectionStep />}
+                {currentStep === 5 && <EquipmentStep />}
+                {currentStep === 6 && <ReviewStep />}
             </Box>
 
             {/* Navigation Buttons */}
@@ -142,41 +149,4 @@ const CharacterCreationWizard: React.FC = () => {
     );
 };
 
-// Placeholder component for unimplemented steps
-const PlaceholderStep: React.FC<{ stepName: string }> = ({ stepName }) => {
-    return (
-        <Stack gap="md" p="md">
-            <Text fw={600} size="lg">{stepName}</Text>
-            <Box p="xl" style={{ border: '2px dashed gray', borderRadius: '8px', textAlign: 'center' }}>
-                <Text c="dimmed">
-                    Phase 1: {stepName} - Coming in Phase 2
-                    <br />
-                    Use Next/Previous to navigate the wizard
-                </Text>
-            </Box>
-        </Stack>
-    );
-};
-
-// Review step (summary of character)
-const ReviewStep: React.FC = () => {
-    return (
-        <Stack gap="md" p="md">
-            <Text fw={600} size="lg">Review & Finalize</Text>
-            <Box p="xl" style={{ border: '2px dashed gray', borderRadius: '8px', textAlign: 'center' }}>
-                <Text c="dimmed">
-                    Phase 1: Character summary - Coming in Phase 2
-                    <br />
-                    Click "Finish" to complete character creation
-                </Text>
-            </Box>
-        </Stack>
-    );
-};
-
 export default CharacterCreationWizard;
-
-
-
-
-
