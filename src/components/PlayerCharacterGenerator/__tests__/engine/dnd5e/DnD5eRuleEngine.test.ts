@@ -11,6 +11,7 @@ import { isRuleEngine } from '../../../engine/RuleEngine.interface';
 import type { DnD5eCharacter } from '../../../types/dnd5e/character.types';
 import { createEmptyDnD5eCharacter } from '../../../types/dnd5e/character.types';
 import { createTestDnD5eCharacter } from '../../utils/testHelpers';
+import { SRD_BACKGROUNDS } from '../../../data/dnd5e/backgrounds';
 
 describe('DnD5eRuleEngine', () => {
     let engine: DnD5eRuleEngine;
@@ -1481,8 +1482,9 @@ describe('DnD5eRuleEngine', () => {
                 });
 
                 it('should pass validation for valid background', () => {
+                    const soldier = SRD_BACKGROUNDS.find(b => b.id === 'soldier')!;
                     const character = createTestDnD5eCharacter({
-                        background: 'soldier'
+                        background: soldier
                     });
                     const result = engine.validateStep(character, 'background');
                     expect(result.isValid).toBe(true);
@@ -1490,7 +1492,7 @@ describe('DnD5eRuleEngine', () => {
 
                 it('should fail validation for invalid background ID', () => {
                     const character = createTestDnD5eCharacter({
-                        background: 'invalid-background'
+                        background: { id: 'invalid-background', name: 'Invalid' } as any
                     });
                     const result = engine.validateStep(character, 'background');
                     expect(result.isValid).toBe(false);
@@ -1498,8 +1500,7 @@ describe('DnD5eRuleEngine', () => {
                 });
 
                 it('should pass validation for all SRD backgrounds', () => {
-                    const backgrounds = ['acolyte', 'criminal', 'folk-hero', 'noble', 'sage', 'soldier'];
-                    for (const bg of backgrounds) {
+                    for (const bg of SRD_BACKGROUNDS) {
                         const character = createTestDnD5eCharacter({ background: bg });
                         const result = engine.validateStep(character, 'background');
                         expect(result.isValid).toBe(true);
@@ -1530,6 +1531,7 @@ describe('DnD5eRuleEngine', () => {
 
         describe('validateCharacter (T044)', () => {
             it('should return valid for complete character', () => {
+                const soldier = SRD_BACKGROUNDS.find(b => b.id === 'soldier')!;
                 const character = createTestDnD5eCharacter({
                     abilityScores: {
                         strength: 15,
@@ -1541,8 +1543,8 @@ describe('DnD5eRuleEngine', () => {
                     },
                     race: { id: 'human', name: 'Human' },
                     classes: [{ name: 'Fighter', level: 1 }],
-                    background: 'soldier',
-                    equipment: ['longsword']
+                    background: soldier,
+                    equipment: []
                 });
                 const result = engine.validateCharacter(character);
                 expect(result.isValid).toBe(true);
@@ -1570,6 +1572,7 @@ describe('DnD5eRuleEngine', () => {
 
         describe('isCharacterComplete (T045)', () => {
             it('should return true for complete character', () => {
+                const soldier = SRD_BACKGROUNDS.find(b => b.id === 'soldier')!;
                 const character = createTestDnD5eCharacter({
                     abilityScores: {
                         strength: 15,
@@ -1581,7 +1584,7 @@ describe('DnD5eRuleEngine', () => {
                     },
                     race: { id: 'human', name: 'Human' },
                     classes: [{ name: 'Fighter', level: 1 }],
-                    background: 'soldier'
+                    background: soldier
                 });
                 expect(engine.isCharacterComplete(character)).toBe(true);
             });

@@ -30,7 +30,7 @@ export const ACOLYTE: DnD5eBackground = {
         id: 'shelter-of-the-faithful',
         name: 'Shelter of the Faithful',
         description: 'As an acolyte, you command the respect of those who share your faith, and you can perform the religious ceremonies of your deity. You and your adventuring companions can expect to receive free healing and care at a temple, shrine, or other established presence of your faith.',
-        source: 'SRD'
+        source: 'background'
     },
     suggestedCharacteristics: {
         traits: [
@@ -90,7 +90,7 @@ export const CRIMINAL: DnD5eBackground = {
         id: 'criminal-contact',
         name: 'Criminal Contact',
         description: 'You have a reliable and trustworthy contact who acts as your liaison to a network of other criminals. You know how to get messages to and from your contact, even over great distances.',
-        source: 'SRD'
+        source: 'background'
     },
     suggestedCharacteristics: {
         traits: [
@@ -152,7 +152,7 @@ export const FOLK_HERO: DnD5eBackground = {
         id: 'rustic-hospitality',
         name: 'Rustic Hospitality',
         description: 'Since you come from the ranks of the common folk, you fit in among them with ease. You can find a place to hide, rest, or recuperate among other commoners, unless you have shown yourself to be a danger to them.',
-        source: 'SRD'
+        source: 'background'
     },
     suggestedCharacteristics: {
         traits: [
@@ -214,7 +214,7 @@ export const NOBLE: DnD5eBackground = {
         id: 'position-of-privilege',
         name: 'Position of Privilege',
         description: 'Thanks to your noble birth, people are inclined to think the best of you. You are welcome in high society, and people assume you have the right to be wherever you are. Common folk make every effort to accommodate you.',
-        source: 'SRD'
+        source: 'background'
     },
     suggestedCharacteristics: {
         traits: [
@@ -277,7 +277,7 @@ export const SAGE: DnD5eBackground = {
         id: 'researcher',
         name: 'Researcher',
         description: 'When you attempt to learn or recall a piece of lore, if you do not know that information, you often know where and from whom you can obtain it. Usually, this information comes from a library, scriptorium, university, or a sage.',
-        source: 'SRD'
+        source: 'background'
     },
     suggestedCharacteristics: {
         traits: [
@@ -339,7 +339,7 @@ export const SOLDIER: DnD5eBackground = {
         id: 'military-rank',
         name: 'Military Rank',
         description: 'You have a military rank from your career as a soldier. Soldiers loyal to your former military organization still recognize your authority and influence, and they defer to you if they are of a lower rank.',
-        source: 'SRD'
+        source: 'background'
     },
     suggestedCharacteristics: {
         traits: [

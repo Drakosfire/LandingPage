@@ -383,12 +383,12 @@ export class DnD5eRuleEngine implements RuleEngine<
         }
 
         // Check background is valid SRD background
-        const backgroundData = this.backgrounds.find(b => b.id === character.background);
+        const backgroundData = this.backgrounds.find(b => b.id === character.background?.id);
         if (!backgroundData) {
             result.isValid = false;
             result.errors.push({
                 code: 'BACKGROUND_INVALID',
-                message: `Selected background '${character.background}' is not a valid SRD background`,
+                message: `Selected background '${character.background?.name || character.background?.id}' is not a valid SRD background`,
                 step: 'background',
                 field: 'background',
                 severity: 'error'
@@ -906,7 +906,7 @@ export class DnD5eRuleEngine implements RuleEngine<
             pactMagic = {
                 slotCount: pactSlots.slotCount,
                 slotLevel: pactSlots.slotLevel,
-                slotsUsed: character.spellcasting?.spellSlots?.[pactSlots.slotLevel]?.used ?? 0
+                slotsUsed: (character.spellcasting?.spellSlots as Record<number, { total: number; used: number } | undefined>)?.[pactSlots.slotLevel]?.used ?? 0
             };
         }
 
@@ -918,11 +918,11 @@ export class DnD5eRuleEngine implements RuleEngine<
             spellSaveDC,
             spellAttackBonus,
             cantripsKnown,
-            knownCantrips: character.spellcasting?.cantrips ?? [],
+            knownCantrips: (character.spellcasting?.cantrips ?? []).map(s => s.id),
             maxSpellsKnown,
             maxPreparedSpells,
             prepareFormula,
-            knownSpells: character.spellcasting?.spellsKnown ?? [],
+            knownSpells: (character.spellcasting?.spellsKnown ?? []).map(s => s.id),
             preparedSpells: character.spellcasting?.spellsPrepared ?? [],
             spellSlots,
             pactMagic,

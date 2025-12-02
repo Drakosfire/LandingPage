@@ -14,6 +14,7 @@ export type CreationStep =
     | 'abilityScores'
     | 'race'
     | 'class'
+    | 'spells'
     | 'background'
     | 'equipment'
     | 'review';

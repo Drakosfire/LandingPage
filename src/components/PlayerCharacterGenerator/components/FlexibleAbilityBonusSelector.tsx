@@ -39,9 +39,9 @@ const FlexibleAbilityBonusSelector: React.FC<FlexibleAbilityBonusSelectorProps> 
 }) => {
     // Get available abilities (excluding already-bonused abilities)
     const availableAbilities = useMemo(() => {
-        const excluded = new Set(config.excludeAbilities || []);
+        const excluded = new Set(config.excludedAbilities || []);
         return ALL_ABILITIES.filter(ability => !excluded.has(ability));
-    }, [config.excludeAbilities]);
+    }, [config.excludedAbilities]);
     
     // Currently selected abilities
     const selectedAbilities = useMemo(() => {
@@ -72,7 +72,7 @@ const FlexibleAbilityBonusSelector: React.FC<FlexibleAbilityBonusSelectorProps> 
     return (
         <Box>
             <Text size="xs" fw={500} c="dimmed" mb="xs">
-                {config.description || `Choose ${config.choiceCount} ability scores to increase by +${config.bonusPerChoice}`}
+                {`Choose ${config.choiceCount} ability scores to increase by +${config.bonusPerChoice}`}
             </Text>
             
             {/* Selection Count */}

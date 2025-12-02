@@ -102,7 +102,7 @@ const BackgroundSelectionStep: React.FC = () => {
             ];
             
             // Remove duplicates
-            const uniqueSkills = [...new Set(newSkills)];
+            const uniqueSkills = Array.from(new Set(newSkills));
             
             updateDnD5eData({
                 proficiencies: {
