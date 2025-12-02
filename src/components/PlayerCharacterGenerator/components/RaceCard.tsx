@@ -18,7 +18,7 @@ import type { FlexibleBonusConfig, AbilityBonusChoice } from '../engine';
 interface RaceCardProps {
     race: DnD5eRace;
     isSelected: boolean;
-    onSelect: (race: DnD5eRace) => void;
+    onSelect?: (race: DnD5eRace) => void;  // Optional - undefined for races with subraces
     subraces?: DnD5eRace[];
     selectedSubraceId?: string | null;
     onSubraceSelect?: (subrace: DnD5eRace) => void;
@@ -52,7 +52,7 @@ const RaceCard: React.FC<RaceCardProps> = ({
                 // Select first subrace by default
                 onSubraceSelect?.(subraces[0]);
             }
-        } else {
+        } else if (onSelect) {
             onSelect(race);
         }
     }, [race, subraces, isSelected, onSelect, onSubraceSelect]);
