@@ -192,11 +192,11 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 
 ### 3.5 Wizard Steps UI
 
-#### Step 2: Race Selection
-- [ ] T047 [US1] Create `RaceSelectionStep.tsx` in `src/components/PlayerCharacterGenerator/creationDrawerComponents/RaceSelectionStep.tsx`
-- [ ] T048 [US1] Create `RaceCard.tsx` component in `src/components/PlayerCharacterGenerator/components/RaceCard.tsx`
-- [ ] T049 [US1] Create `SubraceSelector.tsx` component in `src/components/PlayerCharacterGenerator/components/SubraceSelector.tsx`
-- [ ] T049b [US1] Create `FlexibleAbilityBonusSelector.tsx` for Half-Elf +1/+1 choice in `components/FlexibleAbilityBonusSelector.tsx` 🧪 Use `HALF_ELF_BARD_L1` fixture to test
+#### Step 2: Race Selection ✅ COMPLETE
+- [x] T047 [US1] Create `RaceSelectionStep.tsx` in `src/components/PlayerCharacterGenerator/creationDrawerComponents/RaceSelectionStep.tsx` ✅
+- [x] T048 [US1] Create `RaceCard.tsx` component in `src/components/PlayerCharacterGenerator/components/RaceCard.tsx` ✅
+- [x] T049 [US1] Create `SubraceSelector.tsx` component in `src/components/PlayerCharacterGenerator/components/SubraceSelector.tsx` ✅
+- [x] T049b [US1] Create `FlexibleAbilityBonusSelector.tsx` for Half-Elf +1/+1 choice in `components/FlexibleAbilityBonusSelector.tsx` ✅
 
 #### Step 3: Class Selection (with Level 1 Subclass)
 - [ ] T050 [US1] Create `ClassSelectionStep.tsx` in `creationDrawerComponents/ClassSelectionStep.tsx`

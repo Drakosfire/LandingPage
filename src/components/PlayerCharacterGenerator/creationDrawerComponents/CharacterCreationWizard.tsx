@@ -6,9 +6,10 @@
  * Steps:
  * 1. Ability Scores (Point Buy / Standard Array / Roll)
  * 2. Race Selection
- * 3. Class Selection
- * 4. Background Selection
- * 5. Review & Finalize
+ * 3. Class Selection (with L1 subclass, skills, equipment)
+ * 4. Spells (casters only, skipped for non-casters)
+ * 5. Background Selection
+ * 6. Review & Finalize
  * 
  * @module CharacterGenerator
  */
@@ -16,10 +17,15 @@
 import React, { useState, useEffect } from 'react';
 import { Stack, Button, Group, Stepper, Text, Box } from '@mantine/core';
 import AbilityScoresStep from './AbilityScoresStep';
+import RaceSelectionStep from './RaceSelectionStep';
+import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
 const WIZARD_STEP_KEY = 'charactergen_wizard_step';
+const TOTAL_STEPS = 6;
 
 const CharacterCreationWizard: React.FC = () => {
+    const { character, ruleEngine } = usePlayerCharacterGenerator();
+
     // Restore last step from localStorage
     const [currentStep, setCurrentStep] = useState<number>(() => {
         try {
@@ -30,21 +36,45 @@ const CharacterCreationWizard: React.FC = () => {
         }
     });
 
+    // Determine if current character is a spellcaster (for step 4 skip logic)
+    const isSpellcaster = (): boolean => {
+        if (!character?.dnd5eData?.classes?.length) return false;
+        const primaryClass = character.dnd5eData.classes[0];
+        const classData = ruleEngine.getClassById(primaryClass.name);
+        return classData?.spellcasting !== undefined;
+    };
+
     // Persist step to localStorage
     useEffect(() => {
         localStorage.setItem(WIZARD_STEP_KEY, currentStep.toString());
-        console.log(`📍 [Wizard] Step ${currentStep + 1}/5`);
+        console.log(`📍 [Wizard] Step ${currentStep + 1}/${TOTAL_STEPS}`);
     }, [currentStep]);
 
     const handleNext = () => {
-        if (currentStep < 4) {
-            setCurrentStep(prev => prev + 1);
+        if (currentStep < TOTAL_STEPS - 1) {
+            let nextStep = currentStep + 1;
+            
+            // Skip spell step (index 3) for non-casters
+            if (nextStep === 3 && !isSpellcaster()) {
+                console.log('⏭️ [Wizard] Skipping Spells step (non-caster)');
+                nextStep = 4; // Jump to Background
+            }
+            
+            setCurrentStep(nextStep);
         }
     };
 
     const handlePrevious = () => {
         if (currentStep > 0) {
-            setCurrentStep(prev => prev - 1);
+            let prevStep = currentStep - 1;
+            
+            // Skip spell step (index 3) when going back for non-casters
+            if (prevStep === 3 && !isSpellcaster()) {
+                console.log('⏭️ [Wizard] Skipping Spells step (non-caster)');
+                prevStep = 2; // Jump to Class
+            }
+            
+            setCurrentStep(prevStep);
         }
     };
 
@@ -57,20 +87,26 @@ const CharacterCreationWizard: React.FC = () => {
         <Stack gap="lg" h="100%">
             {/* Step Progress Indicator */}
             <Stepper active={currentStep} size="sm">
-                <Stepper.Step label="Abilities" description="Assign ability scores" />
+                <Stepper.Step label="Abilities" description="Assign scores" />
                 <Stepper.Step label="Race" description="Choose race" />
                 <Stepper.Step label="Class" description="Choose class" />
+                <Stepper.Step 
+                    label="Spells" 
+                    description={isSpellcaster() ? "Select spells" : "N/A"} 
+                    color={isSpellcaster() ? undefined : "gray"}
+                />
                 <Stepper.Step label="Background" description="Choose background" />
-                <Stepper.Step label="Review" description="Finalize character" />
+                <Stepper.Step label="Review" description="Finalize" />
             </Stepper>
 
             {/* Step Content */}
             <Box style={{ flex: 1, overflowY: 'auto' }}>
                 {currentStep === 0 && <AbilityScoresStep />}
-                {currentStep === 1 && <PlaceholderStep stepName="Race Selection" />}
+                {currentStep === 1 && <RaceSelectionStep />}
                 {currentStep === 2 && <PlaceholderStep stepName="Class Selection" />}
-                {currentStep === 3 && <PlaceholderStep stepName="Background" />}
-                {currentStep === 4 && <ReviewStep />}
+                {currentStep === 3 && <PlaceholderStep stepName="Spell Selection" />}
+                {currentStep === 4 && <PlaceholderStep stepName="Background" />}
+                {currentStep === 5 && <ReviewStep />}
             </Box>
 
             {/* Navigation Buttons */}
@@ -84,7 +120,7 @@ const CharacterCreationWizard: React.FC = () => {
                     ← Previous
                 </Button>
 
-                {currentStep < 4 ? (
+                {currentStep < TOTAL_STEPS - 1 ? (
                     <Button
                         onClick={handleNext}
                         data-testid="wizard-next-button"
