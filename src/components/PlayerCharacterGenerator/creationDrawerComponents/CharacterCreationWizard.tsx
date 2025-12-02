@@ -18,6 +18,7 @@ import React, { useState, useEffect } from 'react';
 import { Stack, Button, Group, Stepper, Text, Box } from '@mantine/core';
 import AbilityScoresStep from './AbilityScoresStep';
 import RaceSelectionStep from './RaceSelectionStep';
+import ClassSelectionStep from './ClassSelectionStep';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
 const WIZARD_STEP_KEY = 'charactergen_wizard_step';
@@ -103,7 +104,7 @@ const CharacterCreationWizard: React.FC = () => {
             <Box style={{ flex: 1, overflowY: 'auto' }}>
                 {currentStep === 0 && <AbilityScoresStep />}
                 {currentStep === 1 && <RaceSelectionStep />}
-                {currentStep === 2 && <PlaceholderStep stepName="Class Selection" />}
+                {currentStep === 2 && <ClassSelectionStep />}
                 {currentStep === 3 && <PlaceholderStep stepName="Spell Selection" />}
                 {currentStep === 4 && <PlaceholderStep stepName="Background" />}
                 {currentStep === 5 && <ReviewStep />}

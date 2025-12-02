@@ -68,6 +68,14 @@ export interface DnD5eCharacter {
 
     // ===== CURRENCY (D&D 5e uses 5-coin system) =====
     currency: DnD5eCurrency;
+
+    // ===== WIZARD STATE (temporary state during character creation) =====
+    /** Equipment choices made during character creation (before finalization) */
+    equipmentChoices?: Record<string, number>;
+    /** Selected cantrip IDs during character creation */
+    selectedCantrips?: string[];
+    /** Selected spell IDs during character creation */
+    selectedSpells?: string[];
 }
 
 /**

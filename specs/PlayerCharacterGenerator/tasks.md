@@ -198,14 +198,14 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 - [x] T049 [US1] Create `SubraceSelector.tsx` component in `src/components/PlayerCharacterGenerator/components/SubraceSelector.tsx` ✅
 - [x] T049b [US1] Create `FlexibleAbilityBonusSelector.tsx` for Half-Elf +1/+1 choice in `components/FlexibleAbilityBonusSelector.tsx` ✅
 
-#### Step 3: Class Selection (with Level 1 Subclass)
-- [ ] T050 [US1] Create `ClassSelectionStep.tsx` in `creationDrawerComponents/ClassSelectionStep.tsx`
-- [ ] T051 [US1] Create `ClassCard.tsx` component in `components/ClassCard.tsx`
-- [ ] T052 [US1] Create `SkillSelector.tsx` component in `components/SkillSelector.tsx`
-- [ ] T053 [US1] Create `EquipmentChoiceSelector.tsx` component in `components/EquipmentChoiceSelector.tsx`
-- [ ] T053b [US1] Create `SubclassSelector.tsx` for level 1 subclass selection (Cleric/Sorcerer/Warlock) in `components/SubclassSelector.tsx`
-- [ ] T053c [US1] Create `SubclassCard.tsx` component in `components/SubclassCard.tsx`
-- [ ] T053d [US1] Create `SpellSelector.tsx` for caster cantrip/spell selection in `components/SpellSelector.tsx`
+#### Step 3: Class Selection (with Level 1 Subclass) ✅ COMPLETE
+- [x] T050 [US1] Create `ClassSelectionStep.tsx` in `creationDrawerComponents/ClassSelectionStep.tsx` ✅
+- [x] T051 [US1] Create `ClassCard.tsx` component in `components/ClassCard.tsx` ✅
+- [x] T052 [US1] Create `SkillSelector.tsx` component in `components/SkillSelector.tsx` ✅
+- [x] T053 [US1] Create `EquipmentChoiceSelector.tsx` component in `components/EquipmentChoiceSelector.tsx` ✅
+- [x] T053b [US1] Create `SubclassSelector.tsx` for level 1 subclass selection (Cleric/Sorcerer/Warlock) in `components/SubclassSelector.tsx` ✅
+- [x] T053c [US1] Create `SubclassCard.tsx` component in `components/SubclassCard.tsx` ❌ CANCELLED (integrated into SubclassSelector)
+- [x] T053d [US1] Create `SpellSelector.tsx` for caster cantrip/spell selection in `components/SpellSelector.tsx` ✅
 
 #### Step 4: Background Selection
 - [ ] T054 [US1] Create `BackgroundSelectionStep.tsx` in `creationDrawerComponents/BackgroundSelectionStep.tsx`
