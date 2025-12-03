@@ -42,19 +42,19 @@ const FlexibleAbilityBonusSelector: React.FC<FlexibleAbilityBonusSelectorProps> 
         const excluded = new Set(config.excludedAbilities || []);
         return ALL_ABILITIES.filter(ability => !excluded.has(ability));
     }, [config.excludedAbilities]);
-    
+
     // Currently selected abilities
     const selectedAbilities = useMemo(() => {
         return new Set(currentChoices.map(c => c.ability));
     }, [currentChoices]);
-    
+
     // Whether we've reached the max selections
     const isMaxSelected = selectedAbilities.size >= config.choiceCount;
-    
+
     // Handle checkbox toggle
     const handleToggle = useCallback((ability: AbilityName) => {
         const isSelected = selectedAbilities.has(ability);
-        
+
         if (isSelected) {
             // Remove this ability from choices
             const newChoices = currentChoices.filter(c => c.ability !== ability);
@@ -68,24 +68,24 @@ const FlexibleAbilityBonusSelector: React.FC<FlexibleAbilityBonusSelectorProps> 
             onChange(newChoices);
         }
     }, [selectedAbilities, currentChoices, isMaxSelected, config.bonusPerChoice, onChange]);
-    
+
     return (
         <Box>
             <Text size="xs" fw={500} c="dimmed" mb="xs">
                 {`Choose ${config.choiceCount} ability scores to increase by +${config.bonusPerChoice}`}
             </Text>
-            
+
             {/* Selection Count */}
             <Text size="xs" c={isMaxSelected ? "green" : "yellow"} mb="sm">
                 Selected: {selectedAbilities.size} / {config.choiceCount}
             </Text>
-            
+
             {/* Ability Checkboxes */}
             <Stack gap="xs">
                 {availableAbilities.map(ability => {
                     const isSelected = selectedAbilities.has(ability);
                     const isDisabled = !isSelected && isMaxSelected;
-                    
+
                     return (
                         <Checkbox
                             key={ability}
@@ -111,10 +111,10 @@ const FlexibleAbilityBonusSelector: React.FC<FlexibleAbilityBonusSelectorProps> 
                     );
                 })}
             </Stack>
-            
+
             {/* Warning if not enough selected */}
             {selectedAbilities.size < config.choiceCount && (
-                <Alert 
+                <Alert
                     icon={<IconAlertCircle size={14} />}
                     color="yellow"
                     variant="light"

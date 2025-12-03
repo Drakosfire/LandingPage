@@ -1,10 +1,10 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 1, 2025 (5etools Architecture Research)  
+**Updated**: December 2, 2025 (Canvas Enhancement Breakdown)  
 **Source**: spec.md + plan.md  
-**Total Tasks**: 114 (107 + 7 integration tests)  
-**Estimated Hours**: 116-162h
+**Total Tasks**: 122 (115 + 7 integration tests)  
+**Estimated Hours**: 122-170h
 
 ## 📚 Research References
 
@@ -24,7 +24,7 @@
 |-------|-------------|-------|------------|--------|
 | **Phase 1** | Setup | 3 | 1h | ✅ Complete |
 | **Phase 2** | Foundational (Rule Engine) | 10 | 4-6h | ✅ Complete |
-| **Phase 3** | US1 - Manual Character Creation | 54 | 78-108h | 🔄 In Progress |
+| **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | 🔄 In Progress |
 | **Phase 4** | US4 - Save and Load | 6 | 6-8h | ⏳ Pending |
 | **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending |
 | **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
@@ -222,15 +222,50 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 
 ### 3.6 Canvas Enhancement
 
-- [ ] T059 [US1] Create `CharacterHeader.tsx` in `src/components/PlayerCharacterGenerator/canvasComponents/CharacterHeader.tsx`
-- [ ] T060 [US1] Create `AbilityScoresBlock.tsx` in `canvasComponents/AbilityScoresBlock.tsx`
-- [ ] T061 [US1] Create `CombatStatsBlock.tsx` in `canvasComponents/CombatStatsBlock.tsx`
-- [ ] T062 [US1] Create `ProficienciesBlock.tsx` in `canvasComponents/ProficienciesBlock.tsx`
-- [ ] T063 [US1] Create `FeaturesBlock.tsx` in `canvasComponents/FeaturesBlock.tsx`
-- [ ] T064 [US1] Create `EquipmentBlock.tsx` in `canvasComponents/EquipmentBlock.tsx`
-- [ ] T065 [US1] Create `componentRegistry.ts` in `canvasComponents/componentRegistry.ts`
-- [ ] T066 [US1] Implement `calculateDerivedStats()` in `DnD5eRuleEngine.ts`
-- [ ] T067 [US1] Update `CharacterCanvas.tsx` to use component registry in `shared/CharacterCanvas.tsx`
+**Goal**: Render complete character sheet on canvas with all data from wizard  
+**Prerequisite**: Demo character data for testing canvas components  
+**Pattern**: Follow StatblockGenerator componentRegistry approach
+
+#### Phase 3.6a: Demo Data & Calculations (BLOCKING)
+
+Must complete before canvas components can be tested.
+
+- [ ] T059a [US1] Create `DEMO_FIGHTER.ts` in `canvasComponents/demoData/` - Complete Human Fighter L1 with all fields populated for canvas testing
+- [ ] T066a [US1] Implement `calculateArmorClass(character)` in `DnD5eRuleEngine.ts` - Armor + DEX mod + shield + natural AC
+- [ ] T066b [US1] Implement `calculateHP(character)` in `DnD5eRuleEngine.ts` - (Hit die max + CON mod) at L1, (avg + CON) per level after
+- [ ] T066c [US1] Implement `calculateInitiative(character)` in `DnD5eRuleEngine.ts` - DEX modifier
+- [ ] T066d [US1] Implement `calculatePassiveScores(character)` in `DnD5eRuleEngine.ts` - Passive Perception/Investigation/Insight (10 + skill mod)
+- [ ] T066e [US1] Wire all calculations into `calculateDerivedStats()` with unit tests
+
+#### Phase 3.6b: Canvas Components (Display Only)
+
+Each component renders a section of the character sheet. Display-only first, editability added later.
+
+| Component | Renders |
+|-----------|---------|
+| CharacterHeader | Name, Level X Race Class (Subclass) |
+| AbilityScoresBlock | 6 ability scores with modifiers |
+| CombatStatsBlock | HP (current/max), AC, Initiative, Speed, Proficiency Bonus |
+| SkillsBlock | 18 skills with proficiency checkmarks and modifiers |
+| SavingThrowsBlock | 6 saves with proficiency checkmarks and modifiers |
+| FeaturesBlock | Racial + Class features (collapsible descriptions) |
+| EquipmentBlock | Weapons, Armor, Gear (grouped sections) |
+| SpellcastingBlock | Spell Save DC, Attack Bonus, Cantrips, Spells, Slots (casters only) |
+
+- [ ] T059 [US1] Create `CharacterHeader.tsx` in `canvasComponents/` - Renders: Name, "Level X Race Class (Subclass)"
+- [ ] T060 [US1] Create `AbilityScoresBlock.tsx` in `canvasComponents/` - Renders: 6 ability boxes with score + modifier, refactor from existing CharacterCanvas inline code
+- [ ] T061 [US1] Create `CombatStatsBlock.tsx` in `canvasComponents/` - Renders: HP box (current/max + temp), AC shield, Initiative, Speed, Prof Bonus badge
+- [ ] T062 [US1] Create `SkillsBlock.tsx` in `canvasComponents/` - Renders: 18 D&D 5e skills with proficiency indicator (●/○) and calculated modifier
+- [ ] T062b [US1] Create `SavingThrowsBlock.tsx` in `canvasComponents/` - Renders: 6 saving throws with proficiency indicator and modifier
+- [ ] T063 [US1] Create `FeaturesBlock.tsx` in `canvasComponents/` - Renders: Racial + Class features list with collapsible descriptions, grouped by source
+- [ ] T064 [US1] Create `EquipmentBlock.tsx` in `canvasComponents/` - Renders: Weapons section, Armor section, Adventuring Gear section
+- [ ] T064b [US1] Create `SpellcastingBlock.tsx` in `canvasComponents/` - Renders: Spellcasting Ability, Spell Save DC, Spell Attack, Cantrips list, Spells Known/Prepared, Spell Slots (only visible for casters)
+
+#### Phase 3.6c: Integration
+
+- [ ] T065 [US1] Create `componentRegistry.ts` in `canvasComponents/` - Register all canvas components following StatblockGenerator pattern
+- [ ] T067 [US1] Refactor `CharacterCanvas.tsx` to use component registry - Replace inline rendering with registry-based component composition
+- [ ] T067a [US1] Manual smoke test - Load demo fighter, verify all blocks render correctly
 
 ### 3.8 Integration Testing with Test Fixtures 🧪
 
@@ -405,7 +440,7 @@ After Phase 3 completes, these phases are independent:
 4. **Sprint 4**: Phase 3.2b + 3.2c (Level 1 Subclasses + Spellcasting) - 12-18h
 5. **Sprint 5**: Phase 3.3-3.4 (Backgrounds + Validation) - 10-14h
 6. **Sprint 6**: Phase 3.5 (Wizard UI with subclass/spell selectors) - 24-32h
-7. **Sprint 7**: Phase 3.6 (Canvas) - 8-12h
+7. **Sprint 7**: Phase 3.6 (Canvas - Demo Data, Components, Integration) - 14-18h
 8. **Sprint 8**: Phase 4-5 (Save/Load + AI) - 18-24h
 9. **Sprint 9**: Phase 6-8 (Portrait, Leveling, Export) - 16-22h
 10. **Sprint 10**: Phase 9 (Polish) - 2-4h
@@ -429,10 +464,10 @@ After Phase 3 completes, these phases are independent:
 
 | Metric | Value |
 |--------|-------|
-| **Total Tasks** | 114 |
+| **Total Tasks** | 122 |
 | **Setup Tasks** | 3 (✅ complete) |
 | **Foundational Tasks** | 10 (✅ complete) |
-| **US1 Tasks** | 77 (includes subclass/spellcasting + 7 integration tests) |
+| **US1 Tasks** | 85 (includes subclass/spellcasting + canvas breakdown + 7 integration tests) |
 | **US2 Tasks** | 6 |
 | **US3 Tasks** | 2 |
 | **US4 Tasks** | 6 |
@@ -440,9 +475,16 @@ After Phase 3 completes, these phases are independent:
 | **US6 Tasks** | 3 |
 | **Polish Tasks** | 3 |
 | **Parallel Opportunities** | 25+ tasks |
-| **MVP Tasks** | 83 (Phase 1-3) |
+| **MVP Tasks** | 91 (Phase 1-3) |
 
-**New Tasks Added (GPT-5 Review)**:
+**Tasks Added (December 2, 2025 - Canvas Breakdown)**:
+- T059a: Demo character data for canvas testing (1 task)
+- T066a-T066e: Derived stats calculation breakdown (5 tasks)
+- T062b: SavingThrowsBlock separate from skills (1 task)
+- T064b: SpellcastingBlock for casters (1 task)
+- T067a: Manual smoke test (1 task)
+
+**Previous Additions (GPT-5 Review)**:
 - T026b-T026g: Flexible ability bonuses (6 tasks)
 - T035b-T035i: Level 1 subclasses (8 tasks)
 - T035j-T035p: Spellcasting system (7 tasks)
@@ -452,6 +494,6 @@ After Phase 3 completes, these phases are independent:
 ---
 
 **Generated by speckit.tasks workflow**  
-**Updated**: December 1, 2025 (GPT-5 Review Integration)  
+**Updated**: December 2, 2025 (Canvas Enhancement Breakdown)  
 **Ready for implementation**
 

@@ -276,7 +276,7 @@ export class DnD5eRuleEngine implements RuleEngine<
             const flexibleConfig = this.getFlexibleAbilityBonusOptions(character.race.id);
             if (flexibleConfig) {
                 const choices = character.flexibleAbilityBonusChoices || [];
-                
+
                 if (choices.length !== flexibleConfig.choiceCount) {
                     result.isValid = false;
                     result.errors.push({

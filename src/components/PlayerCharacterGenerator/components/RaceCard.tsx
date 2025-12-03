@@ -43,7 +43,7 @@ const RaceCard: React.FC<RaceCardProps> = ({
     onFlexibleBonusChange
 }) => {
     const [traitsExpanded, setTraitsExpanded] = useState(false);
-    
+
     const handleSelect = useCallback(() => {
         // If race has subraces, don't select the base race directly
         if (subraces && subraces.length > 0) {
@@ -56,18 +56,18 @@ const RaceCard: React.FC<RaceCardProps> = ({
             onSelect(race);
         }
     }, [race, subraces, isSelected, onSelect, onSubraceSelect]);
-    
+
     const toggleTraits = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         setTraitsExpanded(prev => !prev);
     }, []);
-    
+
     // Get speed display
     const speedDisplay = `${race.speed.walk} ft.`;
-    
+
     // Get base race traits (not subrace-specific)
     const displayTraits = race.traits || [];
-    
+
     return (
         <Paper
             p="sm"
@@ -87,7 +87,7 @@ const RaceCard: React.FC<RaceCardProps> = ({
                     <Group gap="sm" wrap="nowrap">
                         <Radio
                             checked={isSelected}
-                            onChange={() => {}}
+                            onChange={() => { }}
                             size="md"
                             color="red"
                             style={{ cursor: 'pointer' }}
@@ -99,22 +99,22 @@ const RaceCard: React.FC<RaceCardProps> = ({
                             </Text>
                         </Box>
                     </Group>
-                    
-                    <Badge 
-                        color="red" 
+
+                    <Badge
+                        color="red"
                         variant="light"
                         size="sm"
                     >
                         {bonusesDisplay}
                     </Badge>
                 </Group>
-                
+
                 {/* Traits Toggle */}
                 <UnstyledButton
                     onClick={toggleTraits}
-                    style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: '4px',
                         color: 'var(--mantine-color-dimmed)'
                     }}
@@ -124,12 +124,12 @@ const RaceCard: React.FC<RaceCardProps> = ({
                         {traitsExpanded ? 'Hide traits' : `Show ${displayTraits.length} traits`}
                     </Text>
                 </UnstyledButton>
-                
+
                 {/* Collapsible Traits */}
                 <Collapse in={traitsExpanded}>
-                    <Box 
-                        p="xs" 
-                        style={{ 
+                    <Box
+                        p="xs"
+                        style={{
                             backgroundColor: 'var(--mantine-color-dark-7)',
                             borderRadius: 'var(--mantine-radius-sm)'
                         }}
@@ -139,8 +139,8 @@ const RaceCard: React.FC<RaceCardProps> = ({
                                 <Box key={trait.id}>
                                     <Text size="sm" fw={500} c="red.4">• {trait.name}</Text>
                                     <Text size="xs" c="dimmed" ml="md">
-                                        {trait.description.length > 150 
-                                            ? `${trait.description.substring(0, 150)}...` 
+                                        {trait.description.length > 150
+                                            ? `${trait.description.substring(0, 150)}...`
                                             : trait.description
                                         }
                                     </Text>
@@ -149,7 +149,7 @@ const RaceCard: React.FC<RaceCardProps> = ({
                         </Stack>
                     </Box>
                 </Collapse>
-                
+
                 {/* Subrace Selector (if race has subraces and is selected) */}
                 {isSelected && subraces && subraces.length > 0 && (
                     <>
@@ -161,7 +161,7 @@ const RaceCard: React.FC<RaceCardProps> = ({
                         />
                     </>
                 )}
-                
+
                 {/* Flexible Ability Bonus Selector (Half-Elf) */}
                 {isSelected && hasFlexibleBonuses && flexibleBonusOptions && onFlexibleBonusChange && (
                     <>

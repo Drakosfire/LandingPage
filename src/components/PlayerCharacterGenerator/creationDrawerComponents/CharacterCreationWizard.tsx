@@ -59,13 +59,13 @@ const CharacterCreationWizard: React.FC = () => {
     const handleNext = () => {
         if (currentStep < TOTAL_STEPS - 1) {
             let nextStep = currentStep + 1;
-            
+
             // Skip spell step (index 3) for non-casters
             if (nextStep === 3 && !isSpellcaster()) {
                 console.log('⏭️ [Wizard] Skipping Spells step (non-caster)');
                 nextStep = 4; // Jump to Background
             }
-            
+
             setCurrentStep(nextStep);
         }
     };
@@ -73,13 +73,13 @@ const CharacterCreationWizard: React.FC = () => {
     const handlePrevious = () => {
         if (currentStep > 0) {
             let prevStep = currentStep - 1;
-            
+
             // Skip spell step (index 3) when going back for non-casters
             if (prevStep === 3 && !isSpellcaster()) {
                 console.log('⏭️ [Wizard] Skipping Spells step (non-caster)');
                 prevStep = 2; // Jump to Class
             }
-            
+
             setCurrentStep(prevStep);
         }
     };
@@ -96,9 +96,9 @@ const CharacterCreationWizard: React.FC = () => {
                 <Stepper.Step label="Abilities" description="Assign scores" />
                 <Stepper.Step label="Race" description="Choose race" />
                 <Stepper.Step label="Class" description="Choose class" />
-                <Stepper.Step 
-                    label="Spells" 
-                    description={isSpellcaster() ? "Select spells" : "N/A"} 
+                <Stepper.Step
+                    label="Spells"
+                    description={isSpellcaster() ? "Select spells" : "N/A"}
                     color={isSpellcaster() ? undefined : "gray"}
                 />
                 <Stepper.Step label="Background" description="Choose background" />

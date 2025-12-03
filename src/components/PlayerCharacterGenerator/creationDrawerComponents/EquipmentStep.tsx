@@ -18,7 +18,7 @@ import type { DnD5eClass } from '../types';
 
 const EquipmentStep: React.FC = () => {
     const { character, ruleEngine } = usePlayerCharacterGenerator();
-    
+
     const dnd5eData = character?.dnd5eData;
 
     // Get selected class data
@@ -219,12 +219,12 @@ const EquipmentStep: React.FC = () => {
                     <Text size="sm" fw={600}>Starting Currency</Text>
                 </Group>
                 <Text size="sm">
-                    {startingGold > 0 
+                    {startingGold > 0
                         ? `${startingGold} gp (average from class)`
                         : 'Starting gold varies based on equipment choices'}
                 </Text>
                 <Text size="xs" c="dimmed" mt="xs">
-                    Note: You may choose to take starting gold instead of equipment. 
+                    Note: You may choose to take starting gold instead of equipment.
                     This is handled in the final character sheet.
                 </Text>
             </Paper>
@@ -249,4 +249,6 @@ const EquipmentStep: React.FC = () => {
 };
 
 export default EquipmentStep;
+
+
 

@@ -15,7 +15,7 @@ import { getAbilityModifier, getProficiencyBonus } from '../types/dnd5e/characte
 
 const ReviewStep: React.FC = () => {
     const { character, updateCharacter, updateDnD5eData, ruleEngine, validation, isCharacterValid } = usePlayerCharacterGenerator();
-    
+
     const dnd5eData = character?.dnd5eData;
 
     // Get class data
@@ -40,18 +40,18 @@ const ReviewStep: React.FC = () => {
     // Calculate derived stats
     const derivedStats = useMemo(() => {
         if (!dnd5eData || !selectedClass) return null;
-        
+
         const level = dnd5eData.classes[0]?.level || 1;
         const conMod = getAbilityModifier(dnd5eData.abilityScores.constitution);
         const dexMod = getAbilityModifier(dnd5eData.abilityScores.dexterity);
         const profBonus = getProficiencyBonus(level);
-        
+
         // Calculate HP (max at level 1)
         const hp = selectedClass.hitDie + conMod;
-        
+
         // Calculate AC (assume no armor = 10 + DEX)
         const ac = 10 + dexMod;
-        
+
         return {
             hp,
             ac,
@@ -200,7 +200,7 @@ const ReviewStep: React.FC = () => {
                         <div>
                             <Text size="xs" c="dimmed">Skills</Text>
                             <Text size="sm">
-                                {dnd5eData.proficiencies.skills.map(s => 
+                                {dnd5eData.proficiencies.skills.map(s =>
                                     s.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
                                 ).join(', ')}
                             </Text>
@@ -210,7 +210,7 @@ const ReviewStep: React.FC = () => {
                         <div>
                             <Text size="xs" c="dimmed">Saving Throws</Text>
                             <Text size="sm">
-                                {selectedClass.savingThrows.map(s => 
+                                {selectedClass.savingThrows.map(s =>
                                     s.charAt(0).toUpperCase() + s.slice(1)
                                 ).join(', ')}
                             </Text>
@@ -239,8 +239,8 @@ const ReviewStep: React.FC = () => {
                         </Box>
                         <Box ta="center">
                             <Text size="lg" fw={700}>
-                                {spellcastingInfo.spellAttackBonus !== undefined 
-                                    ? `+${spellcastingInfo.spellAttackBonus}` 
+                                {spellcastingInfo.spellAttackBonus !== undefined
+                                    ? `+${spellcastingInfo.spellAttackBonus}`
                                     : '—'}
                             </Text>
                             <Text size="xs" c="dimmed">Spell Attack</Text>
@@ -275,18 +275,18 @@ const ReviewStep: React.FC = () => {
             <Box
                 p="sm"
                 style={{
-                    backgroundColor: isCharacterValid 
-                        ? 'var(--mantine-color-green-0)' 
+                    backgroundColor: isCharacterValid
+                        ? 'var(--mantine-color-green-0)'
                         : 'var(--mantine-color-gray-1)',
                     borderRadius: 'var(--mantine-radius-sm)',
-                    border: isCharacterValid 
-                        ? '1px solid var(--mantine-color-green-3)' 
+                    border: isCharacterValid
+                        ? '1px solid var(--mantine-color-green-3)'
                         : '1px solid var(--mantine-color-gray-3)'
                 }}
             >
                 <Text size="sm" ta="center" c={isCharacterValid ? 'green' : 'dimmed'}>
-                    {isCharacterValid 
-                        ? '✓ Ready to finalize your character!' 
+                    {isCharacterValid
+                        ? '✓ Ready to finalize your character!'
                         : 'Complete all steps to finalize your character'}
                 </Text>
             </Box>
@@ -295,4 +295,6 @@ const ReviewStep: React.FC = () => {
 };
 
 export default ReviewStep;
+
+
 

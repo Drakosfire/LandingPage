@@ -408,7 +408,7 @@ export function getBackgroundById(id: string): DnD5eBackground | undefined {
  * Get backgrounds by skill
  */
 export function getBackgroundsBySkill(skill: string): DnD5eBackground[] {
-    return SRD_BACKGROUNDS.filter(bg => 
+    return SRD_BACKGROUNDS.filter(bg =>
         bg.skillProficiencies.includes(skill.toLowerCase())
     );
 }

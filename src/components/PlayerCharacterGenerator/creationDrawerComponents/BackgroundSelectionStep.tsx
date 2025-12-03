@@ -100,10 +100,10 @@ const BackgroundSelectionStep: React.FC = () => {
                 ...(selectedBackground?.skillProficiencies || []).filter(s => s !== overlappingSkill),
                 replacementSkill
             ];
-            
+
             // Remove duplicates
             const uniqueSkills = Array.from(new Set(newSkills));
-            
+
             updateDnD5eData({
                 proficiencies: {
                     ...dnd5eData.proficiencies,
@@ -115,7 +115,7 @@ const BackgroundSelectionStep: React.FC = () => {
 
     // Format skill name for display
     const formatSkillName = (skill: string): string => {
-        return skill.split('-').map(word => 
+        return skill.split('-').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1)
         ).join(' ');
     };
@@ -159,7 +159,7 @@ const BackgroundSelectionStep: React.FC = () => {
                             isSelected={selectedBackground?.id === background.id}
                             onSelect={handleBackgroundSelect}
                             hasSkillOverlap={
-                                selectedBackground?.id === background.id && 
+                                selectedBackground?.id === background.id &&
                                 skillOverlaps.length > 0
                             }
                         />
@@ -174,7 +174,7 @@ const BackgroundSelectionStep: React.FC = () => {
                         <IconAlertTriangle size={20} color="var(--mantine-color-orange-5)" />
                         <Text fw={600} size="sm">Skill Overlap Detected</Text>
                     </Group>
-                    
+
                     <Text size="sm" c="dimmed" mb="md">
                         Your class already grants proficiency in skills that {selectedBackground.name} also provides.
                         Choose replacement skills:

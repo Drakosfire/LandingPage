@@ -24,82 +24,82 @@ import type { AbilityBonusChoice } from '../engine';
 
 const RaceSelectionStep: React.FC = () => {
     const { character, updateDnD5eData, ruleEngine, validation } = usePlayerCharacterGenerator();
-    
+
     // Get all available races from the rule engine
     const allRaces = useMemo(() => {
         return ruleEngine.getAvailableRaces();
     }, [ruleEngine]);
-    
+
     // Get base race options (for display - excludes subraces)
     const baseRaceOptions = useMemo(() => {
         return ruleEngine.getBaseRaceOptions();
     }, [ruleEngine]);
-    
+
     // Get current selected race ID
     const selectedRaceId = character?.dnd5eData?.race?.id || null;
-    
+
     // Get the selected base race (for subrace lookup)
     const selectedBaseRace = useMemo(() => {
         if (!selectedRaceId) return null;
         const selectedRace = allRaces.find(r => r.id === selectedRaceId);
         return selectedRace?.baseRace || selectedRace?.id.split('-')[0] || null;
     }, [selectedRaceId, allRaces]);
-    
+
     // Check if selected race has flexible ability bonuses (Half-Elf)
     const hasFlexibleBonuses = useMemo(() => {
         if (!selectedRaceId) return false;
         return ruleEngine.hasFlexibleAbilityBonuses(selectedRaceId);
     }, [selectedRaceId, ruleEngine]);
-    
+
     // Get flexible bonus options if applicable
     const flexibleBonusOptions = useMemo(() => {
         if (!hasFlexibleBonuses || !selectedRaceId) return null;
         return ruleEngine.getFlexibleAbilityBonusOptions(selectedRaceId);
     }, [hasFlexibleBonuses, selectedRaceId, ruleEngine]);
-    
+
     // Handle race selection
     const handleRaceSelect = useCallback((race: DnD5eRace) => {
         console.log(`🧝 [RaceSelection] Selected race: ${race.name}`);
-        
+
         updateDnD5eData({
             race: race,
             // Clear flexible bonus choices when switching races
             flexibleAbilityBonusChoices: undefined
         });
     }, [updateDnD5eData]);
-    
+
     // Handle subrace selection
     const handleSubraceSelect = useCallback((subrace: DnD5eRace) => {
         console.log(`🧝 [RaceSelection] Selected subrace: ${subrace.name}`);
-        
+
         updateDnD5eData({
             race: subrace,
             // Clear flexible bonus choices when switching subraces
             flexibleAbilityBonusChoices: undefined
         });
     }, [updateDnD5eData]);
-    
+
     // Handle flexible ability bonus changes (Half-Elf)
     const handleFlexibleBonusChange = useCallback((choices: AbilityBonusChoice[]) => {
         console.log(`🎲 [RaceSelection] Flexible bonus choices:`, choices);
-        
+
         updateDnD5eData({
             flexibleAbilityBonusChoices: choices
         });
     }, [updateDnD5eData]);
-    
+
     // Get race-specific validation errors
     const raceValidationErrors = useMemo(() => {
         return validation.errors.filter(e => e.step === 'race');
     }, [validation]);
-    
+
     // Format ability bonuses for display (using full DnD5eRace)
     const formatAbilityBonuses = (race: DnD5eRace): string => {
         const bonuses = race.abilityBonuses
             .filter(b => b.ability !== 'choice')
             .map(b => `+${b.bonus} ${b.ability.substring(0, 3).toUpperCase()}`)
             .join(', ');
-        
+
         // Check for flexible bonuses (Half-Elf has 'choice' entries)
         const choiceBonuses = race.abilityBonuses.filter(b => b.ability === 'choice');
         if (choiceBonuses.length > 0) {
@@ -107,10 +107,10 @@ const RaceSelectionStep: React.FC = () => {
             const totalChoices = choiceBonuses.reduce((sum, b) => sum + b.bonus, 0);
             return bonuses ? `${bonuses}, +1 to ${totalChoices} others` : `+1 to ${totalChoices} abilities`;
         }
-        
+
         return bonuses;
     };
-    
+
     // Get the full race data for a base race option
     const getFullRaceData = useCallback((baseRaceOption: { id: string; name: string; hasSubraces: boolean }): DnD5eRace | null => {
         // For races with subraces, find any matching full race (we'll use subraces for details)
@@ -125,7 +125,7 @@ const RaceSelectionStep: React.FC = () => {
         // Find the exact race (no subraces)
         return allRaces.find(r => r.id === baseRaceOption.id) || null;
     }, [allRaces, ruleEngine]);
-    
+
     return (
         <Stack gap="md" h="100%">
             {/* Header */}
@@ -135,12 +135,12 @@ const RaceSelectionStep: React.FC = () => {
                     Choose your character's race. Each race provides unique ability bonuses and traits.
                 </Text>
             </Box>
-            
+
             {/* Validation Errors */}
             {raceValidationErrors.length > 0 && (
-                <Alert 
-                    icon={<IconAlertCircle size={16} />} 
-                    title="Validation" 
+                <Alert
+                    icon={<IconAlertCircle size={16} />}
+                    title="Validation"
                     color="red"
                     variant="light"
                 >
@@ -149,7 +149,7 @@ const RaceSelectionStep: React.FC = () => {
                     ))}
                 </Alert>
             )}
-            
+
             {/* Scrollable Race List */}
             <ScrollArea style={{ flex: 1 }} offsetScrollbars>
                 <Stack gap="xs">
@@ -157,15 +157,15 @@ const RaceSelectionStep: React.FC = () => {
                         // Get full race data for display
                         const fullRaceData = getFullRaceData(baseRaceOption);
                         if (!fullRaceData) return null;
-                        
+
                         // Get subraces for this base race
                         const subraces = ruleEngine.getSubraces(baseRaceOption.id);
                         const hasSubraces = subraces.length > 0;
-                        
+
                         // Check if this race or one of its subraces is selected
                         const isSelected = selectedBaseRace === baseRaceOption.id ||
                             subraces.some(sr => sr.id === selectedRaceId);
-                        
+
                         return (
                             <RaceCard
                                 key={baseRaceOption.id}
@@ -185,12 +185,12 @@ const RaceSelectionStep: React.FC = () => {
                     })}
                 </Stack>
             </ScrollArea>
-            
+
             {/* Selection Summary */}
             {selectedRaceId && character?.dnd5eData?.race && (
-                <Box 
-                    p="sm" 
-                    style={{ 
+                <Box
+                    p="sm"
+                    style={{
                         backgroundColor: 'var(--mantine-color-dark-6)',
                         borderRadius: 'var(--mantine-radius-md)',
                         borderLeft: '4px solid var(--mantine-color-red-6)'

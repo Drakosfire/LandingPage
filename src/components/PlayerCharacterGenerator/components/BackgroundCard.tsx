@@ -38,7 +38,7 @@ const BackgroundCard: React.FC<BackgroundCardProps> = ({
 
     // Format skill name for display
     const formatSkillName = (skill: string): string => {
-        return skill.split('-').map(word => 
+        return skill.split('-').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1)
         ).join(' ');
     };
@@ -131,7 +131,7 @@ const BackgroundCard: React.FC<BackgroundCardProps> = ({
                 <Collapse in={detailsExpanded}>
                     <Stack gap="xs" pt="xs">
                         <Divider />
-                        
+
                         {/* Description */}
                         <Box>
                             <Text size="sm">{background.description}</Text>
@@ -171,4 +171,6 @@ const BackgroundCard: React.FC<BackgroundCardProps> = ({
 };
 
 export default BackgroundCard;
+
+
 
