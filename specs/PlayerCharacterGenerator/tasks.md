@@ -3,7 +3,7 @@
 **Generated**: November 30, 2025  
 **Updated**: December 2, 2025 (Canvas Enhancement Breakdown)  
 **Source**: spec.md + plan.md  
-**Total Tasks**: 123 (116 + 7 integration tests)  
+**Total Tasks**: 131 (124 + 7 integration tests)  
 **Estimated Hours**: 122-170h
 
 ## 📚 Research References
@@ -267,6 +267,33 @@ Each component renders a section of the character sheet. Display-only first, edi
 - [x] T067 [US1] Refactor `CharacterCanvas.tsx` to use component registry - Replace inline rendering with registry-based component composition ✅
 - [ ] T067a [US1] Manual smoke test - Load demo fighter, verify all blocks render correctly
 
+#### Phase 3.6d: PHB-Style Multi-Page Canvas (Blocking for visual quality)
+
+**Goal**: Implement proper D&D PHB character sheet styling with multi-page canvas rendering  
+**Prerequisite**: Study StatblockGenerator's HTML/CSS structure for page rendering  
+**Reference**: D&D 5e PHB character sheet layout
+
+- [ ] T068 [US1] **Research**: Extract HTML source from StatblockGenerator canvas for reference styling
+- [ ] T069 [US1] **Research**: Get reference renders of ideal PHB-style character sheet (screenshots/examples)
+- [ ] T070 [US1] Create `CharacterSheetPage.tsx` - Single page component with PHB parchment styling, headers, and layout grid
+- [ ] T071 [US1] Create `PageBreakManager.ts` - Logic to calculate content height and determine page breaks
+- [ ] T072 [US1] Update `CharacterCanvas.tsx` to use multi-page rendering with `CharacterSheetPage` components
+- [ ] T073 [US1] Create PC-specific layout sections:
+  - Header area with name, class, level, race (different from monster statblock header)
+  - Ability scores section (standard 6-box layout vs inline table)
+  - Combat stats (AC, HP, Init, Speed in D&D PHB arrangement)
+  - Skills/Saves in two-column checkbox layout
+  - Features & traits section with collapsible groups
+  - Equipment/inventory section
+  - Spellcasting page (if caster) with spell list and slot tracking
+- [ ] T074 [US1] Add PHB-specific CSS to `CharacterComponents.css`:
+  - Page dimensions (8.5x11 or A4)
+  - Font families (BookInsanity, ScalySans)
+  - Red accent colors (#58180d, #a11d18)
+  - Parchment background texture
+  - Section dividers and borders
+- [ ] T075 [US1] Test multi-page rendering with DEMO_FIGHTER (expect 1-2 pages for L1 Fighter)
+
 ### 3.8 Integration Testing with Test Fixtures 🧪
 
 **Goal**: Validate engine produces correct output for all test character scenarios  
@@ -472,7 +499,7 @@ After Phase 3 completes, these phases are independent:
 
 | Metric | Value |
 |--------|-------|
-| **Total Tasks** | 123 |
+| **Total Tasks** | 131 |
 | **Setup Tasks** | 3 (✅ complete) |
 | **Foundational Tasks** | 10 (✅ complete) |
 | **US1 Tasks** | 85 (includes subclass/spellcasting + canvas breakdown + 7 integration tests) |
@@ -491,6 +518,7 @@ After Phase 3 completes, these phases are independent:
 - T062b: SavingThrowsBlock separate from skills (1 task)
 - T064b: SpellcastingBlock for casters (1 task)
 - T067a: Manual smoke test (1 task)
+- T068-T075: PHB-style multi-page canvas (8 tasks)
 
 **Previous Additions (GPT-5 Review)**:
 - T026b-T026g: Flexible ability bonuses (6 tasks)
