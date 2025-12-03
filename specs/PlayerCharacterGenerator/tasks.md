@@ -252,18 +252,18 @@ Each component renders a section of the character sheet. Display-only first, edi
 | EquipmentBlock | Weapons, Armor, Gear (grouped sections) |
 | SpellcastingBlock | Spell Save DC, Attack Bonus, Cantrips, Spells, Slots (casters only) |
 
-- [ ] T059 [US1] Create `CharacterHeader.tsx` in `canvasComponents/` - Renders: Name, "Level X Race Class (Subclass)"
-- [ ] T060 [US1] Create `AbilityScoresBlock.tsx` in `canvasComponents/` - Renders: 6 ability boxes with score + modifier, refactor from existing CharacterCanvas inline code
-- [ ] T061 [US1] Create `CombatStatsBlock.tsx` in `canvasComponents/` - Renders: HP box (current/max + temp), AC shield, Initiative, Speed, Prof Bonus badge
-- [ ] T062 [US1] Create `SkillsBlock.tsx` in `canvasComponents/` - Renders: 18 D&D 5e skills with proficiency indicator (●/○) and calculated modifier
-- [ ] T062b [US1] Create `SavingThrowsBlock.tsx` in `canvasComponents/` - Renders: 6 saving throws with proficiency indicator and modifier
-- [ ] T063 [US1] Create `FeaturesBlock.tsx` in `canvasComponents/` - Renders: Racial + Class features list with collapsible descriptions, grouped by source
-- [ ] T064 [US1] Create `EquipmentBlock.tsx` in `canvasComponents/` - Renders: Weapons section, Armor section, Adventuring Gear section
-- [ ] T064b [US1] Create `SpellcastingBlock.tsx` in `canvasComponents/` - Renders: Spellcasting Ability, Spell Save DC, Spell Attack, Cantrips list, Spells Known/Prepared, Spell Slots (only visible for casters)
+- [x] T059 [US1] Create `CharacterHeader.tsx` in `canvasComponents/` - Renders: Name, "Level X Race Class (Subclass)" ✅
+- [x] T060 [US1] Create `AbilityScoresBlock.tsx` in `canvasComponents/` - Renders: 6 ability boxes with score + modifier ✅
+- [x] T061 [US1] Create `CombatStatsBlock.tsx` in `canvasComponents/` - Renders: HP box (current/max + temp), AC shield, Initiative, Speed, Prof Bonus badge ✅
+- [x] T062 [US1] Create `SkillsBlock.tsx` in `canvasComponents/` - Renders: 18 D&D 5e skills with proficiency indicator (●/○) and calculated modifier ✅
+- [x] T062b [US1] Create `SavingThrowsBlock.tsx` in `canvasComponents/` - Renders: 6 saving throws with proficiency indicator and modifier ✅
+- [x] T063 [US1] Create `FeaturesBlock.tsx` in `canvasComponents/` - Renders: Racial + Class features list with collapsible descriptions, grouped by source ✅
+- [x] T064 [US1] Create `EquipmentBlock.tsx` in `canvasComponents/` - Renders: Weapons section, Armor section, Adventuring Gear section ✅
+- [x] T064b [US1] Create `SpellcastingBlock.tsx` in `canvasComponents/` - Renders: Spellcasting Ability, Spell Save DC, Spell Attack, Cantrips list, Spells Known/Prepared, Spell Slots (only visible for casters) ✅
 
 #### Phase 3.6c: Integration
 
-- [ ] T065 [US1] Create `componentRegistry.ts` in `canvasComponents/` - Register all canvas components following StatblockGenerator pattern
+- [x] T065 [US1] Create `componentRegistry.ts` in `canvasComponents/` - Register all canvas components following StatblockGenerator pattern ✅
 - [ ] T067 [US1] Refactor `CharacterCanvas.tsx` to use component registry - Replace inline rendering with registry-based component composition
 - [ ] T067a [US1] Manual smoke test - Load demo fighter, verify all blocks render correctly
 
