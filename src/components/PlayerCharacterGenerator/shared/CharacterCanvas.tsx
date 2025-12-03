@@ -54,7 +54,7 @@ const CharacterCanvas: React.FC = () => {
     const canvasContent = useMemo(() => {
         const dnd5e = character?.dnd5eData;
         const hasCharacter = character?.name && character.name.trim().length > 0;
-        const hasAbilityScores = dnd5e?.abilityScores && 
+        const hasAbilityScores = dnd5e?.abilityScores &&
             Object.values(dnd5e.abilityScores).some(v => v > 0);
 
         if (hasCharacter && hasAbilityScores && dnd5e) {
@@ -114,7 +114,7 @@ const CharacterCanvas: React.FC = () => {
                                                 <CanvasEntry>
                                                     <SavingThrowsBlock
                                                         abilityScores={dnd5e.abilityScores}
-                                                        proficientSaves={dnd5e.proficiencies.savingThrows}
+                                                        proficientSaves={dnd5e.proficiencies.savingThrows as Array<keyof typeof dnd5e.abilityScores>}
                                                         proficiencyBonus={dnd5e.derivedStats?.proficiencyBonus ?? 2}
                                                     />
                                                 </CanvasEntry>
@@ -169,8 +169,8 @@ const CharacterCanvas: React.FC = () => {
                                                     <CanvasEntry>
                                                         <SpellcastingBlock
                                                             spellcasting={dnd5e.spellcasting}
-                                                            spellSaveDC={dnd5e.derivedStats?.spellSaveDC ?? dnd5e.spellcasting.spellSaveDC}
-                                                            spellAttackBonus={dnd5e.derivedStats?.spellAttackBonus ?? dnd5e.spellcasting.spellAttackBonus}
+                                                            spellSaveDC={dnd5e.spellcasting.spellSaveDC}
+                                                            spellAttackBonus={dnd5e.spellcasting.spellAttackBonus}
                                                         />
                                                     </CanvasEntry>
                                                 </>

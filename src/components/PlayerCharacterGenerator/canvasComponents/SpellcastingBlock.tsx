@@ -146,7 +146,7 @@ const SpellcastingBlock: React.FC<SpellcastingBlockProps> = ({
     const displaySpells = spellsPrepared && spellsPrepared.length > 0 ? spellsPrepared : spellsKnown;
 
     // Format ability name
-    const abilityLabel = spellcastingAbility 
+    const abilityLabel = spellcastingAbility
         ? spellcastingAbility.charAt(0).toUpperCase() + spellcastingAbility.slice(1, 3).toUpperCase()
         : 'N/A';
 
