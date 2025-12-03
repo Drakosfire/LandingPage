@@ -20,7 +20,7 @@
 
 | Section | Contents |
 |---------|----------|
-| **Header** | D&D BEYOND™ branding, Character Name |
+| **Header** | DungeonMind branding, Character Name |
 | **Character Info** | Gender, Age, Alignment, Faith, Sex, Height, Weight, Eyes, Hair |
 | **Personality** | Traits, Ideals, Bonds, Flaws |
 | **Appearance** | Character appearance description |
