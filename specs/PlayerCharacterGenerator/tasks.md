@@ -226,16 +226,16 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 **Prerequisite**: Demo character data for testing canvas components  
 **Pattern**: Follow StatblockGenerator componentRegistry approach
 
-#### Phase 3.6a: Demo Data & Calculations (BLOCKING)
+#### Phase 3.6a: Demo Data & Calculations (BLOCKING) ✅ COMPLETE
 
 Must complete before canvas components can be tested.
 
-- [ ] T059a [US1] Create `DEMO_FIGHTER.ts` in `canvasComponents/demoData/` - Complete Human Fighter L1 with all fields populated for canvas testing
-- [ ] T066a [US1] Implement `calculateArmorClass(character)` in `DnD5eRuleEngine.ts` - Armor + DEX mod + shield + natural AC
-- [ ] T066b [US1] Implement `calculateHP(character)` in `DnD5eRuleEngine.ts` - (Hit die max + CON mod) at L1, (avg + CON) per level after
-- [ ] T066c [US1] Implement `calculateInitiative(character)` in `DnD5eRuleEngine.ts` - DEX modifier
-- [ ] T066d [US1] Implement `calculatePassiveScores(character)` in `DnD5eRuleEngine.ts` - Passive Perception/Investigation/Insight (10 + skill mod)
-- [ ] T066e [US1] Wire all calculations into `calculateDerivedStats()` with unit tests
+- [x] T059a [US1] Create `DEMO_FIGHTER.ts` in `canvasComponents/demoData/` ✅ Complete Human Fighter L1 with all fields
+- [x] T066a [US1] Implement `calculateArmorClass(character)` ✅ Armor, shield, unarmored defense, Draconic Resilience
+- [x] T066b [US1] Implement `calculateHP(character)` ✅ Hit die + CON, Dwarven Toughness, Draconic Resilience
+- [x] T066c [US1] Implement `calculateInitiative(character)` ✅ DEX modifier
+- [x] T066d [US1] Implement `calculatePassiveScores(character)` ✅ Perception/Investigation/Insight with proficiency
+- [x] T066e [US1] Wire all calculations into `calculateDerivedStats()` ✅ 20 new tests
 
 #### Phase 3.6b: Canvas Components (Display Only)
 
