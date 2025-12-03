@@ -4,8 +4,9 @@
  * Canvas-based character sheet display for CharacterGenerator.
  * Uses D&D 5e PHB parchment styling with two-column layout.
  * 
- * Phase 1: Parchment background with ability scores display
- * Phase 2+: Full character sheet with dungeonmind-canvas integration
+ * Refactored to use modular canvas components from componentRegistry.
+ * 
+ * @module PlayerCharacterGenerator/shared/CharacterCanvas
  */
 
 import React, { useMemo } from 'react';
@@ -13,31 +14,51 @@ import '../../../styles/canvas/index.css';         // Shared canvas styles
 import '../../../styles/CharacterComponents.css';  // Character-specific styles
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
-// Helper to calculate ability modifier
-const abilityModifier = (score: number): string => {
-    const modifier = Math.floor((score - 10) / 2);
-    return modifier >= 0 ? `+${modifier}` : `${modifier}`;
-};
+// Import modular canvas components
+import {
+    CharacterHeader,
+    AbilityScoresBlock,
+    CombatStatsBlock,
+    SavingThrowsBlock,
+    SkillsBlock,
+    FeaturesBlock,
+    EquipmentBlock,
+    SpellcastingBlock
+} from '../canvasComponents';
+
+/**
+ * Horizontal divider component
+ */
+const SectionDivider: React.FC = () => (
+    <hr
+        style={{
+            border: 'none',
+            borderTop: '2px solid #a11d18',
+            margin: '0.75rem 0'
+        }}
+    />
+);
+
+/**
+ * Canvas entry wrapper for consistent spacing
+ */
+const CanvasEntry: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div className="canvas-entry" style={{ marginBottom: '0.75rem' }}>
+        {children}
+    </div>
+);
 
 const CharacterCanvas: React.FC = () => {
     const { character } = usePlayerCharacterGenerator();
 
     const canvasContent = useMemo(() => {
+        const dnd5e = character?.dnd5eData;
         const hasCharacter = character?.name && character.name.trim().length > 0;
-        const abilities = character?.dnd5eData?.abilityScores;
-        const classLabel = character?.dnd5eData?.classes?.length
-            ? character.dnd5eData.classes
-                .filter(cls => Boolean(cls?.name))
-                .map(cls => {
-                    const name = cls.name;
-                    const subclass = cls.subclass ? ` (${cls.subclass})` : '';
-                    return `${name}${subclass}`;
-                })
-                .join(' / ')
-            : undefined;
+        const hasAbilityScores = dnd5e?.abilityScores && 
+            Object.values(dnd5e.abilityScores).some(v => v > 0);
 
-        if (hasCharacter && abilities) {
-            // Character sheet with data
+        if (hasCharacter && hasAbilityScores && dnd5e) {
+            // Full character sheet with modular components
             return (
                 <div className="dm-canvas-responsive">
                     <div className="dm-canvas-renderer">
@@ -45,7 +66,7 @@ const CharacterCanvas: React.FC = () => {
                             <div
                                 className="page phb"
                                 style={{
-                                    backgroundColor: '#EEE5CE', // Parchment
+                                    backgroundColor: '#EEE5CE',
                                     padding: '1.4cm 1.9cm 1.7cm',
                                     minHeight: '279.4mm',
                                     fontFamily: 'ScalySansRemake, "Open Sans", sans-serif',
@@ -56,180 +77,103 @@ const CharacterCanvas: React.FC = () => {
                             >
                                 <div className="columnWrapper">
                                     <div className="monster frame wide">
+                                        {/* ===== LEFT COLUMN ===== */}
                                         <div className="canvas-column">
-                                            <div className="canvas-entry">
-                                                <div className="dm-identity-header" style={{ marginBottom: '1rem' }}>
-                                                    <h2 className="dm-monster-name" contentEditable="false">
-                                                        {character.name || 'New Character'}
-                                                    </h2>
-                                                    <p className="dm-monster-meta" contentEditable="false">
-                                                        Level {character.level || 1} {character.dnd5eData?.race?.name || 'Character'}
-                                                        {classLabel && ` ${classLabel}`}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="canvas-entry">
-                                                <hr
-                                                    style={{
-                                                        border: 'none',
-                                                        borderTop: '2px solid #a11d18',
-                                                        margin: '0.5rem 0 1rem'
-                                                    }}
+                                            {/* Character Header */}
+                                            <CanvasEntry>
+                                                <CharacterHeader
+                                                    name={character.name}
+                                                    level={character.level}
+                                                    dnd5eData={dnd5e}
+                                                    portraitUrl={character.portrait}
                                                 />
-                                            </div>
+                                            </CanvasEntry>
 
+                                            <SectionDivider />
 
-                                            <div className="canvas-entry">
-                                                <div className="dm-ability-table" style={{ marginBottom: '1rem' }}>
-                                                    <table
-                                                        style={{
-                                                            width: '100%',
-                                                            borderCollapse: 'collapse',
-                                                            textAlign: 'center'
-                                                        }}
-                                                    >
-                                                        <thead>
-                                                            <tr>
-                                                                {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((label) => (
-                                                                    <th
-                                                                        key={label}
-                                                                        style={{
-                                                                            padding: '0.4rem 0',
-                                                                            background:
-                                                                                'linear-gradient(180deg, rgba(143, 36, 28, 0.9) 0%, rgba(90, 22, 18, 0.9) 100%)',
-                                                                            color: '#fdf6ea',
-                                                                            fontWeight: 700
-                                                                        }}
-                                                                    >
-                                                                        {label}
-                                                                    </th>
-                                                                ))}
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                {[
-                                                                    { key: 'strength', score: abilities.strength },
-                                                                    { key: 'dexterity', score: abilities.dexterity },
-                                                                    { key: 'constitution', score: abilities.constitution },
-                                                                    { key: 'intelligence', score: abilities.intelligence },
-                                                                    { key: 'wisdom', score: abilities.wisdom },
-                                                                    { key: 'charisma', score: abilities.charisma }
-                                                                ].map(({ key, score }) => (
-                                                                    <td
-                                                                        key={key}
-                                                                        style={{
-                                                                            padding: '0.5rem 0',
-                                                                            background: 'rgba(247, 235, 215, 0.85)'
-                                                                        }}
-                                                                    >
-                                                                        <div
-                                                                            style={{
-                                                                                display: 'flex',
-                                                                                flexDirection: 'column',
-                                                                                alignItems: 'center',
-                                                                                gap: '0.2rem'
-                                                                            }}
-                                                                        >
-                                                                            <span style={{ fontWeight: 700, fontSize: '1rem' }}>{score}</span>
-                                                                            <span
-                                                                                style={{
-                                                                                    fontSize: '0.85rem',
-                                                                                    fontWeight: 600,
-                                                                                    color: '#58180d'
-                                                                                }}
-                                                                            >
-                                                                                ({abilityModifier(score)})
-                                                                            </span>
-                                                                        </div>
-                                                                    </td>
-                                                                ))}
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-
-                                            <div className="canvas-entry">
-                                                <hr
-                                                    style={{
-                                                        border: 'none',
-                                                        borderTop: '2px solid #a11d18',
-                                                        margin: '0.5rem 0 1rem'
-                                                    }}
+                                            {/* Ability Scores */}
+                                            <CanvasEntry>
+                                                <AbilityScoresBlock
+                                                    abilityScores={dnd5e.abilityScores}
                                                 />
-                                            </div>
+                                            </CanvasEntry>
+
+                                            <SectionDivider />
+
+                                            {/* Combat Stats */}
+                                            {dnd5e.derivedStats && (
+                                                <CanvasEntry>
+                                                    <CombatStatsBlock
+                                                        derivedStats={dnd5e.derivedStats}
+                                                    />
+                                                </CanvasEntry>
+                                            )}
+
+                                            {/* Saving Throws */}
+                                            {dnd5e.proficiencies?.savingThrows && (
+                                                <CanvasEntry>
+                                                    <SavingThrowsBlock
+                                                        abilityScores={dnd5e.abilityScores}
+                                                        proficientSaves={dnd5e.proficiencies.savingThrows}
+                                                        proficiencyBonus={dnd5e.derivedStats?.proficiencyBonus ?? 2}
+                                                    />
+                                                </CanvasEntry>
+                                            )}
+
+                                            {/* Skills */}
+                                            {dnd5e.proficiencies?.skills && (
+                                                <CanvasEntry>
+                                                    <SkillsBlock
+                                                        abilityScores={dnd5e.abilityScores}
+                                                        proficientSkills={dnd5e.proficiencies.skills}
+                                                        proficiencyBonus={dnd5e.derivedStats?.proficiencyBonus ?? 2}
+                                                    />
+                                                </CanvasEntry>
+                                            )}
                                         </div>
 
+                                        {/* ===== RIGHT COLUMN ===== */}
                                         <div className="canvas-column">
-                                            <div className="canvas-entry">
-                                                <div className="dm-stat-summary" style={{ marginBottom: '1rem' }}>
-                                                    <h3
-                                                        style={{
-                                                            fontFamily: 'BookInsanityRemake, serif',
-                                                            color: '#a11d18',
-                                                            textTransform: 'uppercase',
-                                                            letterSpacing: '0.05em',
-                                                            margin: '0 0 0.6rem',
-                                                            fontSize: '1.1rem'
-                                                        }}
-                                                    >
-                                                        Character Statistics
-                                                    </h3>
-                                                    <p
-                                                        style={{
-                                                            margin: '0.5rem 0',
-                                                            fontStyle: 'italic',
-                                                            color: 'rgba(43, 29, 15, 0.7)'
-                                                        }}
-                                                    >
-                                                        Phase 1: Basic character sheet display
-                                                        <br />
-                                                        Phase 2 will add: Skills, Proficiencies, Features, Equipment, Spells
-                                                    </p>
-                                                </div>
-                                            </div>
+                                            {/* Features & Traits */}
+                                            {(dnd5e.features?.length > 0 || dnd5e.classes?.length > 0) && (
+                                                <CanvasEntry>
+                                                    <FeaturesBlock
+                                                        features={dnd5e.features || []}
+                                                        classLevels={dnd5e.classes}
+                                                        defaultCollapsed={true}
+                                                    />
+                                                </CanvasEntry>
+                                            )}
 
+                                            <SectionDivider />
 
-                                            {character.dnd5eData?.race && (
-                                                <div className="canvas-entry">
-                                                    <div className="dm-trait-section" style={{ marginBottom: '1rem' }}>
-                                                        <h3
-                                                            style={{
-                                                                fontFamily: 'BookInsanityRemake, serif',
-                                                                color: '#a11d18',
-                                                                textTransform: 'uppercase',
-                                                                letterSpacing: '0.05em',
-                                                                margin: '0 0 0.6rem',
-                                                                fontSize: '1.1rem'
-                                                            }}
-                                                        >
-                                                            Racial Traits
-                                                        </h3>
-                                                        <dl style={{ margin: 0 }}>
-                                                            <dt
-                                                                style={{
-                                                                    fontFamily: 'BookInsanityRemake, serif',
-                                                                    fontSize: '1.05rem',
-                                                                    color: '#58180d',
-                                                                    fontWeight: 700,
-                                                                    margin: '0 0 0.25rem'
-                                                                }}
-                                                            >
-                                                                {character.dnd5eData.race.name}
-                                                            </dt>
-                                                            <dd
-                                                                style={{
-                                                                    margin: '0 0 0.5rem',
-                                                                    lineHeight: 1.35
-                                                                }}
-                                                            >
-                                                                {character.dnd5eData.race.description || 'Racial traits coming in Phase 2'}
-                                                            </dd>
-                                                        </dl>
-                                                    </div>
-                                                </div>
+                                            {/* Equipment */}
+                                            {(dnd5e.weapons?.length > 0 || dnd5e.equipment?.length > 0 || dnd5e.armor) && (
+                                                <CanvasEntry>
+                                                    <EquipmentBlock
+                                                        weapons={dnd5e.weapons || []}
+                                                        armor={dnd5e.armor}
+                                                        shield={dnd5e.shield}
+                                                        equipment={dnd5e.equipment || []}
+                                                        abilityScores={dnd5e.abilityScores}
+                                                        proficiencyBonus={dnd5e.derivedStats?.proficiencyBonus ?? 2}
+                                                        currency={dnd5e.currency}
+                                                    />
+                                                </CanvasEntry>
+                                            )}
+
+                                            {/* Spellcasting (only for casters) */}
+                                            {dnd5e.spellcasting && (
+                                                <>
+                                                    <SectionDivider />
+                                                    <CanvasEntry>
+                                                        <SpellcastingBlock
+                                                            spellcasting={dnd5e.spellcasting}
+                                                            spellSaveDC={dnd5e.derivedStats?.spellSaveDC ?? dnd5e.spellcasting.spellSaveDC}
+                                                            spellAttackBonus={dnd5e.derivedStats?.spellAttackBonus ?? dnd5e.spellcasting.spellAttackBonus}
+                                                        />
+                                                    </CanvasEntry>
+                                                </>
                                             )}
                                         </div>
                                     </div>
@@ -249,7 +193,7 @@ const CharacterCanvas: React.FC = () => {
                         <div
                             className="page phb"
                             style={{
-                                backgroundColor: '#EEE5CE', // Parchment
+                                backgroundColor: '#EEE5CE',
                                 padding: '1.4cm 1.9cm 1.7cm',
                                 minHeight: '279.4mm',
                                 fontFamily: 'ScalySansRemake, "Open Sans", sans-serif',

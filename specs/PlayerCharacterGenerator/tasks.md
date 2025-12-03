@@ -264,7 +264,7 @@ Each component renders a section of the character sheet. Display-only first, edi
 #### Phase 3.6c: Integration
 
 - [x] T065 [US1] Create `componentRegistry.ts` in `canvasComponents/` - Register all canvas components following StatblockGenerator pattern ✅
-- [ ] T067 [US1] Refactor `CharacterCanvas.tsx` to use component registry - Replace inline rendering with registry-based component composition
+- [x] T067 [US1] Refactor `CharacterCanvas.tsx` to use component registry - Replace inline rendering with registry-based component composition ✅
 - [ ] T067a [US1] Manual smoke test - Load demo fighter, verify all blocks render correctly
 
 ### 3.8 Integration Testing with Test Fixtures 🧪
