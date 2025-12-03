@@ -270,29 +270,32 @@ Each component renders a section of the character sheet. Display-only first, edi
 #### Phase 3.6d: PHB-Style Multi-Page Canvas (Blocking for visual quality)
 
 **Goal**: Implement proper D&D PHB character sheet styling with multi-page canvas rendering  
-**Prerequisite**: Study StatblockGenerator's HTML/CSS structure for page rendering  
-**Reference**: D&D 5e PHB character sheet layout
+**Design Document**: `research/DESIGN-PHB-Character-Sheet-Implementation.md` 🔒 LOCKED  
+**Key Decision**: Use `.character.frame` instead of `.monster.frame` to avoid font overrides
 
-- [ ] T068 [US1] **Research**: Extract HTML source from StatblockGenerator canvas for reference styling
-- [ ] T069 [US1] **Research**: Get reference renders of ideal PHB-style character sheet (screenshots/examples)
-- [ ] T070 [US1] Create `CharacterSheetPage.tsx` - Single page component with PHB parchment styling, headers, and layout grid
-- [ ] T071 [US1] Create `PageBreakManager.ts` - Logic to calculate content height and determine page breaks
-- [ ] T072 [US1] Update `CharacterCanvas.tsx` to use multi-page rendering with `CharacterSheetPage` components
-- [ ] T073 [US1] Create PC-specific layout sections:
-  - Header area with name, class, level, race (different from monster statblock header)
-  - Ability scores section (standard 6-box layout vs inline table)
-  - Combat stats (AC, HP, Init, Speed in D&D PHB arrangement)
-  - Skills/Saves in two-column checkbox layout
-  - Features & traits section with collapsible groups
-  - Equipment/inventory section
-  - Spellcasting page (if caster) with spell list and slot tracking
-- [ ] T074 [US1] Add PHB-specific CSS to `CharacterComponents.css`:
-  - Page dimensions (8.5x11 or A4)
-  - Font families (BookInsanity, ScalySans)
-  - Red accent colors (#58180d, #a11d18)
-  - Parchment background texture
-  - Section dividers and borders
-- [ ] T075 [US1] Test multi-page rendering with DEMO_FIGHTER (expect 1-2 pages for L1 Fighter)
+- [x] T068 [US1] **Research**: Extract HTML source from StatblockGenerator canvas for reference styling ✅
+- [x] T069 [US1] **Research**: Get reference renders + deep research on Homebrewery CSS ✅
+- [ ] T070 [US1] Create `CharacterSheetPage.tsx` - Single page wrapper with `.page.phb` + `.columnWrapper`
+- [ ] T071 [US1] Create `PageBreakManager.ts` - Logic to determine which sections go on which page (may be simple fixed layout)
+- [ ] T072 [US1] Create `CharacterSheetRenderer.tsx` - Orchestrates 1-3 pages based on character (caster vs non-caster)
+- [ ] T073 [US1] Create section components in `canvasComponents/sections/`:
+  - T073a: `AbilityScoresSection.tsx` - 6-box grid layout (not inline table)
+  - T073b: `SavesSkillsSection.tsx` - Combined saves + skills with ●/○ proficiency markers
+  - T073c: `CombatStatsSection.tsx` - AC, Init, Speed, HP, Hit Dice, Death Saves
+  - T073d: `AttacksSection.tsx` - Weapon attacks table
+  - T073e: `FeaturesSection.tsx` - Class/Race features (collapsible)
+  - T073f: `EquipmentSection.tsx` - Inventory list
+  - T073g: `ProficienciesSection.tsx` - Languages, tools, armor, weapons
+  - T073h: `BackgroundSection.tsx` - Personality traits, ideals, bonds, flaws
+  - T073i: `SpellcastingSection.tsx` - Full-width `.spellList.wide` with slot tracker
+- [ ] T074 [US1] Create `CharacterComponents.css` with PHB-specific styles:
+  - `.character.frame` class (replaces `.monster.frame` for PCs)
+  - `.ability-box`, `.ability-scores-grid` for 6-box layout
+  - `.skill-item`, `.save-item` with proficiency markers
+  - `.death-saves`, `.spell-slot-tracker` checkbox styles
+  - `.combat-stats-grid` for AC/Init/Speed boxes
+  - Print optimization with `break-inside: avoid-column`
+- [ ] T075 [US1] Test multi-page rendering with DEMO_FIGHTER (expect 2 pages for L1 Fighter, 3 if caster)
 
 ### 3.8 Integration Testing with Test Fixtures 🧪
 
@@ -518,7 +521,7 @@ After Phase 3 completes, these phases are independent:
 - T062b: SavingThrowsBlock separate from skills (1 task)
 - T064b: SpellcastingBlock for casters (1 task)
 - T067a: Manual smoke test (1 task)
-- T068-T075: PHB-style multi-page canvas (8 tasks)
+- T068-T075: PHB-style multi-page canvas (8 tasks + 9 sub-tasks for T073)
 
 **Previous Additions (GPT-5 Review)**:
 - T026b-T026g: Flexible ability bonuses (6 tasks)
