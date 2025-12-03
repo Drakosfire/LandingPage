@@ -3,7 +3,7 @@
 **Generated**: November 30, 2025  
 **Updated**: December 2, 2025 (Canvas Enhancement Breakdown)  
 **Source**: spec.md + plan.md  
-**Total Tasks**: 122 (115 + 7 integration tests)  
+**Total Tasks**: 123 (116 + 7 integration tests)  
 **Estimated Hours**: 122-170h
 
 ## 📚 Research References
@@ -372,6 +372,14 @@ This phase handles:
 - [ ] T089 Verify all success criteria (SC-001 through SC-010) pass
 - [ ] T090 Run full test suite and verify >80% coverage on engine/validation
 - [ ] T091 Performance audit: Canvas renders <500ms, auto-save <2s
+- [ ] T092 Refactor `DnD5eRuleEngine.ts` into smaller modules:
+  - Extract validators to `validators/` (validateAbilityScores, validateRace, etc.)
+  - Extract calculators to `calculators/` (calculateAC, calculateHP, calculateDerivedStats)
+  - Extract data providers to `providers/` (getAvailableRaces, getAvailableClasses, etc.)
+  - Extract spellcasting logic to `spellcasting/` (getSpellcastingInfo, getAvailableSpells)
+  - Keep core RuleEngine as thin orchestrator (~200-300 lines)
+  - **Prerequisite**: File is well-exercised through canvas + wizard integration
+  - **Current size**: ~1450 lines (target: <300 lines core + modules)
 
 ---
 
@@ -464,7 +472,7 @@ After Phase 3 completes, these phases are independent:
 
 | Metric | Value |
 |--------|-------|
-| **Total Tasks** | 122 |
+| **Total Tasks** | 123 |
 | **Setup Tasks** | 3 (✅ complete) |
 | **Foundational Tasks** | 10 (✅ complete) |
 | **US1 Tasks** | 85 (includes subclass/spellcasting + canvas breakdown + 7 integration tests) |
@@ -473,7 +481,7 @@ After Phase 3 completes, these phases are independent:
 | **US4 Tasks** | 6 |
 | **US5 Tasks** | 4 |
 | **US6 Tasks** | 3 |
-| **Polish Tasks** | 3 |
+| **Polish Tasks** | 4 |
 | **Parallel Opportunities** | 25+ tasks |
 | **MVP Tasks** | 91 (Phase 1-3) |
 
