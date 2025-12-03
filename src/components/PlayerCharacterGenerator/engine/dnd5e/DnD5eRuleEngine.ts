@@ -1071,27 +1071,203 @@ export class DnD5eRuleEngine implements RuleEngine<
     // ===== CALCULATIONS =====
 
     /**
-     * Calculate derived stats for a character
+     * Calculate derived stats for a character (T066e)
      * @param character - Current character
      * @returns Derived stats object
      */
     calculateDerivedStats(character: DnD5eCharacter): DerivedStats {
-        // TODO: T066 - Implement in Phase 3
-        const conMod = this.getAbilityModifier(character.abilityScores.constitution);
-        const dexMod = this.getAbilityModifier(character.abilityScores.dexterity);
-        const wisMod = this.getAbilityModifier(character.abilityScores.wisdom);
         const totalLevel = this.getTotalLevel(character.classes);
+        const passiveScores = this.calculatePassiveScores(character);
+
+        // Get spellcasting info if character is a caster
+        const spellcastingInfo = this.getSpellcastingInfo(character);
 
         return {
-            armorClass: 10 + dexMod, // Base AC without armor
-            initiative: dexMod,
+            armorClass: this.calculateArmorClass(character),
+            initiative: this.calculateInitiative(character),
             speed: character.race?.speed?.walk ?? 30,
             maxHitPoints: this.calculateMaxHP(character),
-            currentHitPoints: this.calculateMaxHP(character),
+            currentHitPoints: this.calculateMaxHP(character), // Default to max
             proficiencyBonus: this.getProficiencyBonus(totalLevel),
-            passivePerception: 10 + wisMod,
-            spellSaveDC: undefined, // TODO: Calculate if spellcaster
-            spellAttackBonus: undefined // TODO: Calculate if spellcaster
+            passivePerception: passiveScores.perception,
+            spellSaveDC: (spellcastingInfo.spellSaveDC ?? 0) > 0 ? spellcastingInfo.spellSaveDC : undefined,
+            spellAttackBonus: (spellcastingInfo.spellAttackBonus ?? 0) > 0 ? spellcastingInfo.spellAttackBonus : undefined
+        };
+    }
+
+    /**
+     * Calculate Armor Class (T066a)
+     * 
+     * AC can come from multiple sources:
+     * 1. Armor + DEX (capped for medium armor, none for heavy)
+     * 2. Shield (+2)
+     * 3. Natural AC (e.g., Draconic Resilience = 13 + DEX)
+     * 4. Unarmored Defense (Barbarian: 10 + DEX + CON, Monk: 10 + DEX + WIS)
+     * 5. Fighting Style: Defense (+1 while wearing armor)
+     * 
+     * @param character - Character to calculate AC for
+     * @returns Armor Class
+     */
+    calculateArmorClass(character: DnD5eCharacter): number {
+        const dexMod = this.getAbilityModifier(character.abilityScores.dexterity);
+        const conMod = this.getAbilityModifier(character.abilityScores.constitution);
+        const wisMod = this.getAbilityModifier(character.abilityScores.wisdom);
+
+        let baseAC = 10 + dexMod; // Default unarmored
+
+        // Check for armor
+        if (character.armor) {
+            const armor = character.armor;
+            baseAC = armor.armorClass;
+
+            // Add DEX modifier based on armor type
+            if (armor.addDexMod) {
+                if (armor.maxDexBonus !== undefined) {
+                    // Medium armor caps DEX bonus
+                    baseAC += Math.min(dexMod, armor.maxDexBonus);
+                } else {
+                    // Light armor adds full DEX
+                    baseAC += dexMod;
+                }
+            }
+            // Heavy armor: no DEX bonus (addDexMod would be false)
+        } else {
+            // No armor - check for special unarmored AC
+            baseAC = this.calculateUnarmoredAC(character, dexMod, conMod, wisMod);
+        }
+
+        // Add shield bonus
+        if (character.shield) {
+            baseAC += 2;
+        }
+
+        // Check for Fighting Style: Defense (+1 while wearing armor)
+        if (character.armor && this.hasDefenseFightingStyle(character)) {
+            baseAC += 1;
+        }
+
+        return baseAC;
+    }
+
+    /**
+     * Calculate unarmored AC from class features or race traits (T066a helper)
+     * @returns Unarmored AC
+     */
+    private calculateUnarmoredAC(
+        character: DnD5eCharacter,
+        dexMod: number,
+        conMod: number,
+        wisMod: number
+    ): number {
+        // Check for Draconic Resilience (Draconic Bloodline Sorcerer)
+        // AC = 13 + DEX when not wearing armor
+        if (this.hasDraconicResilience(character)) {
+            return 13 + dexMod;
+        }
+
+        // Check for Barbarian Unarmored Defense
+        // AC = 10 + DEX + CON when not wearing armor
+        if (this.hasBarbarianUnarmoredDefense(character)) {
+            return 10 + dexMod + conMod;
+        }
+
+        // Check for Monk Unarmored Defense
+        // AC = 10 + DEX + WIS when not wearing armor or shield
+        if (this.hasMonkUnarmoredDefense(character)) {
+            return 10 + dexMod + wisMod;
+        }
+
+        // Default: 10 + DEX
+        return 10 + dexMod;
+    }
+
+    /**
+     * Check if character has Draconic Resilience feature
+     */
+    private hasDraconicResilience(character: DnD5eCharacter): boolean {
+        return character.classes.some(cls =>
+            cls.name.toLowerCase() === 'sorcerer' &&
+            cls.subclass?.toLowerCase().includes('draconic')
+        );
+    }
+
+    /**
+     * Check if character has Barbarian Unarmored Defense
+     */
+    private hasBarbarianUnarmoredDefense(character: DnD5eCharacter): boolean {
+        return character.classes.some(cls => cls.name.toLowerCase() === 'barbarian');
+    }
+
+    /**
+     * Check if character has Monk Unarmored Defense
+     */
+    private hasMonkUnarmoredDefense(character: DnD5eCharacter): boolean {
+        return character.classes.some(cls => cls.name.toLowerCase() === 'monk');
+    }
+
+    /**
+     * Check if character has Fighting Style: Defense
+     */
+    private hasDefenseFightingStyle(character: DnD5eCharacter): boolean {
+        return character.classes.some(cls =>
+            cls.features.some(f =>
+                f.name.toLowerCase().includes('fighting style') &&
+                f.name.toLowerCase().includes('defense')
+            )
+        );
+    }
+
+    /**
+     * Calculate Initiative bonus (T066c)
+     * Initiative = DEX modifier (+ any bonuses from features)
+     * 
+     * @param character - Character to calculate initiative for
+     * @returns Initiative bonus
+     */
+    calculateInitiative(character: DnD5eCharacter): number {
+        const dexMod = this.getAbilityModifier(character.abilityScores.dexterity);
+        // Future: Add bonuses from Alert feat, etc.
+        return dexMod;
+    }
+
+    /**
+     * Calculate passive scores (T066d)
+     * Passive score = 10 + skill modifier
+     * 
+     * @param character - Character to calculate passive scores for
+     * @returns Object with passive Perception, Investigation, and Insight
+     */
+    calculatePassiveScores(character: DnD5eCharacter): {
+        perception: number;
+        investigation: number;
+        insight: number;
+    } {
+        const wisMod = this.getAbilityModifier(character.abilityScores.wisdom);
+        const intMod = this.getAbilityModifier(character.abilityScores.intelligence);
+        const profBonus = this.getProficiencyBonus(this.getTotalLevel(character.classes));
+
+        // Check skill proficiencies
+        const hasPerception = character.proficiencies.skills.some(
+            s => s.toLowerCase() === 'perception'
+        );
+        const hasInvestigation = character.proficiencies.skills.some(
+            s => s.toLowerCase() === 'investigation'
+        );
+        const hasInsight = character.proficiencies.skills.some(
+            s => s.toLowerCase() === 'insight'
+        );
+
+        // Calculate skill modifiers
+        const perceptionMod = wisMod + (hasPerception ? profBonus : 0);
+        const investigationMod = intMod + (hasInvestigation ? profBonus : 0);
+        const insightMod = wisMod + (hasInsight ? profBonus : 0);
+
+        // Future: Handle expertise (double proficiency)
+
+        return {
+            perception: 10 + perceptionMod,
+            investigation: 10 + investigationMod,
+            insight: 10 + insightMod
         };
     }
 
@@ -1189,24 +1365,64 @@ export class DnD5eRuleEngine implements RuleEngine<
     }
 
     /**
-     * Calculate max HP for a character
+     * Calculate max HP for a character (T066b)
+     * 
+     * HP = (Level 1: Max Hit Die + CON mod) + (Other levels: Avg + CON mod)
+     * Plus bonuses from:
+     * - Draconic Resilience: +1 HP per sorcerer level
+     * - Dwarven Toughness: +1 HP per level
+     * - Tough feat: +2 HP per level (not implemented yet)
+     * 
      * @param character - Character to calculate HP for
      * @returns Maximum HP
      */
     private calculateMaxHP(character: DnD5eCharacter): number {
         const conMod = this.getAbilityModifier(character.abilityScores.constitution);
+        const totalLevel = this.getTotalLevel(character.classes);
+
         // Get primary class (first class entry)
         const primaryClass = character.classes[0];
         const classData = primaryClass ? this.classes.find(c => c.id === primaryClass.name.toLowerCase()) : undefined;
         const hitDie = classData?.hitDie ?? primaryClass?.hitDie ?? 8;
-        const totalLevel = this.getTotalLevel(character.classes);
 
         // Level 1: Max hit die + CON modifier
-        // Additional levels: Average + CON modifier (for now, simplified)
         const level1HP = hitDie + conMod;
-        const additionalHP = (totalLevel - 1) * (Math.ceil(hitDie / 2) + 1 + conMod);
 
-        return Math.max(1, level1HP + additionalHP);
+        // Additional levels: Average (rounded up) + CON modifier
+        // D&D 5e average: d6=4, d8=5, d10=6, d12=7
+        const avgHitDie = Math.ceil(hitDie / 2) + 1;
+        const additionalHP = (totalLevel - 1) * (avgHitDie + conMod);
+
+        let baseHP = level1HP + additionalHP;
+
+        // Add bonus HP from features
+
+        // Draconic Resilience: +1 HP per sorcerer level
+        if (this.hasDraconicResilience(character)) {
+            const sorcererLevel = character.classes
+                .filter(cls => cls.name.toLowerCase() === 'sorcerer')
+                .reduce((sum, cls) => sum + cls.level, 0);
+            baseHP += sorcererLevel;
+        }
+
+        // Dwarven Toughness: +1 HP per level
+        if (this.hasDwarvenToughness(character)) {
+            baseHP += totalLevel;
+        }
+
+        // Future: Tough feat (+2 HP per level)
+
+        return Math.max(1, baseHP);
+    }
+
+    /**
+     * Check if character has Dwarven Toughness racial trait
+     */
+    private hasDwarvenToughness(character: DnD5eCharacter): boolean {
+        return character.race?.id === 'hill-dwarf' ||
+            character.race?.traits?.some(t =>
+                t.name.toLowerCase().includes('dwarven toughness')
+            ) || false;
     }
 }
 

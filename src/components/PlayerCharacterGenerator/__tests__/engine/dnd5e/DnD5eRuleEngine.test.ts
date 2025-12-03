@@ -1598,5 +1598,426 @@ describe('DnD5eRuleEngine', () => {
             });
         });
     });
+
+    // ===== DERIVED STATS CALCULATIONS (T066a-e) =====
+    describe('Derived Stats Calculations', () => {
+        describe('calculateArmorClass (T066a)', () => {
+            it('should calculate base AC (10 + DEX) when unarmored', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 14, // +2 modifier
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    armor: undefined,
+                    shield: false
+                });
+                expect(engine.calculateArmorClass(character)).toBe(12); // 10 + 2
+            });
+
+            it('should add shield bonus (+2)', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 14,
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    armor: undefined,
+                    shield: true
+                });
+                expect(engine.calculateArmorClass(character)).toBe(14); // 10 + 2 + 2
+            });
+
+            it('should calculate heavy armor AC without DEX', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 15,
+                        dexterity: 14, // Should not affect heavy armor
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    armor: {
+                        id: 'chain-mail',
+                        name: 'Chain Mail',
+                        type: 'armor',
+                        armorCategory: 'heavy',
+                        armorClass: 16,
+                        addDexMod: false,
+                        quantity: 1
+                    },
+                    shield: false
+                });
+                expect(engine.calculateArmorClass(character)).toBe(16);
+            });
+
+            it('should calculate light armor AC with full DEX', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 16, // +3 modifier
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    armor: {
+                        id: 'leather',
+                        name: 'Leather Armor',
+                        type: 'armor',
+                        armorCategory: 'light',
+                        armorClass: 11,
+                        addDexMod: true,
+                        quantity: 1
+                    },
+                    shield: false
+                });
+                expect(engine.calculateArmorClass(character)).toBe(14); // 11 + 3
+            });
+
+            it('should cap DEX bonus for medium armor', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 18, // +4 modifier, but capped at +2
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    armor: {
+                        id: 'scale-mail',
+                        name: 'Scale Mail',
+                        type: 'armor',
+                        armorCategory: 'medium',
+                        armorClass: 14,
+                        addDexMod: true,
+                        maxDexBonus: 2,
+                        quantity: 1
+                    },
+                    shield: false
+                });
+                expect(engine.calculateArmorClass(character)).toBe(16); // 14 + 2 (capped)
+            });
+
+            it('should add Defense fighting style bonus', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 15,
+                        dexterity: 10,
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    classes: [{
+                        name: 'Fighter',
+                        level: 1,
+                        hitDie: 10,
+                        features: [{
+                            id: 'fighting-style-defense',
+                            name: 'Fighting Style: Defense',
+                            description: '+1 AC while wearing armor',
+                            source: 'class' as const
+                        }]
+                    }],
+                    armor: {
+                        id: 'chain-mail',
+                        name: 'Chain Mail',
+                        type: 'armor',
+                        armorCategory: 'heavy',
+                        armorClass: 16,
+                        addDexMod: false,
+                        quantity: 1
+                    },
+                    shield: false
+                });
+                expect(engine.calculateArmorClass(character)).toBe(17); // 16 + 1
+            });
+
+            it('should calculate Draconic Resilience AC (13 + DEX) when unarmored', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 14, // +2 modifier
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 16
+                    },
+                    classes: [{
+                        name: 'Sorcerer',
+                        level: 1,
+                        subclass: 'Draconic Bloodline',
+                        hitDie: 6,
+                        features: []
+                    }],
+                    armor: undefined,
+                    shield: false
+                });
+                expect(engine.calculateArmorClass(character)).toBe(15); // 13 + 2
+            });
+
+            it('should calculate Barbarian Unarmored Defense (10 + DEX + CON)', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 16,
+                        dexterity: 14, // +2 modifier
+                        constitution: 16, // +3 modifier
+                        intelligence: 8,
+                        wisdom: 10,
+                        charisma: 8
+                    },
+                    classes: [{
+                        name: 'Barbarian',
+                        level: 1,
+                        hitDie: 12,
+                        features: []
+                    }],
+                    armor: undefined,
+                    shield: false
+                });
+                expect(engine.calculateArmorClass(character)).toBe(15); // 10 + 2 + 3
+            });
+        });
+
+        describe('calculateMaxHP / calculateHP (T066b)', () => {
+            it('should calculate L1 HP as max hit die + CON mod', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 10,
+                        constitution: 14, // +2 modifier
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    classes: [{ name: 'Fighter', level: 1, hitDie: 10, features: [] }]
+                });
+                const stats = engine.calculateDerivedStats(character);
+                expect(stats.maxHitPoints).toBe(12); // 10 + 2
+            });
+
+            it('should calculate multi-level HP with average', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 10,
+                        constitution: 14, // +2 modifier
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    classes: [{ name: 'Fighter', level: 3, hitDie: 10, features: [] }]
+                });
+                const stats = engine.calculateDerivedStats(character);
+                // L1: 10 + 2 = 12
+                // L2: 6 (avg d10) + 2 = 8
+                // L3: 6 + 2 = 8
+                // Total: 12 + 8 + 8 = 28
+                expect(stats.maxHitPoints).toBe(28);
+            });
+
+            it('should add Dwarven Toughness bonus (+1/level)', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 10,
+                        constitution: 14,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    race: { id: 'hill-dwarf', name: 'Hill Dwarf', baseRace: 'dwarf' },
+                    classes: [{ name: 'Fighter', level: 1, hitDie: 10, features: [] }]
+                });
+                const stats = engine.calculateDerivedStats(character);
+                // 10 + 2 (CON) + 1 (Dwarven Toughness) = 13
+                expect(stats.maxHitPoints).toBe(13);
+            });
+
+            it('should add Draconic Resilience bonus (+1/sorcerer level)', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 10,
+                        constitution: 14,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 16
+                    },
+                    classes: [{
+                        name: 'Sorcerer',
+                        level: 1,
+                        subclass: 'Draconic Bloodline',
+                        hitDie: 6,
+                        features: []
+                    }]
+                });
+                const stats = engine.calculateDerivedStats(character);
+                // 6 + 2 (CON) + 1 (Draconic Resilience) = 9
+                expect(stats.maxHitPoints).toBe(9);
+            });
+        });
+
+        describe('calculateInitiative (T066c)', () => {
+            it('should return DEX modifier', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 16, // +3 modifier
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    }
+                });
+                expect(engine.calculateInitiative(character)).toBe(3);
+            });
+
+            it('should return negative modifier for low DEX', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 8, // -1 modifier
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 10,
+                        charisma: 10
+                    }
+                });
+                expect(engine.calculateInitiative(character)).toBe(-1);
+            });
+        });
+
+        describe('calculatePassiveScores (T066d)', () => {
+            it('should calculate passive perception (10 + WIS mod)', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 10,
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 14, // +2 modifier
+                        charisma: 10
+                    },
+                    classes: [{ name: 'Fighter', level: 1, hitDie: 10, features: [] }],
+                    proficiencies: { skills: [] }
+                });
+                const passives = engine.calculatePassiveScores(character);
+                expect(passives.perception).toBe(12); // 10 + 2
+            });
+
+            it('should add proficiency bonus to passive perception', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 10,
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 14, // +2 modifier
+                        charisma: 10
+                    },
+                    classes: [{ name: 'Fighter', level: 1, hitDie: 10, features: [] }],
+                    proficiencies: { skills: ['Perception'] }
+                });
+                const passives = engine.calculatePassiveScores(character);
+                expect(passives.perception).toBe(14); // 10 + 2 + 2 (prof)
+            });
+
+            it('should calculate passive investigation (10 + INT mod)', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 10,
+                        constitution: 10,
+                        intelligence: 16, // +3 modifier
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    classes: [{ name: 'Fighter', level: 1, hitDie: 10, features: [] }],
+                    proficiencies: { skills: ['Investigation'] }
+                });
+                const passives = engine.calculatePassiveScores(character);
+                expect(passives.investigation).toBe(15); // 10 + 3 + 2 (prof)
+            });
+
+            it('should calculate passive insight (10 + WIS mod)', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 10,
+                        dexterity: 10,
+                        constitution: 10,
+                        intelligence: 10,
+                        wisdom: 12, // +1 modifier
+                        charisma: 10
+                    },
+                    classes: [{ name: 'Fighter', level: 1, hitDie: 10, features: [] }],
+                    proficiencies: { skills: ['Insight'] }
+                });
+                const passives = engine.calculatePassiveScores(character);
+                expect(passives.insight).toBe(13); // 10 + 1 + 2 (prof)
+            });
+        });
+
+        describe('calculateDerivedStats (T066e)', () => {
+            it('should return complete DerivedStats object', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 16,
+                        dexterity: 14,
+                        constitution: 14,
+                        intelligence: 10,
+                        wisdom: 12,
+                        charisma: 8
+                    },
+                    race: { id: 'human', name: 'Human', speed: { walk: 30 } },
+                    classes: [{ name: 'Fighter', level: 1, hitDie: 10, features: [] }],
+                    proficiencies: { skills: ['Athletics', 'Perception'] }
+                });
+                const stats = engine.calculateDerivedStats(character);
+
+                expect(stats.armorClass).toBe(12); // 10 + DEX(2)
+                expect(stats.initiative).toBe(2); // DEX mod
+                expect(stats.speed).toBe(30);
+                expect(stats.maxHitPoints).toBe(12); // 10 + CON(2)
+                expect(stats.currentHitPoints).toBe(12);
+                expect(stats.proficiencyBonus).toBe(2);
+                expect(stats.passivePerception).toBe(13); // 10 + WIS(1) + prof(2)
+            });
+
+            it('should include spellcasting stats for casters', () => {
+                const character = createTestDnD5eCharacter({
+                    abilityScores: {
+                        strength: 8,
+                        dexterity: 14,
+                        constitution: 14,
+                        intelligence: 16, // +3 modifier
+                        wisdom: 10,
+                        charisma: 10
+                    },
+                    race: { id: 'high-elf', name: 'High Elf', speed: { walk: 30 } },
+                    classes: [{
+                        name: 'Wizard',
+                        level: 1,
+                        hitDie: 6,
+                        features: []
+                    }],
+                    proficiencies: { skills: ['Arcana'] }
+                });
+                const stats = engine.calculateDerivedStats(character);
+
+                expect(stats.spellSaveDC).toBe(13); // 8 + 2 (prof) + 3 (INT)
+                expect(stats.spellAttackBonus).toBe(5); // 2 (prof) + 3 (INT)
+            });
+        });
+    });
 });
 
