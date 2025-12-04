@@ -6,6 +6,63 @@
 
 ---
 
+## ⚠️ CRITICAL: Canvas Package Not Used
+
+**The current PCG implementation does NOT use the `@dungeonmind/canvas` package.**
+
+This is a **major architectural problem**. The Canvas package provides:
+- ✅ Measurement-driven layout (accurate height calculation)
+- ✅ Automatic multi-page pagination
+- ✅ Multi-column overflow handling
+- ✅ Component registry pattern
+- ✅ Adapter pattern for domain-specific logic
+- ✅ Print optimization
+- ✅ Battle-tested in StatblockGenerator
+
+**What PCG built instead (wrong approach):**
+- ❌ Custom components with inline styles
+- ❌ Manual page structure without measurement
+- ❌ No pagination engine
+- ❌ No height estimation
+- ❌ No adapter pattern integration
+
+### How StatblockGenerator Uses Canvas
+
+```typescript
+// LandingPage/src/components/StatBlockGenerator/canvasAdapters.ts
+import type {
+    DataResolver,
+    ListNormalizer,
+    HeightEstimator,
+    MetadataExtractor,
+    CanvasAdapters,
+} from 'dungeonmind-canvas';
+import { createDefaultAdapters } from 'dungeonmind-canvas';
+
+// StatblockGenerator creates domain-specific adapters
+export const createStatblockAdapters = (): CanvasAdapters => {
+    // ... implements adapters for statblock data
+};
+```
+
+### What PCG Should Do
+
+1. **Create `characterAdapters.ts`** - Implement `CanvasAdapters` for character data
+2. **Use `useCanvasLayout` hook** - Get measurement-driven pagination
+3. **Register components** with Canvas component registry
+4. **Let Canvas handle** multi-page layout, overflow, measurement
+
+### Key Files to Study
+
+- **Canvas Architecture:** `Canvas/ARCHITECTURE.md` (652 lines)
+- **Adapter Guide:** `Canvas/ADAPTER_IMPLEMENTATION_GUIDE.md` (502 lines)
+- **StatblockGenerator Example:** `LandingPage/src/components/StatBlockGenerator/canvasAdapters.ts`
+- **Canvas Package:** `Canvas/src/` (the actual implementation)
+
+**This refactor is prerequisite to any visual work.** The current approach won't scale.
+
+---
+
 ## 1. Project Overview
 
 ### What We're Building
@@ -81,7 +138,90 @@ The `CharacterSheetRenderer` produces:
 
 ---
 
-## 3. Reference: StatblockGenerator Canvas System
+## 3. The Canvas Package (@dungeonmind/canvas)
+
+The Canvas package is a **generic, template-driven rendering engine** for multi-column, multi-page layouts. It's already used by StatblockGenerator and should be used by PCG.
+
+### Canvas Architecture (High Level)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Application Layer (PlayerCharacterGenerator)                │
+│ - Provides domain-specific adapters (characterAdapters.ts) │
+│ - Provides component registry                               │
+│ - Provides data sources (character data)                    │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Canvas Hook Layer (useCanvasLayout)                         │
+│ - Manages component lifecycle                               │
+│ - Coordinates state updates                                 │
+│ - Provides MeasurementLayer                                 │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Layout Engine Layer                                         │
+│ ├── Bucket Builder - Groups components by region            │
+│ ├── Planner - Determines segment placement                  │
+│ └── Paginator - Places components in pages/columns          │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Measurement Layer                                           │
+│ - Offscreen rendering for height measurement                │
+│ - Accurate layout without guessing                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Adapter Interfaces PCG Must Implement
+
+```typescript
+// characterAdapters.ts - TO BE CREATED
+
+interface CanvasAdapters {
+    dataResolver: DataResolver;        // Get fields from character data
+    listNormalizer: ListNormalizer;    // Normalize arrays (skills, spells, etc.)
+    heightEstimator: HeightEstimator;  // Estimate section heights
+    metadataExtractor: MetadataExtractor; // Get name for export
+    regionContentFactory: RegionContentFactory; // Create region content
+}
+
+// Example: HeightEstimator for character sections
+const characterHeightEstimator: HeightEstimator = {
+    estimateItemHeight(item: unknown): number {
+        // Estimate height of a skill row, spell entry, etc.
+        return 24; // pixels
+    },
+    
+    estimateListHeight(items: unknown[], isContinuation: boolean): number {
+        // Estimate height of skills block, spells list, etc.
+        const headerHeight = isContinuation ? 0 : 36;
+        return headerHeight + (items.length * 24);
+    },
+    
+    estimateComponentHeight(component: unknown): number {
+        // Estimate height of ability scores block, combat stats, etc.
+        return 200;
+    }
+};
+```
+
+### Key Canvas Files to Read
+
+| File | Purpose |
+|------|---------|
+| `Canvas/ARCHITECTURE.md` | Complete system documentation |
+| `Canvas/ADAPTER_IMPLEMENTATION_GUIDE.md` | How to implement adapters |
+| `Canvas/src/hooks/useCanvasLayout.ts` | The main hook PCG should use |
+| `Canvas/src/types/adapters.types.ts` | Adapter interface definitions |
+| `Canvas/src/layout/paginate.ts` | Pagination engine |
+
+---
+
+## 4. Reference: StatblockGenerator Canvas System
 
 The **StatblockGenerator** has a mature canvas system that renders monster statblocks in PHB style. It's the best internal reference for how to build character sheets.
 
@@ -235,18 +375,28 @@ We've defined these CSS classes, but they need refinement and proper visual test
 
 ## 8. Files to Read
 
-**Start with these to understand current state:**
+### PRIORITY 1: Canvas Package (Read First!)
 
-1. `specs/PlayerCharacterGenerator/research/DESIGN-PHB-Character-Sheet-Implementation.md` - Locked design document with decisions made
-2. `src/styles/CharacterComponents.css` - Current CSS classes
-3. `src/components/PlayerCharacterGenerator/canvasComponents/CharacterSheetRenderer.tsx` - Page orchestration
-4. `src/components/PlayerCharacterGenerator/canvasComponents/sections/` - All section components
+1. `Canvas/ARCHITECTURE.md` - **Complete system documentation** (652 lines)
+2. `Canvas/ADAPTER_IMPLEMENTATION_GUIDE.md` - **How to implement adapters** (502 lines)
+3. `Canvas/src/types/adapters.types.ts` - Adapter interface definitions
+4. `Canvas/src/hooks/useCanvasLayout.ts` - The hook PCG should use
 
-**Reference for proven patterns:**
-1. `src/styles/StatblockComponents.css` - How monster statblocks are styled
-2. `src/components/StatBlockGenerator/canvasComponents/` - Mature canvas implementation
+### PRIORITY 2: Working Example (StatblockGenerator)
 
-**Test data:**
+1. `LandingPage/src/components/StatBlockGenerator/canvasAdapters.ts` - **How StatBlock uses Canvas**
+2. `LandingPage/src/styles/StatblockComponents.css` - PHB styling for statblocks
+3. `LandingPage/src/components/StatBlockGenerator/canvasComponents/` - Canvas component registry
+
+### PRIORITY 3: Current PCG State (Needs Refactor)
+
+1. `specs/PlayerCharacterGenerator/research/DESIGN-PHB-Character-Sheet-Implementation.md` - Design decisions (may need revision)
+2. `src/styles/CharacterComponents.css` - CSS classes (keep, integrate with Canvas)
+3. `src/components/PlayerCharacterGenerator/canvasComponents/CharacterSheetRenderer.tsx` - **REPLACE with Canvas**
+4. `src/components/PlayerCharacterGenerator/canvasComponents/sections/` - **Convert to Canvas components**
+
+### Test Data
+
 1. `src/components/PlayerCharacterGenerator/canvasComponents/demoData/DEMO_FIGHTER.ts` - Sample character for testing
 
 ---
@@ -255,30 +405,59 @@ We've defined these CSS classes, but they need refinement and proper visual test
 
 The new design should achieve:
 
-1. **Visual Authenticity** - Looks like it belongs in the Player's Handbook
-2. **Functional Layout** - All character data visible and organized logically
-3. **Multi-Page Support** - Graceful handling of 2-3 page characters
-4. **Print-Ready** - Can export to PDF without visual issues
-5. **Responsive Canvas** - Scales appropriately in the UI container
+### Architecture (Phase 0 - BLOCKING)
+1. **Canvas Integration** - Uses `@dungeonmind/canvas` package, NOT custom rendering
+2. **Character Adapters** - `characterAdapters.ts` implements all required adapter interfaces
+3. **Component Registry** - Character components registered with Canvas registry
+4. **Measurement-Driven** - Layout determined by actual height measurements
+
+### Visual (Phase 1)
+5. **Visual Authenticity** - Looks like it belongs in the Player's Handbook
+6. **Functional Layout** - All character data visible and organized logically
+7. **Multi-Page Support** - Graceful handling of 2-3 page characters (via Canvas pagination)
+8. **Print-Ready** - Can export to PDF without visual issues
+9. **Responsive Canvas** - Scales appropriately in the UI container
 
 ---
 
 ## 10. Immediate Next Steps
 
-1. **Research Phase**
+### Phase 0: Canvas Integration (BLOCKING)
+
+**This must happen before any visual work.**
+
+1. **Study Canvas Architecture**
+   - Read `Canvas/ARCHITECTURE.md` completely
+   - Read `Canvas/ADAPTER_IMPLEMENTATION_GUIDE.md`
+   - Study `StatBlockGenerator/canvasAdapters.ts` as working example
+
+2. **Create Character Adapters**
+   - Create `LandingPage/src/components/PlayerCharacterGenerator/characterAdapters.ts`
+   - Implement `DataResolver` for character data
+   - Implement `HeightEstimator` for character sections
+   - Implement `MetadataExtractor` for character name/level
+
+3. **Integrate with Canvas Hook**
+   - Use `useCanvasLayout` in CharacterCanvas
+   - Register character components with Canvas registry
+   - Remove current custom `CharacterSheetRenderer`
+
+### Phase 1: Visual Research (After Canvas Integration)
+
+1. **Research**
    - Study Homebrewery CSS for character sheet patterns
    - Find example character sheet HTML/CSS implementations
    - Document visual patterns needed (ability boxes, proficiency markers, etc.)
 
-2. **Design Phase**
+2. **Design**
    - Create mockup/wireframe of target layout
    - Define CSS class structure
    - Plan page content allocation (what goes on each page)
 
-3. **Implementation Phase**
+3. **Implementation**
    - Update `CharacterComponents.css` with refined styles
-   - Refactor section components to use proper CSS classes
-   - Test with `DEMO_FIGHTER` data
+   - Create Canvas-compatible section components
+   - Test with `DEMO_FIGHTER` data through Canvas
 
 ---
 
