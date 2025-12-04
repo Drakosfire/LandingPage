@@ -6,7 +6,23 @@
  * @module PlayerCharacterGenerator/canvasComponents
  */
 
-// Individual components
+// Page structure components
+export {
+    CharacterSheetPage,
+    CharacterSheetContainer,
+    CharacterFrame
+} from './CharacterSheetPage';
+export type {
+    CharacterSheetPageProps,
+    CharacterSheetContainerProps,
+    CharacterFrameProps
+} from './CharacterSheetPage';
+
+// Multi-page renderer
+export { CharacterSheetRenderer } from './CharacterSheetRenderer';
+export type { CharacterSheetRendererProps } from './CharacterSheetRenderer';
+
+// Individual block components
 export { default as CharacterHeader } from './CharacterHeader';
 export { default as AbilityScoresBlock } from './AbilityScoresBlock';
 export { default as CombatStatsBlock } from './CombatStatsBlock';
@@ -28,6 +44,9 @@ export type { PCGComponentRegistryEntry } from './componentRegistry';
 
 // Demo data
 export { DEMO_FIGHTER, DEMO_FIGHTER_DATA, createDemoFighter } from './demoData';
+
+// Section components (PHB-styled)
+export * from './sections';
 
 // Re-export component prop types
 export type { CharacterHeaderProps } from './CharacterHeader';

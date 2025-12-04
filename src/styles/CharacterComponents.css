@@ -15,12 +15,14 @@
 
     /* ===== Character Frame (New - Replaces monster.frame for PCs) ===== */
     .page .character.frame {
-        background-color: #faf2cc;  /* Same parchment as monster */
+        background-color: #faf2cc;
+        /* Same parchment as monster */
         border: 0.5mm solid #000;
         border-radius: 4px;
         padding: 0.3cm;
         margin-bottom: 0.4cm;
-        break-inside: avoid-column;  /* Prevent mid-frame page breaks */
+        break-inside: avoid-column;
+        /* Prevent mid-frame page breaks */
     }
 
     .page .character.frame.wide {
@@ -510,6 +512,17 @@
         color: #9c2b1b;
     }
 
+    /* ===== Page Number Footer ===== */
+    .page .page-number {
+        position: absolute;
+        bottom: 0.8cm;
+        width: 100%;
+        text-align: center;
+        font-family: 'ScalySansRemake', sans-serif;
+        font-size: 0.9rem;
+        color: var(--dm-text-dark-brown, #2b1d0f);
+    }
+
 }
 
 /* ===== Structure Layer: Canvas layout overrides ===== */
@@ -545,7 +558,7 @@
         page-break-before: always;
         page-break-after: always;
     }
-    
+
     .character.frame {
         break-inside: avoid;
     }
