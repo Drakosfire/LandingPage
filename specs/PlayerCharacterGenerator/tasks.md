@@ -1,10 +1,34 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 2, 2025 (Canvas Enhancement Breakdown)  
+**Updated**: December 4, 2025 (CRITICAL: Canvas Integration Required)  
 **Source**: spec.md + plan.md  
 **Total Tasks**: 131 (124 + 7 integration tests)  
 **Estimated Hours**: 122-170h
+
+---
+
+## ⚠️ CRITICAL ARCHITECTURAL ISSUE
+
+**The current canvas implementation does NOT use the `@dungeonmind/canvas` package.**
+
+The StatblockGenerator correctly uses Canvas via `canvasAdapters.ts`. The PCG built custom components that bypass the Canvas system entirely.
+
+### Blocking Refactor Required
+
+Before any further visual work on the character sheet:
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T100** | Read `Canvas/ARCHITECTURE.md` and `ADAPTER_IMPLEMENTATION_GUIDE.md` | ⏳ |
+| **T101** | Create `characterAdapters.ts` implementing `CanvasAdapters` | ⏳ |
+| **T102** | Replace `CharacterSheetRenderer.tsx` with `useCanvasLayout` hook | ⏳ |
+| **T103** | Register character components with Canvas component registry | ⏳ |
+| **T104** | Test pagination with `DEMO_FIGHTER` through Canvas | ⏳ |
+
+**Reference**: `specs/PlayerCharacterGenerator/research/HANDOFF-UI-Research-Character-Sheet-Layout.md`
+
+---
 
 ## 📚 Research References
 
