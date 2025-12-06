@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PHB Border Reference</title>
+    <link rel="stylesheet" href="phb-prototype.css">
+    <style>
+        body {
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: 'NodestoCapsCondensed', serif;
+            color: var(--text-red);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-family: 'MrEavesRemake', sans-serif;
+            color: var(--text-red);
+            margin: 30px 0 15px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .border-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .border-demo {
+            padding: 20px;
+            min-height: 150px;
+        }
+
+        .border-demo h3 {
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            font-size: 14px;
+            color: var(--text-red);
+            margin-bottom: 10px;
+        }
+
+        .border-demo p {
+            font-family: 'BookInsanityRemake', serif;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .border-demo code {
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        /* ===== MONSTER BORDER (Fancy) - Current StatBlock style ===== */
+        .monster-border-fancy {
+            background-color: var(--HB_Color_MonsterStatBackground);
+            background-image: url('../../../public/dnd-static/themes/assets/parchmentBackgroundGrayscale.jpg');
+            background-attachment: fixed;
+            background-blend-mode: overlay;
+            border-style: solid;
+            border-width: 7px 6px;
+            border-image: url('../../../public/dnd-static/themes/assets/monsterBorderFancy.png') 14 round;
+            border-image-outset: 0px 2px;
+            box-shadow: 1px 4px 14px #888888;
+            padding: 10px;
+        }
+
+        /* ===== MONSTER BORDER (Legacy) - Simpler version ===== */
+        .monster-border-legacy {
+            background-color: var(--HB_Color_MonsterStatBackground);
+            background-image: url('../../../public/dnd-static/themes/assets/parchmentBackgroundGrayscale.jpg');
+            background-attachment: fixed;
+            background-blend-mode: overlay;
+            border-style: solid;
+            border-width: 10px;
+            border-image: url('../../../public/dnd-static/themes/assets/monsterBorderLegacy.png') 10;
+            box-shadow: 1px 4px 14px #888;
+        }
+
+        /* ===== NOTE BORDER - For callouts/asides ===== */
+        .note-border {
+            background-color: #e0e5c1;
+            border-style: solid;
+            border-width: 1px;
+            border-image: url('../../../public/dnd-static/themes/assets/noteBorder.png') 12 stretch;
+            border-image-width: 11px;
+            border-image-outset: 9px 0px;
+            padding: 15px;
+        }
+
+        /* ===== DESCRIPTIVE BORDER - For flavor text boxes ===== */
+        .descriptive-border {
+            background-color: #faf7ea;
+            border-style: solid;
+            border-width: 1px;
+            border-image: url('../../../public/dnd-static/themes/assets/descriptiveBorder.png') 12 stretch;
+            border-image-width: 11px;
+            border-image-outset: 6px 0px;
+            padding: 15px;
+            font-style: italic;
+        }
+
+        /* ===== CODE BORDER - For code/data blocks ===== */
+        .code-border {
+            background-color: #e5e8e8;
+            border-style: solid;
+            border-width: 1px;
+            border-radius: 12px;
+            border-image: url('../../../public/dnd-static/themes/assets/codeBorder.png') 26 stretch;
+            border-image-width: 10px;
+            border-image-outset: 2px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        /* ===== FRAME BORDER - For full-page frames ===== */
+        .frame-border {
+            background-color: var(--bg-page);
+            border: initial;
+            border-style: solid;
+            border-image-source: url('../../../public/dnd-static/themes/assets/frameBorder.png');
+            border-image-slice: 200;
+            border-image-width: 47px;
+            border-image-repeat: round;
+            padding: 30px;
+            min-height: 200px;
+        }
+
+        /* ===== SCRIPT BORDER - For handwritten/script style ===== */
+        .script-border {
+            background-color: #f4f0e5;
+            border: initial;
+            border-style: solid;
+            border-image-source: url('../../../public/dnd-static/themes/assets/scriptBorder.png');
+            border-image-slice: 170;
+            border-image-width: 40px;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        /* ===== JOURNAL BORDERS ===== */
+        .journal-border-1 {
+            background-color: #f8f4e8;
+            border-style: solid;
+            border-width: 20px;
+            border-image: url('../../../public/dnd-static/themes/assets/Journal/Border1.png') 50 stretch;
+            padding: 15px;
+        }
+
+        .journal-border-2 {
+            background-color: #f8f4e8;
+            border-style: solid;
+            border-width: 20px;
+            border-image: url('../../../public/dnd-static/themes/assets/Journal/Border2.png') 50 stretch;
+            padding: 15px;
+        }
+
+        .journal-border-3 {
+            background-color: #f8f4e8;
+            border-style: solid;
+            border-width: 20px;
+            border-image: url('../../../public/dnd-static/themes/assets/Journal/Border3.png') 50 stretch;
+            padding: 15px;
+        }
+
+        /* ===== SIMPLE SOLID BORDERS (What we use now) ===== */
+        .simple-solid {
+            background-color: var(--HB_Color_MonsterStatBackground);
+            background-image: url('../../../public/dnd-static/themes/assets/parchmentBackgroundGrayscale.jpg');
+            background-attachment: fixed;
+            background-blend-mode: overlay;
+            border: 2px solid var(--border-color);
+            padding: 15px;
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border: 3px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .recommendation h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>PHB Border Asset Reference</h1>
+
+    <div class="recommendation">
+        <h3>🎯 Recommendation for Character Sheets</h3>
+        <p><strong>Best Practice: CONSISTENCY within the document.</strong></p>
+        <ul>
+            <li><strong>Simple Solid Borders</strong> (what we use now) - Clean, modern, works well for dense data like
+                character sheets</li>
+            <li><strong>Monster Border Fancy</strong> - Official PHB stat block style, more decorative but heavier</li>
+            <li><strong>Note Border</strong> - Good for callout boxes within a page</li>
+        </ul>
+        <p><strong>Avoid mixing multiple decorative borders on the same page.</strong> Pick ONE style and use it
+            consistently.</p>
+    </div>
+
+    <h2>Monster/Stat Block Borders</h2>
+    <div class="border-grid">
+        <div class="border-demo monster-border-fancy">
+            <h3>Monster Border (Fancy) ✨ PHB Official</h3>
+            <p>The official D&D 5e stat block border with the ornate top/bottom design. Used in the PHB for all creature
+                stat blocks.</p>
+            <code>monsterBorderFancy.png</code>
+        </div>
+
+        <div class="border-demo monster-border-legacy">
+            <h3>Monster Border (Legacy)</h3>
+            <p>Simpler version of the stat block border. Less ornate, still recognizable as D&D style.</p>
+            <code>monsterBorderLegacy.png</code>
+        </div>
+    </div>
+
+    <h2>Content Box Borders</h2>
+    <div class="border-grid">
+        <div class="border-demo note-border">
+            <h3>Note Border</h3>
+            <p>Used for sidebar callouts and notes. Has a subtle torn/parchment edge effect. Good for "DM Tips" or
+                "Designer Notes" boxes.</p>
+            <code>noteBorder.png</code>
+        </div>
+
+        <div class="border-demo descriptive-border">
+            <h3>Descriptive Border</h3>
+            <p>Used for flavor text and read-aloud boxes. Subtle decorative edge that doesn't overwhelm the italic text
+                inside.</p>
+            <code>descriptiveBorder.png</code>
+        </div>
+    </div>
+
+    <h2>Utility Borders</h2>
+    <div class="border-grid">
+        <div class="border-demo code-border">
+            <h3>Code Border</h3>
+            <p>For technical content, tables, or data displays. Modern, clean with rounded corners.</p>
+            <code>codeBorder.png</code>
+            <br><br>
+            <code>STR: 18 (+4) | DEX: 14 (+2) | CON: 16 (+3)</code>
+        </div>
+
+        <div class="border-demo simple-solid">
+            <h3>Simple Solid Border (Current)</h3>
+            <p>What we currently use in our character sheet prototypes. Clean, minimal, works well for dense information
+                layouts.</p>
+            <code>border: 2px solid var(--border-color)</code>
+        </div>
+    </div>
+
+    <h2>Full-Page / Decorative Borders</h2>
+    <div class="border-grid">
+        <div class="border-demo frame-border">
+            <h3>Frame Border</h3>
+            <p>Heavy decorative border for cover pages and chapter dividers. Too ornate for character sheets but great
+                for title pages.</p>
+            <code>frameBorder.png</code>
+        </div>
+
+        <div class="border-demo script-border">
+            <h3>Script Border</h3>
+            <p>Handwritten/parchment style border. Good for in-game handouts, letters, scrolls. Very thematic.</p>
+            <code>scriptBorder.png</code>
+        </div>
+    </div>
+
+    <h2>Journal/Alternative Borders</h2>
+    <div class="border-grid">
+        <div class="border-demo journal-border-1">
+            <h3>Journal Border 1</h3>
+            <p>Alternative journal style. More rustic/worn appearance.</p>
+            <code>Journal/Border1.png</code>
+        </div>
+
+        <div class="border-demo journal-border-2">
+            <h3>Journal Border 2</h3>
+            <p>Another journal variant with different corner treatment.</p>
+            <code>Journal/Border2.png</code>
+        </div>
+    </div>
+
+    <div class="recommendation">
+        <h3>📋 For Character Sheets Specifically</h3>
+        <p><strong>Option A: Keep Simple Solid (Recommended)</strong></p>
+        <ul>
+            <li>✅ Clean and readable</li>
+            <li>✅ Doesn't compete with dense data</li>
+            <li>✅ Consistent with the rest of our UI</li>
+            <li>✅ Faster rendering (no border-image)</li>
+        </ul>
+        <p><strong>Option B: Monster Border Fancy (Thematic)</strong></p>
+        <ul>
+            <li>✅ More "official PHB" feeling</li>
+            <li>⚠️ Heavier visual weight</li>
+            <li>⚠️ May compete with character data</li>
+            <li>Best used sparingly (main sections only, not every box)</li>
+        </ul>
+    </div>
+
+</body>
+
+</html>

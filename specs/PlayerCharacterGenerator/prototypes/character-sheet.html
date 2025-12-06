@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D 5e Character Sheet - HTML Prototype</title>
+
+    <!-- PHB Foundation Styles (fonts, colors, base patterns) -->
+    <link rel="stylesheet" href="phb-prototype.css">
+
+    <style>
+        /* ===== CHARACTER SHEET SPECIFIC STYLES ===== */
+        /* Page container extends .phb-page from phb-prototype.css */
+
+        /* ===== Header Section with Portrait ===== */
+        .header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 8px;
+
+            /* Descriptive Border */
+            border: 3px solid var(--border-color);
+            border-radius: var(--border-radius);
+        }
+
+        .portrait-box {
+            flex: 0 0 100px;
+            height: 100px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .portrait-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            mix-blend-mode: multiply;
+        }
+
+        .portrait-placeholder {
+            font-family: 'ScalySansRemake', sans-serif;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .header-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .header-name {
+            flex: 0 0 auto;
+        }
+
+        .header-info {
+            flex: 1;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .header-info .labeled-box {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .header-info .labeled-box.narrow {
+            flex: 0 0 70px;
+            min-width: 70px;
+        }
+
+        .header-info .labeled-box.medium {
+            flex: 0 0 90px;
+            min-width: 90px;
+        }
+
+        /* ===== Ability Scores Row ===== */
+        .ability-scores-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        /* Ability box - extends .phb-section */
+        .ability-box {
+            flex: 1;
+            padding: 10px 6px 8px;
+            text-align: center;
+            position: relative;
+        }
+
+        .ability-box .ability-name {
+            font-size: 9px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--text-red);
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .ability-box .ability-score {
+            font-size: 24px;
+            font-family: 'NodestoCapsCondensed', serif;
+            font-weight: bold;
+            line-height: 1;
+            color: var(--text-dark);
+        }
+
+        .ability-box .ability-modifier {
+            font-size: 14px;
+            font-family: 'ScalySansRemake', sans-serif;
+            font-weight: 600;
+            color: #fff;
+            margin-top: 6px;
+            padding: 3px 10px;
+            background: var(--border-color);
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        /* ===== Main Layout (3 Columns) ===== */
+        .main-content {
+            display: grid;
+            grid-template-columns: 200px 240px 200px;
+            gap: var(--column-gap);
+        }
+
+        .column-1,
+        .column-2,
+        .column-3 {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        /* ===== Inspiration & Prof Bonus Row ===== */
+        /* ===== Combined Inspiration & Prof Bonus - extends .phb-section ===== */
+        .top-stats-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 8px;
+            padding: 6px 8px;
+        }
+
+        .stat-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-group .stat-label {
+            font-size: 8px;
+            white-space: nowrap;
+        }
+
+        /* ===== Saves & Skills Sections - extends .phb-section ===== */
+        .saves-section,
+        .skills-section {
+            padding: 8px;
+        }
+
+        .save-item,
+        .skill-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-family: 'ScalySansRemake', sans-serif;
+            padding: 2px 0;
+        }
+
+        .modifier {
+            width: 24px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .skill-name {
+            flex: 1;
+        }
+
+        .skill-ability {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        /* ===== Passive Perception - extends .phb-section ===== */
+        .passive-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+        }
+
+        .passive-value {
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .passive-label {
+            font-size: 10px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            color: var(--text-red);
+        }
+
+        /* ===== Combat Stats Row ===== */
+        .combat-stats-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        /* Combat stat box - extends .phb-section */
+        .combat-stat-box {
+            width: 65px;
+            padding: 8px 4px;
+            text-align: center;
+        }
+
+        .combat-stat-box .stat-value {
+            font-size: 22px;
+            font-family: 'NodestoCapsCondensed', serif;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .combat-stat-box .stat-label {
+            font-size: 8px;
+            margin-top: 2px;
+        }
+
+        /* ===== HP Section - extends .phb-section ===== */
+        .hp-section {
+            padding: 8px;
+        }
+
+        .hp-max-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .hp-max-label {
+            font-size: 11px;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .hp-max-value {
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+            font-weight: bold;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .hp-current {
+            height: 30px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 4px;
+            background: var(--bg-light);
+        }
+
+        .hp-current-label {
+            font-size: 10px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            text-align: center;
+            color: var(--text-red);
+        }
+
+        .hp-temp {
+            height: 24px;
+            border: 1px solid var(--border-color);
+            margin-top: 6px;
+            background: var(--bg-light);
+        }
+
+        .hp-temp-label {
+            font-size: 10px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            text-align: center;
+            color: var(--text-red);
+        }
+
+        /* ===== Hit Dice & Death Saves Row ===== */
+        .hitdice-death-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Hitdice and death saves - extends .phb-section */
+        .hitdice-box,
+        .death-saves-box {
+            flex: 1;
+            padding: 8px;
+        }
+
+        .hitdice-total {
+            font-size: 11px;
+            font-family: 'ScalySansRemake', sans-serif;
+            margin-bottom: 4px;
+        }
+
+        .hitdice-value {
+            height: 24px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-light);
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .hitdice-label {
+            font-size: 10px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 4px;
+            color: var(--text-red);
+        }
+
+        .death-saves-content {
+            display: grid;
+            grid-template-columns: auto repeat(3, 1fr);
+            gap: 4px 6px;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .death-saves-row {
+            display: contents;
+        }
+
+        .death-saves-row span {
+            font-size: 9px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            text-align: right;
+            color: var(--text-red);
+        }
+
+        .death-circle {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            justify-self: center;
+            background: var(--bg-light);
+        }
+
+        .death-saves-label {
+            font-size: 9px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            text-align: center;
+            padding-top: 4px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-red);
+        }
+
+        /* ===== Attacks Section - extends .phb-section ===== */
+        .attacks-section {
+            padding: 6px;
+            flex: 1;
+        }
+
+        .attacks-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 30px 65px;
+            gap: 2px;
+            font-size: 8px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            color: var(--text-red);
+            margin-top: 4px;
+            text-align: left;
+            letter-spacing: 0.3px;
+        }
+
+        .attack-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 30px 65px;
+            gap: 2px;
+            margin-bottom: 2px;
+        }
+
+        .attack-row input {
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1px 2px;
+            font-size: 10px;
+            font-family: 'ScalySansRemake', sans-serif;
+            background: transparent;
+            min-width: 0;
+        }
+
+        .attacks-title {
+            font-size: 10px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-red);
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        /* ===== Equipment Section - extends .phb-section ===== */
+        .equipment-section {
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .equipment-content {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .currency-column {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .currency-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .currency-label {
+            width: 20px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            font-weight: bold;
+            background: var(--border-color);
+            color: #fff;
+        }
+
+        .currency-value {
+            width: 32px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-left: none;
+            font-family: 'ScalySansRemake', sans-serif;
+            font-size: 10px;
+            background: var(--bg-light);
+            text-align: center;
+        }
+
+        .equipment-list {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            font-size: 10px;
+            font-family: 'ScalySansRemake', sans-serif;
+            background: var(--bg-light);
+            line-height: 1.3;
+        }
+
+        .equipment-title {
+            font-size: 9px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 6px;
+            padding-top: 4px;
+            font-weight: bold;
+            color: var(--text-red);
+            letter-spacing: 0.5px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        /* ===== Personality & Features - extends .phb-section ===== */
+        .personality-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .personality-box .text-area {
+            flex: 1;
+            min-height: 60px;
+            padding: 6px;
+            font-size: 12px;
+            font-family: 'BookInsanityRemake', Georgia, serif;
+        }
+
+        /* Features box - extends .phb-section */
+        .features-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .features-box .text-area {
+            flex: 1;
+            min-height: 120px;
+            padding: 6px;
+            font-size: 12px;
+            font-family: 'BookInsanityRemake', Georgia, serif;
+        }
+
+        /* ===== Notes Section ===== */
+        .notes-section {
+            margin-top: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 40px;
+        }
+
+        /* Notes box - extends .phb-section */
+        .notes-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100px;
+        }
+
+        .notes-box .notes-content {
+            flex: 1;
+            padding: 8px;
+            font-size: 12px;
+            font-family: 'BookInsanityRemake', Georgia, serif;
+            line-height: 1.5;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .notes-column {
+            border-right: 1px dashed var(--border-light);
+            padding-right: 12px;
+        }
+
+        .notes-column:last-child {
+            border-right: none;
+            padding-right: 0;
+        }
+
+        /* ===== Proficiencies Box - extends .phb-section ===== */
+        .proficiencies-box {
+            padding: 8px;
+            flex: 1;
+        }
+
+        .proficiencies-box .text-area {
+            min-height: 60px;
+            font-size: 11px;
+            font-family: 'ScalySansRemake', sans-serif;
+            line-height: 1.4;
+        }
+
+        .proficiencies-box .box-label {
+            font-size: 9px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-red);
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 2px solid var(--border-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="phb-page character-sheet">
+
+        <!-- ===== HEADER with Portrait ===== -->
+        <div class="header">
+            <!-- Portrait -->
+            <div class="portrait-box">
+                <span class="portrait-placeholder">Portrait</span>
+                <!-- <img src="character-portrait.jpg" alt="Character Portrait"> -->
+            </div>
+
+            <!-- Header Content -->
+            <div class="header-content">
+                <div class="header-name labeled-box">
+                    <div class="value">Thoradin Fireforge</div>
+                    <div class="label">Character Name</div>
+                </div>
+                <div class="header-info">
+                    <div class="labeled-box medium">
+                        <div class="value">Paladin 2</div>
+                        <div class="label">Class & Level</div>
+                    </div>
+                    <div class="labeled-box narrow">
+                        <div class="value">Half-elf</div>
+                        <div class="label">Race</div>
+                    </div>
+                    <div class="labeled-box medium">
+                        <div class="value">Acolyte</div>
+                        <div class="label">Background</div>
+                    </div>
+                    <div class="labeled-box">
+                        <div class="value">Player McPlayerface</div>
+                        <div class="label">Player Name</div>
+                    </div>
+                    <div class="labeled-box narrow">
+                        <div class="value">LG</div>
+                        <div class="label">Alignment</div>
+                    </div>
+                    <div class="labeled-box narrow">
+                        <div class="value">3240</div>
+                        <div class="label">XP</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ABILITY SCORES ROW ===== -->
+        <div class="ability-scores-row">
+            <div class="phb-section ability-box">
+                <div class="ability-name">Strength</div>
+                <div class="ability-score">14</div>
+                <div class="ability-modifier">+2</div>
+            </div>
+            <div class="phb-section ability-box">
+                <div class="ability-name">Dexterity</div>
+                <div class="ability-score">10</div>
+                <div class="ability-modifier">+0</div>
+            </div>
+            <div class="phb-section ability-box">
+                <div class="ability-name">Constitution</div>
+                <div class="ability-score">14</div>
+                <div class="ability-modifier">+2</div>
+            </div>
+            <div class="phb-section ability-box">
+                <div class="ability-name">Intelligence</div>
+                <div class="ability-score">10</div>
+                <div class="ability-modifier">+0</div>
+            </div>
+            <div class="phb-section ability-box">
+                <div class="ability-name">Wisdom</div>
+                <div class="ability-score">12</div>
+                <div class="ability-modifier">+1</div>
+            </div>
+            <div class="phb-section ability-box">
+                <div class="ability-name">Charisma</div>
+                <div class="ability-score">16</div>
+                <div class="ability-modifier">+3</div>
+            </div>
+        </div>
+
+        <!-- ===== MAIN CONTENT (3 Columns) ===== -->
+        <div class="main-content">
+
+            <!-- ===== COLUMN 1: Saves, Skills, Proficiencies ===== -->
+            <div class="column-1">
+                <!-- Inspiration & Prof Bonus -->
+                <div class="phb-section top-stats-box">
+                    <div class="stat-group">
+                        <div class="stat-circle"></div>
+                        <div class="stat-label">Inspiration</div>
+                    </div>
+                    <div class="stat-group">
+                        <div class="stat-circle">+2</div>
+                        <div class="stat-label">Prof Bonus</div>
+                    </div>
+                </div>
+
+                <!-- Saving Throws -->
+                <div class="phb-section saves-section">
+                    <div class="save-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+2</div>
+                        <div class="skill-name">Strength</div>
+                    </div>
+                    <div class="save-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">Dexterity</div>
+                    </div>
+                    <div class="save-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+2</div>
+                        <div class="skill-name">Constitution</div>
+                    </div>
+                    <div class="save-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">Intelligence</div>
+                    </div>
+                    <div class="save-item">
+                        <div class="prof-marker filled"></div>
+                        <div class="modifier">+3</div>
+                        <div class="skill-name">Wisdom</div>
+                    </div>
+                    <div class="save-item">
+                        <div class="prof-marker filled"></div>
+                        <div class="modifier">+5</div>
+                        <div class="skill-name">Charisma</div>
+                    </div>
+                    <div class="section-title">Saving Throws</div>
+                </div>
+
+                <!-- Skills -->
+                <div class="phb-section skills-section">
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">Acrobatics <span class="skill-ability">(Dex)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+1</div>
+                        <div class="skill-name">Animal Handling <span class="skill-ability">(Wis)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">Arcana <span class="skill-ability">(Int)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker filled"></div>
+                        <div class="modifier">+4</div>
+                        <div class="skill-name">Athletics <span class="skill-ability">(Str)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+3</div>
+                        <div class="skill-name">Deception <span class="skill-ability">(Cha)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">History <span class="skill-ability">(Int)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker filled"></div>
+                        <div class="modifier">+3</div>
+                        <div class="skill-name">Insight <span class="skill-ability">(Wis)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+3</div>
+                        <div class="skill-name">Intimidation <span class="skill-ability">(Cha)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">Investigation <span class="skill-ability">(Int)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+1</div>
+                        <div class="skill-name">Medicine <span class="skill-ability">(Wis)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">Nature <span class="skill-ability">(Int)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+1</div>
+                        <div class="skill-name">Perception <span class="skill-ability">(Wis)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+3</div>
+                        <div class="skill-name">Performance <span class="skill-ability">(Cha)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker filled"></div>
+                        <div class="modifier">+5</div>
+                        <div class="skill-name">Persuasion <span class="skill-ability">(Cha)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker filled"></div>
+                        <div class="modifier">+2</div>
+                        <div class="skill-name">Religion <span class="skill-ability">(Int)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">Sleight of Hand <span class="skill-ability">(Dex)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+0</div>
+                        <div class="skill-name">Stealth <span class="skill-ability">(Dex)</span></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="prof-marker"></div>
+                        <div class="modifier">+1</div>
+                        <div class="skill-name">Survival <span class="skill-ability">(Wis)</span></div>
+                    </div>
+                    <div class="section-title">Skills</div>
+                </div>
+
+                <!-- Passive Perception -->
+                <div class="phb-section passive-box">
+                    <div class="passive-value">11</div>
+                    <div class="passive-label">Passive Wisdom (Perception)</div>
+                </div>
+
+                <!-- Proficiencies & Languages -->
+                <div class="phb-section proficiencies-box">
+                    <div class="text-area">
+                        <strong>Languages:</strong> Common, Elvish, Celestial<br>
+                        <strong>Armor:</strong> All armor, shields<br>
+                        <strong>Weapons:</strong> Simple, martial<br>
+                        <strong>Tools:</strong> None
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== COLUMN 2: Combat Stats ===== -->
+            <div class="column-2">
+                <!-- AC / Initiative / Speed -->
+                <div class="combat-stats-row">
+                    <div class="phb-section combat-stat-box">
+                        <div class="stat-value">18</div>
+                        <div class="stat-label">Armor Class</div>
+                    </div>
+                    <div class="phb-section combat-stat-box">
+                        <div class="stat-value">+0</div>
+                        <div class="stat-label">Initiative</div>
+                    </div>
+                    <div class="phb-section combat-stat-box">
+                        <div class="stat-value">30</div>
+                        <div class="stat-label">Speed</div>
+                    </div>
+                </div>
+
+                <!-- HP Section -->
+                <div class="phb-section hp-section">
+                    <div class="hp-max-row">
+                        <span class="hp-max-label">Hit Point Maximum</span>
+                        <span class="hp-max-value">22</span>
+                    </div>
+                    <div class="hp-current"></div>
+                    <div class="hp-current-label">Current Hit Points</div>
+                    <div class="hp-temp"></div>
+                    <div class="hp-temp-label">Temporary Hit Points</div>
+                </div>
+
+                <!-- Hit Dice & Death Saves -->
+                <div class="hitdice-death-row">
+                    <div class="phb-section hitdice-box">
+                        <div class="hitdice-total">Total: 2d10</div>
+                        <div class="hitdice-value">2d10</div>
+                        <div class="hitdice-label">Hit Dice</div>
+                    </div>
+                    <div class="phb-section death-saves-box">
+                        <div class="death-saves-content">
+                            <div class="death-saves-row">
+                                <span>Successes</span>
+                                <div class="death-circle"></div>
+                                <div class="death-circle"></div>
+                                <div class="death-circle"></div>
+                            </div>
+                            <div class="death-saves-row">
+                                <span>Failures</span>
+                                <div class="death-circle"></div>
+                                <div class="death-circle"></div>
+                                <div class="death-circle"></div>
+                            </div>
+                        </div>
+                        <div class="death-saves-label">Death Saves</div>
+                    </div>
+                </div>
+
+                <!-- Attacks -->
+                <div class="phb-section attacks-section">
+                    <div class="attacks-title">Attacks & Spellcasting</div>
+                    <div class="attacks-header">
+                        <div>Name</div>
+                        <div>Atk Bonus</div>
+                        <div>Damage/Type</div>
+                    </div>
+                    <div class="attack-row">
+                        <input type="text" value="Longsword">
+                        <input type="text" value="+4">
+                        <input type="text" value="1d8+2 slash">
+                    </div>
+                    <div class="attack-row">
+                        <input type="text" value="Javelin">
+                        <input type="text" value="+4">
+                        <input type="text" value="1d6+2 pierc">
+                    </div>
+                    <div class="attack-row">
+                        <input type="text" placeholder="—">
+                        <input type="text" placeholder="—">
+                        <input type="text" placeholder="—">
+                    </div>
+
+                </div>
+
+                <!-- Equipment -->
+                <div class="phb-section equipment-section">
+                    <div class="equipment-content">
+                        <div class="currency-column">
+                            <div class="currency-item">
+                                <div class="currency-label">CP</div>
+                                <input type="text" class="currency-value" value="0">
+                            </div>
+                            <div class="currency-item">
+                                <div class="currency-label">SP</div>
+                                <input type="text" class="currency-value" value="0">
+                            </div>
+                            <div class="currency-item">
+                                <div class="currency-label">EP</div>
+                                <input type="text" class="currency-value" value="0">
+                            </div>
+                            <div class="currency-item">
+                                <div class="currency-label">GP</div>
+                                <input type="text" class="currency-value" value="15">
+                            </div>
+                            <div class="currency-item">
+                                <div class="currency-label">PP</div>
+                                <input type="text" class="currency-value" value="0">
+                            </div>
+                        </div>
+                        <div class="equipment-list">
+                            Chain mail<br>
+                            Shield<br>
+                            Longsword<br>
+                            5 Javelins<br>
+                            Holy symbol<br>
+                            Prayer book<br>
+                            Explorer's pack
+                        </div>
+                    </div>
+                    <div class="equipment-title">Equipment</div>
+                </div>
+            </div>
+
+            <!-- ===== COLUMN 3: Personality & Features ===== -->
+            <div class="column-3">
+                <div class="phb-section personality-box">
+                    <div class="text-area">I idolize a particular hero of my faith.</div>
+                    <div class="box-label">Personality Traits</div>
+                </div>
+
+                <div class="phb-section personality-box">
+                    <div class="text-area">Charity. I always try to help those in need.</div>
+                    <div class="box-label">Ideals</div>
+                </div>
+
+                <div class="phb-section personality-box">
+                    <div class="text-area">I owe my life to the priest who took me in when my parents died.</div>
+                    <div class="box-label">Bonds</div>
+                </div>
+
+                <div class="phb-section personality-box">
+                    <div class="text-area">I put too much trust in those who wield power within my god's temple.</div>
+                    <div class="box-label">Flaws</div>
+                </div>
+
+                <div class="phb-section features-box">
+                    <div class="text-area">
+                        <strong>Divine Sense</strong><br>
+                        Detect celestial, fiend, or undead within 60 ft.<br><br>
+                        <strong>Lay on Hands</strong><br>
+                        Pool of 10 HP for healing or curing disease.<br><br>
+                        <strong>Divine Smite</strong><br>
+                        Expend spell slot for +2d8 radiant damage.<br><br>
+                        <strong>Fighting Style: Defense</strong><br>
+                        +1 AC while wearing armor.
+                    </div>
+                    <div class="box-label">Features & Traits</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== NOTES SECTION ===== -->
+        <div class="notes-section">
+            <div class="phb-section notes-box">
+                <div class="notes-content">
+                    <div class="notes-column">
+                        <!-- Notes Column 1 -->
+                    </div>
+                    <div class="notes-column">
+                        <!-- Notes Column 2 -->
+                    </div>
+                    <div class="notes-column">
+                        <!-- Notes Column 3 -->
+                    </div>
+                </div>
+                <div class="box-label">Notes</div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>

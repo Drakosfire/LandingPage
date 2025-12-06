@@ -156,11 +156,25 @@ A player wants to export their character as a PDF for printing or as JSON for ba
 - **FR-009**: System MUST display validation errors with clear messages indicating which step needs attention
 - **FR-010**: System MUST enforce SRD rules for all choices (legal race/class/skill/equipment combinations only)
 
-#### Canvas Rendering
+#### Character Sheet Rendering (Static Pages + Canvas Patterns)
 
-- **FR-011**: System MUST render character sheet using Canvas components (following StatblockGenerator patterns)
-- **FR-012**: Canvas MUST update live as user makes choices in the wizard
-- **FR-013**: System MUST support multi-page character sheet layout for complete characters
+- **FR-011**: System MUST render character sheet using **static page layouts** (Character, Spells, Inventory pages) with PHB styling. Canvas package provides patterns (font loading, responsive scaling, CSS variables) but NOT measurement-based pagination.
+- **FR-012**: Character sheet MUST update live as user makes choices in the wizard
+- **FR-013**: System MUST support multi-page character sheet with fixed page types: Main Character Sheet, Spell Sheet (casters only), Inventory Sheet. Main pages have static layouts; overflow content flows to Canvas-driven continuation pages that use measurement-based pagination.
+- **FR-038**: Main pages MUST enforce section bounds; content exceeding bounds flows to overflow pages:
+  - Features & Traits: max 8 items on main page
+  - Attacks: max 5 items on main page
+  - Equipment: max 12 items on main page
+  - Spells per level: max 8 spells per spell level on main page
+- **FR-039**: System MUST display "continues on next page" indicator when section content overflows
+
+#### Print & Rendering Quality
+
+- **FR-040**: Character sheet pages MUST be sized for US Letter paper (8.5" × 11" / 816px × 1056px at 96dpi)
+- **FR-041**: System MUST wait for PHB fonts to load (NodestoCapsCondensed, ScalySansRemake, BookInsanityRemake) before rendering character sheet - prevents 80%+ layout error from font metrics mismatch
+- **FR-042**: Print styles MUST include `print-color-adjust: exact` for parchment backgrounds and PHB borders
+- **FR-043**: System MUST support responsive scaling for screen display while maintaining print fidelity
+- **FR-044**: System SHOULD support direct editing of character sheet (quick corrections without wizard); editing MUST NOT cause layout disruption during active editing; overflow handling occurs on edit exit
 
 #### AI Generation
 
@@ -234,9 +248,17 @@ A player wants to export their character as a PDF for printing or as JSON for ba
 - Q: Should we add DSL/JSON rules now? → A: No - build procedural TypeScript first, consider declarative rules at extraction time
 - Q: Should we add RuleContext pattern? → A: Defer - can add incrementally if validation logic becomes complex
 
+### Session 2025-12-05 (Canvas Architecture Review)
+
+- Q: Should spec reflect "Static Pages + Canvas Patterns" architecture? → A: Yes - Main pages use static layouts with Canvas patterns (font loading, scaling, CSS vars). Overflow/continuation pages use full Canvas measurement-based pagination.
+- Q: Should section bounds be specified? → A: Yes - Features: 8, Attacks: 5, Equipment: 12, Spells/level: 8. Overflow to continuation pages with indicator.
+- Q: Should print/rendering requirements be specified? → A: Yes - US Letter dimensions, font loading gate, print CSS with exact color adjust, responsive scaling.
+- Q: Should edit mode behavior be specified? → A: High-level only - no layout disruption during edit, overflow handled on exit. Implementation details deferred.
+- Q: Should tasks.md be updated for static page approach? → A: No - Canvas tasks remain valuable. Static main pages ≠ static overflow pages. Overflow pages use Canvas measurement/pagination system.
+
 ## Assumptions
 
-1. **Canvas Package**: The `dungeonmind-canvas` package is available and proven (from StatblockGenerator)
+1. **Canvas Package**: The `dungeonmind-canvas` package provides proven patterns (font loading, responsive scaling, CSS variables, adapters) but PCG uses **static page layouts** instead of Canvas's measurement-based pagination. See `DESIGN-Canvas-Character-Sheet-Integration.md` for rationale.
 2. **SRD Data**: SRD data will be bundled as TypeScript files (not fetched from external API) for type safety and offline capability
 3. **Authentication**: Existing AuthContext from DungeonMind will handle logged-in state for cloud save features
 4. **Image Generation**: Portrait generation will use the same Stable Diffusion integration as StatblockGenerator
@@ -257,7 +279,7 @@ A player wants to export their character as a PDF for printing or as JSON for ba
 
 ## Dependencies
 
-- `dungeonmind-canvas` package for character sheet rendering
+- `dungeonmind-canvas` package for **patterns** (font loading, responsive scaling, CSS variables, adapters) - NOT used as layout engine for main pages
 - DungeonMindServer for AI generation endpoints
 - Stable Diffusion integration for portrait generation
 - Firebase/Firestore for cloud save

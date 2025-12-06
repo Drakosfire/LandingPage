@@ -1,0 +1,376 @@
+/**
+ * PHB Prototype Styles
+ * 
+ * Shared CSS for character sheet HTML prototypes.
+ * Uses relative paths to work both standalone and via dev server.
+ * 
+ * Usage: <link rel="stylesheet" href="phb-prototype.css">
+ * 
+ * NOTE: These prototypes will be componentized into React components
+ * that use the production CSS in styles/CharacterComponents.css
+ */
+
+/* ===== PHB Font Faces (from 5ePHBstyle.css) ===== */
+/* Path: prototypes/ → public/dnd-static/themes/fonts/5e/ */
+@font-face {
+    font-family: 'BookInsanityRemake';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Bookinsanity.woff2') format('woff2');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'BookInsanityRemake';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Bookinsanity Bold.woff2') format('woff2');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'BookInsanityRemake';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Bookinsanity Italic.woff2') format('woff2');
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'ScalySansRemake';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Scaly Sans.woff2') format('woff2');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'ScalySansRemake';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Scaly Sans Bold.woff2') format('woff2');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'ScalySansRemake';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Scaly Sans Italic.woff2') format('woff2');
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'ScalySansSmallCapsRemake';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Scaly Sans Caps.woff2') format('woff2');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'NodestoCapsCondensed';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Nodesto Caps Condensed.woff2') format('woff2');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'NodestoCapsCondensed';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Nodesto Caps Condensed Bold.woff2') format('woff2');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'MrEavesRemake';
+    src: url('../../../public/dnd-static/themes/fonts/5e/Mr Eaves Small Caps.woff2') format('woff2');
+    font-weight: normal;
+}
+
+/* ===== CSS Variables (PHB Colors from 5ePHBstyle.css) ===== */
+:root {
+    /* Page Dimensions (US Letter at 96dpi) */
+    --page-width: 816px;
+    --page-height: 1056px;
+
+    /* Layout */
+    --column-gap: 10px;
+    --section-padding: 8px;
+    --border-radius: 6px;
+
+    /* PHB Colors (from 5ePHBstyle.css :root) */
+    --HB_Color_Background: #EEE5CE;
+    --HB_Color_Accent: #E0E5C1;
+    --HB_Color_HeaderUnderline: #C0AD6A;
+    --HB_Color_HorizontalRule: #9C2B1B;
+    --HB_Color_HeaderText: #58180D;
+    --HB_Color_MonsterStatBackground: #F2E5B5;
+    --HB_Color_CaptionText: #766649;
+
+    /* Mapped to semantic variables */
+    --border-color: var(--HB_Color_HeaderText);
+    --border-light: var(--HB_Color_HorizontalRule);
+    --bg-light: rgba(255, 255, 255, 0.5);
+    --bg-page: var(--HB_Color_Background);
+    --bg-section: var(--HB_Color_MonsterStatBackground);
+    --text-dark: #1a1a1a;
+    --text-muted: var(--HB_Color_HeaderText);
+    --text-red: var(--HB_Color_HeaderText);
+
+    /* Asset paths (relative from prototypes folder) */
+    --asset-path: '../../../public/dnd-static/themes/assets';
+}
+
+/* ===== Reset & Base ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    background: #4a3728;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+/* ===== Page Container with PHB Parchment ===== */
+.phb-page {
+    width: var(--page-width);
+    min-height: var(--page-height);
+    padding: 1.4cm 1.9cm 1.7cm;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    /* PHB Parchment background */
+    background-color: var(--bg-page);
+    background-image: url('../../../public/dnd-static/themes/assets/parchmentBackground.jpg');
+    background-size: cover;
+    background-position: center;
+
+    /* Monster Border Fancy - Official PHB stat block style */
+    border-style: solid;
+    border-width: 7px 6px;
+    border-image: url('../../../public/dnd-static/themes/assets/monsterBorderFancy.png') 14 round;
+    border-image-outset: 0px 2px;
+    box-shadow: 1px 4px 14px #888888;
+}
+
+/* PHB Footer decoration */
+.phb-page::after {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    z-index: 100;
+    width: 100%;
+    height: 50px;
+    content: '';
+    background-image: url('../../../public/dnd-static/themes/assets/PHB_footerAccent.png');
+    background-size: cover;
+    pointer-events: none;
+}
+
+/* ===== PHB Section Box (like monster stat block) ===== */
+.phb-section {
+    background-color: var(--HB_Color_MonsterStatBackground);
+    background-image: url('../../../public/dnd-static/themes/assets/parchmentBackgroundGrayscale.jpg');
+    background-attachment: fixed;
+    background-blend-mode: overlay;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+/* Flex column variant for text areas with bottom labels */
+.phb-section.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== Red Triangle Separator (PHB style HR) ===== */
+.phb-separator {
+    height: 6px;
+    margin: 8px 0;
+    background-image: url('../../../public/dnd-static/themes/assets/redTriangle.png');
+    background-size: 100% 100%;
+    border: none;
+}
+
+/* ===== Common Box with Bottom Label Pattern ===== */
+.labeled-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.labeled-box .value {
+    flex: 1;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 8px 10px;
+    font-size: 15px;
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--bg-light);
+}
+
+.labeled-box .label {
+    background: var(--border-color);
+    color: #fff;
+    border: 2px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: 3px 6px;
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', 'ScalySansRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: bold;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+/* ===== Section Header (white on red) ===== */
+.section-header {
+    font-size: 11px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* ===== Section Title (bottom border style) ===== */
+.section-title {
+    text-align: center;
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-red);
+    letter-spacing: 1px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 2px solid var(--border-color);
+}
+
+/* ===== Block Header (white text on red bg) ===== */
+.block-header {
+    background: var(--border-color);
+    color: #fff;
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.block-header .block-title {
+    font-size: 11px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.block-header .block-weight {
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+    opacity: 0.9;
+}
+
+/* ===== Box Label (bottom label) ===== */
+.box-label {
+    background: var(--border-color);
+    color: #fff;
+    padding: 4px;
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* ===== Proficiency Markers ===== */
+.prof-marker {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--bg-light);
+}
+
+.prof-marker.filled {
+    background: var(--border-color);
+}
+
+/* ===== Stat Circle (responsive pill) ===== */
+.stat-circle {
+    min-width: 1.5em;
+    min-height: 1.5em;
+    padding: 4px 8px;
+    border: 2px solid var(--border-color);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    font-family: 'ScalySansRemake', sans-serif;
+    background: var(--bg-light);
+}
+
+/* ===== Stat Label (small caps) ===== */
+.stat-label {
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: var(--text-red);
+}
+
+/* ===== Typography Classes ===== */
+.phb-title {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 28px;
+    color: var(--text-red);
+}
+
+.phb-page-title {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 40px;
+    color: var(--text-red);
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.phb-body {
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.phb-stats {
+    font-family: 'ScalySansRemake', sans-serif;
+    font-size: 12px;
+}
+
+.phb-caps {
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+}
+
+.phb-number {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+}
+
+/* ===== Utility Classes ===== */
+.narrow {
+    flex: 0 0 70px;
+    min-width: 70px;
+}
+
+.medium {
+    flex: 0 0 90px;
+    min-width: 90px;
+}
+
+.flex-grow {
+    flex: 1;
+}

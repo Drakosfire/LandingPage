@@ -10,6 +10,9 @@ const getSource = (dataSources: ComponentDataSource[], dataRef: ComponentDataRef
         if (dataRef.type === 'statblock') {
             return source.type === 'statblock';
         }
+        if (dataRef.type === 'character') {
+            return source.type === 'character';
+        }
         return source.type === 'custom';
     });
 };
@@ -39,7 +42,10 @@ export const resolveDataReference = (
     if (dataRef.type === 'statblock') {
         return resolvePath(payload as StatBlockDetails, dataRef.path);
     }
-
+    if (dataRef.type === 'character') {
+        return resolvePath(payload as Record<string, unknown>, dataRef.path);
+    }
+    // custom type
     return resolvePath(payload as Record<string, unknown>, dataRef.key);
 };
 

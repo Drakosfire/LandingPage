@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D 5e Spell Sheet - HTML Prototype</title>
+
+    <!-- PHB Foundation Styles (fonts, colors, base patterns) -->
+    <link rel="stylesheet" href="phb-prototype.css">
+
+    <style>
+        /* ===== SPELL SHEET SPECIFIC STYLES ===== */
+        /* Page container extends .phb-page from phb-prototype.css */
+
+        /* ===== Header ===== */
+        .spell-header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: flex-end;
+        }
+
+        /* Title extends .phb-page-title */
+
+        .spell-header-info {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+        }
+
+        .spell-header-info .labeled-box {
+            flex: 1;
+        }
+
+        .spell-header-info .labeled-box.narrow {
+            flex: 0 0 80px;
+        }
+
+        .spell-header-info .labeled-box .value {
+            justify-content: center;
+            padding: 6px 8px;
+            font-size: 12px;
+            min-height: 28px;
+        }
+
+        .spell-header-info .labeled-box .label {
+            padding: 2px 4px;
+            font-size: 6px;
+        }
+
+        /* ===== Spellcasting Stats Row ===== */
+        .spellcasting-stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        /* Spell stat box - extends .phb-section */
+        .spell-stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+            min-width: 100px;
+        }
+
+        .spell-stat-box .stat-label {
+            font-size: 7px;
+            margin-bottom: 4px;
+        }
+
+        .spell-stat-box .stat-value {
+            font-size: 20px;
+            font-family: 'NodestoCapsCondensed', serif;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        /* ===== Spell Slots Section ===== */
+        .spell-slots-section {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Spell slot level - extends .phb-section */
+        .spell-slot-level {
+            padding: 6px;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .spell-slot-level .level-num {
+            font-size: 10px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            color: var(--text-red);
+            margin-bottom: 4px;
+        }
+
+        .spell-slot-level .slots-total {
+            font-size: 8px;
+            font-family: 'ScalySansRemake', sans-serif;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .spell-slot-level .slot-circles {
+            display: flex;
+            gap: 3px;
+            justify-content: center;
+        }
+
+        .slot-circle {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            background: var(--bg-light);
+        }
+
+        .slot-circle.used {
+            background: var(--border-color);
+        }
+
+        /* ===== Spell List Columns ===== */
+        .spell-list-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--column-gap);
+            padding-bottom: 40px;
+        }
+
+        .spell-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ===== Spell Level Block - extends .phb-section ===== */
+        .spell-level-block {
+            /* phb-section provides background, border, border-radius, overflow */
+        }
+
+        .spell-level-header {
+            background: var(--border-color);
+            color: #fff;
+            padding: 4px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .spell-level-header .level-title {
+            font-size: 9px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .spell-level-header .slot-info {
+            font-size: 8px;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .spell-level-list {
+            padding: 6px;
+        }
+
+        .spell-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 0;
+            border-bottom: 1px dotted var(--border-light);
+            font-size: 10px;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .spell-item:last-child {
+            border-bottom: none;
+        }
+
+        .spell-prepared {
+            width: 10px;
+            height: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 2px;
+            flex-shrink: 0;
+            background: var(--bg-light);
+        }
+
+        .spell-prepared.checked {
+            background: var(--border-color);
+        }
+
+        .spell-name {
+            flex: 1;
+        }
+
+        .spell-markers {
+            display: flex;
+            gap: 2px;
+            font-size: 8px;
+            color: var(--text-red);
+        }
+
+        .spell-marker {
+            font-weight: bold;
+        }
+
+        .spell-item.empty {
+            border-bottom: 1px solid var(--border-color);
+            min-height: 20px;
+        }
+
+        /* Cantrips special styling */
+        .spell-level-block.cantrips .spell-level-header {
+            background: linear-gradient(135deg, var(--border-color) 0%, #7c3a1f 100%);
+        }
+
+        .spell-level-block.cantrips .spell-prepared {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="phb-page spell-sheet">
+
+        <!-- ===== HEADER ===== -->
+        <div class="phb-page-title">Spellcasting</div>
+        <div class="spell-header">
+
+            <div class="spell-header-info">
+                <div class="labeled-box">
+                    <div class="value">Wizard</div>
+                    <div class="label">Spellcasting Class</div>
+                </div>
+                <div class="labeled-box narrow">
+                    <div class="value">INT</div>
+                    <div class="label">Ability</div>
+                </div>
+                <div class="labeled-box narrow">
+                    <div class="value">14</div>
+                    <div class="label">Spell Save DC</div>
+                </div>
+                <div class="labeled-box narrow">
+                    <div class="value">+6</div>
+                    <div class="label">Spell Attack</div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ===== SPELL SLOTS TRACKER ===== -->
+        <div class="spell-slots-section">
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">1st</div>
+                <div class="slots-total">4 slots</div>
+                <div class="slot-circles">
+                    <div class="slot-circle"></div>
+                    <div class="slot-circle"></div>
+                    <div class="slot-circle used"></div>
+                    <div class="slot-circle used"></div>
+                </div>
+            </div>
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">2nd</div>
+                <div class="slots-total">3 slots</div>
+                <div class="slot-circles">
+                    <div class="slot-circle"></div>
+                    <div class="slot-circle"></div>
+                    <div class="slot-circle"></div>
+                </div>
+            </div>
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">3rd</div>
+                <div class="slots-total">3 slots</div>
+                <div class="slot-circles">
+                    <div class="slot-circle"></div>
+                    <div class="slot-circle"></div>
+                    <div class="slot-circle"></div>
+                </div>
+            </div>
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">4th</div>
+                <div class="slots-total">2 slots</div>
+                <div class="slot-circles">
+                    <div class="slot-circle"></div>
+                    <div class="slot-circle"></div>
+                </div>
+            </div>
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">5th</div>
+                <div class="slots-total">1 slot</div>
+                <div class="slot-circles">
+                    <div class="slot-circle"></div>
+                </div>
+            </div>
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">6th</div>
+                <div class="slots-total">0 slots</div>
+                <div class="slot-circles"></div>
+            </div>
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">7th</div>
+                <div class="slots-total">0 slots</div>
+                <div class="slot-circles"></div>
+            </div>
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">8th</div>
+                <div class="slots-total">0 slots</div>
+                <div class="slot-circles"></div>
+            </div>
+            <div class="phb-section spell-slot-level">
+                <div class="level-num">9th</div>
+                <div class="slots-total">0 slots</div>
+                <div class="slot-circles"></div>
+            </div>
+        </div>
+
+        <!-- ===== SPELL LIST (3 Columns) ===== -->
+        <div class="spell-list-container">
+
+            <!-- Column 1 -->
+            <div class="spell-column">
+                <!-- Cantrips -->
+                <div class="phb-section spell-level-block cantrips">
+                    <div class="spell-level-header">
+                        <span class="level-title">Cantrips</span>
+                        <span class="slot-info">at will</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item">
+                            <div class="spell-name">Fire Bolt</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-name">Light</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-name">Mage Hand</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-name">Prestidigitation</div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1st Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">1st Level</span>
+                        <span class="slot-info">○○●●</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Detect Magic</div>
+                            <div class="spell-markers">
+                                <span class="spell-marker" title="Ritual">R</span>
+                                <span class="spell-marker" title="Concentration">C</span>
+                            </div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Magic Missile</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name">Shield</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Sleep</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name">Thunderwave</div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2 -->
+            <div class="spell-column">
+                <!-- 2nd Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">2nd Level</span>
+                        <span class="slot-info">○○○</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Hold Person</div>
+                            <div class="spell-markers">
+                                <span class="spell-marker" title="Concentration">C</span>
+                            </div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Invisibility</div>
+                            <div class="spell-markers">
+                                <span class="spell-marker" title="Concentration">C</span>
+                            </div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name">Misty Step</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Scorching Ray</div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3rd Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">3rd Level</span>
+                        <span class="slot-info">○○○</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Counterspell</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Fireball</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name">Fly</div>
+                            <div class="spell-markers">
+                                <span class="spell-marker" title="Concentration">C</span>
+                            </div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4th Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">4th Level</span>
+                        <span class="slot-info">○○</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Dimension Door</div>
+                        </div>
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Greater Invisibility</div>
+                            <div class="spell-markers">
+                                <span class="spell-marker" title="Concentration">C</span>
+                            </div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3 -->
+            <div class="spell-column">
+                <!-- 5th Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">5th Level</span>
+                        <span class="slot-info">○</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item">
+                            <div class="spell-prepared checked"></div>
+                            <div class="spell-name">Cone of Cold</div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6th Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">6th Level</span>
+                        <span class="slot-info">—</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7th Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">7th Level</span>
+                        <span class="slot-info">—</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8th Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">8th Level</span>
+                        <span class="slot-info">—</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9th Level -->
+                <div class="phb-section spell-level-block">
+                    <div class="spell-level-header">
+                        <span class="level-title">9th Level</span>
+                        <span class="slot-info">—</span>
+                    </div>
+                    <div class="spell-level-list">
+                        <div class="spell-item empty">
+                            <div class="spell-prepared"></div>
+                            <div class="spell-name"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</body>
+
+</html>

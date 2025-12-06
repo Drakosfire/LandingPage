@@ -2,18 +2,22 @@
  * CharacterCanvas Component
  * 
  * Canvas-based character sheet display for CharacterGenerator.
- * Uses PHB-styled multi-page rendering via CharacterSheetRenderer.
+ * Uses the new PHB-styled sheetComponents built from HTML prototypes.
  * 
  * @module PlayerCharacterGenerator/shared/CharacterCanvas
  */
 
 import React, { useMemo } from 'react';
-import '../../../styles/canvas/index.css';         // Shared canvas styles
-import '../../../styles/CharacterComponents.css';  // Character-specific styles
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
-// Import the PHB-styled renderer
-import { CharacterSheetRenderer, CharacterSheetContainer, CharacterSheetPage } from '../canvasComponents';
+// Import the new PHB-styled sheet components
+// CSS is imported via CharacterSheetPage component
+import {
+    CharacterSheet,
+    CharacterSheetPage,
+    type Attack,
+    type Feature
+} from '../sheetComponents';
 
 const CharacterCanvas: React.FC = () => {
     const { character } = usePlayerCharacterGenerator();
@@ -25,58 +29,165 @@ const CharacterCanvas: React.FC = () => {
             Object.values(dnd5e.abilityScores).some(v => v > 0);
 
         if (hasCharacter && hasAbilityScores && dnd5e) {
-            // Full character sheet with PHB-styled multi-page renderer
+            // Build class and level string
+            const classAndLevel = dnd5e.classes?.length > 0
+                ? dnd5e.classes.map(c => `${c.name} ${c.level}`).join(' / ')
+                : 'Unknown';
+
+            // Build attacks array from weapons
+            const attacks: Attack[] = (dnd5e.weapons || []).map(weapon => {
+                const strMod = Math.floor(((dnd5e.abilityScores?.strength ?? 10) - 10) / 2);
+                const dexMod = Math.floor(((dnd5e.abilityScores?.dexterity ?? 10) - 10) / 2);
+                const profBonus = dnd5e.derivedStats?.proficiencyBonus ?? 2;
+
+                // Use DEX for finesse/ranged, STR otherwise
+                const isFinesse = weapon.properties?.includes('finesse');
+                const isRanged = weapon.weaponType === 'ranged';
+                const abilityMod = (isFinesse || isRanged) ? Math.max(strMod, dexMod) : strMod;
+
+                const attackBonus = abilityMod + profBonus;
+                const damageMod = abilityMod >= 0 ? `+${abilityMod}` : `${abilityMod}`;
+
+                return {
+                    name: weapon.name,
+                    attackBonus: `+${attackBonus}`,
+                    damage: `${weapon.damage}${damageMod} ${weapon.damageType?.slice(0, 5) || ''}`
+                };
+            });
+
+            // Build features array
+            const features: Feature[] = [];
+
+            // Add class features
+            dnd5e.classes?.forEach(cls => {
+                cls.features?.forEach(f => {
+                    features.push({
+                        name: f.name,
+                        description: f.description
+                    });
+                });
+            });
+
+            // Add racial/background features
+            dnd5e.features?.forEach(f => {
+                features.push({
+                    name: f.name,
+                    description: f.description
+                });
+            });
+
+            // Build equipment list
+            const equipmentList: string[] = [];
+            if (dnd5e.armor) equipmentList.push(dnd5e.armor.name);
+            if (dnd5e.shield) equipmentList.push('Shield');
+            dnd5e.weapons?.forEach(w => equipmentList.push(w.name));
+            dnd5e.equipment?.forEach(e => equipmentList.push(e.name));
+
+            // Build personality strings
+            const traits = dnd5e.personality?.traits?.join(' ') || '';
+            const ideals = dnd5e.personality?.ideals?.join(' ') || '';
+            const bonds = dnd5e.personality?.bonds?.join(' ') || '';
+            const flaws = dnd5e.personality?.flaws?.join(' ') || '';
+
+            // Calculate passive perception
+            const wisMod = Math.floor(((dnd5e.abilityScores?.wisdom ?? 10) - 10) / 2);
+            const isProficientPerception = dnd5e.proficiencies?.skills?.includes('Perception');
+            const passivePerception = 10 + wisMod + (isProficientPerception ? (dnd5e.derivedStats?.proficiencyBonus ?? 2) : 0);
+
             return (
-                <CharacterSheetRenderer
-                    character={dnd5e}
+                <CharacterSheet
+                    // Header
                     name={character.name}
-                    level={character.level}
+                    classAndLevel={classAndLevel}
+                    race={dnd5e.race?.name || 'Unknown'}
+                    background={dnd5e.background?.name || 'Unknown'}
+                    playerName=""
+                    alignment={dnd5e.alignment || ''}
+                    xp={0}
+                    portraitUrl={undefined}
+
+                    // Ability Scores
+                    abilityScores={dnd5e.abilityScores}
+
+                    // Proficiency
+                    proficiencyBonus={dnd5e.derivedStats?.proficiencyBonus ?? 2}
+                    proficientSaves={dnd5e.proficiencies?.savingThrows || []}
+                    proficientSkills={dnd5e.proficiencies?.skills || []}
+                    hasInspiration={false}
+                    passivePerception={passivePerception}
+
+                    // Languages & Proficiencies
+                    languages={dnd5e.proficiencies?.languages || ['Common']}
+                    armorProficiencies={dnd5e.proficiencies?.armor || []}
+                    weaponProficiencies={dnd5e.proficiencies?.weapons || []}
+                    toolProficiencies={dnd5e.proficiencies?.tools || []}
+
+                    // Combat
+                    armorClass={dnd5e.derivedStats?.armorClass ?? 10}
+                    initiative={dnd5e.derivedStats?.initiative ?? 0}
+                    speed={dnd5e.derivedStats?.speed?.walk ?? 30}
+                    maxHP={dnd5e.derivedStats?.maxHp ?? 1}
+                    currentHP={dnd5e.derivedStats?.currentHp}
+                    tempHP={dnd5e.derivedStats?.tempHp}
+                    hitDiceTotal={dnd5e.classes?.length > 0
+                        ? `${dnd5e.classes[0].level}d${dnd5e.classes[0].hitDie || 10}`
+                        : '1d10'}
+                    hitDiceCurrent={dnd5e.derivedStats?.hitDice?.current?.toString() ?? '1'}
+
+                    // Attacks & Equipment
+                    attacks={attacks}
+                    currency={dnd5e.currency}
+                    equipment={equipmentList}
+
+                    // Personality
+                    traits={traits}
+                    ideals={ideals}
+                    bonds={bonds}
+                    flaws={flaws}
+
+                    // Features
+                    features={features}
                 />
             );
         }
 
-        // Blank character sheet (empty state) - still uses PHB styling
+        // Empty state - show blank sheet
         return (
-            <CharacterSheetContainer>
-                <CharacterSheetPage pageNumber={1} totalPages={1}>
-                    <div className="block character frame wide">
-                        <div
-                            style={{
-                                textAlign: 'center',
-                                maxWidth: '500px',
-                                padding: '2rem',
-                                margin: '0 auto'
-                            }}
-                        >
-                            <h2
-                                style={{
-                                    fontFamily: 'BookInsanityRemake, serif',
-                                    fontSize: '2.2rem',
-                                    color: '#58180d',
-                                    margin: '0 0 1rem',
-                                    letterSpacing: '0.02em'
-                                }}
-                            >
-                                📜 Character Sheet
-                            </h2>
-                            <p
-                                style={{
-                                    fontFamily: 'ScalySansRemake, "Open Sans", sans-serif',
-                                    fontSize: '1.1rem',
-                                    color: 'rgba(43, 29, 15, 0.8)',
-                                    lineHeight: 1.5,
-                                    margin: 0
-                                }}
-                            >
-                                Create a new character to see the character sheet preview.
-                                <br />
-                                <br />
-                                Click <strong style={{ color: '#a11d18' }}>&quot;Generate&quot;</strong> to start building your character.
-                            </p>
-                        </div>
-                    </div>
-                </CharacterSheetPage>
-            </CharacterSheetContainer>
+            <CharacterSheetPage>
+                <div
+                    style={{
+                        textAlign: 'center',
+                        padding: '3rem 2rem',
+                        fontFamily: 'BookInsanityRemake, serif'
+                    }}
+                >
+                    <h2
+                        style={{
+                            fontFamily: 'NodestoCapsCondensed, serif',
+                            fontSize: '2.4rem',
+                            color: 'var(--text-red, #58180D)',
+                            margin: '0 0 1rem',
+                            letterSpacing: '0.02em'
+                        }}
+                    >
+                        📜 Character Sheet
+                    </h2>
+                    <p
+                        style={{
+                            fontFamily: 'ScalySansRemake, sans-serif',
+                            fontSize: '1.1rem',
+                            color: 'rgba(43, 29, 15, 0.8)',
+                            lineHeight: 1.5,
+                            margin: 0
+                        }}
+                    >
+                        Create a new character to see the character sheet preview.
+                        <br />
+                        <br />
+                        Click <strong style={{ color: '#a11d18' }}>&quot;Generate&quot;</strong> in the header to start building your character.
+                    </p>
+                </div>
+            </CharacterSheetPage>
         );
     }, [character]);
 

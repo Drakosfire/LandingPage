@@ -32,7 +32,7 @@ export { default as FeaturesBlock } from './FeaturesBlock';
 export { default as EquipmentBlock } from './EquipmentBlock';
 export { default as SpellcastingBlock } from './SpellcastingBlock';
 
-// Component registry
+// Component registry (original)
 export {
     PCG_COMPONENT_REGISTRY,
     getComponentEntry,
@@ -41,6 +41,15 @@ export {
     CANVAS_RENDER_ORDER
 } from './componentRegistry';
 export type { PCGComponentRegistryEntry } from './componentRegistry';
+
+// Canvas-compatible registry (new)
+// Note: canvasRegistry.tsx contains JSX wrapper components
+export {
+    CHARACTER_CANVAS_REGISTRY,
+    getCanvasComponentEntry,
+    getAllCanvasComponentTypes,
+    isCanvasComponentRegistered,
+} from './canvasRegistry';
 
 // Demo data
 export { DEMO_FIGHTER, DEMO_FIGHTER_DATA, createDemoFighter } from './demoData';

@@ -420,27 +420,71 @@ The new design should achieve:
 
 ---
 
-## 10. Immediate Next Steps
+## 10. Canvas Integration Progress
 
-### Phase 0: Canvas Integration (BLOCKING)
+### Completed (December 4, 2025)
 
-**This must happen before any visual work.**
+1. ✅ **Canvas Architecture Study** - Reviewed `ARCHITECTURE.md` and `ADAPTER_IMPLEMENTATION_GUIDE.md`
 
-1. **Study Canvas Architecture**
-   - Read `Canvas/ARCHITECTURE.md` completely
-   - Read `Canvas/ADAPTER_IMPLEMENTATION_GUIDE.md`
-   - Study `StatBlockGenerator/canvasAdapters.ts` as working example
+2. ✅ **Character Adapters Created** - `characterAdapters.ts`
+   - `DataResolver` for character data (handles `dnd5eData` nested paths)
+   - `ListNormalizer` for features, equipment, spells
+   - `HeightEstimator` for character sections (ability scores, combat stats, etc.)
+   - `MetadataExtractor` for character name/level/class/race
 
-2. **Create Character Adapters**
-   - Create `LandingPage/src/components/PlayerCharacterGenerator/characterAdapters.ts`
-   - Implement `DataResolver` for character data
-   - Implement `HeightEstimator` for character sections
-   - Implement `MetadataExtractor` for character name/level
+3. ✅ **Character Templates Created** - `characterTemplates.ts`
+   - `phbCharacterTemplate` - PHB-style multi-page layout
+   - `compactCharacterTemplate` - Single-page quick reference
 
-3. **Integrate with Canvas Hook**
-   - Use `useCanvasLayout` in CharacterCanvas
-   - Register character components with Canvas registry
-   - Remove current custom `CharacterSheetRenderer`
+4. ✅ **Canvas Registry Created** - `canvasComponents/canvasRegistry.ts`
+   - Wrapper components bridging existing section components with Canvas props
+   - `CHARACTER_CANVAS_REGISTRY` with all character components
+
+5. ✅ **Page Document Builder** - `characterPageDocument.ts`
+   - `buildCharacterPageDocument()` creates Canvas-compatible page documents
+   - `updateCharacterDataSources()` for live updates
+
+### Remaining (Deferred)
+
+6. ⏳ **Full `useCanvasLayout` Integration**
+   - Create `CharacterPage.tsx` similar to `StatblockPage.tsx`
+   - Wire measurement system
+   - Replace `CharacterSheetRenderer` with Canvas rendering
+
+**Note:** Current `CharacterSheetRenderer` works correctly for manual page layout. Full Canvas integration provides automatic pagination but is not blocking for current development.
+
+### Files Created Summary
+
+| File | Purpose |
+|------|---------|
+| `characterAdapters.ts` | Canvas adapters for character data (DataResolver, HeightEstimator, etc.) |
+| `characterTemplates.ts` | Template configs (PHB-style, Compact) |
+| `canvasComponents/canvasRegistry.tsx` | Canvas-compatible wrapper components |
+| `characterPageDocument.ts` | Page document builder for Canvas |
+
+### Test Status
+
+All 574 PlayerCharacterGenerator tests passing. TypeScript compiles without errors.
+
+### Canvas Package Dependency
+
+**The Canvas package needs modification** to support `'character'` data references.
+
+**Spec:** `Canvas/specs/SPEC-Add-Character-DataReference-Type.md`
+
+**Summary of Change:**
+1. Add `{ type: 'character'; path: string; sourceId?: string }` to `ComponentDataReference` union
+2. Update `createDefaultDataResolver()` to handle nested paths (e.g., `'dnd5eData.abilityScores'`)
+3. Optional: Add `characterData` option to `PageDocumentBuilder`
+
+### Next Steps for Full Canvas Integration
+
+After Canvas modification is complete:
+1. Update `characterAdapters.ts` to use native `'character'` type
+2. Create `CharacterPage.tsx` following `StatblockPage.tsx` pattern
+3. Wire `useCanvasLayout` hook with character adapters
+4. Use `MeasurementPortal` for height measurement
+5. Update `CharacterCanvas.tsx` to use new `CharacterPage`
 
 ### Phase 1: Visual Research (After Canvas Integration)
 

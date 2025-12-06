@@ -1,4 +1,5 @@
 import type { Action, StatBlockDetails } from './statblock.types';
+import type { Character } from '../components/PlayerCharacterGenerator/types/character.types';
 import type React from 'react';
 import type {
     PageMode,
@@ -53,10 +54,12 @@ export type CanvasComponentType =
 export type ComponentLayoutConfig = BaseComponentLayoutConfig;
 
 type BaseStatblockDataRef = Extract<BaseComponentDataReference, { type: 'statblock' }>;
+type BaseCharacterDataRef = Extract<BaseComponentDataReference, { type: 'character' }>;
 type BaseCustomDataRef = Extract<BaseComponentDataReference, { type: 'custom' }>;
 
 export type ComponentDataReference =
     | (BaseStatblockDataRef & { path: keyof StatBlockDetails | string })
+    | BaseCharacterDataRef
     | BaseCustomDataRef;
 
 export interface ComponentInstance extends Omit<BaseComponentInstance, 'type' | 'dataRef'> {
@@ -68,6 +71,7 @@ type BaseDataSource<T> = BaseComponentDataSource<T>;
 
 export type ComponentDataSource =
     | (BaseDataSource<StatBlockDetails> & { type: 'statblock'; payload: StatBlockDetails })
+    | (BaseDataSource<Character> & { type: 'character'; payload: Character })
     | (BaseDataSource<Record<string, unknown>> & { type: 'custom'; payload: Record<string, unknown> });
 
 export interface RegionListContent extends Omit<BaseRegionListContent, 'kind' | 'items'> {

@@ -1,32 +1,69 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 4, 2025 (CRITICAL: Canvas Integration Required)  
+**Updated**: December 5, 2025 (Spec Review Complete - Ready for Component Implementation)  
 **Source**: spec.md + plan.md  
 **Total Tasks**: 131 (124 + 7 integration tests)  
 **Estimated Hours**: 122-170h
 
 ---
 
-## ⚠️ CRITICAL ARCHITECTURAL ISSUE
+## 🎨 Implementation Strategy: HTML-First → Canvas Componentization
 
-**The current canvas implementation does NOT use the `@dungeonmind/canvas` package.**
+**Strategy Doc:** `IMPLEMENTATION-STRATEGY.md`  
+**Prototype:** `prototypes/character-sheet.html`
 
-The StatblockGenerator correctly uses Canvas via `canvasAdapters.ts`. The PCG built custom components that bypass the Canvas system entirely.
-
-### Blocking Refactor Required
-
-Before any further visual work on the character sheet:
+### Completed Foundation Work
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T100** | Read `Canvas/ARCHITECTURE.md` and `ADAPTER_IMPLEMENTATION_GUIDE.md` | ⏳ |
-| **T101** | Create `characterAdapters.ts` implementing `CanvasAdapters` | ⏳ |
-| **T102** | Replace `CharacterSheetRenderer.tsx` with `useCanvasLayout` hook | ⏳ |
-| **T103** | Register character components with Canvas component registry | ⏳ |
-| **T104** | Test pagination with `DEMO_FIGHTER` through Canvas | ⏳ |
+| **T100** | Read `Canvas/ARCHITECTURE.md` and `ADAPTER_IMPLEMENTATION_GUIDE.md` | ✅ Complete |
+| **T101** | Create `characterAdapters.ts` implementing `CanvasAdapters` | ✅ Complete |
+| **T102** | Create `characterTemplates.ts` with PHB-style template config | ✅ Complete |
+| **T103** | Create `canvasRegistry.tsx` with Canvas-compatible wrapper components | ✅ Complete |
+| **T104** | Create `characterPageDocument.ts` for page document building | ✅ Complete |
+| **T107** | Add `'character'` type to Canvas `ComponentDataReference` | ✅ Complete |
+| **T108** | Create static HTML prototype (`prototypes/character-sheet.html`) | ✅ Complete |
+| **T109** | Create implementation strategy doc | ✅ Complete |
 
-**Reference**: `specs/PlayerCharacterGenerator/research/HANDOFF-UI-Research-Character-Sheet-Layout.md`
+### Active Implementation (HTML-First Approach)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T110** | Polish HTML prototype to match PHB aesthetic | ✅ Complete |
+| **T111** | Extract CSS to `CharacterSheet.css` | ✅ Complete |
+| **T112** | Build section components from prototype | ✅ Complete |
+| **T113** | Wire components into Canvas system | ✅ Complete |
+| **T114** | Test with DEMO_FIGHTER data | ⏳ In Progress (visual polish needed: parchment background, page margins) |
+
+### Deferred (After Visual Complete)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T105** | Full `useCanvasLayout` integration (automatic pagination) | ⏳ Deferred |
+| **T106** | Test pagination with long feature lists | ⏳ Deferred |
+
+**Files Created (December 4, 2025):**
+- `characterAdapters.ts` - Canvas adapter implementations for character data
+- `characterTemplates.ts` - PHB-style and compact template configs
+- `canvasComponents/canvasRegistry.tsx` - Canvas-compatible wrapper components
+- `characterPageDocument.ts` - Page document builder for Canvas
+- `prototypes/character-sheet.html` - Static HTML visual prototype
+- `IMPLEMENTATION-STRATEGY.md` - Phased implementation guide
+
+**Files Created (December 6, 2025):**
+- `sheetComponents/CharacterSheet.css` - PHB styling extracted from prototype
+- `sheetComponents/CharacterSheet.tsx` - Main entry component orchestrating all sections
+- `sheetComponents/CharacterSheetPage.tsx` - Page container with PHB styling
+- `sheetComponents/CharacterHeader.tsx` - Portrait + labeled info boxes
+- `sheetComponents/AbilityScoresRow.tsx` - 6 horizontal ability boxes
+- `sheetComponents/MainContentGrid.tsx` - 3-column layout wrapper
+- `sheetComponents/column1/` - SavingThrowsSection, SkillsSection, Column1Content
+- `sheetComponents/column2/` - CombatStatsRow, HPSection, Column2Content  
+- `sheetComponents/column3/` - PersonalitySection, FeaturesSection, Column3Content
+- Updated `shared/CharacterCanvas.tsx` to use new sheetComponents
+
+**Reference**: `DESIGN-Canvas-Character-Sheet-Integration.md`
 
 ---
 
