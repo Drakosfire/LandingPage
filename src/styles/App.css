@@ -18,8 +18,8 @@ body {
   background-color: var(--background-color);
 }
 
-/* Only reset child elements when needed - exclude canvas areas */
-body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *) {
+/* Only reset child elements when needed - exclude canvas areas and character sheets */
+body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *):not(.character-sheet *) {
   box-sizing: inherit;
   margin: 0;
 }

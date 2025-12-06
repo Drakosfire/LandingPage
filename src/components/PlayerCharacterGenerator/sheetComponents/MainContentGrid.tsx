@@ -39,7 +39,7 @@ export const MainContentGrid: React.FC<MainContentGridProps> = ({
     column3
 }) => {
     return (
-        <div className="main-content" data-testid="main-content-grid">
+        <div className="sheet-main-content" data-testid="main-content-grid">
             <div className="column-1" data-testid="column-1">
                 {column1}
             </div>
