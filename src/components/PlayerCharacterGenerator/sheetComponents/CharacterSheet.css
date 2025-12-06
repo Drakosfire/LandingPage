@@ -53,9 +53,11 @@
 
 /* ===== 2. Page Container ===== */
 /* 
- * NOTE: Background images and borders come from the globally loaded PHB CSS
- * (public/dnd-static/style.css loaded dynamically in PlayerCharacterGenerator.tsx)
- * This CSS only provides layout and character-specific overrides.
+ * NOTE: Parchment background, fancy border, and footer accent come from global PHB CSS:
+ *   public/dnd-static/style.css → .page.phb selector
+ * 
+ * This CSS provides layout and character-sheet-specific overrides only.
+ * The .page.phb classes on the container trigger the PHB styling automatically.
  */
 .character-sheet {
     width: var(--page-width);
@@ -65,11 +67,8 @@
     flex-direction: column;
     position: relative;
 
-    /* PHB Parchment background - solid color fallback, image from global CSS */
+    /* Solid color fallback (image comes from .page.phb in global CSS) */
     background-color: var(--bg-page);
-
-    /* Box shadow for depth */
-    box-shadow: 1px 4px 14px #888888;
 
     /* Typography defaults */
     font-family: 'BookInsanityRemake', Georgia, serif;
@@ -778,6 +777,33 @@
 }
 
 /* ===== Print Optimization ===== */
+/* ===== Canvas Container ===== */
+/* Wrapper for character sheet in the canvas area */
+.character-canvas-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    background: #4a3728; /* Dark wood background behind parchment */
+    min-height: 100%;
+}
+
+/* Add bottom margin to page for visual breathing room */
+.character-canvas-area .character-sheet {
+    margin-bottom: 24px;
+}
+
+/* Multi-page container */
+.character-sheet-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background: #4a3728;
+}
+
+/* ===== Print Styles ===== */
 @media print {
     .character-sheet {
         page-break-before: always;
@@ -788,5 +814,16 @@
 
     .character-sheet .phb-section {
         break-inside: avoid;
+    }
+
+    /* Remove container styles for print */
+    .character-canvas-area,
+    .character-sheet-container {
+        padding: 0;
+        background: none;
+    }
+
+    .character-canvas-area .character-sheet {
+        margin-bottom: 0;
     }
 }

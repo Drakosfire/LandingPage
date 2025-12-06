@@ -6,10 +6,10 @@
  *   specs/PlayerCharacterGenerator/prototypes/character-sheet.html
  * 
  * Structure:
- * - .phb-page.character-sheet container
+ * - .page.phb.character-sheet container
  * - US Letter dimensions (816px × 1056px at 96dpi)
- * - Parchment background with fancy border
- * - Footer accent decoration
+ * - Parchment background with fancy border (from global PHB CSS)
+ * - Footer accent decoration (from global PHB CSS ::after)
  * 
  * @module PlayerCharacterGenerator/sheetComponents
  */
@@ -29,6 +29,10 @@ export interface CharacterSheetPageProps {
 /**
  * CharacterSheetPage - PHB-styled page container
  * 
+ * The parchment background, fancy border, and footer accent are all
+ * provided by the global PHB CSS (public/dnd-static/style.css) via
+ * the `.page.phb` selector. This component just needs the right classes.
+ * 
  * Usage:
  * ```tsx
  * <CharacterSheetPage>
@@ -45,12 +49,11 @@ export const CharacterSheetPage: React.FC<CharacterSheetPageProps> = ({
     className = '',
     testId = 'character-sheet-page'
 }) => {
-    // 'page' and 'phb' classes are needed for global PHB CSS to apply backgrounds/borders
+    // 'page phb' triggers global PHB CSS (parchment background, border, footer)
     // 'character-sheet' adds our custom layout overrides
     const pageClasses = [
-        'page',           // Required for global PHB CSS
-        'phb',            // Required for global PHB CSS  
-        'phb-page',       // Additional hook
+        'page',            // Base page styles
+        'phb',             // PHB theme (parchment, border, footer accent)
         'character-sheet', // Our custom styles
         className
     ].filter(Boolean).join(' ');
