@@ -26,9 +26,48 @@
     --page-width: 816px;
     --page-height: 1056px;
 
-    /* Layout */
-    --column-gap: 10px;
-    --section-padding: 8px;
+    /* ===== Spacing Scale ===== */
+    /* Adjust these to change spacing globally */
+    --space-1: 1px;
+    --space-2: 2px;
+    --space-3: 3px;
+    --space-4: 4px;
+    --space-5: 5px;
+    --space-6: 6px;
+    --space-8: 8px;
+    --space-10: 10px;
+    --space-12: 12px;
+    --space-24: 24px;
+
+    /* Semantic Spacing (change these to adjust categories) */
+    --padding-box: var(--space-4);
+    /* Standard box padding */
+    --padding-box-sm: var(--space-3);
+    /* Compact box padding */
+    --padding-box-xs: var(--space-2);
+    /* Minimal padding */
+    --padding-section: var(--space-4);
+    /* Section container padding */
+    --padding-label: var(--space-2) var(--space-3);
+    /* Label padding */
+    --padding-value: var(--space-4) var(--space-5);
+    /* Value box padding */
+    --gap-sm: var(--space-3);
+    /* Small gap between elements */
+    --gap-md: var(--space-6);
+    /* Medium gap */
+    --gap-lg: var(--space-10);
+    /* Large gap (column gap) */
+    --min-height-value: 20px;
+    /* Labeled box value min-height */
+    --min-height-textarea-sm: 40px;
+    /* Small text area */
+    --min-height-textarea-md: 80px;
+    /* Medium text area */
+
+    /* Layout (legacy, use semantic spacing above) */
+    --column-gap: var(--gap-lg);
+    --section-padding: var(--padding-section);
     --border-radius: 6px;
 
     /* PHB Colors */
@@ -92,10 +131,10 @@
     flex: 1;
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius) var(--border-radius) 0 0;
-    padding: 4px 5px;
+    padding: var(--padding-value);
     font-size: 15px;
     font-family: 'BookInsanityRemake', Georgia, serif;
-    min-height: 20px;
+    min-height: var(--min-height-value);
     display: flex;
     align-items: center;
     white-space: nowrap;
@@ -110,7 +149,7 @@
     border: 2px solid var(--border-color);
     border-top: none;
     border-radius: 0 0 var(--border-radius) var(--border-radius);
-    padding: 2px 3px;
+    padding: var(--padding-label);
     font-size: 9px;
     font-family: 'ScalySansSmallCapsRemake', 'ScalySansRemake', sans-serif;
     text-transform: uppercase;
@@ -129,8 +168,8 @@
     text-transform: uppercase;
     color: var(--text-red);
     letter-spacing: 1px;
-    margin-top: 6px;
-    padding-top: 6px;
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
     border-top: 2px solid var(--border-color);
 }
 
@@ -138,7 +177,7 @@
 .character-sheet .box-label {
     background: var(--border-color);
     color: #fff;
-    padding: 2px;
+    padding: var(--padding-box-xs);
     font-size: 9px;
     font-family: 'ScalySansSmallCapsRemake', sans-serif;
     text-transform: uppercase;
@@ -165,7 +204,7 @@
 .character-sheet .stat-circle {
     min-width: 1.5em;
     min-height: 1.5em;
-    padding: 2px 4px;
+    padding: var(--space-2) var(--space-4);
     border: 2px solid var(--border-color);
     border-radius: 999px;
     display: flex;
@@ -189,10 +228,10 @@
 /* ===== 3. Header Section with Portrait ===== */
 .character-sheet .header {
     display: flex;
-    gap: 6px;
-    margin-top: 1px;
-    margin-bottom: 1px;
-    padding: 4px;
+    gap: var(--gap-sm);
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-1);
+    padding: var(--padding-box);
     border: 3px solid var(--border-color);
     border-radius: var(--border-radius);
 }
@@ -228,7 +267,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: var(--gap-sm);
 }
 
 .character-sheet .header-name {
@@ -238,7 +277,7 @@
 .character-sheet .header-info {
     flex: 1;
     display: flex;
-    gap: 3px;
+    gap: var(--gap-sm);
     flex-wrap: wrap;
 }
 
@@ -261,14 +300,14 @@
 .character-sheet .ability-scores-row {
     display: flex;
     justify-content: space-between;
-    gap: 8px;
-    margin-top: 1px;
-    margin-bottom: 1px;
+    gap: var(--space-8);
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-1);
 }
 
 .character-sheet .ability-box {
     flex: 1;
-    padding: 5px 3px 4px;
+    padding: var(--space-5) var(--space-3) var(--space-4);
     text-align: center;
     position: relative;
 }
@@ -296,8 +335,8 @@
     font-family: 'ScalySansRemake', sans-serif;
     font-weight: 600;
     color: #fff;
-    margin-top: 3px;
-    padding: 2px 5px;
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-5);
     background: var(--border-color);
     border-radius: 10px;
     display: inline-block;
@@ -316,11 +355,11 @@
 .character-sheet .column-3 {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: var(--gap-sm);
     min-width: 0;
     overflow: hidden;
-    margin-top: 1px;
-    margin-bottom: 1px;
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-1);
 }
 
 /* ===== 6. Column 1: Saves, Skills, Proficiencies ===== */
@@ -330,14 +369,14 @@
     display: flex;
     align-items: center;
     justify-content: space-around;
-    gap: 4px;
-    padding: 3px 4px;
+    gap: var(--space-4);
+    padding: var(--padding-box-sm) var(--padding-box);
 }
 
 .character-sheet .stat-group {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-4);
 }
 
 .character-sheet .stat-group .stat-label {
@@ -348,17 +387,17 @@
 /* Saves & Skills Sections */
 .character-sheet .saves-section,
 .character-sheet .skills-section {
-    padding: 4px;
+    padding: var(--padding-section);
 }
 
 .character-sheet .save-item,
 .character-sheet .skill-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     font-size: 12px;
     font-family: 'ScalySansRemake', sans-serif;
-    padding: 2px 0;
+    padding: var(--space-2) 0;
 }
 
 .character-sheet .modifier {
@@ -380,8 +419,8 @@
 .character-sheet .passive-box {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px;
+    gap: var(--space-8);
+    padding: var(--space-6);
 }
 
 .character-sheet .passive-value {
@@ -405,12 +444,12 @@
 
 /* Proficiencies Box */
 .character-sheet .proficiencies-box {
-    padding: 4px;
+    padding: var(--padding-section);
     flex: 1;
 }
 
 .character-sheet .proficiencies-box .text-area {
-    min-height: 40px;
+    min-height: var(--min-height-textarea-sm);
     font-size: 11px;
     font-family: 'ScalySansRemake', sans-serif;
     line-height: 1.4;
@@ -434,13 +473,13 @@
 /* Combat Stats Row */
 .character-sheet .combat-stats-row {
     display: flex;
-    gap: 8px;
+    gap: var(--space-8);
     justify-content: center;
 }
 
 .character-sheet .combat-stat-box {
     width: 65px;
-    padding: 4px 2px;
+    padding: var(--padding-box) var(--space-2);
     text-align: center;
 }
 
@@ -453,19 +492,19 @@
 
 .character-sheet .combat-stat-box .stat-label {
     font-size: 8px;
-    margin-top: 1px;
+    margin-top: var(--space-1);
 }
 
 /* HP Section */
 .character-sheet .hp-section {
-    padding: 4px;
+    padding: var(--padding-section);
 }
 
 .character-sheet .hp-max-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
 }
 
 .character-sheet .hp-max-label {
@@ -514,13 +553,13 @@
 /* Hit Dice & Death Saves Row */
 .character-sheet .hitdice-death-row {
     display: flex;
-    gap: 8px;
+    gap: var(--space-8);
 }
 
 .character-sheet .hitdice-box,
 .character-sheet .death-saves-box {
     flex: 1;
-    padding: 4px;
+    padding: var(--padding-section);
 }
 
 .character-sheet .hitdice-total {
@@ -553,9 +592,9 @@
 .character-sheet .death-saves-content {
     display: grid;
     grid-template-columns: auto repeat(3, 1fr);
-    gap: 4px 6px;
+    gap: var(--space-4) var(--space-6);
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: var(--space-4);
 }
 
 .character-sheet .death-saves-row {
@@ -595,7 +634,7 @@
 
 /* Attacks Section */
 .character-sheet .attacks-section {
-    padding: 3px;
+    padding: var(--padding-box-sm);
     flex: 1;
 }
 
@@ -613,12 +652,12 @@
 .character-sheet .attacks-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 30px 65px;
-    gap: 2px;
+    gap: var(--space-2);
     font-size: 8px;
     font-family: 'ScalySansSmallCapsRemake', sans-serif;
     text-transform: uppercase;
     color: var(--text-red);
-    margin-top: 4px;
+    margin-top: var(--space-4);
     text-align: left;
     letter-spacing: 0.3px;
 }
@@ -626,15 +665,15 @@
 .character-sheet .attack-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 30px 65px;
-    gap: 2px;
-    margin-bottom: 2px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
 }
 
 .character-sheet .attack-row input,
 .character-sheet .attack-row .attack-field {
     border: none;
     border-bottom: 1px solid var(--border-color);
-    padding: 1px 2px;
+    padding: var(--space-1) var(--space-2);
     font-size: 10px;
     font-family: 'ScalySansRemake', sans-serif;
     background: transparent;
@@ -643,21 +682,21 @@
 
 /* Equipment Section */
 .character-sheet .equipment-section {
-    padding: 3px;
+    padding: var(--padding-box-sm);
     display: flex;
     flex-direction: column;
 }
 
 .character-sheet .equipment-content {
     display: flex;
-    gap: 3px;
+    gap: var(--gap-sm);
     flex: 1;
 }
 
 .character-sheet .currency-column {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: var(--gap-sm);
 }
 
 .character-sheet .currency-item {
@@ -693,7 +732,7 @@
 .character-sheet .equipment-list {
     flex: 1;
     border: 1px solid var(--border-color);
-    padding: 2px;
+    padding: var(--padding-box-xs);
     font-size: 10px;
     font-family: 'ScalySansRemake', sans-serif;
     background: var(--bg-light);
@@ -705,8 +744,8 @@
     font-family: 'ScalySansSmallCapsRemake', sans-serif;
     text-transform: uppercase;
     text-align: center;
-    margin-top: 3px;
-    padding-top: 2px;
+    margin-top: var(--space-3);
+    padding-top: var(--space-2);
     font-weight: bold;
     color: var(--text-red);
     letter-spacing: 0.5px;
@@ -723,8 +762,8 @@
 
 .character-sheet .personality-box .text-area {
     flex: 1;
-    min-height: 40px;
-    padding: 3px;
+    min-height: var(--min-height-textarea-sm);
+    padding: var(--padding-box-sm);
     font-size: 12px;
     font-family: 'BookInsanityRemake', Georgia, serif;
 }
@@ -738,8 +777,8 @@
 
 .character-sheet .features-box .text-area {
     flex: 1;
-    min-height: 80px;
-    padding: 3px;
+    min-height: var(--min-height-textarea-md);
+    padding: var(--padding-box-sm);
     font-size: 12px;
     font-family: 'BookInsanityRemake', Georgia, serif;
 }
@@ -762,18 +801,18 @@
 
 .character-sheet .notes-box .notes-content {
     flex: 1;
-    padding: 4px;
+    padding: var(--padding-section);
     font-size: 12px;
     font-family: 'BookInsanityRemake', Georgia, serif;
     line-height: 1.5;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
+    gap: var(--space-12);
 }
 
 .character-sheet .notes-column {
     border-right: 1px dashed var(--border-light);
-    padding-right: 12px;
+    padding-right: var(--space-12);
 }
 
 .character-sheet .notes-column:last-child {
@@ -788,7 +827,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24px;
+    padding: var(--space-24);
     background: #4a3728;
     /* Dark wood background behind parchment */
     min-height: 100%;
@@ -796,7 +835,7 @@
 
 /* Add bottom margin to page for visual breathing room */
 .character-canvas-area .character-sheet {
-    margin-bottom: 24px;
+    margin-bottom: var(--space-24);
 }
 
 /* Multi-page container */
@@ -804,8 +843,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
-    padding: 24px;
+    gap: var(--space-24);
+    padding: var(--space-24);
     background: #4a3728;
 }
 
