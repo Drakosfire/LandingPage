@@ -34,7 +34,7 @@
 | **T111** | Extract CSS to `CharacterSheet.css` | ✅ Complete |
 | **T112** | Build section components from prototype | ✅ Complete |
 | **T113** | Wire components into Canvas system | ✅ Complete |
-| **T114** | Test with DEMO_FIGHTER data | ⏳ In Progress (visual polish needed: parchment background, page margins) |
+| **T114** | Test with DEMO_FIGHTER data | ✅ Complete |
 
 ### Deferred (After Visual Complete)
 
