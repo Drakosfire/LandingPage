@@ -202,8 +202,8 @@
 
 /* ===== Stat Circle (responsive pill) ===== */
 .character-sheet .stat-circle {
-    min-width: 1.5em;
-    min-height: 1.5em;
+    min-width: 30px;
+    min-height: 30px;
     padding: var(--space-2) var(--space-4);
     border: 2px solid var(--border-color);
     border-radius: 999px;
@@ -236,8 +236,10 @@
     border-radius: var(--border-radius);
 }
 
+/* Portrait: static 100x100px dimensions */
 .character-sheet .portrait-box {
     flex: 0 0 100px;
+    width: 100px;
     height: 100px;
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
@@ -270,8 +272,18 @@
     gap: var(--gap-sm);
 }
 
-.character-sheet .header-name {
-    flex: 0 0 auto;
+.character-sheet .header-name-row {
+    display: flex;
+    gap: var(--gap-sm);
+}
+
+.character-sheet .header-name-row .labeled-box {
+    flex: 1;
+}
+
+/* XP box in name row - fixed narrow width */
+.character-sheet .header-name-row .labeled-box.narrow {
+    flex: 0 0 60px;
 }
 
 .character-sheet .header-info {
@@ -279,21 +291,32 @@
     display: flex;
     gap: var(--gap-sm);
     flex-wrap: wrap;
+    align-items: stretch;
 }
 
+/* Header info boxes use flex ratios to share available width */
 .character-sheet .header-info .labeled-box {
-    flex: 1;
-    min-width: 80px;
+    flex: 3;
+    /* Default: takes 3 parts */
+    min-width: 0;
 }
 
+/* Narrow: 1 part (XP, Alignment) */
 .character-sheet .header-info .labeled-box.narrow {
-    flex: 0 0 70px;
-    min-width: 70px;
+    flex: 1;
 }
 
+/* Medium: 2 parts (Background) */
 .character-sheet .header-info .labeled-box.medium {
-    flex: 0 0 90px;
-    min-width: 90px;
+    flex: 2;
+}
+
+/* Wide: 2 parts (Race) - override global .page .wide styles */
+.character-sheet .header-info .labeled-box.wide {
+    flex: 2;
+    column-span: none;
+    display: flex;
+    margin-bottom: 0;
 }
 
 /* ===== 4. Ability Scores Row ===== */
@@ -347,7 +370,7 @@
     display: grid;
     grid-template-columns: 200px 240px 200px;
     gap: var(--column-gap);
-    margin-top: 1px;
+    margin-top: var(--space-1);
 }
 
 .character-sheet .column-1,
@@ -397,7 +420,7 @@
     gap: var(--space-6);
     font-size: 12px;
     font-family: 'ScalySansRemake', sans-serif;
-    padding: var(--space-2) 0;
+    padding: 0;
 }
 
 .character-sheet .modifier {

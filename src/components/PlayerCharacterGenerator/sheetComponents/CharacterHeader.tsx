@@ -6,10 +6,10 @@
  * 
  * Layout:
  * ┌─────────────────────────────────────────────────────────┐
- * │ ┌─────────┐  ┌─────────────────────────────────────────┐│
- * │ │         │  │ Character Name                          ││
- * │ │ Portrait│  ├─────────────────────────────────────────┤│
- * │ │         │  │ Class | Race | Background | Player | AL | XP │
+ * │ ┌─────────┐  ┌──────────────────┬──────────────────────┐│
+ * │ │         │  │ Character Name   │ Player Name          ││
+ * │ │ Portrait│  ├──────────────────┴──────────────────────┤│
+ * │ │         │  │ Class | Race | Background | AL | XP     ││
  * │ └─────────┘  └─────────────────────────────────────────┘│
  * └─────────────────────────────────────────────────────────┘
  * 
@@ -79,9 +79,11 @@ export const CharacterHeader: React.FC<CharacterHeaderProps> = ({
 
             {/* Header Content */}
             <div className="header-content">
-                {/* Character Name */}
-                <div className="header-name">
+                {/* Character Name + Player Name + XP Row */}
+                <div className="header-name-row">
                     <LabeledBox value={name || 'Unnamed'} label="Character Name" />
+                    <LabeledBox value={playerName} label="Player Name" />
+                    <LabeledBox value={xp} label="XP" className="narrow" />
                 </div>
 
                 {/* Info Row */}
@@ -89,12 +91,11 @@ export const CharacterHeader: React.FC<CharacterHeaderProps> = ({
                     <LabeledBox
                         value={classAndLevel}
                         label="Class & Level"
-                        className="medium"
                     />
                     <LabeledBox
                         value={race}
                         label="Race"
-                        className="narrow"
+                        className="wide"
                     />
                     <LabeledBox
                         value={background}
@@ -102,17 +103,8 @@ export const CharacterHeader: React.FC<CharacterHeaderProps> = ({
                         className="medium"
                     />
                     <LabeledBox
-                        value={playerName}
-                        label="Player Name"
-                    />
-                    <LabeledBox
                         value={alignment}
                         label="Alignment"
-                        className="narrow"
-                    />
-                    <LabeledBox
-                        value={xp}
-                        label="XP"
                         className="narrow"
                     />
                 </div>
