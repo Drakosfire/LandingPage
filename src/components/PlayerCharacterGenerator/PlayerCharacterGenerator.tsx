@@ -15,7 +15,7 @@ import '@mantine/core/styles.css';
 import '../../styles/mantineOverrides.css';
 import '../../styles/DesignSystem.css';
 
-import { PlayerCharacterGeneratorProvider } from './PlayerCharacterGeneratorProvider';
+import { PlayerCharacterGeneratorProvider, usePlayerCharacterGenerator } from './PlayerCharacterGeneratorProvider';
 import { UnifiedHeader } from '../UnifiedHeader';
 import { CHARACTER_GENERATOR_APP } from '../../context/AppContext';
 import { createCharacterToolboxSections } from './characterToolboxConfig';
@@ -29,6 +29,7 @@ import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
  */
 const PlayerCharacterGeneratorInner: React.FC = () => {
     const [creationDrawerOpen, setCreationDrawerOpen] = useState(false);
+    const { loadDemoCharacter } = usePlayerCharacterGenerator();
 
     // Load D&D 5e PHB CSS
     useEffect(() => {
@@ -50,7 +51,8 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
 
     // Toolbox configuration
     const toolboxSections = createCharacterToolboxSections({
-        handleHelpTutorial: undefined // Phase 2+
+        handleHelpTutorial: undefined, // Phase 2+
+        loadDemoCharacter
     });
 
     // Placeholder handlers for UnifiedHeader

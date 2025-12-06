@@ -184,7 +184,9 @@ const CharacterCanvas: React.FC = () => {
                         Create a new character to see the character sheet preview.
                         <br />
                         <br />
-                        Click <strong style={{ color: '#a11d18' }}>&quot;Generate&quot;</strong> in the header to start building your character.
+                        Click <strong style={{ color: '#a11d18' }}>&quot;Generate&quot;</strong> in the header to start building your character,
+                        <br />
+                        or use <strong style={{ color: '#a11d18' }}>Dev Tools → Load Demo Character</strong> in the toolbox.
                     </p>
                 </div>
             </CharacterSheetPage>

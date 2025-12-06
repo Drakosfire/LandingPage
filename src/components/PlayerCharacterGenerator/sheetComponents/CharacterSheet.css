@@ -296,7 +296,7 @@
 
 /* Header info boxes use flex ratios to share available width */
 .character-sheet .header-info .labeled-box {
-    flex: 3;
+    flex: 2;
     /* Default: takes 3 parts */
     min-width: 0;
 }
@@ -308,12 +308,12 @@
 
 /* Medium: 2 parts (Background) */
 .character-sheet .header-info .labeled-box.medium {
-    flex: 2;
+    flex: 1;
 }
 
 /* Wide: 2 parts (Race) - override global .page .wide styles */
 .character-sheet .header-info .labeled-box.wide {
-    flex: 2;
+    flex: 1;
     column-span: none;
     display: flex;
     margin-bottom: 0;
