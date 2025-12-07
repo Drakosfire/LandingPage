@@ -28,9 +28,12 @@ export type EquipmentType =
     | 'armor'               // Body armor (extends to DnD5eArmor)
     | 'shield'              // Shields (extends to DnD5eShield)
     | 'tool'                // Tools requiring proficiency (extends to DnD5eTool)
+    | 'gaming set'          // Dice, cards, dragonchess, etc. (tool subcategory)
+    | 'musical instrument'  // Lute, flute, drum, etc. (tool subcategory)
     | 'adventuring gear'    // Rope, torches, backpacks, etc.
     | 'consumable'          // Potions, scrolls, ammunition, food/rations
     | 'treasure'            // Gems, art objects, trade goods, valuables
+    | 'trinket'             // Background trinkets, keepsakes, mementos
     | 'container'           // Backpacks, pouches, bags of holding
     | 'mount'               // Horses, vehicles, exotic mounts
     | 'wondrous item'       // Magic items that don't fit other categories
