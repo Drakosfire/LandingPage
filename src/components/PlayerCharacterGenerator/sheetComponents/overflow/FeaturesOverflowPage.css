@@ -1,0 +1,131 @@
+/**
+ * FeaturesOverflowPage Styles
+ * 
+ * Overflow continuation pages use .page.phb classes for PHB styling
+ * (parchment background, fancy border, footer accent from global CSS).
+ * 
+ * This CSS provides layout overrides for overflow content.
+ */
+
+/* ============================================================================
+   Base Overflow Page - Layout Only
+   ============================================================================ */
+/* 
+ * Parchment background, border, and footer accent come from global PHB CSS
+ * via .page.phb classes. We only override layout here.
+ */
+
+.overflow-page {
+    /* Page dimensions match other character sheet pages */
+    width: 816px;
+    min-height: 1056px;
+    box-sizing: border-box;
+    
+    /* Use same padding as .character-sheet */
+    padding: 1.4cm 1.9cm 1.7cm;
+    
+    /* Layout */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.overflow-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #58180D;
+}
+
+.overflow-page-title {
+    font-family: 'NodestoCapsCondensed', 'Nodesto Caps Condensed', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #58180D;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.overflow-page-number {
+    font-family: 'ScalySansRemake', 'Scaly Sans Remake', sans-serif;
+    font-size: 0.9rem;
+    color: #7a6e5d;
+}
+
+/* ============================================================================
+   Features List
+   ============================================================================ */
+
+.overflow-features-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.overflow-feature-item {
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.5);
+    border-left: 3px solid #58180D;
+    border-radius: 0 4px 4px 0;
+}
+
+.overflow-feature-name {
+    font-family: 'ScalySansRemake', 'Scaly Sans Remake', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #58180D;
+    margin: 0 0 3px 0;
+}
+
+.overflow-feature-description {
+    font-family: 'BookInsanityRemake', 'Book Insanity Remake', serif;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: #2b1d0f;
+    margin: 0;
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+
+.overflow-page-footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #c9b99a;
+    text-align: center;
+}
+
+.overflow-page-count {
+    font-family: 'ScalySansRemake', 'Scaly Sans Remake', sans-serif;
+    font-size: 0.8rem;
+    color: #7a6e5d;
+    font-style: italic;
+}
+
+/* ============================================================================
+   Features Overflow Page Specific
+   ============================================================================ */
+
+.features-overflow-page {
+    /* Can add feature-specific overrides here */
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+    .overflow-page {
+        break-before: page;
+        break-inside: avoid;
+    }
+}
+
