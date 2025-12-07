@@ -9,8 +9,16 @@
  */
 
 import React from 'react';
-import { IconHelp, IconUser } from '@tabler/icons-react';
+import { IconHelp, IconUser, IconSword, IconWand } from '@tabler/icons-react';
 import { ToolboxSection } from '../AppToolbox';
+
+/**
+ * Demo character option
+ */
+export interface DemoCharacterOption {
+    value: string;
+    label: string;
+}
 
 /**
  * Props for creating Character Generator toolbox sections
@@ -20,13 +28,25 @@ export interface CharacterToolboxConfigProps {
     handleHelpTutorial?: () => void;
 
     // Dev Tools
-    loadDemoCharacter?: () => void;
+    loadDemoCharacter?: (key: string) => void;
+    demoCharacterOptions?: DemoCharacterOption[];
 
     // Phase 2+: Save, Export, etc.
     // isLoggedIn?: boolean;
     // saveNow?: () => void;
     // saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
 }
+
+/**
+ * Get icon for demo character type
+ */
+const getDemoIcon = (key: string) => {
+    switch (key) {
+        case 'wizard': return <IconWand size={16} />;
+        case 'fighter':
+        default: return <IconSword size={16} />;
+    }
+};
 
 /**
  * Create Character Generator toolbox sections
@@ -37,20 +57,30 @@ export interface CharacterToolboxConfigProps {
 export const createCharacterToolboxSections = (
     props: CharacterToolboxConfigProps
 ): ToolboxSection[] => {
-    const { handleHelpTutorial, loadDemoCharacter } = props;
+    const { handleHelpTutorial, loadDemoCharacter, demoCharacterOptions = [] } = props;
+
+    // Build demo character controls from options
+    const demoControls = demoCharacterOptions.map(option => ({
+        id: `load-demo-${option.value}`,
+        type: 'menu-item' as const,
+        label: option.label,
+        icon: getDemoIcon(option.value),
+        onClick: () => loadDemoCharacter?.(option.value),
+        disabled: !loadDemoCharacter
+    }));
 
     return [
         // Section 1: Dev Tools (for testing)
         {
             id: 'dev',
             label: 'Dev Tools',
-            controls: [
+            controls: demoControls.length > 0 ? demoControls : [
                 {
                     id: 'load-demo',
                     type: 'menu-item' as const,
                     label: 'Load Demo Character',
                     icon: <IconUser size={16} />,
-                    onClick: loadDemoCharacter || (() => console.log('🎲 Demo not available')),
+                    onClick: () => loadDemoCharacter?.('fighter'),
                     disabled: !loadDemoCharacter
                 }
             ]

@@ -178,7 +178,20 @@ LandingPage/specs/PlayerCharacterGenerator/prototypes/
 }
 ```
 
-### Container Block (dashed border) (line 267-275)
+### Block-Specific Grid Overrides
+```css
+/* Treasure: 2 columns (no qty/wt) */
+.treasure-block .item-row {
+    grid-template-columns: 1fr 60px;
+}
+
+/* Consumables: tighter qty/wt, wider "Uses" for dice notation */
+.consumables-block .item-row {
+    grid-template-columns: 20px 1fr 20px 50px;
+}
+```
+
+### Container Block (dashed border) (line 271-279)
 ```css
 .container-block {
     border: 2px dashed var(--border-light) !important;

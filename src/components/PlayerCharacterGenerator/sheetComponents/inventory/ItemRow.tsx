@@ -8,6 +8,7 @@
  */
 
 import React from 'react';
+import { InfoButton } from '../common';
 
 export interface ItemRowProps {
     /** Item quantity */
@@ -24,6 +25,8 @@ export interface ItemRowProps {
     isHeader?: boolean;
     /** Custom column headers (for header rows) */
     headers?: [string, string, string, string];
+    /** Callback for info button click */
+    onInfoClick?: () => void;
 }
 
 /**
@@ -38,7 +41,8 @@ export const ItemRow: React.FC<ItemRowProps> = ({
     value = '',
     isEmpty = false,
     isHeader = false,
-    headers = ['Qty', 'Item', 'Wt.', 'Value']
+    headers = ['Qty', 'Item', 'Wt.', 'Value'],
+    onInfoClick
 }) => {
     const rowClasses = [
         'item-row',
@@ -60,7 +64,10 @@ export const ItemRow: React.FC<ItemRowProps> = ({
     return (
         <div className={rowClasses}>
             <span className="item-qty">{isEmpty ? '' : quantity}</span>
-            <span className="item-name">{name}</span>
+            <span className="item-name">
+                {name}
+                {onInfoClick && !isEmpty && <InfoButton onClick={onInfoClick} size="sm" />}
+            </span>
             <span className="item-weight">{weight}</span>
             <span className="item-value">{value}</span>
         </div>

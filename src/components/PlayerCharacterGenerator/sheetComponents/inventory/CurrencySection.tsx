@@ -27,22 +27,22 @@ export interface CurrencySectionProps {
  * Calculate total value in gold pieces
  */
 const calculateTotalGP = (currency: Currency): string => {
-    const totalCP = 
-        currency.cp + 
-        (currency.sp * 10) + 
-        (currency.ep * 50) + 
-        (currency.gp * 100) + 
+    const totalCP =
+        currency.cp +
+        (currency.sp * 10) +
+        (currency.ep * 50) +
+        (currency.gp * 100) +
         (currency.pp * 1000);
-    
+
     const gp = Math.floor(totalCP / 100);
     const sp = Math.floor((totalCP % 100) / 10);
     const cp = totalCP % 10;
-    
+
     const parts: string[] = [];
     if (gp > 0) parts.push(`${gp} gp`);
     if (sp > 0) parts.push(`${sp} sp`);
     if (cp > 0) parts.push(`${cp} cp`);
-    
+
     return parts.join(' ') || '0 gp';
 };
 

@@ -11,7 +11,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useEf
 import { Character, createEmptyCharacter, DnD5eCharacter, createEmptyDnD5eCharacter } from './types';
 import { DnD5eRuleEngine, createDnD5eRuleEngine } from './engine';
 import type { ValidationResult } from './engine';
-import { DEMO_FIGHTER } from './canvasComponents/demoData';
+import { DEMO_CHARACTERS, getDemoCharacter, DEMO_CHARACTER_OPTIONS } from './canvasComponents/demoData';
 
 /**
  * Player Character Generator context type
@@ -24,7 +24,8 @@ interface PlayerCharacterGeneratorContextType {
     setCharacter: (character: Character) => void;
     updateCharacter: (updates: Partial<Character>) => void;
     resetCharacter: () => void;
-    loadDemoCharacter: () => void;
+    loadDemoCharacter: (key?: string) => void;
+    demoCharacterOptions: typeof DEMO_CHARACTER_OPTIONS;
 
     // ===== D&D 5E SPECIFIC =====
     updateDnD5eData: (updates: Partial<DnD5eCharacter>) => void;
@@ -130,12 +131,17 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
     }, []);
 
     /**
-     * Load demo character (Marcus Steelhand, Human Fighter L1)
-     * Useful for testing canvas components
+     * Load demo character by key
+     * Defaults to 'fighter' if no key provided
      */
-    const loadDemoCharacter = useCallback(() => {
-        console.log('🎲 [PlayerCharacterGenerator] Loading demo character: Marcus Steelhand');
-        setCharacter(DEMO_FIGHTER);
+    const loadDemoCharacter = useCallback((key: string = 'fighter') => {
+        const demoChar = getDemoCharacter(key);
+        if (demoChar) {
+            console.log(`🎲 [PlayerCharacterGenerator] Loading demo character: ${demoChar.name}`);
+            setCharacter(demoChar);
+        } else {
+            console.warn(`⚠️ [PlayerCharacterGenerator] Unknown demo character key: ${key}`);
+        }
     }, []);
 
     /**
@@ -170,12 +176,14 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
                 loadDemoCharacter,
                 resetCharacter,
                 getCharacter: () => character,
-                getValidation: () => validation
+                getValidation: () => validation,
+                demoOptions: DEMO_CHARACTER_OPTIONS
             };
             console.log('🛠️ [PCG Debug] Helpers available: window.__PCG_DEBUG__');
-            console.log('  - loadDemoCharacter(): Load Marcus Steelhand (Human Fighter L1)');
+            console.log('  - loadDemoCharacter(key): Load demo character (fighter, wizard)');
             console.log('  - resetCharacter(): Reset to empty character');
             console.log('  - getCharacter(): Get current character state');
+            console.log('  - demoOptions: Available demo characters');
         }
     }, [loadDemoCharacter, resetCharacter, character, validation]);
 
@@ -187,6 +195,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         updateCharacter,
         resetCharacter,
         loadDemoCharacter,
+        demoCharacterOptions: DEMO_CHARACTER_OPTIONS,
         updateDnD5eData,
 
         // Rule Engine

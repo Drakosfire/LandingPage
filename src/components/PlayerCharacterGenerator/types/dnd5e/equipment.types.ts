@@ -11,7 +11,7 @@ import { DamageType } from '../system.types';
 /**
  * Magic item rarity (DMG p. 135)
  */
-export type MagicItemRarity = 
+export type MagicItemRarity =
     | 'common'
     | 'uncommon'
     | 'rare'
@@ -50,12 +50,15 @@ export interface DnD5eEquipmentItem {
     weight?: number;                 // Weight in pounds (per item)
     value?: number;                  // Value in gold pieces (per item)
     description?: string;            // Item description
-    
+
     // Magic item properties (isMagical ≠ requiresAttunement)
     // e.g., Potion of Healing is magical but doesn't require attunement
     isMagical?: boolean;             // Whether this is a magic item
     requiresAttunement?: boolean;    // Whether attunement is required to use
     rarity?: MagicItemRarity;        // Magic item rarity tier
+
+    // Optional visual
+    imageUrl?: string;               // URL to item image
 }
 
 /**
@@ -65,14 +68,14 @@ export interface DnD5eWeapon extends DnD5eEquipmentItem {
     type: 'weapon';
     weaponCategory: 'simple' | 'martial';
     weaponType: 'melee' | 'ranged';
-    
+
     // Damage
     damage: string;                  // Damage dice (e.g., '1d8', '2d6')
     damageType: DamageType;          // Type of damage
-    
+
     // Properties
     properties: WeaponProperty[];    // Weapon properties
-    
+
     // Range (for ranged weapons)
     range?: {
         normal: number;              // Normal range in feet
@@ -83,7 +86,7 @@ export interface DnD5eWeapon extends DnD5eEquipmentItem {
 /**
  * Weapon properties
  */
-export type WeaponProperty = 
+export type WeaponProperty =
     | 'ammunition'
     | 'finesse'
     | 'heavy'
@@ -102,12 +105,12 @@ export type WeaponProperty =
 export interface DnD5eArmor extends DnD5eEquipmentItem {
     type: 'armor';
     armorCategory: 'light' | 'medium' | 'heavy';
-    
+
     // AC calculation
     armorClass: number;              // Base AC (e.g., 16 for chain mail)
     addDexMod?: boolean;             // Whether to add DEX modifier
     maxDexBonus?: number;            // Max DEX bonus (e.g., 2 for medium armor)
-    
+
     // Requirements and penalties
     strengthRequirement?: number;    // Minimum STR required
     stealthDisadvantage?: boolean;   // Gives disadvantage on Stealth checks
@@ -142,22 +145,22 @@ export function calculateArmorClass(
         // Unarmored: 10 + DEX modifier
         return 10 + dexModifier;
     }
-    
+
     let ac = armor.armorClass;
-    
+
     // Add DEX modifier if applicable
     if (armor.addDexMod) {
-        const dexBonus = armor.maxDexBonus 
+        const dexBonus = armor.maxDexBonus
             ? Math.min(dexModifier, armor.maxDexBonus)
             : dexModifier;
         ac += dexBonus;
     }
-    
+
     // Add shield bonus
     if (hasShield) {
         ac += 2;
     }
-    
+
     return ac;
 }
 
@@ -179,12 +182,12 @@ export function getWeaponAbility(weapon: DnD5eWeapon): 'strength' | 'dexterity' 
     if (weapon.properties.includes('finesse')) {
         return 'dexterity';
     }
-    
+
     // Ranged weapons use DEX
     if (weapon.weaponType === 'ranged') {
         return 'dexterity';
     }
-    
+
     // Melee weapons use STR
     return 'strength';
 }

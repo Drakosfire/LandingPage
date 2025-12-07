@@ -263,6 +263,11 @@
             grid-template-columns: 1fr 60px;
         }
 
+        /* Consumables Section - wider "Uses" column for dice notation */
+        .consumables-block .item-row {
+            grid-template-columns: 20px 1fr 20px 50px;
+        }
+
         /* Container Section - overrides .phb-section border */
         .container-block {
             border: 2px dashed var(--border-light) !important;
@@ -705,7 +710,7 @@
                 </div>
 
                 <!-- Consumables -->
-                <div class="phb-section inventory-block">
+                <div class="phb-section inventory-block consumables-block">
                     <div class="block-header">
                         <span class="block-title">Consumables</span>
                         <span class="block-weight">1 lb</span>

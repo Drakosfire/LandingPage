@@ -9,6 +9,8 @@
 
 import React from 'react';
 import { ItemRow } from './ItemRow';
+import type { EquipmentType, MagicItemRarity, WeaponProperty } from '../../types/dnd5e/equipment.types';
+import type { DamageType } from '../../types/system.types';
 
 export interface InventoryItem {
     id: string;
@@ -19,6 +21,33 @@ export interface InventoryItem {
     notes?: string;
     attuned?: boolean;
     containerId?: string;
+
+    // Extended fields for detail modal (optional)
+    type?: EquipmentType;
+    description?: string;
+    imageUrl?: string;
+    isMagical?: boolean;
+    rarity?: MagicItemRarity;
+    requiresAttunement?: boolean;
+
+    // Weapon-specific
+    damage?: string;
+    damageType?: DamageType;
+    properties?: WeaponProperty[];
+    range?: { normal: number; long?: number };
+    weaponCategory?: 'simple' | 'martial';
+    weaponType?: 'melee' | 'ranged';
+
+    // Armor-specific
+    armorClass?: number;
+    armorCategory?: 'light' | 'medium' | 'heavy';
+    stealthDisadvantage?: boolean;
+
+    // Shield-specific
+    acBonus?: number;
+
+    // Numeric value for modal
+    valueNumber?: number;
 }
 
 export interface InventoryBlockProps {
@@ -38,6 +67,10 @@ export interface InventoryBlockProps {
     formatValue?: (item: InventoryItem) => string;
     /** Format function for weight display */
     formatWeight?: (item: InventoryItem) => string;
+    /** Additional CSS class for block-specific styling (e.g., 'consumables-block') */
+    className?: string;
+    /** Callback when info button is clicked on an item */
+    onItemInfoClick?: (item: InventoryItem) => void;
 }
 
 /**
@@ -66,12 +99,15 @@ export const InventoryBlock: React.FC<InventoryBlockProps> = ({
     emptyRows = 1,
     flexGrow = false,
     formatValue = defaultFormatValue,
-    formatWeight = defaultFormatWeight
+    formatWeight = defaultFormatWeight,
+    className,
+    onItemInfoClick
 }) => {
     const blockClasses = [
         'phb-section',
         'inventory-block',
-        flexGrow && 'flex-grow'
+        flexGrow && 'flex-grow',
+        className
     ].filter(Boolean).join(' ');
 
     return (
@@ -89,6 +125,7 @@ export const InventoryBlock: React.FC<InventoryBlockProps> = ({
                         name={item.attuned ? `${item.name} ✦` : item.name}
                         weight={formatWeight(item)}
                         value={formatValue(item)}
+                        onInfoClick={onItemInfoClick ? () => onItemInfoClick(item) : undefined}
                     />
                 ))}
                 {Array.from({ length: emptyRows }).map((_, idx) => (

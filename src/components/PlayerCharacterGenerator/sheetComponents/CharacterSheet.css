@@ -1295,7 +1295,7 @@
 .inventory-sheet .inventory-header {
     display: flex;
     gap: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 7px;
     align-items: flex-end;
 }
 
@@ -1323,7 +1323,7 @@
 .inventory-sheet .top-row {
     display: flex;
     gap: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 7px;
 }
 
 /* Currency Section */
@@ -1489,7 +1489,7 @@
 
 .inventory-sheet .item-list {
     flex: 1;
-    padding: var(--space-6);
+    padding: var(--space-4);
 }
 
 /* Item Row Grid */
@@ -1551,6 +1551,11 @@
     grid-template-columns: 1fr 60px;
 }
 
+/* Consumables Section - tighter qty/wt, wider Uses column for dice notation */
+.inventory-sheet .consumables-block .item-row {
+    grid-template-columns: 20px 1fr 20px 50px;
+}
+
 /* Container Section - dashed border */
 .inventory-sheet .container-block {
     border: 2px dashed var(--border-light) !important;
@@ -1607,35 +1612,451 @@
     opacity: 0.9;
 }
 
-/* Notes Section */
-.inventory-sheet .notes-section {
-    margin-top: var(--space-12);
+/* ===== 13. Spell Sheet ===== */
+
+/* Spell Header */
+.spell-sheet .spell-header {
+    display: flex;
+    gap: var(--space-10);
+    margin-bottom: 15px;
+    align-items: flex-end;
 }
 
-.inventory-sheet .notes-box {
+.spell-sheet .spell-header-info {
+    flex: 1;
+    display: flex;
+    gap: var(--space-8);
+}
+
+.spell-sheet .spell-header-info .labeled-box {
+    flex: 1;
+}
+
+.spell-sheet .spell-header-info .labeled-box.narrow {
+    flex: 0 0 80px;
+}
+
+.spell-sheet .spell-header-info .labeled-box .value {
+    justify-content: center;
+    padding: var(--space-6) var(--space-8);
+    font-size: 12px;
+    min-height: 28px;
+}
+
+.spell-sheet .spell-header-info .labeled-box .label {
+    padding: var(--space-2) var(--space-4);
+    font-size: 6px;
+}
+
+/* Spell Slots Section */
+.spell-sheet .spell-slots-section {
+    display: flex;
+    gap: var(--space-6);
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.spell-sheet .spell-slot-level {
+    padding: var(--space-6);
+    text-align: center;
+    min-width: 70px;
+}
+
+.spell-sheet .spell-slot-level .level-num {
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    color: var(--text-red);
+    margin-bottom: var(--space-4);
+}
+
+.spell-sheet .spell-slot-level .slots-total {
+    font-size: 8px;
+    font-family: 'ScalySansRemake', sans-serif;
+    color: var(--text-muted);
+    margin-bottom: var(--space-4);
+}
+
+.spell-sheet .spell-slot-level .slot-circles {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+}
+
+.spell-sheet .slot-circle {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-light);
+}
+
+.spell-sheet .slot-circle.used {
+    background: var(--border-color);
+}
+
+/* Spell List Container - 3 Columns */
+.spell-sheet .spell-list-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--column-gap);
+    padding-bottom: 40px;
+}
+
+.spell-sheet .spell-column {
     display: flex;
     flex-direction: column;
+    gap: var(--space-10);
 }
 
-.inventory-sheet .notes-box .notes-content {
-    flex: 1;
-    min-height: 60px;
-    padding: var(--space-8);
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-12);
+/* Spell Level Block */
+.spell-sheet .spell-level-block {
+    /* phb-section provides background, border, border-radius, overflow */
 }
 
-.inventory-sheet .notes-box .notes-column {
-    border-right: 1px dashed var(--border-light);
-    padding-right: var(--space-12);
+.spell-sheet .spell-level-header {
+    background: var(--border-color);
+    color: #fff;
+    padding: var(--space-4) var(--space-8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.spell-sheet .spell-level-header .level-title {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.spell-sheet .spell-level-header .slot-info {
+    font-size: 8px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.spell-sheet .spell-level-list {
+    padding: var(--space-6);
+}
+
+/* Spell Item */
+.spell-sheet .spell-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-3) 0;
+    border-bottom: 1px dotted var(--border-light);
     font-size: 10px;
-    font-family: 'BookInsanityRemake', Georgia, serif;
+    font-family: 'ScalySansRemake', sans-serif;
 }
 
-.inventory-sheet .notes-box .notes-column:last-child {
-    border-right: none;
-    padding-right: 0;
+.spell-sheet .spell-item:last-child {
+    border-bottom: none;
+}
+
+.spell-sheet .spell-prepared {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 2px;
+    flex-shrink: 0;
+    background: var(--bg-light);
+}
+
+.spell-sheet .spell-prepared.checked {
+    background: var(--border-color);
+}
+
+.spell-sheet .spell-name {
+    flex: 1;
+}
+
+.spell-sheet .spell-markers {
+    display: flex;
+    gap: var(--space-2);
+    font-size: 8px;
+    color: var(--text-red);
+}
+
+.spell-sheet .spell-marker {
+    font-weight: bold;
+}
+
+.spell-sheet .spell-item.empty {
+    border-bottom: 1px solid var(--border-color);
+    min-height: 20px;
+}
+
+/* Cantrips special styling */
+.spell-sheet .spell-level-block.cantrips .spell-level-header {
+    background: linear-gradient(135deg, var(--border-color) 0%, #7c3a1f 100%);
+}
+
+.spell-sheet .spell-level-block.cantrips .spell-prepared {
+    display: none;
+}
+
+/* ===== 14. Info Button & Detail Modals ===== */
+
+/* Info Button */
+.info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--bg-light);
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-left: 4px;
+    padding: 0;
+    transition: all 0.15s ease;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.info-button:hover {
+    background: var(--HB_Color_MonsterStatBackground);
+    color: var(--text-red);
+    border-color: var(--text-red);
+}
+
+.info-button--sm {
+    width: 14px;
+    height: 14px;
+}
+
+.info-button--md {
+    width: 18px;
+    height: 18px;
+}
+
+/* Detail Modal Styling */
+.detail-modal .mantine-Modal-content {
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    background: var(--HB_Color_Background);
+    border: 2px solid var(--border-color);
+}
+
+.detail-modal .mantine-Modal-header {
+    display: none;
+}
+
+.detail-modal .mantine-Modal-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: var(--text-red);
+}
+
+.detail-modal-body {
+    padding: var(--space-12);
+}
+
+.detail-modal-header {
+    display: flex;
+    gap: var(--space-12);
+    margin-bottom: var(--space-12);
+}
+
+.detail-modal-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.detail-modal-image-placeholder {
+    width: 100px;
+    height: 100px;
+    background: var(--HB_Color_MonsterStatBackground);
+    border: 2px dashed var(--border-light);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.detail-modal-title-block {
+    flex: 1;
+}
+
+.detail-modal-title {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 1.6em;
+    font-weight: bold;
+    color: var(--text-red);
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-modal-subtitle {
+    font-size: 0.95em;
+    color: var(--text-muted);
+    font-style: italic;
+    margin: 0;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.detail-modal-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.detail-modal-stats {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 16px;
+    background: var(--HB_Color_MonsterStatBackground);
+    padding: var(--space-8) var(--space-10);
+    border-radius: 4px;
+    margin-bottom: var(--space-10);
+    font-size: 0.9em;
+    font-family: 'ScalySansRemake', sans-serif;
+    border: 1px solid var(--border-color);
+}
+
+.detail-modal-stat-label {
+    color: var(--text-red);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-size: 0.85em;
+    text-transform: uppercase;
+}
+
+.detail-modal-stat-value {
+    font-weight: 500;
+}
+
+.detail-modal-description {
+    line-height: 1.6;
+    margin-bottom: var(--space-10);
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    font-size: 0.95em;
+}
+
+.detail-modal-dice-box {
+    background: linear-gradient(135deg, var(--text-red) 0%, #7c3a1f 100%);
+    color: white;
+    padding: var(--space-8) var(--space-10);
+    border-radius: 4px;
+    margin-bottom: var(--space-10);
+}
+
+.detail-modal-dice-box.healing {
+    background: linear-gradient(135deg, #2d5016 0%, #1a3010 100%);
+}
+
+.detail-modal-dice-label {
+    font-size: 0.8em;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.detail-modal-dice-value {
+    font-size: 1.3em;
+    font-weight: bold;
+    font-family: 'NodestoCapsCondensed', serif;
+}
+
+.detail-modal-section {
+    border-top: 1px solid var(--border-light);
+    padding-top: var(--space-10);
+    margin-top: var(--space-10);
+}
+
+.detail-modal-section-title {
+    font-weight: bold;
+    margin-bottom: var(--space-6);
+    color: var(--text-red);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+.detail-modal-section-content {
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.detail-modal-footer {
+    border-top: 1px solid var(--border-light);
+    margin-top: var(--space-10);
+    padding-top: var(--space-8);
+    font-size: 0.85em;
+    color: var(--text-muted);
+    display: flex;
+    gap: var(--space-12);
+    flex-wrap: wrap;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.detail-modal-footer span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Rarity badges */
+.rarity-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+}
+
+.rarity-common { background: #e0e0e0; color: #333; }
+.rarity-uncommon { background: #1eff00; color: #000; }
+.rarity-rare { background: #0070dd; color: white; }
+.rarity-very-rare { background: #a335ee; color: white; }
+.rarity-legendary { background: #ff8000; color: white; }
+.rarity-artifact { background: #e6cc80; color: #000; }
+
+/* Spell badges */
+.spell-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.7em;
+    font-weight: bold;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+}
+
+.badge-concentration {
+    background: #ffd700;
+    color: #333;
+}
+
+.badge-ritual {
+    background: #9370db;
+    color: white;
+}
+
+.badge-level {
+    background: var(--border-color);
+    color: white;
 }
 
 /* ===== Print Styles ===== */
@@ -1663,6 +2084,10 @@
     }
 
     .inventory-sheet .inventory-block {
+        break-inside: avoid;
+    }
+
+    .spell-sheet .spell-level-block {
         break-inside: avoid;
     }
 }

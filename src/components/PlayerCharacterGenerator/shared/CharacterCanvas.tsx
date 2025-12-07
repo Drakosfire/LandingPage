@@ -18,8 +18,10 @@ import {
     CharacterSheetContainer,
     BackgroundPersonalitySheet,
     InventorySheet,
+    SpellSheet,
     type Attack,
-    type Feature
+    type Feature,
+    type SpellSlotLevel
 } from '../sheetComponents';
 
 const CharacterCanvas: React.FC = () => {
@@ -254,6 +256,120 @@ const CharacterCanvas: React.FC = () => {
                         otherItems={[]}
                         containers={[]}
                     />
+
+                    {/* Page 4: Spell Sheet (if spellcaster) */}
+                    {dnd5e.spellcasting && (
+                        <SpellSheet
+                            spellcastingClass={dnd5e.spellcasting.class}
+                            spellcastingAbility={dnd5e.spellcasting.ability.substring(0, 3).toUpperCase()}
+                            spellSaveDC={dnd5e.spellcasting.spellSaveDC}
+                            spellAttackBonus={dnd5e.spellcasting.spellAttackBonus}
+                            spellSlots={(() => {
+                                const slots: SpellSlotLevel[] = [];
+                                const spellSlots = dnd5e.spellcasting?.spellSlots;
+                                if (spellSlots) {
+                                    for (let level = 1; level <= 9; level++) {
+                                        const slotData = spellSlots[level as keyof typeof spellSlots];
+                                        if (slotData) {
+                                            slots.push({
+                                                level,
+                                                total: slotData.total,
+                                                used: slotData.used
+                                            });
+                                        }
+                                    }
+                                }
+                                return slots;
+                            })()}
+                            cantrips={(dnd5e.spellcasting.cantrips || []).map(spell => ({
+                                id: spell.id,
+                                name: spell.name,
+                                isConcentration: spell.concentration,
+                                isRitual: spell.ritual
+                            }))}
+                            level1Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 1)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                            level2Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 2)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                            level3Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 3)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                            level4Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 4)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                            level5Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 5)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                            level6Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 6)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                            level7Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 7)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                            level8Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 8)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                            level9Spells={(dnd5e.spellcasting.spellsKnown || [])
+                                .filter(s => s.level === 9)
+                                .map(spell => ({
+                                    id: spell.id,
+                                    name: spell.name,
+                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
+                                    isConcentration: spell.concentration,
+                                    isRitual: spell.ritual
+                                }))}
+                        />
+                    )}
                 </CharacterSheetContainer>
             );
         }

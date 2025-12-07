@@ -2,7 +2,7 @@
  * InventorySheet Component
  * 
  * Full inventory page with PHB styling.
- * Includes currency, encumbrance, attunement, categorized items, and notes.
+ * Includes currency, encumbrance, attunement, and categorized items.
  * 
  * Layout:
  * ┌─────────────────────────────────────────────────────────────────────────┐
@@ -19,9 +19,6 @@
  * │ │  Armor           │  Gear            │  Consumables     │              │
  * │ │  Magic Items     │  Containers      │  Other Items     │              │
  * │ └──────────────────┴──────────────────┴──────────────────┘              │
- * │ ┌──────────────────────────────────────────────────────────────────────┐│
- * │ │                        INVENTORY NOTES                               ││
- * │ └──────────────────────────────────────────────────────────────────────┘│
  * └─────────────────────────────────────────────────────────────────────────┘
  * 
  * @module PlayerCharacterGenerator/sheetComponents
@@ -37,12 +34,13 @@ import {
     InventoryBlock,
     TreasureBlock,
     ContainerBlock,
-    InventoryNotes,
     Currency,
     AttunedItem,
     InventoryItem,
     Container
 } from './inventory';
+import { ItemDetailModal } from './modals';
+import { useDetailModal } from '../hooks/useDetailModal';
 
 export interface InventorySheetProps {
     /** Character name */
@@ -74,9 +72,6 @@ export interface InventorySheetProps {
 
     /** Containers (backpack, bags, etc.) */
     containers: Container[];
-
-    /** Notes text */
-    notes?: string;
 
     /** Override current weight (auto-calculated if not provided) */
     currentWeight?: number;
@@ -136,11 +131,18 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
         treasure,
         consumables,
         otherItems,
-        containers,
-        notes
+        containers
     } = props;
 
     const totalWeight = calculateTotalWeight(props);
+
+    // Modal state for item details
+    const { isOpen: isItemModalOpen, data: selectedItem, openModal: openItemModal, closeModal: closeItemModal } = useDetailModal<InventoryItem>();
+
+    // Handler for item info clicks
+    const handleItemInfoClick = (item: InventoryItem) => {
+        openItemModal(item);
+    };
 
     return (
         <CharacterSheetPage className="inventory-sheet" testId="inventory-sheet">
@@ -173,6 +175,7 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         totalWeight={categoryWeight(weapons)}
                         items={weapons}
                         emptyRows={1}
+                        onItemInfoClick={handleItemInfoClick}
                     />
                     <InventoryBlock
                         title="Armor & Shields"
@@ -181,6 +184,7 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         headers={['Qty', 'Item', 'Wt.', 'AC']}
                         formatValue={(item) => item.notes || '—'}
                         emptyRows={1}
+                        onItemInfoClick={handleItemInfoClick}
                     />
                     <InventoryBlock
                         title="Magic Items"
@@ -190,6 +194,7 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         formatValue={(item) => item.notes || '—'}
                         emptyRows={2}
                         flexGrow
+                        onItemInfoClick={handleItemInfoClick}
                     />
                 </div>
 
@@ -201,6 +206,7 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         items={adventuringGear}
                         emptyRows={4}
                         flexGrow
+                        onItemInfoClick={handleItemInfoClick}
                     />
                     {containers.map((container) => (
                         <ContainerBlock
@@ -226,6 +232,8 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         headers={['Qty', 'Item', 'Wt.', 'Uses']}
                         formatValue={(item) => item.notes || '—'}
                         emptyRows={1}
+                        className="consumables-block"
+                        onItemInfoClick={handleItemInfoClick}
                     />
                     <InventoryBlock
                         title="Other Items"
@@ -235,12 +243,38 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         formatValue={(item) => item.notes || '—'}
                         emptyRows={3}
                         flexGrow
+                        onItemInfoClick={handleItemInfoClick}
                     />
                 </div>
             </div>
 
-            {/* Notes Section */}
-            <InventoryNotes notes={notes} />
+            {/* Item Detail Modal */}
+            {selectedItem && (
+                <ItemDetailModal
+                    isOpen={isItemModalOpen}
+                    onClose={closeItemModal}
+                    name={selectedItem.name}
+                    type={selectedItem.type || 'other'}
+                    description={selectedItem.description}
+                    imageUrl={selectedItem.imageUrl}
+                    weight={selectedItem.weight}
+                    value={selectedItem.valueNumber}
+                    quantity={selectedItem.quantity}
+                    isMagical={selectedItem.isMagical}
+                    rarity={selectedItem.rarity}
+                    requiresAttunement={selectedItem.requiresAttunement}
+                    damage={selectedItem.damage}
+                    damageType={selectedItem.damageType}
+                    properties={selectedItem.properties}
+                    range={selectedItem.range}
+                    weaponCategory={selectedItem.weaponCategory}
+                    weaponType={selectedItem.weaponType}
+                    armorClass={selectedItem.armorClass}
+                    armorCategory={selectedItem.armorCategory}
+                    stealthDisadvantage={selectedItem.stealthDisadvantage}
+                    acBonus={selectedItem.acBonus}
+                />
+            )}
         </CharacterSheetPage>
     );
 };

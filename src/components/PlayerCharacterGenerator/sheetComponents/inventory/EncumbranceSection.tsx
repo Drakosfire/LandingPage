@@ -37,7 +37,7 @@ export const EncumbranceSection: React.FC<EncumbranceSectionProps> = ({
     // Calculate defaults from strength
     const capacity = carryingCapacity ?? strength * 15;
     const pushLimit = pushDragLift ?? strength * 30;
-    
+
     // Calculate fill percentage (capped at 100%)
     const fillPercent = Math.min((currentWeight / capacity) * 100, 100);
 
@@ -59,8 +59,8 @@ export const EncumbranceSection: React.FC<EncumbranceSectionProps> = ({
                 </div>
             </div>
             <div className="encumbrance-bar">
-                <div 
-                    className="encumbrance-fill" 
+                <div
+                    className="encumbrance-fill"
                     style={{ width: `${fillPercent}%` }}
                 />
             </div>

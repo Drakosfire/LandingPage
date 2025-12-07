@@ -51,6 +51,9 @@ export interface DnD5eSpell {
     
     // Source
     source: string;                  // Source book (e.g., 'PHB', 'SRD')
+
+    // Optional visual
+    imageUrl?: string;               // URL to spell art
 }
 
 /**

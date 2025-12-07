@@ -50,5 +50,17 @@ export type { BackgroundPersonalitySheetProps } from './BackgroundPersonalityShe
 export { InventorySheet } from './InventorySheet';
 export type { InventorySheetProps } from './InventorySheet';
 
+export { SpellSheet } from './SpellSheet';
+export type { SpellSheetProps } from './SpellSheet';
+
 // Inventory sub-components
 export * from './inventory';
+
+// Spell sub-components
+export * from './spells';
+
+// Common components
+export * from './common';
+
+// Modal components
+export * from './modals';

@@ -30,10 +30,7 @@ export type { EncumbranceSectionProps, Encumbrance } from './EncumbranceSection'
 export { AttunementSection } from './AttunementSection';
 export type { AttunementSectionProps, AttunedItem } from './AttunementSection';
 
-// Header and notes
+// Header
 export { InventoryHeader } from './InventoryHeader';
 export type { InventoryHeaderProps } from './InventoryHeader';
-
-export { InventoryNotes } from './InventoryNotes';
-export type { InventoryNotesProps } from './InventoryNotes';
 

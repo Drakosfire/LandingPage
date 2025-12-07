@@ -29,7 +29,7 @@ import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
  */
 const PlayerCharacterGeneratorInner: React.FC = () => {
     const [creationDrawerOpen, setCreationDrawerOpen] = useState(false);
-    const { loadDemoCharacter } = usePlayerCharacterGenerator();
+    const { loadDemoCharacter, demoCharacterOptions } = usePlayerCharacterGenerator();
 
     // Load D&D 5e PHB CSS
     useEffect(() => {
@@ -52,7 +52,8 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
     // Toolbox configuration
     const toolboxSections = createCharacterToolboxSections({
         handleHelpTutorial: undefined, // Phase 2+
-        loadDemoCharacter
+        loadDemoCharacter,
+        demoCharacterOptions
     });
 
     // Placeholder handlers for UnifiedHeader
