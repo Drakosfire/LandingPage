@@ -35,12 +35,14 @@
 }
 
 /* ===== Section Containers ===== */
+/* Override global section { padding: 3rem 0 } from app styles */
 .mobile-section {
     width: 100%;
     background: rgba(255, 255, 255, 0.4);
     border: 1px solid var(--HB_Color_HeaderText, #58180D);
     border-radius: 6px;
-    padding: 12px;
+    padding: 4px !important;
+    /* Override global section padding */
     box-sizing: border-box;
 }
 
@@ -388,7 +390,7 @@
 
 /* Item list container */
 .mobile-character-canvas.character-sheet .inventory-block .item-list {
-    padding: 8px !important;
+    padding: 4px 6px !important;
 }
 
 /* Item rows - preserve grid layout on mobile */
@@ -536,7 +538,7 @@
 
 /* Spell list container */
 .mobile-character-canvas.character-sheet .spell-level-block .spell-level-list {
-    padding: 8px !important;
+    padding: 4px 6px !important;
 }
 
 /* Spell item - preserve flex layout */
