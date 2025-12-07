@@ -198,9 +198,10 @@ const dnd5eData: DnD5eCharacter = {
             weight: 3,
             quantity: 1,
             isMagical: true,
-            requiresAttunement: true,
+            requiresAttunement: false,
             rarity: 'uncommon',
-            description: '+1 to attack and damage rolls'
+            description: 'You have a +1 bonus to attack and damage rolls made with this magic weapon. The blade bears dwarven runes that glow faintly blue when orcs or goblins are within 120 feet.',
+            value: 500
         },
         // Regular weapons
         {
@@ -271,7 +272,8 @@ const dnd5eData: DnD5eCharacter = {
             range: { normal: 80, long: 320 },
             weight: 5,
             quantity: 1,
-            value: 25
+            value: 25,
+            description: 'A simple ranged weapon that fires crossbow bolts. Requires two hands to use and must be loaded after each shot.'
         },
         {
             id: 'crossbow-bolts',
@@ -285,7 +287,7 @@ const dnd5eData: DnD5eCharacter = {
             weight: 1.5,
             quantity: 20,
             value: 1,
-            description: 'Ammunition for crossbow'
+            description: 'A case of 20 crossbow bolts. Standard ammunition for light and heavy crossbows.'
         }
     ],
 
@@ -300,7 +302,8 @@ const dnd5eData: DnD5eCharacter = {
         strengthRequirement: 13,
         weight: 55,
         quantity: 1,
-        value: 75
+        value: 75,
+        description: 'Made of interlocking metal rings, chain mail includes a layer of quilted fabric worn underneath to prevent chafing and cushion impacts. The armor weighs 55 pounds and requires a Strength score of 13 to wear effectively.'
     },
 
     shield: true,

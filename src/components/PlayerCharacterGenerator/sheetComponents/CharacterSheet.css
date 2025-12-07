@@ -1949,7 +1949,7 @@
 
 .detail-modal-dice-box {
     background: linear-gradient(135deg, var(--text-red) 0%, #7c3a1f 100%);
-    color: white;
+    color: #fff;
     padding: var(--space-8) var(--space-10);
     border-radius: 4px;
     margin-bottom: var(--space-10);
@@ -1968,12 +1968,13 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    color: #000000;
 }
 
 .detail-modal-dice-value {
     font-size: 1.3em;
-    font-weight: bold;
     font-family: 'NodestoCapsCondensed', serif;
+    color: #000000;
 }
 
 .detail-modal-section {
@@ -2027,12 +2028,35 @@
     font-family: 'ScalySansSmallCapsRemake', sans-serif;
 }
 
-.rarity-common { background: #e0e0e0; color: #333; }
-.rarity-uncommon { background: #1eff00; color: #000; }
-.rarity-rare { background: #0070dd; color: white; }
-.rarity-very-rare { background: #a335ee; color: white; }
-.rarity-legendary { background: #ff8000; color: white; }
-.rarity-artifact { background: #e6cc80; color: #000; }
+.rarity-common {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.rarity-uncommon {
+    background: #1eff00;
+    color: #000;
+}
+
+.rarity-rare {
+    background: #0070dd;
+    color: white;
+}
+
+.rarity-very-rare {
+    background: #a335ee;
+    color: white;
+}
+
+.rarity-legendary {
+    background: #ff8000;
+    color: white;
+}
+
+.rarity-artifact {
+    background: #e6cc80;
+    color: #000;
+}
 
 /* Spell badges */
 .spell-badge {
@@ -2056,7 +2080,7 @@
 
 .badge-level {
     background: var(--border-color);
-    color: white;
+    color: rgb(0, 0, 0);
 }
 
 /* ===== Print Styles ===== */

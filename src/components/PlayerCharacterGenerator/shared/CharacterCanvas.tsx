@@ -203,7 +203,20 @@ const CharacterCanvas: React.FC = () => {
                                 quantity: 1,
                                 weight: w.weight,
                                 value: w.value ? `${w.value} gp` : '—',
-                                attuned: isAttuned
+                                attuned: isAttuned,
+                                // Extended fields for detail modal
+                                type: 'weapon' as const,
+                                description: w.description,
+                                isMagical: w.isMagical,
+                                rarity: w.rarity,
+                                requiresAttunement: w.requiresAttunement,
+                                damage: w.damage,
+                                damageType: w.damageType,
+                                properties: w.properties,
+                                range: w.range,
+                                weaponCategory: w.weaponCategory,
+                                weaponType: w.weaponType,
+                                valueNumber: w.value
                             };
                         })}
                         armor={dnd5e.armor ? [{
@@ -212,7 +225,17 @@ const CharacterCanvas: React.FC = () => {
                             quantity: 1,
                             weight: dnd5e.armor.weight,
                             notes: `AC ${dnd5e.armor.armorClass}`,
-                            attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id)
+                            attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id),
+                            // Extended fields for detail modal
+                            type: 'armor' as const,
+                            description: dnd5e.armor.description,
+                            isMagical: dnd5e.armor.isMagical,
+                            rarity: dnd5e.armor.rarity,
+                            requiresAttunement: dnd5e.armor.requiresAttunement,
+                            armorClass: dnd5e.armor.armorClass,
+                            armorCategory: dnd5e.armor.armorCategory,
+                            stealthDisadvantage: dnd5e.armor.stealthDisadvantage,
+                            valueNumber: dnd5e.armor.value
                         }] : []}
                         magicItems={(dnd5e.equipment || [])
                             .filter(e => e.isMagical || e.type === 'wondrous item')
@@ -223,7 +246,14 @@ const CharacterCanvas: React.FC = () => {
                                 quantity: e.quantity || 1,
                                 weight: e.weight,
                                 notes: e.rarity?.charAt(0).toUpperCase() || '—',
-                                attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id)
+                                attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id),
+                                // Extended fields for detail modal
+                                type: e.type,
+                                description: e.description,
+                                isMagical: e.isMagical,
+                                rarity: e.rarity,
+                                requiresAttunement: e.requiresAttunement,
+                                valueNumber: e.value
                             }))}
                         adventuringGear={(dnd5e.equipment || [])
                             .filter(e => e.type === 'adventuring gear' || e.type === 'container')
@@ -233,7 +263,11 @@ const CharacterCanvas: React.FC = () => {
                                 name: e.name,
                                 quantity: e.quantity || 1,
                                 weight: e.weight,
-                                value: e.value ? `${e.value} gp` : '—'
+                                value: e.value ? `${e.value} gp` : '—',
+                                // Extended fields for detail modal
+                                type: e.type,
+                                description: e.description,
+                                valueNumber: e.value
                             }))}
                         treasure={(dnd5e.equipment || [])
                             .filter(e => e.type === 'treasure')
@@ -242,7 +276,11 @@ const CharacterCanvas: React.FC = () => {
                                 name: e.name,
                                 quantity: e.quantity || 1,
                                 weight: e.weight,
-                                value: e.value ? `${e.value} gp` : '—'
+                                value: e.value ? `${e.value} gp` : '—',
+                                // Extended fields for detail modal
+                                type: 'treasure' as const,
+                                description: e.description,
+                                valueNumber: e.value
                             }))}
                         consumables={(dnd5e.equipment || [])
                             .filter(e => e.type === 'consumable')
@@ -251,7 +289,13 @@ const CharacterCanvas: React.FC = () => {
                                 name: e.name,
                                 quantity: e.quantity || 1,
                                 weight: e.weight,
-                                notes: e.description?.slice(0, 20) || '—'
+                                notes: e.description?.slice(0, 20) || '—',
+                                // Extended fields for detail modal
+                                type: 'consumable' as const,
+                                description: e.description,
+                                isMagical: e.isMagical,
+                                rarity: e.rarity,
+                                valueNumber: e.value
                             }))}
                         otherItems={[]}
                         containers={[]}
@@ -285,7 +329,19 @@ const CharacterCanvas: React.FC = () => {
                                 id: spell.id,
                                 name: spell.name,
                                 isConcentration: spell.concentration,
-                                isRitual: spell.ritual
+                                isRitual: spell.ritual,
+                                // Extended fields for detail modal
+                                level: spell.level,
+                                school: spell.school,
+                                castingTime: spell.castingTime,
+                                range: spell.range,
+                                components: spell.components,
+                                duration: spell.duration,
+                                description: spell.description,
+                                higherLevels: spell.higherLevels,
+                                damage: spell.damage,
+                                healing: spell.healing,
+                                source: spell.source
                             }))}
                             level1Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 1)
@@ -294,7 +350,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                             level2Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 2)
@@ -303,7 +370,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                             level3Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 3)
@@ -312,7 +390,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                             level4Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 4)
@@ -321,7 +410,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                             level5Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 5)
@@ -330,7 +430,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                             level6Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 6)
@@ -339,7 +450,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                             level7Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 7)
@@ -348,7 +470,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                             level8Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 8)
@@ -357,7 +490,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                             level9Spells={(dnd5e.spellcasting.spellsKnown || [])
                                 .filter(s => s.level === 9)
@@ -366,7 +510,18 @@ const CharacterCanvas: React.FC = () => {
                                     name: spell.name,
                                     isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
                                     isConcentration: spell.concentration,
-                                    isRitual: spell.ritual
+                                    isRitual: spell.ritual,
+                                    level: spell.level,
+                                    school: spell.school,
+                                    castingTime: spell.castingTime,
+                                    range: spell.range,
+                                    components: spell.components,
+                                    duration: spell.duration,
+                                    description: spell.description,
+                                    higherLevels: spell.higherLevels,
+                                    damage: spell.damage,
+                                    healing: spell.healing,
+                                    source: spell.source
                                 }))}
                         />
                     )}
