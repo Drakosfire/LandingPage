@@ -173,24 +173,24 @@ const CharacterCanvas: React.FC = () => {
                             // Build attunement slots from character data
                             const maxSlots = dnd5e.attunement?.maxSlots ?? 3;
                             const attunedIds = dnd5e.attunement?.attunedItemIds ?? [];
-                            
+
                             // Look up item names from IDs
                             const allItems = [
                                 ...(dnd5e.weapons || []),
                                 ...(dnd5e.equipment || []),
                                 ...(dnd5e.armor ? [dnd5e.armor] : [])
                             ];
-                            
+
                             const slots = attunedIds.map(itemId => {
                                 const item = allItems.find(i => i.id === itemId);
                                 return { name: item?.name ?? itemId, active: true };
                             });
-                            
+
                             // Pad with empty slots
                             while (slots.length < maxSlots) {
                                 slots.push({ name: '', active: false });
                             }
-                            
+
                             return slots;
                         })()}
                         weapons={(dnd5e.weapons || []).map((w, idx) => {
@@ -213,7 +213,8 @@ const CharacterCanvas: React.FC = () => {
                             attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id)
                         }] : []}
                         magicItems={(dnd5e.equipment || [])
-                            .filter(e => e.isMagical && e.type !== 'weapon' && e.type !== 'armor')
+                            .filter(e => e.isMagical || e.type === 'wondrous item')
+                            .filter(e => e.type !== 'weapon' && e.type !== 'armor' && e.type !== 'consumable')
                             .map((e, idx) => ({
                                 id: e.id || `magic-${idx}`,
                                 name: e.name,
@@ -223,6 +224,7 @@ const CharacterCanvas: React.FC = () => {
                                 attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id)
                             }))}
                         adventuringGear={(dnd5e.equipment || [])
+                            .filter(e => e.type === 'adventuring gear' || e.type === 'container')
                             .filter(e => !e.isMagical)
                             .map((e, idx) => ({
                                 id: e.id || `equip-${idx}`,
@@ -231,9 +233,17 @@ const CharacterCanvas: React.FC = () => {
                                 weight: e.weight,
                                 value: e.value ? `${e.value} gp` : '—'
                             }))}
-                        treasure={[]}
+                        treasure={(dnd5e.equipment || [])
+                            .filter(e => e.type === 'treasure')
+                            .map((e, idx) => ({
+                                id: e.id || `treasure-${idx}`,
+                                name: e.name,
+                                quantity: e.quantity || 1,
+                                weight: e.weight,
+                                value: e.value ? `${e.value} gp` : '—'
+                            }))}
                         consumables={(dnd5e.equipment || [])
-                            .filter(e => e.type === 'consumable' || e.name.toLowerCase().includes('potion'))
+                            .filter(e => e.type === 'consumable')
                             .map((e, idx) => ({
                                 id: e.id || `consumable-${idx}`,
                                 name: e.name,

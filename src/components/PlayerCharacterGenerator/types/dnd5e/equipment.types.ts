@@ -9,7 +9,7 @@
 import { DamageType } from '../system.types';
 
 /**
- * Magic item rarity (PHB p. 135)
+ * Magic item rarity (DMG p. 135)
  */
 export type MagicItemRarity = 
     | 'common'
@@ -20,12 +20,29 @@ export type MagicItemRarity =
     | 'artifact';
 
 /**
+ * Equipment type categories
+ * Used to classify items for inventory organization and filtering
+ */
+export type EquipmentType =
+    | 'weapon'              // Swords, bows, etc. (extends to DnD5eWeapon)
+    | 'armor'               // Body armor (extends to DnD5eArmor)
+    | 'shield'              // Shields (extends to DnD5eShield)
+    | 'tool'                // Tools requiring proficiency (extends to DnD5eTool)
+    | 'adventuring gear'    // Rope, torches, backpacks, etc.
+    | 'consumable'          // Potions, scrolls, ammunition, food/rations
+    | 'treasure'            // Gems, art objects, trade goods, valuables
+    | 'container'           // Backpacks, pouches, bags of holding
+    | 'mount'               // Horses, vehicles, exotic mounts
+    | 'wondrous item'       // Magic items that don't fit other categories
+    | 'other';              // Catch-all for uncategorized items
+
+/**
  * Base equipment item
  */
 export interface DnD5eEquipmentItem {
     id: string;                      // Unique item ID (e.g., 'rope-hempen-50ft')
     name: string;                    // Item name (e.g., 'Rope, hempen (50 feet)')
-    type: string;                    // Item category (e.g., 'adventuring gear', 'tool')
+    type: EquipmentType;             // Item category (type-safe union)
     quantity: number;                // Number of items
     weight?: number;                 // Weight in pounds (per item)
     value?: number;                  // Value in gold pieces (per item)
