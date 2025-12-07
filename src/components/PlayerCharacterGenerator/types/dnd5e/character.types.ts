@@ -47,6 +47,11 @@ export interface DnD5eCharacter {
     armor?: DnD5eArmor;
     shield?: boolean;
 
+    // ===== ATTUNEMENT (DMG p. 136) =====
+    // Most characters can attune to at most 3 magic items
+    // Some class features (e.g., Artificer) can increase this
+    attunement?: DnD5eAttunement;
+
     // ===== FEATURES & TRAITS =====
     features: DnD5eFeature[];
 
@@ -229,6 +234,20 @@ export interface DnD5eCurrency {
 }
 
 /**
+ * D&D 5e attunement tracking (DMG p. 136)
+ * 
+ * Rules:
+ * - Most characters can attune to max 3 items
+ * - Attunement requires a short rest spent focusing on the item
+ * - Only items with requiresAttunement=true count toward the limit
+ * - Some class features can increase maxSlots (e.g., Artificer at level 10)
+ */
+export interface DnD5eAttunement {
+    maxSlots: number;           // Usually 3, can be modified by class features
+    attunedItemIds: string[];   // Item IDs currently attuned (equipment[].id or weapons[].id)
+}
+
+/**
  * Helper: Calculate ability modifier from score
  * Modifier = floor((score - 10) / 2)
  */
@@ -288,6 +307,7 @@ export function createEmptyDnD5eCharacter(): DnD5eCharacter {
         },
         equipment: [],
         weapons: [],
+        attunement: { maxSlots: 3, attunedItemIds: [] },
         features: [],
         personality: {},
         currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }

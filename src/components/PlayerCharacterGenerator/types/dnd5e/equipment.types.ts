@@ -9,6 +9,17 @@
 import { DamageType } from '../system.types';
 
 /**
+ * Magic item rarity (PHB p. 135)
+ */
+export type MagicItemRarity = 
+    | 'common'
+    | 'uncommon'
+    | 'rare'
+    | 'very rare'
+    | 'legendary'
+    | 'artifact';
+
+/**
  * Base equipment item
  */
 export interface DnD5eEquipmentItem {
@@ -19,6 +30,12 @@ export interface DnD5eEquipmentItem {
     weight?: number;                 // Weight in pounds (per item)
     value?: number;                  // Value in gold pieces (per item)
     description?: string;            // Item description
+    
+    // Magic item properties (isMagical ≠ requiresAttunement)
+    // e.g., Potion of Healing is magical but doesn't require attunement
+    isMagical?: boolean;             // Whether this is a magic item
+    requiresAttunement?: boolean;    // Whether attunement is required to use
+    rarity?: MagicItemRarity;        // Magic item rarity tier
 }
 
 /**

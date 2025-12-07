@@ -169,35 +169,78 @@ const CharacterCanvas: React.FC = () => {
                             gp: dnd5e.currency?.gp ?? 0,
                             pp: dnd5e.currency?.pp ?? 0
                         }}
-                        attunedItems={[
-                            { name: '', active: false },
-                            { name: '', active: false },
-                            { name: '', active: false }
-                        ]}
-                        weapons={(dnd5e.weapons || []).map((w, idx) => ({
-                            id: `weapon-${idx}`,
-                            name: w.name,
-                            quantity: 1,
-                            weight: w.weight,
-                            value: w.value ? `${w.value} gp` : '—'
-                        }))}
+                        attunedItems={(() => {
+                            // Build attunement slots from character data
+                            const maxSlots = dnd5e.attunement?.maxSlots ?? 3;
+                            const attunedIds = dnd5e.attunement?.attunedItemIds ?? [];
+                            
+                            // Look up item names from IDs
+                            const allItems = [
+                                ...(dnd5e.weapons || []),
+                                ...(dnd5e.equipment || []),
+                                ...(dnd5e.armor ? [dnd5e.armor] : [])
+                            ];
+                            
+                            const slots = attunedIds.map(itemId => {
+                                const item = allItems.find(i => i.id === itemId);
+                                return { name: item?.name ?? itemId, active: true };
+                            });
+                            
+                            // Pad with empty slots
+                            while (slots.length < maxSlots) {
+                                slots.push({ name: '', active: false });
+                            }
+                            
+                            return slots;
+                        })()}
+                        weapons={(dnd5e.weapons || []).map((w, idx) => {
+                            const isAttuned = dnd5e.attunement?.attunedItemIds?.includes(w.id);
+                            return {
+                                id: w.id || `weapon-${idx}`,
+                                name: w.name,
+                                quantity: 1,
+                                weight: w.weight,
+                                value: w.value ? `${w.value} gp` : '—',
+                                attuned: isAttuned
+                            };
+                        })}
                         armor={dnd5e.armor ? [{
-                            id: 'armor-1',
+                            id: dnd5e.armor.id || 'armor-1',
                             name: dnd5e.armor.name + ' (worn)',
                             quantity: 1,
                             weight: dnd5e.armor.weight,
-                            notes: `AC ${dnd5e.armor.armorClass}`
+                            notes: `AC ${dnd5e.armor.armorClass}`,
+                            attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id)
                         }] : []}
-                        magicItems={[]}
-                        adventuringGear={(dnd5e.equipment || []).map((e, idx) => ({
-                            id: `equip-${idx}`,
-                            name: e.name,
-                            quantity: e.quantity || 1,
-                            weight: e.weight,
-                            value: e.value ? `${e.value} gp` : '—'
-                        }))}
+                        magicItems={(dnd5e.equipment || [])
+                            .filter(e => e.isMagical && e.type !== 'weapon' && e.type !== 'armor')
+                            .map((e, idx) => ({
+                                id: e.id || `magic-${idx}`,
+                                name: e.name,
+                                quantity: e.quantity || 1,
+                                weight: e.weight,
+                                notes: e.rarity?.charAt(0).toUpperCase() || '—',
+                                attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id)
+                            }))}
+                        adventuringGear={(dnd5e.equipment || [])
+                            .filter(e => !e.isMagical)
+                            .map((e, idx) => ({
+                                id: e.id || `equip-${idx}`,
+                                name: e.name,
+                                quantity: e.quantity || 1,
+                                weight: e.weight,
+                                value: e.value ? `${e.value} gp` : '—'
+                            }))}
                         treasure={[]}
-                        consumables={[]}
+                        consumables={(dnd5e.equipment || [])
+                            .filter(e => e.type === 'consumable' || e.name.toLowerCase().includes('potion'))
+                            .map((e, idx) => ({
+                                id: e.id || `consumable-${idx}`,
+                                name: e.name,
+                                quantity: e.quantity || 1,
+                                weight: e.weight,
+                                notes: e.description?.slice(0, 20) || '—'
+                            }))}
                         otherItems={[]}
                         containers={[]}
                     />
