@@ -9,6 +9,9 @@
 export { FeaturesOverflowPage } from './FeaturesOverflowPage';
 export type { FeaturesOverflowPageProps } from './FeaturesOverflowPage';
 
+export { InventoryOverflowPage } from './InventoryOverflowPage';
+export type { InventoryOverflowPageProps } from './InventoryOverflowPage';
+
 export { SpellsOverflowPage } from './SpellsOverflowPage';
 export type { SpellsOverflowPageProps } from './SpellsOverflowPage';
 

@@ -31,9 +31,9 @@ import {
 } from '../sheetComponents';
 
 // Overflow components for pagination (desktop only)
-import { FeaturesOverflowPage, SpellsOverflowPage } from '../sheetComponents/overflow';
-import { useFeaturesOverflow, useSpellsOverflow } from '../hooks';
-import type { SpellOverflowPageData } from '../hooks';
+import { FeaturesOverflowPage, InventoryOverflowPage, SpellsOverflowPage } from '../sheetComponents/overflow';
+import { useFeaturesOverflow, useInventoryOverflow, useSpellsOverflow } from '../hooks';
+import type { SpellOverflowPageData, InventoryPageData } from '../hooks';
 
 // Mobile canvas for viewports < 800px
 import MobileCharacterCanvas from './MobileCharacterCanvas';
@@ -196,6 +196,138 @@ const CharacterCanvas: React.FC = () => {
         };
     }, [character?.dnd5eData]);
 
+    // ===== INVENTORY DATA (for overflow hook) =====
+    // Extract inventory items by category, similar to spellsData
+    const inventoryData = useMemo(() => {
+        const dnd5e = character?.dnd5eData;
+        if (!dnd5e) {
+            return {
+                weapons: [],
+                armor: [],
+                magicItems: [],
+                adventuringGear: [],
+                treasure: [],
+                consumables: [],
+                otherItems: [],
+            };
+        }
+
+        // Map weapons
+        const weapons = (dnd5e.weapons || []).map((w, idx) => ({
+            id: w.id || `weapon-${idx}`,
+            name: w.name,
+            quantity: 1,
+            weight: w.weight,
+            value: w.value ? `${w.value} gp` : '—',
+            attuned: dnd5e.attunement?.attunedItemIds?.includes(w.id),
+            type: 'weapon' as const,
+            description: w.description,
+            isMagical: w.isMagical,
+            rarity: w.rarity,
+            requiresAttunement: w.requiresAttunement,
+            damage: w.damage,
+            damageType: w.damageType,
+            properties: w.properties,
+            range: w.range,
+            weaponCategory: w.weaponCategory,
+            weaponType: w.weaponType,
+            valueNumber: w.value
+        }));
+
+        // Map armor
+        const armor = dnd5e.armor ? [{
+            id: dnd5e.armor.id || 'armor-1',
+            name: dnd5e.armor.name + ' (worn)',
+            quantity: 1,
+            weight: dnd5e.armor.weight,
+            notes: `AC ${dnd5e.armor.armorClass}`,
+            attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id),
+            type: 'armor' as const,
+            description: dnd5e.armor.description,
+            isMagical: dnd5e.armor.isMagical,
+            rarity: dnd5e.armor.rarity,
+            requiresAttunement: dnd5e.armor.requiresAttunement,
+            armorClass: dnd5e.armor.armorClass,
+            armorCategory: dnd5e.armor.armorCategory,
+            stealthDisadvantage: dnd5e.armor.stealthDisadvantage,
+            valueNumber: dnd5e.armor.value
+        }] : [];
+
+        // Map magic items
+        const magicItems = (dnd5e.equipment || [])
+            .filter(e => e.isMagical || e.type === 'wondrous item')
+            .filter(e => e.type !== 'weapon' && e.type !== 'armor' && e.type !== 'consumable')
+            .map((e, idx) => ({
+                id: e.id || `magic-${idx}`,
+                name: e.name,
+                quantity: e.quantity || 1,
+                weight: e.weight,
+                notes: e.rarity?.charAt(0).toUpperCase() || '—',
+                attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id),
+                type: e.type,
+                description: e.description,
+                isMagical: e.isMagical,
+                rarity: e.rarity,
+                requiresAttunement: e.requiresAttunement,
+                valueNumber: e.value
+            }));
+
+        // Map adventuring gear
+        const adventuringGear = (dnd5e.equipment || [])
+            .filter(e => e.type === 'adventuring gear' || e.type === 'container')
+            .filter(e => !e.isMagical)
+            .map((e, idx) => ({
+                id: e.id || `equip-${idx}`,
+                name: e.name,
+                quantity: e.quantity || 1,
+                weight: e.weight,
+                value: e.value ? `${e.value} gp` : '—',
+                type: e.type,
+                description: e.description,
+                valueNumber: e.value
+            }));
+
+        // Map treasure
+        const treasure = (dnd5e.equipment || [])
+            .filter(e => e.type === 'treasure')
+            .map((e, idx) => ({
+                id: e.id || `treasure-${idx}`,
+                name: e.name,
+                quantity: e.quantity || 1,
+                weight: e.weight,
+                value: e.value ? `${e.value} gp` : '—',
+                type: 'treasure' as const,
+                description: e.description,
+                valueNumber: e.value
+            }));
+
+        // Map consumables
+        const consumables = (dnd5e.equipment || [])
+            .filter(e => e.type === 'consumable')
+            .map((e, idx) => ({
+                id: e.id || `consumable-${idx}`,
+                name: e.name,
+                quantity: e.quantity || 1,
+                weight: e.weight,
+                notes: e.description?.slice(0, 20) || '—',
+                type: 'consumable' as const,
+                description: e.description,
+                isMagical: e.isMagical,
+                rarity: e.rarity,
+                valueNumber: e.value
+            }));
+
+        return {
+            weapons,
+            armor,
+            magicItems,
+            adventuringGear,
+            treasure,
+            consumables,
+            otherItems: [], // Not yet mapped from character data
+        };
+    }, [character?.dnd5eData]);
+
     // ===== FEATURES OVERFLOW DETECTION (desktop only) =====
     // Uses actual DOM measurements for accurate overflow detection.
     // Supports multi-page overflow when features exceed a single overflow page.
@@ -208,6 +340,20 @@ const CharacterCanvas: React.FC = () => {
     } = useFeaturesOverflow({
         features: allFeatures,
         maxHeightPx: 580, // Column 3 available height (approx)
+        enabled: !isMobile // Only on desktop - mobile scrolls naturally
+    });
+
+    // ===== INVENTORY OVERFLOW DETECTION (desktop only) =====
+    // Uses category-based overflow - items are grouped by category with 3-column layout.
+    const {
+        visibleInventory,
+        overflowPages: inventoryOverflowPages,
+        hasOverflow: hasInventoryOverflow,
+        overflowPageCount: inventoryOverflowPageCount,
+        measurementPortal: inventoryMeasurementPortal,
+    } = useInventoryOverflow({
+        inventory: inventoryData,
+        maxHeightPx: 700, // Approximate height for inventory content area
         enabled: !isMobile // Only on desktop - mobile scrolls naturally
     });
 
@@ -473,109 +619,13 @@ const CharacterCanvas: React.FC = () => {
 
                             return slots;
                         })()}
-                        weapons={(dnd5e.weapons || []).map((w, idx) => {
-                            const isAttuned = dnd5e.attunement?.attunedItemIds?.includes(w.id);
-                            return {
-                                id: w.id || `weapon-${idx}`,
-                                name: w.name,
-                                quantity: 1,
-                                weight: w.weight,
-                                value: w.value ? `${w.value} gp` : '—',
-                                attuned: isAttuned,
-                                // Extended fields for detail modal
-                                type: 'weapon' as const,
-                                description: w.description,
-                                isMagical: w.isMagical,
-                                rarity: w.rarity,
-                                requiresAttunement: w.requiresAttunement,
-                                damage: w.damage,
-                                damageType: w.damageType,
-                                properties: w.properties,
-                                range: w.range,
-                                weaponCategory: w.weaponCategory,
-                                weaponType: w.weaponType,
-                                valueNumber: w.value
-                            };
-                        })}
-                        armor={dnd5e.armor ? [{
-                            id: dnd5e.armor.id || 'armor-1',
-                            name: dnd5e.armor.name + ' (worn)',
-                            quantity: 1,
-                            weight: dnd5e.armor.weight,
-                            notes: `AC ${dnd5e.armor.armorClass}`,
-                            attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id),
-                            // Extended fields for detail modal
-                            type: 'armor' as const,
-                            description: dnd5e.armor.description,
-                            isMagical: dnd5e.armor.isMagical,
-                            rarity: dnd5e.armor.rarity,
-                            requiresAttunement: dnd5e.armor.requiresAttunement,
-                            armorClass: dnd5e.armor.armorClass,
-                            armorCategory: dnd5e.armor.armorCategory,
-                            stealthDisadvantage: dnd5e.armor.stealthDisadvantage,
-                            valueNumber: dnd5e.armor.value
-                        }] : []}
-                        magicItems={(dnd5e.equipment || [])
-                            .filter(e => e.isMagical || e.type === 'wondrous item')
-                            .filter(e => e.type !== 'weapon' && e.type !== 'armor' && e.type !== 'consumable')
-                            .map((e, idx) => ({
-                                id: e.id || `magic-${idx}`,
-                                name: e.name,
-                                quantity: e.quantity || 1,
-                                weight: e.weight,
-                                notes: e.rarity?.charAt(0).toUpperCase() || '—',
-                                attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id),
-                                // Extended fields for detail modal
-                                type: e.type,
-                                description: e.description,
-                                isMagical: e.isMagical,
-                                rarity: e.rarity,
-                                requiresAttunement: e.requiresAttunement,
-                                valueNumber: e.value
-                            }))}
-                        adventuringGear={(dnd5e.equipment || [])
-                            .filter(e => e.type === 'adventuring gear' || e.type === 'container')
-                            .filter(e => !e.isMagical)
-                            .map((e, idx) => ({
-                                id: e.id || `equip-${idx}`,
-                                name: e.name,
-                                quantity: e.quantity || 1,
-                                weight: e.weight,
-                                value: e.value ? `${e.value} gp` : '—',
-                                // Extended fields for detail modal
-                                type: e.type,
-                                description: e.description,
-                                valueNumber: e.value
-                            }))}
-                        treasure={(dnd5e.equipment || [])
-                            .filter(e => e.type === 'treasure')
-                            .map((e, idx) => ({
-                                id: e.id || `treasure-${idx}`,
-                                name: e.name,
-                                quantity: e.quantity || 1,
-                                weight: e.weight,
-                                value: e.value ? `${e.value} gp` : '—',
-                                // Extended fields for detail modal
-                                type: 'treasure' as const,
-                                description: e.description,
-                                valueNumber: e.value
-                            }))}
-                        consumables={(dnd5e.equipment || [])
-                            .filter(e => e.type === 'consumable')
-                            .map((e, idx) => ({
-                                id: e.id || `consumable-${idx}`,
-                                name: e.name,
-                                quantity: e.quantity || 1,
-                                weight: e.weight,
-                                notes: e.description?.slice(0, 20) || '—',
-                                // Extended fields for detail modal
-                                type: 'consumable' as const,
-                                description: e.description,
-                                isMagical: e.isMagical,
-                                rarity: e.rarity,
-                                valueNumber: e.value
-                            }))}
-                        otherItems={[]}
+                        weapons={inventoryData.weapons}
+                        armor={inventoryData.armor}
+                        magicItems={inventoryData.magicItems}
+                        adventuringGear={inventoryData.adventuringGear}
+                        treasure={inventoryData.treasure}
+                        consumables={inventoryData.consumables}
+                        otherItems={inventoryData.otherItems}
                         containers={[]}
                     />
 
@@ -635,15 +685,34 @@ const CharacterCanvas: React.FC = () => {
                         );
                     })}
 
-                    {/* TODO: Inventory Overflow Pages would go here (Phase 4) */}
+                    {/* Inventory Overflow Pages (if needed) - renders after features overflow */}
+                    {hasInventoryOverflow && inventoryOverflowPages.map((pageData: InventoryPageData, idx: number) => {
+                        // Calculate page number: base pages + features overflow + inventory overflow index
+                        // Base: CharacterSheet(1) + Background(2) + Inventory(3) + SpellSheet(4 if caster)
+                        const basePages = dnd5e.spellcasting ? 4 : 3;
+                        const featuresOverflowOffset = hasFeaturesOverflow ? featuresOverflowPageCount : 0;
+                        const pageNumber = basePages + featuresOverflowOffset + idx + 1;
+
+                        return (
+                            <InventoryOverflowPage
+                                key={`inventory-overflow-${idx}`}
+                                pageData={pageData}
+                                characterName={character.name}
+                                pageNumber={pageNumber}
+                                currentOverflowPage={idx + 1}
+                                totalOverflowPages={inventoryOverflowPages.length}
+                            />
+                        );
+                    })}
 
                     {/* Spells Overflow Pages (if needed) - renders after features/inventory overflow */}
                     {hasSpellsOverflow && spellsOverflowPages.map((pageData: SpellOverflowPageData, idx: number) => {
-                        // Calculate page number: base pages + features overflow + spell overflow index
+                        // Calculate page number: base pages + features overflow + inventory overflow + spell overflow index
                         // Base: CharacterSheet(1) + Background(2) + Inventory(3) + SpellSheet(4)
                         const basePages = 4;
                         const featuresOverflowOffset = hasFeaturesOverflow ? featuresOverflowPageCount : 0;
-                        const pageNumber = basePages + featuresOverflowOffset + idx + 1;
+                        const inventoryOverflowOffset = hasInventoryOverflow ? inventoryOverflowPageCount : 0;
+                        const pageNumber = basePages + featuresOverflowOffset + inventoryOverflowOffset + idx + 1;
 
                         return (
                             <SpellsOverflowPage
@@ -718,11 +787,13 @@ const CharacterCanvas: React.FC = () => {
         if (dnd5e.spellcasting) pages += 1;
         // Add Features overflow pages (supports multi-page overflow)
         if (hasFeaturesOverflow) pages += featuresOverflowPageCount;
+        // Add Inventory overflow pages (supports multi-page overflow)
+        if (hasInventoryOverflow) pages += inventoryOverflowPageCount;
         // Add Spells overflow pages (supports multi-page overflow)
         if (hasSpellsOverflow) pages += spellsOverflowPageCount;
 
         return pages;
-    }, [character, hasFeaturesOverflow, featuresOverflowPageCount, hasSpellsOverflow, spellsOverflowPageCount]);
+    }, [character, hasFeaturesOverflow, featuresOverflowPageCount, hasInventoryOverflow, inventoryOverflowPageCount, hasSpellsOverflow, spellsOverflowPageCount]);
 
     // ===== COMPUTED STYLES =====
     // Full unscaled height (before transform) - must be defined first
@@ -831,6 +902,7 @@ const CharacterCanvas: React.FC = () => {
         <>
             {/* Measurement portals for accurate overflow detection (render offscreen) */}
             {featuresMeasurementPortal}
+            {inventoryMeasurementPortal}
             {spellsMeasurementPortal}
 
             <div

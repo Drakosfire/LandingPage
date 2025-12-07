@@ -9,6 +9,15 @@
 export { useFeaturesOverflow } from './useFeaturesOverflow';
 export type { FeaturesOverflowState, UseFeaturesOverflowOptions } from './useFeaturesOverflow';
 
+export { useInventoryOverflow } from './useInventoryOverflow';
+export type { 
+    InventoryOverflowState, 
+    UseInventoryOverflowOptions,
+    InventoryPageData,
+    InventoryInput,
+    InventoryCategory
+} from './useInventoryOverflow';
+
 export { useSpellsOverflow } from './useSpellsOverflow';
 export type { 
     SpellsOverflowState, 
