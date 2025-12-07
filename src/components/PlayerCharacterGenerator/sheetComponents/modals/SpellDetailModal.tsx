@@ -108,9 +108,17 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
             title={null}
             size="lg"
             centered
+            withCloseButton
             className="detail-modal spell-detail-modal"
             classNames={{
-                body: 'detail-modal-body'
+                body: 'detail-modal-body',
+                header: 'detail-modal-mantine-header',
+                close: 'detail-modal-close-btn'
+            }}
+            styles={{
+                content: {
+                    backgroundImage: 'url(/dnd-static/themes/assets/parchmentBackground.jpg)'
+                }
             }}
         >
             {/* Header with image and title */}

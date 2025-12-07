@@ -1145,7 +1145,8 @@
 /* CRITICAL: Override container styles when inside responsive canvas */
 .character-canvas-renderer .character-sheet-container {
     padding: 0 !important;
-    gap: 32px !important; /* Match PAGE_GAP_PX */
+    gap: 32px !important;
+    /* Match PAGE_GAP_PX */
     background: transparent !important;
     margin: 0 !important;
 }
@@ -1870,19 +1871,49 @@
 /* Detail Modal Styling */
 .detail-modal .mantine-Modal-content {
     font-family: 'BookInsanityRemake', Georgia, serif;
-    background: var(--HB_Color_Background);
-    border: 2px solid var(--border-color);
+    background-color: var(--HB_Color_Background, #EEE5CE);
+    /* Parchment background set via styles prop in component (public assets can't be url() resolved from src/) */
+    background-size: cover;
+    background-position: center;
+    border: 3px solid var(--border-color, #9C2B1B);
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-.detail-modal .mantine-Modal-header {
-    display: none;
-}
-
-.detail-modal .mantine-Modal-close {
+/* Modal header - minimal but visible for close button */
+.detail-modal .mantine-Modal-header,
+.detail-modal .detail-modal-mantine-header {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    color: var(--text-red);
+    top: 0;
+    right: 0;
+    padding: 8px;
+    background: transparent;
+    z-index: 10;
+}
+
+/* Close button styling */
+.detail-modal .mantine-Modal-close,
+.detail-modal .detail-modal-close-btn {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 50%;
+    background: var(--HB_Color_MonsterStatBackground, #F2E5B5);
+    border: 2px solid var(--text-red, #58180D);
+    color: var(--text-red, #58180D);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.detail-modal .mantine-Modal-close:hover,
+.detail-modal .detail-modal-close-btn:hover {
+    background: var(--text-red, #58180D);
+    color: white;
 }
 
 .detail-modal-body {
@@ -2114,6 +2145,86 @@
 .badge-level {
     background: var(--border-color);
     color: rgb(0, 0, 0);
+}
+
+/* ===== Hybrid Responsive System ===== */
+/* 
+ * Font and spacing scaling controlled by CSS variables from CharacterCanvas.tsx.
+ * The canvas calculates --dm-font-scale and --dm-spacing-scale based on viewport,
+ * and components use calc() to apply the scaling.
+ * 
+ * Benefits:
+ * - Single source of truth for breakpoints (in canvas)
+ * - No media queries needed for font scaling
+ * - Can be reused across all DungeonMind services
+ * - Easier to test (pure functions in JS)
+ * 
+ * Usage: font-size: calc(BASE_SIZE * var(--dm-font-scale, 1));
+ */
+
+/* Row font variables - scaled by canvas */
+.character-sheet {
+    --row-font-label: calc(9px * var(--dm-font-scale, 1));
+    --row-font-value: calc(18px * var(--dm-font-scale, 1));
+    --row-font-small: calc(11px * var(--dm-font-scale, 1));
+}
+
+/* Header - character name (base 28px) */
+.character-sheet .header-name {
+    font-size: calc(28px * var(--dm-font-scale, 1));
+}
+
+/* Header - class info (base 14px) */
+.character-sheet .header-info {
+    font-size: calc(14px * var(--dm-font-scale, 1));
+}
+
+/* Combat stat values - AC, HP, Initiative, Speed (base 20px) */
+.character-sheet .combat-value,
+.character-sheet .hp-value {
+    font-size: calc(20px * var(--dm-font-scale, 1));
+}
+
+/* Labeled box values (base 15px) */
+.character-sheet .labeled-box .value {
+    font-size: calc(15px * var(--dm-font-scale, 1));
+}
+
+/* Labeled box labels (base 9px) */
+.character-sheet .labeled-box .label {
+    font-size: calc(9px * var(--dm-font-scale, 1));
+}
+
+/* Attack/equipment table cells (base 10px) */
+.character-sheet .attack-row,
+.character-sheet .equipment-list {
+    font-size: calc(10px * var(--dm-font-scale, 1));
+}
+
+/* Features section (base 12px) */
+.character-sheet .features-box .features-content {
+    font-size: calc(12px * var(--dm-font-scale, 1));
+}
+
+/* Inventory sheet - item rows (base 10px) */
+.inventory-sheet .item-row {
+    font-size: calc(10px * var(--dm-font-scale, 1));
+}
+
+/* Inventory sheet - headers (base 11px) */
+.inventory-sheet .section-header,
+.inventory-sheet .block-header .block-title {
+    font-size: calc(11px * var(--dm-font-scale, 1));
+}
+
+/* Spell sheet - spell entries (base 10px) */
+.spell-sheet .spell-entry {
+    font-size: calc(10px * var(--dm-font-scale, 1));
+}
+
+/* Spell sheet - level headers (base 9px) */
+.spell-sheet .spell-level-header .level-title {
+    font-size: calc(9px * var(--dm-font-scale, 1));
 }
 
 /* ===== Print Styles ===== */

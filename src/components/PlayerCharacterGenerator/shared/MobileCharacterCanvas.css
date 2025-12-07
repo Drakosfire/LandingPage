@@ -1,0 +1,721 @@
+/**
+ * MobileCharacterCanvas Styles
+ * 
+ * Mobile-optimized layout for character sheet.
+ * Full-width sections, native scrolling, touch-friendly.
+ */
+
+/* ===== Main Container ===== */
+/* Override character-sheet fixed width for mobile */
+.mobile-character-canvas.character-sheet {
+    /* Override fixed dimensions from CharacterSheet.css */
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: 100vw !important;
+    min-height: 100% !important;
+    height: auto !important;
+    padding: 12px !important;
+    box-sizing: border-box;
+
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px;
+
+    /* PHB-style background */
+    background-color: var(--HB_Color_Background, #EEE5CE);
+
+    /* Typography defaults */
+    font-family: 'ScalySansRemake', sans-serif;
+    font-size: 14px;
+    color: #1a1a1a;
+
+    /* Native scrolling */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ===== Section Containers ===== */
+.mobile-section {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid var(--HB_Color_HeaderText, #58180D);
+    border-radius: 6px;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+/* Full-width sections (for InventorySheet, SpellSheet) */
+.mobile-section.mobile-section-full {
+    padding: 0;
+    border: none;
+    background: transparent;
+    /* Ensure proper stacking in flex container */
+    position: relative;
+    display: block;
+}
+
+.mobile-section-title {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--HB_Color_HeaderText, #58180D);
+    margin: 0 0 12px 0;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--HB_Color_HorizontalRule, #9C2B1B);
+}
+
+/* Stats section - allow horizontal scroll for the unified row */
+.mobile-section-stats {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ===== Empty State ===== */
+.mobile-empty-state {
+    text-align: center;
+    padding: 32px 16px;
+}
+
+.mobile-empty-state h2 {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 24px;
+    color: var(--HB_Color_HeaderText, #58180D);
+    margin: 0 0 16px;
+}
+
+.mobile-empty-state p {
+    font-family: 'ScalySansRemake', sans-serif;
+    font-size: 14px;
+    color: rgba(43, 29, 15, 0.8);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.mobile-empty-state strong {
+    color: #a11d18;
+}
+
+/* ===== Personality Section ===== */
+.mobile-personality {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-personality-item {
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+}
+
+.mobile-personality-item strong {
+    color: var(--HB_Color_HeaderText, #58180D);
+}
+
+/* ===== Inventory Stats (Currency + Encumbrance) ===== */
+.mobile-inventory-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mobile-inventory-stats .phb-section {
+    width: 100%;
+}
+
+/* ===== Spellcasting Summary ===== */
+.mobile-spellcasting-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.mobile-spellcasting-summary>div {
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+}
+
+.mobile-spell-count {
+    grid-column: 1 / -1;
+}
+
+/* ===== Override Character Sheet Styles for Mobile ===== */
+/* Make sections full-width and remove fixed widths */
+.mobile-character-canvas.character-sheet .phb-section {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+/* ===== Header - Vertical Stack on Mobile ===== */
+/* Main header container: portrait above content */
+.mobile-character-canvas.character-sheet .header {
+    flex-direction: column !important;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Portrait - full width, aspect ratio maintained */
+.mobile-character-canvas.character-sheet .portrait-box {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1;
+    max-width: 300px;
+    margin: 0 auto;
+    flex-shrink: 0;
+}
+
+.mobile-character-canvas.character-sheet .portrait-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Header content - full width */
+.mobile-character-canvas.character-sheet .header-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Name row - stack vertically */
+.mobile-character-canvas.character-sheet .header-name-row {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px;
+}
+
+/* Info row - stack vertically */
+.mobile-character-canvas.character-sheet .header-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px;
+    width: 100%;
+}
+
+/* All labeled boxes in header - full width */
+.mobile-character-canvas.character-sheet .header .labeled-box,
+.mobile-character-canvas.character-sheet .header-name-row .labeled-box,
+.mobile-character-canvas.character-sheet .header-info .labeled-box {
+    width: 100% !important;
+    flex: none !important;
+}
+
+/* Character name - larger, centered */
+.mobile-character-canvas.character-sheet .header-name-row .labeled-box:first-child .value {
+    font-size: 20px !important;
+    text-align: center;
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+}
+
+/* Ability scores row - stack vertically on mobile */
+.mobile-character-canvas.character-sheet .ability-scores-row {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-character-canvas.character-sheet .combat-status-section,
+.mobile-character-canvas.character-sheet .ability-grid,
+.mobile-character-canvas.character-sheet .meta-stats-section {
+    width: 100%;
+}
+
+/* Ability grid - 2x3 on mobile */
+.mobile-character-canvas.character-sheet .ability-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px;
+}
+
+/* Skills and Saves - single column on mobile */
+.mobile-character-canvas.character-sheet .skills-list,
+.mobile-character-canvas.character-sheet .saves-list {
+    column-count: 1 !important;
+}
+
+/* Equipment grid - single column */
+.mobile-character-canvas.character-sheet .equipment-grid {
+    grid-template-columns: 1fr !important;
+}
+
+/* Attacks table - full width, allow scroll */
+.mobile-character-canvas.character-sheet .attacks-section {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* Touch targets - minimum 36px */
+.mobile-character-canvas.character-sheet .skill-row,
+.mobile-character-canvas.character-sheet .save-row,
+.mobile-character-canvas.character-sheet .attack-row {
+    min-height: 36px;
+    padding: 8px 4px;
+}
+
+/* Labeled boxes - full width */
+.mobile-character-canvas.character-sheet .labeled-box {
+    width: 100%;
+}
+
+/* ===== Page Title styling ===== */
+.mobile-character-canvas.character-sheet .page.phb .phb-page-title {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--HB_Color_HeaderText, #58180D);
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--HB_Color_HorizontalRule, #9C2B1B);
+}
+
+/* ===== CRITICAL: Override .page fixed dimensions from global PHB CSS ===== */
+/* The global style.css sets .page { width: 215.9mm; height: 279.4mm; overflow: hidden; } */
+/* ALL THREE must be overridden for InventorySheet and SpellSheet to render on mobile */
+.mobile-character-canvas.character-sheet .page.phb {
+    /* CRITICAL: Override fixed dimensions from global PHB CSS */
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: unset !important;
+    padding: 12px !important;
+    box-sizing: border-box;
+    /* CRITICAL: Override overflow: hidden from global CSS - content was being clipped! */
+    overflow: visible !important;
+    /* CRITICAL: Override position: relative to ensure proper flex stacking */
+    position: static !important;
+    /* CRITICAL: Override column-count: 2 from global CSS - this causes visual overlap! */
+    column-count: 1 !important;
+    columns: unset !important;
+    column-gap: 0 !important;
+    /* Remove border and shadow that look bad on mobile */
+    border: none !important;
+    border-image: none !important;
+    box-shadow: none !important;
+    /* Add subtle mobile styling */
+    background-color: var(--HB_Color_Background, #EEE5CE);
+    background-image: none;
+    /* Remove heavy parchment image for performance */
+    border-radius: 6px;
+    /* Ensure it displays as block for proper stacking */
+    display: block !important;
+}
+
+/* Remove the ::after footer accent on mobile */
+.mobile-character-canvas.character-sheet .page.phb::after {
+    display: none !important;
+}
+
+/* CRITICAL: Override min-height on nested .character-sheet elements */
+/* CharacterSheetPage applies .character-sheet class which has min-height: 1056px */
+/* This causes InventorySheet and SpellSheet to overlap instead of stacking */
+.mobile-character-canvas.character-sheet .page.phb.character-sheet {
+    min-height: unset !important;
+    height: auto !important;
+}
+
+/* ===== Inventory Sheet - Mobile Overrides ===== */
+/* CRITICAL: Override min-height: var(--page-height) from CharacterSheet.css line 103 */
+/* The .character-sheet class sets min-height: 1056px which causes overlapping */
+.mobile-character-canvas.character-sheet .inventory-sheet.character-sheet,
+.mobile-character-canvas.character-sheet .inventory-sheet {
+    width: 100% !important;
+    min-height: unset !important;
+    height: auto !important;
+    padding: 12px !important;
+}
+
+/* Header row - stack vertically */
+.mobile-character-canvas.character-sheet .inventory-sheet .inventory-header {
+    flex-direction: column !important;
+    gap: 8px;
+}
+
+/* Inner character-info container */
+.mobile-character-canvas.character-sheet .inventory-sheet .inventory-header .character-info {
+    flex-direction: column !important;
+    gap: 8px;
+}
+
+.mobile-character-canvas.character-sheet .inventory-sheet .inventory-header .labeled-box {
+    width: 100% !important;
+    flex: none !important;
+}
+
+/* Remove "narrow" constraint on mobile */
+.mobile-character-canvas.character-sheet .inventory-sheet .inventory-header .labeled-box.narrow {
+    flex: none !important;
+    width: 100% !important;
+}
+
+/* Currency/Encumbrance/Attunement row - stack vertically */
+/* NOTE: HTML uses .top-row, not .inventory-stats-row */
+.mobile-character-canvas.character-sheet .inventory-sheet .top-row {
+    flex-direction: column !important;
+    gap: 12px;
+}
+
+.mobile-character-canvas.character-sheet .inventory-sheet .currency-section,
+.mobile-character-canvas.character-sheet .inventory-sheet .encumbrance-section,
+.mobile-character-canvas.character-sheet .inventory-sheet .attunement-section {
+    width: 100% !important;
+    flex: none !important;
+}
+
+/* 3-column inventory grid - single column */
+/* NOTE: HTML uses .inventory-main-content, not .inventory-columns */
+.mobile-character-canvas.character-sheet .inventory-sheet .inventory-main-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px;
+}
+
+.mobile-character-canvas.character-sheet .inventory-sheet .inventory-column {
+    width: 100% !important;
+    flex: none !important;
+}
+
+/* Inventory blocks - full width */
+/* NOTE: InventoryBlock is rendered directly without .inventory-sheet wrapper on mobile */
+.mobile-character-canvas.character-sheet .inventory-block {
+    width: 100% !important;
+}
+
+/* Item list container */
+.mobile-character-canvas.character-sheet .inventory-block .item-list {
+    padding: 8px !important;
+}
+
+/* Item rows - preserve grid layout on mobile */
+.mobile-character-canvas.character-sheet .inventory-block .item-row {
+    display: grid !important;
+    grid-template-columns: 28px 1fr 50px 55px !important;
+    gap: 6px !important;
+    align-items: center !important;
+    font-size: 11px;
+    padding: 6px 4px;
+    min-height: 28px;
+    border-bottom: 1px dotted var(--border-light, #c9ad6a);
+}
+
+/* Header row styling */
+.mobile-character-canvas.character-sheet .inventory-block .item-row.header {
+    font-size: 9px;
+    font-weight: bold;
+    color: var(--text-red, #58180D);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color, #9C2B1B);
+    background: transparent;
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+}
+
+/* Item name - allow text wrapping */
+.mobile-character-canvas.character-sheet .inventory-block .item-name {
+    white-space: normal;
+    word-break: break-word;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Qty, Weight, Value columns - center text */
+.mobile-character-canvas.character-sheet .inventory-block .item-qty,
+.mobile-character-canvas.character-sheet .inventory-block .item-weight,
+.mobile-character-canvas.character-sheet .inventory-block .item-value {
+    text-align: center;
+}
+
+/* Magic items block - wider rarity column */
+.mobile-character-canvas.character-sheet .inventory-block.magic-items-block .item-row {
+    grid-template-columns: 28px 1fr 45px 65px !important;
+}
+
+/* Consumables block - tighter layout */
+.mobile-character-canvas.character-sheet .inventory-block.consumables-block .item-row {
+    grid-template-columns: 24px 1fr 30px 55px !important;
+}
+
+/* Treasure block - 2 column layout */
+.mobile-character-canvas.character-sheet .inventory-block.treasure-block .item-row {
+    grid-template-columns: 1fr 65px !important;
+}
+
+/* ===== Spell Sheet - Mobile Overrides ===== */
+/* CRITICAL: Override min-height: var(--page-height) from CharacterSheet.css line 103 */
+.mobile-character-canvas.character-sheet .spell-sheet.character-sheet,
+.mobile-character-canvas.character-sheet .spell-sheet {
+    width: 100% !important;
+    min-height: unset !important;
+    height: auto !important;
+    padding: 12px !important;
+}
+
+/* Header row - stack vertically */
+.mobile-character-canvas.character-sheet .spell-sheet .spell-header {
+    flex-direction: column !important;
+    gap: 8px;
+}
+
+/* Inner spell-header-info container */
+.mobile-character-canvas.character-sheet .spell-sheet .spell-header .spell-header-info {
+    flex-direction: column !important;
+    gap: 8px;
+}
+
+.mobile-character-canvas.character-sheet .spell-sheet .spell-header .labeled-box {
+    width: 100% !important;
+    flex: none !important;
+}
+
+/* Remove "narrow" constraint on mobile */
+.mobile-character-canvas.character-sheet .spell-sheet .spell-header .labeled-box.narrow {
+    flex: none !important;
+    width: 100% !important;
+}
+
+/* Spell slot tracker - horizontal scroll */
+/* NOTE: HTML uses .spell-slots-section, not .spell-slot-tracker */
+.mobile-character-canvas.character-sheet .spell-sheet .spell-slots-section {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+/* Individual spell slot level boxes - smaller on mobile */
+.mobile-character-canvas.character-sheet .spell-sheet .spell-slot-level {
+    min-width: 60px;
+    padding: 6px !important;
+}
+
+/* 3-column spell list - single column */
+/* NOTE: HTML uses .spell-list-container, not .spell-columns */
+.mobile-character-canvas.character-sheet .spell-sheet .spell-list-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px;
+}
+
+.mobile-character-canvas.character-sheet .spell-sheet .spell-column {
+    width: 100% !important;
+    flex: none !important;
+}
+
+/* Spell level blocks - full width */
+/* NOTE: SpellLevelBlock is rendered directly without .spell-sheet wrapper on mobile */
+.mobile-character-canvas.character-sheet .spell-level-block {
+    width: 100% !important;
+}
+
+/* Spell level header */
+.mobile-character-canvas.character-sheet .spell-level-block .spell-level-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8px 12px !important;
+    font-size: 12px;
+}
+
+.mobile-character-canvas.character-sheet .spell-level-block .level-title {
+    font-weight: bold;
+}
+
+.mobile-character-canvas.character-sheet .spell-level-block .slot-info {
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+/* Spell list container */
+.mobile-character-canvas.character-sheet .spell-level-block .spell-level-list {
+    padding: 8px !important;
+}
+
+/* Spell item - preserve flex layout */
+.mobile-character-canvas.character-sheet .spell-level-block .spell-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 6px 4px;
+    min-height: 28px;
+    font-size: 12px;
+    border-bottom: 1px dotted var(--border-light, #c9ad6a);
+}
+
+/* Prepared checkbox */
+.mobile-character-canvas.character-sheet .spell-level-block .spell-prepared {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0;
+}
+
+/* Spell name - flex grow and allow wrapping */
+.mobile-character-canvas.character-sheet .spell-level-block .spell-name {
+    flex: 1 !important;
+    white-space: normal;
+    word-break: break-word;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Spell badges - smaller on mobile */
+.mobile-character-canvas.character-sheet .spell-level-block .spell-badges {
+    display: flex !important;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.mobile-character-canvas.character-sheet .spell-level-block .spell-badge {
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+/* ===== Mobile Detail Modals ===== */
+/* Modals render via portal to body, so use media query for mobile styling */
+
+@media (max-width: 800px) {
+
+    /* Full-width modal on mobile */
+    .detail-modal .mantine-Modal-content {
+        max-width: calc(100vw - 16px) !important;
+        max-height: 85vh !important;
+        margin: auto !important;
+        border-radius: 12px !important;
+    }
+
+    /* Reduce padding on mobile */
+    .detail-modal .detail-modal-body {
+        padding: 12px !important;
+    }
+
+    /* Stack header vertically on mobile */
+    .detail-modal .detail-modal-header {
+        flex-direction: column !important;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+
+    /* Smaller image on mobile */
+    .detail-modal .detail-modal-image,
+    .detail-modal .detail-modal-image-placeholder {
+        width: 70px !important;
+        height: 70px !important;
+    }
+
+    /* Center title block */
+    .detail-modal .detail-modal-title-block {
+        width: 100%;
+    }
+
+    /* Smaller title on mobile */
+    .detail-modal .detail-modal-title {
+        font-size: 1.2em !important;
+    }
+
+    /* Center badges */
+    .detail-modal .detail-modal-badges {
+        justify-content: center;
+    }
+
+    /* Full-width stats grid - single column on mobile */
+    .detail-modal .detail-modal-stats {
+        grid-template-columns: 1fr !important;
+        gap: 4px !important;
+        padding: 10px !important;
+    }
+
+    /* Stat row as inline block */
+    .detail-modal .detail-modal-stat-label {
+        font-size: 0.75em !important;
+        margin-top: 6px;
+    }
+
+    .detail-modal .detail-modal-stat-value {
+        font-size: 0.9em !important;
+        padding-left: 20px;
+    }
+
+    /* Description smaller */
+    .detail-modal .detail-modal-description {
+        font-size: 0.85em !important;
+        line-height: 1.5 !important;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    /* Dice box - full width */
+    .detail-modal .detail-modal-dice-box {
+        padding: 8px 10px !important;
+    }
+
+    .detail-modal .detail-modal-dice-value {
+        font-size: 1.1em !important;
+    }
+
+    /* Section styling */
+    .detail-modal .detail-modal-section {
+        padding-top: 8px !important;
+        margin-top: 8px !important;
+    }
+
+    .detail-modal .detail-modal-section-content {
+        font-size: 0.8em !important;
+        max-height: 100px;
+        overflow-y: auto;
+    }
+
+    /* Footer - wrap on mobile */
+    .detail-modal .detail-modal-footer {
+        flex-direction: column !important;
+        gap: 6px !important;
+        align-items: flex-start;
+        font-size: 0.75em !important;
+        padding-top: 6px !important;
+        margin-top: 8px !important;
+    }
+
+    /* Close button - more visible and touch-friendly on mobile */
+    .detail-modal .mantine-Modal-close,
+    .detail-modal .detail-modal-close-btn {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+    }
+
+    /* Ensure header is positioned correctly on mobile */
+    .detail-modal .mantine-Modal-header,
+    .detail-modal .detail-modal-mantine-header {
+        padding: 10px !important;
+    }
+
+    /* Spell badges on mobile */
+    .detail-modal .spell-badge {
+        font-size: 0.65em !important;
+        padding: 2px 5px !important;
+    }
+
+    /* Rarity badges */
+    .detail-modal .rarity-badge {
+        font-size: 0.7em !important;
+        padding: 2px 6px !important;
+    }
+}
+
+/* ===== Print - Hide Mobile Canvas ===== */
+@media print {
+    .mobile-character-canvas {
+        display: none !important;
+    }
+}

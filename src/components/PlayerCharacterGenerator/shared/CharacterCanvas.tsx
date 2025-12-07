@@ -8,6 +8,7 @@
  * - Responsive scaling via ResizeObserver (fits viewport without horizontal scroll)
  * - Font loading gate for accurate text measurement
  * - CSS variables for page dimensions
+ * - Mobile viewport switch: < 800px renders MobileCharacterCanvas (vertical scroll)
  * 
  * @module PlayerCharacterGenerator/shared/CharacterCanvas
  */
@@ -29,6 +30,9 @@ import {
     type SpellSlotLevel
 } from '../sheetComponents';
 
+// Mobile canvas for viewports < 800px
+import MobileCharacterCanvas from './MobileCharacterCanvas';
+
 // ============================================================================
 // Constants
 // ============================================================================
@@ -44,8 +48,35 @@ const MAX_SCALE = 2.5;
 /** Gap between pages when multiple pages are shown */
 const PAGE_GAP_PX = 32;
 
+/** Mobile breakpoint - below this, use MobileCharacterCanvas */
+const MOBILE_BREAKPOINT = 800;
+
 /** Clamp utility */
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+// ============================================================================
+// Responsive Scale Factors (Hybrid System)
+// ============================================================================
+// These factors are set as CSS variables and used by components via calc()
+// This centralizes responsive breakpoint logic in the canvas layer.
+
+/** Breakpoints for responsive scaling */
+const BREAKPOINT_TABLET = 768;
+const BREAKPOINT_PHONE = 480;
+
+/** Calculate font scale factor based on viewport width */
+const getFontScale = (viewportWidth: number): number => {
+    if (viewportWidth <= BREAKPOINT_PHONE) return 0.8;
+    if (viewportWidth <= BREAKPOINT_TABLET) return 0.9;
+    return 1;
+};
+
+/** Calculate spacing scale factor based on viewport width */
+const getSpacingScale = (viewportWidth: number): number => {
+    if (viewportWidth <= BREAKPOINT_PHONE) return 0.75;
+    if (viewportWidth <= BREAKPOINT_TABLET) return 0.85;
+    return 1;
+};
 
 const CharacterCanvas: React.FC = () => {
     const { character } = usePlayerCharacterGenerator();
@@ -53,7 +84,25 @@ const CharacterCanvas: React.FC = () => {
     // ===== STATE =====
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
+    const [containerWidth, setContainerWidth] = useState(1024); // For hybrid scaling
+    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024); // For mobile switch
     const [fontsReady, setFontsReady] = useState(false);
+    
+    // ===== WINDOW RESIZE TRACKING =====
+    // Track window width for mobile breakpoint (separate from container width)
+    useLayoutEffect(() => {
+        if (typeof window === 'undefined') return;
+        
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
+        };
+        
+        // Initial set
+        handleResize();
+        
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     
     // ===== FONT LOADING =====
     // Wait for custom fonts to load before rendering (prevents layout shift)
@@ -95,7 +144,8 @@ const CharacterCanvas: React.FC = () => {
     }, []);
     
     // ===== RESPONSIVE SCALING =====
-    // ResizeObserver scales the canvas to fit the viewport
+    // ResizeObserver scales the canvas to fit the container
+    // for hybrid responsive system (CSS variables + calc())
     useLayoutEffect(() => {
         if (typeof ResizeObserver === 'undefined') {
             console.warn('[CharacterCanvas] ResizeObserver not available');
@@ -109,11 +159,15 @@ const CharacterCanvas: React.FC = () => {
             const entry = entries[0];
             if (!entry || entry.contentRect.width === 0) return;
             
+            // Track container width for responsive scale factors
+            const width = entry.contentRect.width;
+            setContainerWidth(width);
+            
             // Account for container padding
             const computedStyle = window.getComputedStyle(node);
             const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
             const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
-            const availableWidth = entry.contentRect.width - paddingLeft - paddingRight;
+            const availableWidth = containerWidth - paddingLeft - paddingRight;
             
             // Calculate scale to fit page width
             const widthScale = availableWidth / PAGE_WIDTH_PX;
@@ -696,6 +750,11 @@ const CharacterCanvas: React.FC = () => {
     const scaledHeightPx = PAGE_HEIGHT_PX * scale;
     const totalScaledHeightPx = pageCount * scaledHeightPx + (pageCount - 1) * PAGE_GAP_PX * scale;
     
+    // ===== RESPONSIVE SCALE FACTORS =====
+    // Calculated from container width, used by CSS via calc()
+    const fontScale = getFontScale(containerWidth);
+    const spacingScale = getSpacingScale(containerWidth);
+    
     const containerStyle = useMemo<React.CSSProperties>(() => ({
         width: '100%',
         height: `${totalScaledHeightPx}px`,
@@ -716,7 +775,12 @@ const CharacterCanvas: React.FC = () => {
         '--dm-page-count': `${pageCount}`,
         '--dm-page-scale': `${scale}`,
         '--dm-page-gap': `${PAGE_GAP_PX}px`,
-    } as React.CSSProperties), [totalScaledHeightPx, pageCount, scale]);
+        // Hybrid Responsive System: Scale factors for font/spacing
+        // Components use these via calc(), e.g.: font-size: calc(14px * var(--dm-font-scale));
+        '--dm-font-scale': `${fontScale}`,
+        '--dm-spacing-scale': `${spacingScale}`,
+        '--dm-container-width': `${containerWidth}px`,
+    } as React.CSSProperties), [totalScaledHeightPx, pageCount, scale, fontScale, spacingScale, containerWidth]);
     
     const transformWrapperStyle = useMemo<React.CSSProperties>(() => ({
         transform: `scale(${scale})`,
@@ -731,6 +795,13 @@ const CharacterCanvas: React.FC = () => {
         width: `${PAGE_WIDTH_PX}px`,
         height: `${fullHeightPx}px`,
     }), [fullHeightPx]);
+    
+    // ===== MOBILE VIEWPORT SWITCH =====
+    // Below 800px window width, render mobile-optimized vertical scroll layout
+    const isMobile = windowWidth < MOBILE_BREAKPOINT;
+    
+    // Debug: Log viewport switch decisions
+    console.log(`📱 [CharacterCanvas] windowWidth: ${windowWidth}px, isMobile: ${isMobile}`);
     
     // ===== LOADING STATE =====
     if (!fontsReady) {
@@ -753,6 +824,27 @@ const CharacterCanvas: React.FC = () => {
         );
     }
     
+    // ===== MOBILE CANVAS =====
+    // Vertical scroll layout for viewports < 800px
+    if (isMobile) {
+        return (
+            <div 
+                className="character-canvas-area character-canvas-mobile" 
+                ref={containerRef}
+                data-testid="character-canvas"
+                style={{
+                    width: '100%',
+                    minHeight: '100%',
+                    background: '#4a3728',
+                }}
+            >
+                <MobileCharacterCanvas />
+            </div>
+        );
+    }
+    
+    // ===== DESKTOP CANVAS =====
+    // Scaled page layout for viewports >= 800px
     return (
         <div 
             className="character-canvas-area" 

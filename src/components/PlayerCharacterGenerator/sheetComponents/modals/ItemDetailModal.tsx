@@ -150,9 +150,17 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
             title={null}
             size="md"
             centered
+            withCloseButton
             className="detail-modal item-detail-modal"
             classNames={{
-                body: 'detail-modal-body'
+                body: 'detail-modal-body',
+                header: 'detail-modal-mantine-header',
+                close: 'detail-modal-close-btn'
+            }}
+            styles={{
+                content: {
+                    backgroundImage: 'url(/dnd-static/themes/assets/parchmentBackground.jpg)'
+                }
             }}
         >
             {/* Header with image and title */}
@@ -165,9 +173,9 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                     />
                 ) : (
                     <div className="detail-modal-image-placeholder">
-                        {isWeapon ? <IconSword size={40} /> : 
-                         isArmor ? <IconShield size={40} /> :
-                         <IconTag size={40} />}
+                        {isWeapon ? <IconSword size={40} /> :
+                            isArmor ? <IconShield size={40} /> :
+                                <IconTag size={40} />}
                     </div>
                 )}
                 <div className="detail-modal-title-block">
