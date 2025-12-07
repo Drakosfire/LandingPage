@@ -76,26 +76,35 @@ StatblockPage.tsx (orchestrator)
 
 ## Pagination Strategy: Hybrid Fixed + Dynamic
 
-### Design Decision: Primary Pages Stay Fixed
+### Design Decision: Fixed Page Shell + Dynamic Sections
 
-Unlike StatblockGenerator (where ALL content flows dynamically), character sheets have **logical page boundaries**:
+Character sheets have **fixed page shells** (header, ability scores stay put) but many sections within can overflow:
 
-| Page | Content | Pagination Behavior |
-|------|---------|---------------------|
-| **Page 1** | CharacterSheet (header, abilities, combat, attacks) | Fixed height - never overflows |
-| **Page 2** | BackgroundPersonalitySheet (traits, notes) | Fixed height - notes can expand |
-| **Page 3** | InventorySheet | Fixed height - inventory can overflow |
-| **Page 4+** | SpellSheet | **Dynamic** - spells overflow to continuation pages |
-| **Overflow** | FeaturesSection, InventoryBlocks, SpellLists | **Dynamic** - measured and paginated |
+| Page | Fixed Sections | Overflow-Capable Sections |
+|------|----------------|---------------------------|
+| **CharacterSheet** | Header, AbilityScores, Combat Stats | Attacks, Spellcasting, Features, Equipment, Proficiencies |
+| **BackgroundPersonalitySheet** | Header | Notes (expandable + "Add Note" button) |
+| **InventorySheet** | Header, Currency, Attunement | All inventory blocks (weapons, armor, gear, consumables, treasure) |
+| **SpellSheet** | Spellcasting info header | All spell level sections (cantrips through 9th) |
 
-### Key Insight: Features/Spells/Inventory Can Grow
+### Overflow-Capable Sections (Comprehensive List)
 
-These sections need overflow handling:
-- **FeaturesSection** (Column 3) - Class/racial features grow with level
-- **InventoryBlocks** - Equipment list can grow significantly
-- **SpellLists** - Casters can have 20+ prepared spells
+**CharacterSheet (Page 1):**
+- **Attacks & Spellcasting** (Column 2) - Weapons + spell attacks grow
+- **Features and Traits** (Column 3) - Grows significantly with level/multiclass
+- **Equipment** (Column 2) - List of carried items
+- **Proficiencies** (Column 1) - Languages, tools, armor, weapons can be extensive
 
-**Approach:** Keep primary pages at fixed dimensions, but specific sections within them register with the measurement system and overflow to continuation pages.
+**BackgroundPersonalitySheet (Page 2):**
+- **Notes** - Should expand dynamically + have "Add Note" button
+
+**InventorySheet (Page 3):**
+- **All InventoryBlocks** - Weapons, Armor, Magic Items, Adventuring Gear, Consumables, Treasure, Other
+
+**SpellSheet (Page 4+):**
+- **All Spell Level Sections** - Cantrips, 1st through 9th level spells
+
+**Approach:** Each page has a fixed "shell" (header, static info), but content sections within register with measurement system and overflow to continuation pages when needed.
 
 ---
 
@@ -200,20 +209,32 @@ SpellSheet is the best candidate for first pagination because:
 - [ ] Define overflow behavior (continue on next page vs. dedicated features page)
 - [ ] Test with multi-classed or high-level characters
 
-### Phase 6: Manual Add Lines (2-3 hours)
+### Phase 6: Manual Add Lines & Notes Expansion (3-4 hours)
 
-**Goal:** User can manually add blank lines to expandable sections.
+**Goal:** User can manually add content to expandable sections.
 
-**UX Pattern:**
+**UX Patterns:**
+
+**For List Sections (Features, Inventory, Attacks):**
 - "+" button at bottom of each expandable section
 - Clicking adds a blank line (for user to fill in)
 - Lines persist in character data
 
+**For Notes Section (special case):**
+- Notes section should be built to expand naturally
+- "Add Note" button creates new note entry
+- Each note can have title + content
+- Notes overflow to continuation pages when needed
+
 **Tasks:**
 - [ ] Add "Add Line" UI to FeaturesSection
-- [ ] Add "Add Item" UI to InventoryBlocks  
-- [ ] Wire to character state (add empty item to array)
-- [ ] Re-measure after adding line
+- [ ] Add "Add Item" UI to InventoryBlocks
+- [ ] Add "Add Attack" UI to Attacks section
+- [ ] **Add "Add Note" button to Notes section**
+- [ ] **Build Notes as expandable textarea or multi-entry list**
+- [ ] Wire all additions to character state
+- [ ] Re-measure after adding content
+- [ ] Handle overflow when content exceeds page
 
 ---
 
@@ -273,11 +294,12 @@ export const CANVAS_COMPONENT_REGISTRY = {
 
 | Aspect | StatblockGenerator | CharacterGenerator |
 |--------|-------------------|-------------------|
-| **Page structure** | Single flowing layout | Multiple distinct pages |
-| **All content paginated** | Yes | No - primary pages are fixed |
+| **Page structure** | Single flowing layout | Multiple distinct pages with fixed shells |
+| **Content pagination** | All content flows | Fixed shells + many overflow sections |
 | **Column layout** | Dynamic 1-2 columns | Fixed 3 columns on main sheet |
-| **Component types** | ~15 canvas components | 4 main pages + overflow sections |
-| **Template complexity** | High (many slots) | Lower (fewer dynamic sections) |
+| **Component types** | ~15 canvas components | 4 page types, each with overflow sections |
+| **Overflow sections** | Actions, Traits, Spells | Attacks, Features, Equipment, Proficiencies, Notes, Inventory, Spells |
+| **User-added content** | No | Yes - "Add" buttons for each overflow section |
 
 ---
 
@@ -314,14 +336,41 @@ Canvas expects certain CSS variables. We should set these in CharacterCanvas:
 
 ## Testing Checklist
 
+### Responsive Scaling
 - [ ] CharacterSheet renders at correct fixed dimensions
 - [ ] Sheets scale down on narrow viewport (no horizontal scroll)
 - [ ] Sheets scale up on wide viewport (max 2.5x)
-- [ ] SpellSheet overflows to continuation page with 20+ spells
-- [ ] InventorySheet overflows with 30+ items
-- [ ] FeaturesSection overflows with 15+ features
-- [ ] Manual "Add Line" works in each expandable section
+
+### CharacterSheet Overflow
+- [ ] Attacks section overflows with 10+ weapons/attacks
+- [ ] Spellcasting section overflows with high-level caster
+- [ ] Features section overflows with 15+ features (multiclass)
+- [ ] Equipment list overflows with many items
+- [ ] Proficiencies overflow with extensive language/tool list
+
+### BackgroundPersonalitySheet Overflow
+- [ ] Notes section expands as content is added
+- [ ] "Add Note" button works and triggers re-measure
+- [ ] Long notes overflow to continuation page
+
+### InventorySheet Overflow
+- [ ] Each inventory block (weapons, armor, gear, etc.) can overflow
+- [ ] Mixed overflow (e.g., lots of weapons + lots of gear)
+
+### SpellSheet Overflow
+- [ ] Each spell level section can overflow independently
+- [ ] Full spellbook (wizard with 20+ spells) paginates correctly
+
+### Manual Add Functionality
+- [ ] "Add Attack" button works
+- [ ] "Add Feature" button works  
+- [ ] "Add Item" button works (each inventory category)
+- [ ] "Add Note" button works
+- [ ] Adding content triggers re-pagination
+
+### Integration Tests
 - [ ] AI-generated wizard character with many spells paginates correctly
+- [ ] AI-generated fighter with extensive equipment paginates correctly
 - [ ] Print preview shows correct page breaks
 
 ---
