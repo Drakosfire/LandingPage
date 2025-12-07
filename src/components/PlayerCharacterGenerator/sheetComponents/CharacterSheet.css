@@ -1096,30 +1096,63 @@
 
 /* ===== Print Optimization ===== */
 /* ===== Canvas Container ===== */
-/* Wrapper for character sheet in the canvas area */
+
+/* 
+ * RESPONSIVE CANVAS SCALING
+ * The CharacterCanvas component handles responsive scaling via inline styles.
+ * These CSS rules provide fallback styling and print optimization.
+ */
+
+/* Wrapper for character sheet in the canvas area (fallback, overridden by inline styles) */
 .character-canvas-area {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: var(--space-24);
+    padding: 24px;
     background: #4a3728;
     /* Dark wood background behind parchment */
     min-height: 100%;
 }
 
-/* Add bottom margin to page for visual breathing room */
+/* Add bottom margin to page for visual breathing room (fallback) */
 .character-canvas-area .character-sheet {
-    margin-bottom: var(--space-24);
+    margin-bottom: 24px;
 }
 
-/* Multi-page container */
+/* Multi-page container (fallback styling) */
 .character-sheet-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-24);
-    padding: var(--space-24);
+    gap: 24px;
+    padding: 24px;
     background: #4a3728;
+}
+
+/* ===== Responsive Canvas Scaling ===== */
+/* When inside the responsive canvas renderer, use inline style dimensions */
+.character-canvas-wrapper {
+    /* Transform applied via inline style from CharacterCanvas.tsx */
+}
+
+.character-canvas-renderer {
+    /* Width/height set via inline style from CharacterCanvas.tsx */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* CRITICAL: Override container styles when inside responsive canvas */
+.character-canvas-renderer .character-sheet-container {
+    padding: 0 !important;
+    gap: 32px !important; /* Match PAGE_GAP_PX */
+    background: transparent !important;
+    margin: 0 !important;
+}
+
+/* Remove page margins inside renderer - gaps are handled by container */
+.character-canvas-renderer .character-sheet {
+    margin: 0 !important;
 }
 
 /* ===== 10. Background & Personality Sheet ===== */

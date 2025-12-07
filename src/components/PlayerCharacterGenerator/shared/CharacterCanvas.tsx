@@ -4,10 +4,15 @@
  * Canvas-based character sheet display for CharacterGenerator.
  * Uses the new PHB-styled sheetComponents built from HTML prototypes.
  * 
+ * Features:
+ * - Responsive scaling via ResizeObserver (fits viewport without horizontal scroll)
+ * - Font loading gate for accurate text measurement
+ * - CSS variables for page dimensions
+ * 
  * @module PlayerCharacterGenerator/shared/CharacterCanvas
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef, useLayoutEffect } from 'react';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
 // Import the new PHB-styled sheet components
@@ -24,8 +29,102 @@ import {
     type SpellSlotLevel
 } from '../sheetComponents';
 
+// ============================================================================
+// Constants
+// ============================================================================
+
+/** Page dimensions (US Letter at 96dpi) */
+const PAGE_WIDTH_PX = 816;
+const PAGE_HEIGHT_PX = 1056;
+
+/** Scale bounds */
+const MIN_SCALE = 0.35;
+const MAX_SCALE = 2.5;
+
+/** Gap between pages when multiple pages are shown */
+const PAGE_GAP_PX = 32;
+
+/** Clamp utility */
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
 const CharacterCanvas: React.FC = () => {
     const { character } = usePlayerCharacterGenerator();
+    
+    // ===== STATE =====
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(1);
+    const [fontsReady, setFontsReady] = useState(false);
+    
+    // ===== FONT LOADING =====
+    // Wait for custom fonts to load before rendering (prevents layout shift)
+    useLayoutEffect(() => {
+        if (typeof document === 'undefined' || !document.fonts) {
+            setFontsReady(true);
+            return;
+        }
+        
+        const loadFonts = async () => {
+            try {
+                // Wait for the D&D fonts used in character sheets
+                await Promise.all([
+                    document.fonts.load('700 24px NodestoCapsCondensed'),
+                    document.fonts.load('400 14px ScalySansRemake'),
+                    document.fonts.load('700 14px ScalySansRemake'),
+                    document.fonts.load('400 14px BookInsanityRemake'),
+                ]);
+                
+                // Also wait for fonts.ready to ensure rendering is complete
+                await document.fonts.ready;
+                
+                // Brief delay for next paint cycle
+                await new Promise(resolve => {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(resolve);
+                    });
+                });
+                
+                setFontsReady(true);
+                console.log('✅ [CharacterCanvas] Fonts loaded');
+            } catch (error) {
+                console.warn('⚠️ [CharacterCanvas] Font loading failed:', error);
+                setFontsReady(true); // Proceed even if font loading fails
+            }
+        };
+        
+        loadFonts();
+    }, []);
+    
+    // ===== RESPONSIVE SCALING =====
+    // ResizeObserver scales the canvas to fit the viewport
+    useLayoutEffect(() => {
+        if (typeof ResizeObserver === 'undefined') {
+            console.warn('[CharacterCanvas] ResizeObserver not available');
+            return;
+        }
+        
+        const node = containerRef.current;
+        if (!node) return;
+        
+        const observer = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (!entry || entry.contentRect.width === 0) return;
+            
+            // Account for container padding
+            const computedStyle = window.getComputedStyle(node);
+            const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+            const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+            const availableWidth = entry.contentRect.width - paddingLeft - paddingRight;
+            
+            // Calculate scale to fit page width
+            const widthScale = availableWidth / PAGE_WIDTH_PX;
+            const nextScale = clamp(widthScale, MIN_SCALE, MAX_SCALE);
+            
+            setScale((current) => (Math.abs(current - nextScale) > 0.01 ? nextScale : current));
+        });
+        
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, []);
 
     const canvasContent = useMemo(() => {
         const dnd5e = character?.dnd5eData;
@@ -571,9 +670,101 @@ const CharacterCanvas: React.FC = () => {
         );
     }, [character]);
 
+    // ===== PAGE COUNT =====
+    // Calculate number of pages (for container height)
+    const pageCount = useMemo(() => {
+        const dnd5e = character?.dnd5eData;
+        const hasCharacter = character?.name && character.name.trim().length > 0;
+        const hasAbilityScores = dnd5e?.abilityScores &&
+            Object.values(dnd5e.abilityScores).some(v => v > 0);
+        
+        if (!hasCharacter || !hasAbilityScores || !dnd5e) return 1;
+        
+        // Base pages: CharacterSheet, BackgroundPersonalitySheet, InventorySheet
+        let pages = 3;
+        // Add SpellSheet if character has spellcasting
+        if (dnd5e.spellcasting) pages += 1;
+        
+        return pages;
+    }, [character]);
+    
+    // ===== COMPUTED STYLES =====
+    // Full unscaled height (before transform) - must be defined first
+    const fullHeightPx = pageCount * PAGE_HEIGHT_PX + (pageCount - 1) * PAGE_GAP_PX;
+    
+    // Scaled height for container (after transform)
+    const scaledHeightPx = PAGE_HEIGHT_PX * scale;
+    const totalScaledHeightPx = pageCount * scaledHeightPx + (pageCount - 1) * PAGE_GAP_PX * scale;
+    
+    const containerStyle = useMemo<React.CSSProperties>(() => ({
+        width: '100%',
+        height: `${totalScaledHeightPx}px`,
+        minHeight: 'unset', // Override CSS min-height: 100%
+        maxWidth: '100%',
+        position: 'relative',
+        overflow: 'hidden',
+        margin: '0 auto',
+        padding: 0, // Override CSS padding
+        display: 'flex',
+        flexDirection: 'row', // Override CSS flex-direction: column
+        justifyContent: 'center',
+        alignItems: 'flex-start', // Align content to top
+        background: '#4a3728', // Dark wood background
+        // CSS Variables for child components
+        '--dm-page-width': `${PAGE_WIDTH_PX}px`,
+        '--dm-page-height': `${PAGE_HEIGHT_PX}px`,
+        '--dm-page-count': `${pageCount}`,
+        '--dm-page-scale': `${scale}`,
+        '--dm-page-gap': `${PAGE_GAP_PX}px`,
+    } as React.CSSProperties), [totalScaledHeightPx, pageCount, scale]);
+    
+    const transformWrapperStyle = useMemo<React.CSSProperties>(() => ({
+        transform: `scale(${scale})`,
+        transformOrigin: 'top center',
+        margin: 0,
+        padding: 0,
+        width: `${PAGE_WIDTH_PX}px`,
+        height: `${fullHeightPx}px`,
+    }), [scale, fullHeightPx]);
+    
+    const canvasRendererStyle = useMemo<React.CSSProperties>(() => ({
+        width: `${PAGE_WIDTH_PX}px`,
+        height: `${fullHeightPx}px`,
+    }), [fullHeightPx]);
+    
+    // ===== LOADING STATE =====
+    if (!fontsReady) {
+        return (
+            <div 
+                className="character-canvas-area" 
+                data-testid="character-canvas"
+                style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    minHeight: '400px',
+                    color: '#666'
+                }}
+            >
+                <div style={{ textAlign: 'center' }}>
+                    <p>Loading fonts...</p>
+                </div>
+            </div>
+        );
+    }
+    
     return (
-        <div className="character-canvas-area" data-testid="character-canvas">
-            {canvasContent}
+        <div 
+            className="character-canvas-area" 
+            ref={containerRef}
+            style={containerStyle}
+            data-testid="character-canvas"
+        >
+            <div className="character-canvas-wrapper" style={transformWrapperStyle}>
+                <div className="character-canvas-renderer" style={canvasRendererStyle}>
+                    {canvasContent}
+                </div>
+            </div>
         </div>
     );
 };
