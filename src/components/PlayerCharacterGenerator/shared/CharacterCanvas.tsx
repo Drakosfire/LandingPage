@@ -31,8 +31,9 @@ import {
 } from '../sheetComponents';
 
 // Overflow components for pagination (desktop only)
-import { FeaturesOverflowPage } from '../sheetComponents/overflow';
-import { useFeaturesOverflow } from '../hooks';
+import { FeaturesOverflowPage, SpellsOverflowPage } from '../sheetComponents/overflow';
+import { useFeaturesOverflow, useSpellsOverflow } from '../hooks';
+import type { SpellOverflowPageData } from '../hooks';
 
 // Mobile canvas for viewports < 800px
 import MobileCharacterCanvas from './MobileCharacterCanvas';
@@ -140,6 +141,61 @@ const CharacterCanvas: React.FC = () => {
         return features;
     }, [character?.dnd5eData]);
 
+    // ===== SPELLS EXTRACTION (for overflow detection) =====
+    // Extract spells by level for overflow hook
+    const spellsData = useMemo(() => {
+        const dnd5e = character?.dnd5eData;
+        const spellcasting = dnd5e?.spellcasting;
+        
+        if (!spellcasting) {
+            return {
+                cantrips: [],
+                level1Spells: [],
+                level2Spells: [],
+                level3Spells: [],
+                level4Spells: [],
+                level5Spells: [],
+                level6Spells: [],
+                level7Spells: [],
+                level8Spells: [],
+                level9Spells: [],
+            };
+        }
+
+        // Helper to convert spell to SpellEntry
+        const toSpellEntry = (spell: typeof spellcasting.cantrips[0]) => ({
+            id: spell.id,
+            name: spell.name,
+            isPrepared: spellcasting.spellsPrepared?.includes(spell.id),
+            isConcentration: spell.concentration,
+            isRitual: spell.ritual,
+            level: spell.level,
+            school: spell.school,
+            castingTime: spell.castingTime,
+            range: spell.range,
+            components: spell.components,
+            duration: spell.duration,
+            description: spell.description,
+            higherLevels: spell.higherLevels,
+            damage: spell.damage,
+            healing: spell.healing,
+            source: spell.source
+        });
+
+        return {
+            cantrips: (spellcasting.cantrips || []).map(toSpellEntry),
+            level1Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 1).map(toSpellEntry),
+            level2Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 2).map(toSpellEntry),
+            level3Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 3).map(toSpellEntry),
+            level4Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 4).map(toSpellEntry),
+            level5Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 5).map(toSpellEntry),
+            level6Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 6).map(toSpellEntry),
+            level7Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 7).map(toSpellEntry),
+            level8Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 8).map(toSpellEntry),
+            level9Spells: (spellcasting.spellsKnown || []).filter(s => s.level === 9).map(toSpellEntry),
+        };
+    }, [character?.dnd5eData]);
+
     // ===== FEATURES OVERFLOW DETECTION (desktop only) =====
     // Uses actual DOM measurements for accurate overflow detection.
     // Supports multi-page overflow when features exceed a single overflow page.
@@ -154,6 +210,42 @@ const CharacterCanvas: React.FC = () => {
         maxHeightPx: 580, // Column 3 available height (approx)
         enabled: !isMobile // Only on desktop - mobile scrolls naturally
     });
+
+    // ===== SPELLS OVERFLOW DETECTION (desktop only) =====
+    // Uses actual DOM measurements for accurate spell overflow detection.
+    // Implements per-spell overflow - spells flow continuously with "(continued)" labels.
+    const {
+        visibleSpellsByLevel,
+        overflowPages: spellsOverflowPages,
+        hasOverflow: hasSpellsOverflow,
+        overflowPageCount: spellsOverflowPageCount,
+        measurementPortal: spellsMeasurementPortal,
+    } = useSpellsOverflow({
+        ...spellsData,
+        maxHeightPx: 750, // Approximate height for spell list area on SpellSheet
+        enabled: !isMobile && !!character?.dnd5eData?.spellcasting
+    });
+
+    // ===== DISPLAY SPELLS (respects overflow) =====
+    // When overflow is active, show only visible spells on main SpellSheet
+    const displaySpellsData = useMemo(() => {
+        if (!hasSpellsOverflow) {
+            return spellsData; // Use all spells when no overflow
+        }
+        // Use visible spells from overflow detection
+        return {
+            cantrips: visibleSpellsByLevel.get(0) || [],
+            level1Spells: visibleSpellsByLevel.get(1) || [],
+            level2Spells: visibleSpellsByLevel.get(2) || [],
+            level3Spells: visibleSpellsByLevel.get(3) || [],
+            level4Spells: visibleSpellsByLevel.get(4) || [],
+            level5Spells: visibleSpellsByLevel.get(5) || [],
+            level6Spells: visibleSpellsByLevel.get(6) || [],
+            level7Spells: visibleSpellsByLevel.get(7) || [],
+            level8Spells: visibleSpellsByLevel.get(8) || [],
+            level9Spells: visibleSpellsByLevel.get(9) || [],
+        };
+    }, [hasSpellsOverflow, spellsData, visibleSpellsByLevel]);
 
     // ===== FONT LOADING =====
     // Wait for custom fonts to load before rendering (prevents layout shift)
@@ -511,210 +603,23 @@ const CharacterCanvas: React.FC = () => {
                                 }
                                 return slots;
                             })()}
-                            cantrips={(dnd5e.spellcasting.cantrips || []).map(spell => ({
-                                id: spell.id,
-                                name: spell.name,
-                                isConcentration: spell.concentration,
-                                isRitual: spell.ritual,
-                                // Extended fields for detail modal
-                                level: spell.level,
-                                school: spell.school,
-                                castingTime: spell.castingTime,
-                                range: spell.range,
-                                components: spell.components,
-                                duration: spell.duration,
-                                description: spell.description,
-                                higherLevels: spell.higherLevels,
-                                damage: spell.damage,
-                                healing: spell.healing,
-                                source: spell.source
-                            }))}
-                            level1Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 1)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
-                            level2Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 2)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
-                            level3Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 3)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
-                            level4Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 4)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
-                            level5Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 5)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
-                            level6Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 6)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
-                            level7Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 7)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
-                            level8Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 8)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
-                            level9Spells={(dnd5e.spellcasting.spellsKnown || [])
-                                .filter(s => s.level === 9)
-                                .map(spell => ({
-                                    id: spell.id,
-                                    name: spell.name,
-                                    isPrepared: dnd5e.spellcasting?.spellsPrepared?.includes(spell.id),
-                                    isConcentration: spell.concentration,
-                                    isRitual: spell.ritual,
-                                    level: spell.level,
-                                    school: spell.school,
-                                    castingTime: spell.castingTime,
-                                    range: spell.range,
-                                    components: spell.components,
-                                    duration: spell.duration,
-                                    description: spell.description,
-                                    higherLevels: spell.higherLevels,
-                                    damage: spell.damage,
-                                    healing: spell.healing,
-                                    source: spell.source
-                                }))}
+                            cantrips={displaySpellsData.cantrips}
+                            level1Spells={displaySpellsData.level1Spells}
+                            level2Spells={displaySpellsData.level2Spells}
+                            level3Spells={displaySpellsData.level3Spells}
+                            level4Spells={displaySpellsData.level4Spells}
+                            level5Spells={displaySpellsData.level5Spells}
+                            level6Spells={displaySpellsData.level6Spells}
+                            level7Spells={displaySpellsData.level7Spells}
+                            level8Spells={displaySpellsData.level8Spells}
+                            level9Spells={displaySpellsData.level9Spells}
                         />
                     )}
 
-                    {/* Features Overflow Pages (if needed) */}
+                    {/* Features Overflow Pages (if needed) - renders first after main sheets */}
                     {hasFeaturesOverflow && featuresOverflowPages.map((pageFeatures: Feature[], idx: number) => {
-                        // Calculate page number: base pages + overflow page index
+                        // Calculate page number: base pages + features overflow page index
+                        // Base: CharacterSheet(1) + Background(2) + Inventory(3) + SpellSheet(4 if caster)
                         const basePages = dnd5e.spellcasting ? 4 : 3;
                         const pageNumber = basePages + idx + 1;
 
@@ -726,6 +631,28 @@ const CharacterCanvas: React.FC = () => {
                                 pageNumber={pageNumber}
                                 currentOverflowPage={idx + 1}
                                 totalOverflowPages={featuresOverflowPages.length}
+                            />
+                        );
+                    })}
+
+                    {/* TODO: Inventory Overflow Pages would go here (Phase 4) */}
+
+                    {/* Spells Overflow Pages (if needed) - renders after features/inventory overflow */}
+                    {hasSpellsOverflow && spellsOverflowPages.map((pageData: SpellOverflowPageData, idx: number) => {
+                        // Calculate page number: base pages + features overflow + spell overflow index
+                        // Base: CharacterSheet(1) + Background(2) + Inventory(3) + SpellSheet(4)
+                        const basePages = 4;
+                        const featuresOverflowOffset = hasFeaturesOverflow ? featuresOverflowPageCount : 0;
+                        const pageNumber = basePages + featuresOverflowOffset + idx + 1;
+
+                        return (
+                            <SpellsOverflowPage
+                                key={`spells-overflow-${idx}`}
+                                pageData={pageData}
+                                characterName={character.name}
+                                pageNumber={pageNumber}
+                                currentOverflowPage={idx + 1}
+                                totalOverflowPages={spellsOverflowPages.length}
                             />
                         );
                     })}
@@ -773,7 +700,7 @@ const CharacterCanvas: React.FC = () => {
                 </div>
             </CharacterSheetPage>
         );
-    }, [character, visibleFeatures, featuresOverflowPages, hasFeaturesOverflow]);
+    }, [character, visibleFeatures, featuresOverflowPages, hasFeaturesOverflow, displaySpellsData, hasSpellsOverflow, spellsOverflowPages]);
 
     // ===== PAGE COUNT =====
     // Calculate number of pages (for container height)
@@ -791,9 +718,11 @@ const CharacterCanvas: React.FC = () => {
         if (dnd5e.spellcasting) pages += 1;
         // Add Features overflow pages (supports multi-page overflow)
         if (hasFeaturesOverflow) pages += featuresOverflowPageCount;
+        // Add Spells overflow pages (supports multi-page overflow)
+        if (hasSpellsOverflow) pages += spellsOverflowPageCount;
 
         return pages;
-    }, [character, hasFeaturesOverflow, featuresOverflowPageCount]);
+    }, [character, hasFeaturesOverflow, featuresOverflowPageCount, hasSpellsOverflow, spellsOverflowPageCount]);
 
     // ===== COMPUTED STYLES =====
     // Full unscaled height (before transform) - must be defined first
@@ -900,8 +829,9 @@ const CharacterCanvas: React.FC = () => {
     // Scaled page layout for viewports >= 800px
     return (
         <>
-            {/* Measurement portal for accurate overflow detection (renders offscreen) */}
+            {/* Measurement portals for accurate overflow detection (render offscreen) */}
             {featuresMeasurementPortal}
+            {spellsMeasurementPortal}
 
             <div
                 className="character-canvas-area"

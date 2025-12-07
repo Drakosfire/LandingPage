@@ -14,8 +14,14 @@ import type {
     MetadataExtractor,
     CanvasAdapters,
     ComponentDataSource,
-    ComponentDataReference,
+    ComponentDataReference as BaseComponentDataReference,
 } from 'dungeonmind-canvas';
+
+// Extended ComponentDataReference type that includes 'character' type
+// This will be available in dungeonmind-canvas after rebuild, but we define it locally for now
+type ComponentDataReference = 
+    | BaseComponentDataReference
+    | { type: 'character'; path: string; sourceId?: string };
 import { createDefaultAdapters } from 'dungeonmind-canvas';
 import type { DnD5eCharacter, DnD5eFeature } from './types/dnd5e/character.types';
 import type { DnD5eEquipmentItem, DnD5eWeapon } from './types/dnd5e/equipment.types';
@@ -52,27 +58,31 @@ const SPELL_SLOT_ROW_HEIGHT_PX = 24;
 const characterDataResolver: DataResolver = {
     resolveDataReference<T = unknown>(
         dataSources: ComponentDataSource[],
-        dataRef: ComponentDataReference
+        dataRef: BaseComponentDataReference
     ): T | undefined {
-        if (dataRef.type === 'character') {
+        // Cast to our extended type that includes 'character'
+        const ref = dataRef as ComponentDataReference;
+        if (ref.type === 'character') {
             const source = dataSources.find((s) => s.type === 'character');
             if (source && typeof source.payload === 'object' && source.payload !== null) {
                 const character = source.payload as Character;
+                const charRef = ref as { type: 'character'; path: string };
                 // Handle nested paths for dnd5eData
-                if (dataRef.path.startsWith('dnd5eData.')) {
-                    const subPath = dataRef.path.substring('dnd5eData.'.length);
+                if (charRef.path.startsWith('dnd5eData.')) {
+                    const subPath = charRef.path.substring('dnd5eData.'.length);
                     const dnd5e = character.dnd5eData;
                     if (dnd5e) {
                         return (dnd5e as unknown as Record<string, unknown>)[subPath] as T | undefined;
                     }
                 }
-                return (character as unknown as Record<string, unknown>)[dataRef.path] as T | undefined;
+                return (character as unknown as Record<string, unknown>)[charRef.path] as T | undefined;
             }
-        } else if (dataRef.type === 'custom') {
+        } else if (ref.type === 'custom') {
             const source = dataSources.find((s) => s.type === 'custom');
             if (source && typeof source.payload === 'object' && source.payload !== null) {
                 const payload = source.payload as Record<string, unknown>;
-                return payload[dataRef.key] as T | undefined;
+                const customRef = ref as { type: 'custom'; key: string };
+                return payload[customRef.key] as T | undefined;
             }
         }
         return undefined;

@@ -9,6 +9,14 @@
 export { useFeaturesOverflow } from './useFeaturesOverflow';
 export type { FeaturesOverflowState, UseFeaturesOverflowOptions } from './useFeaturesOverflow';
 
+export { useSpellsOverflow } from './useSpellsOverflow';
+export type { 
+    SpellsOverflowState, 
+    UseSpellsOverflowOptions,
+    SpellOverflowPageData,
+    SpellWithLevel 
+} from './useSpellsOverflow';
+
 export { useMeasureItems } from './useMeasureItems';
 export type { 
     UseMeasureItemsOptions, 

@@ -1,0 +1,182 @@
+/**
+ * SpellsOverflowPage Styles
+ * 
+ * Overflow continuation pages for spells use .page.phb classes for PHB styling
+ * (parchment background, fancy border, footer accent from global CSS).
+ * 
+ * This CSS provides spell-specific layout and styling.
+ */
+
+/* ============================================================================
+   Spells Overflow Page Specific
+   ============================================================================ */
+
+.spells-overflow-page {
+    /* Override default flex direction for spell layout */
+}
+
+/* ============================================================================
+   Spells List Container
+   ============================================================================ */
+
+.overflow-spells-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ============================================================================
+   Spell Level Section
+   ============================================================================ */
+
+.overflow-spell-level {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    padding: 12px 16px;
+}
+
+.overflow-level-header {
+    font-family: 'ScalySansRemake', 'Scaly Sans Remake', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #58180D;
+    margin: 0 0 10px 0;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #58180D;
+}
+
+.overflow-level-header.continued {
+    /* Slightly smaller/lighter for continued sections */
+    font-size: 0.95rem;
+    color: #7a4a3d;
+    border-bottom-style: dashed;
+}
+
+/* ============================================================================
+   Spell Item
+   ============================================================================ */
+
+.overflow-spell-level-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.overflow-spell-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 3px;
+    transition: background-color 0.15s ease;
+}
+
+.overflow-spell-item[role="button"] {
+    cursor: pointer;
+}
+
+.overflow-spell-item[role="button"]:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.overflow-spell-item[role="button"]:focus {
+    outline: 2px solid #58180D;
+    outline-offset: 1px;
+}
+
+/* Prepared indicator */
+.prepared-indicator {
+    font-size: 0.7rem;
+    color: #999;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.prepared-indicator.prepared {
+    color: #58180D;
+}
+
+/* Spell name */
+.overflow-spell-item .spell-name {
+    font-family: 'BookInsanityRemake', 'Book Insanity Remake', serif;
+    font-size: 0.85rem;
+    color: #2b1d0f;
+    flex: 1;
+}
+
+/* Spell tags (Concentration, Ritual) */
+.spell-tag {
+    font-family: 'ScalySansRemake', 'Scaly Sans Remake', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.spell-tag.concentration {
+    background: #f0e6d2;
+    color: #7a4a3d;
+    border: 1px solid #c9a77d;
+}
+
+.spell-tag.ritual {
+    background: #e6f0e6;
+    color: #3a5a3a;
+    border: 1px solid #8fb88f;
+}
+
+/* Info button */
+.spell-info-btn {
+    font-size: 0.8rem;
+    color: #7a6e5d;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+    flex-shrink: 0;
+}
+
+.overflow-spell-item:hover .spell-info-btn {
+    opacity: 1;
+}
+
+/* ============================================================================
+   Two-Column Layout for Wider Screens (Optional)
+   ============================================================================ */
+
+/* If we want a 2-column layout on overflow pages:
+@media (min-width: 700px) {
+    .overflow-spells-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+}
+*/
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+    .spells-overflow-page {
+        break-before: page;
+        break-inside: avoid;
+    }
+    
+    .overflow-spell-level {
+        break-inside: avoid;
+    }
+    
+    .overflow-spell-item[role="button"] {
+        cursor: default;
+    }
+    
+    .spell-info-btn {
+        display: none;
+    }
+}
+

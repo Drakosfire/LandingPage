@@ -283,8 +283,10 @@ const StatblockCanvasInner: React.FC<StatblockPageProps> = ({ page, template, co
 
     const layout = useCanvasLayout({
         // Phase 5: Use new config API - Canvas owns all dimension calculations
-        componentInstances: page.componentInstances,
-        template,
+        // Type assertions needed until Canvas package is rebuilt with 'character' type support
+        // The Canvas source (Canvas/src/types/canvas.types.ts) has 'character', but dist/ doesn't yet
+        componentInstances: page.componentInstances as any,
+        template: template as any,
         dataSources: page.dataSources ?? [],
         componentRegistry: componentRegistry as any,
         config: canvasConfig,
