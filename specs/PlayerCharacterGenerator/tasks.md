@@ -1,7 +1,7 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 5, 2025 (Spec Review Complete - Ready for Component Implementation)  
+**Updated**: December 7, 2025 (All Sheet Pages Visually Complete)  
 **Source**: spec.md + plan.md  
 **Total Tasks**: 131 (124 + 7 integration tests)  
 **Estimated Hours**: 122-170h
@@ -35,13 +35,17 @@
 | **T112** | Build section components from prototype | ✅ Complete |
 | **T113** | Wire components into Canvas system | ✅ Complete |
 | **T114** | Test with DEMO_FIGHTER data | ✅ Complete |
+| **T115** | Build BackgroundPersonalitySheet from prototype | ✅ Complete |
+| **T116** | Build InventorySheet from prototype | ✅ Complete |
+| **T117** | Build SpellSheet from prototype | ✅ Complete |
+| **T118** | Polish all sheet pages (spacing, layout, CSS variables) | ✅ Complete |
 
-### Deferred (After Visual Complete)
+### Ready for Next Phase (Pagination)
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T105** | Full `useCanvasLayout` integration (automatic pagination) | ⏳ Deferred |
-| **T106** | Test pagination with long feature lists | ⏳ Deferred |
+| **T105** | Full `useCanvasLayout` integration (automatic pagination) | 🔜 Next |
+| **T106** | Test pagination with long feature lists | ⏳ Pending |
 
 **Files Created (December 4, 2025):**
 - `characterAdapters.ts` - Canvas adapter implementations for character data
@@ -52,7 +56,7 @@
 - `IMPLEMENTATION-STRATEGY.md` - Phased implementation guide
 
 **Files Created (December 6, 2025):**
-- `sheetComponents/CharacterSheet.css` - PHB styling extracted from prototype
+- `sheetComponents/CharacterSheet.css` - PHB styling extracted from prototype (~2100 lines)
 - `sheetComponents/CharacterSheet.tsx` - Main entry component orchestrating all sections
 - `sheetComponents/CharacterSheetPage.tsx` - Page container with PHB styling
 - `sheetComponents/CharacterHeader.tsx` - Portrait + labeled info boxes
@@ -62,6 +66,15 @@
 - `sheetComponents/column2/` - CombatStatsRow, HPSection, Column2Content  
 - `sheetComponents/column3/` - PersonalitySection, FeaturesSection, Column3Content
 - Updated `shared/CharacterCanvas.tsx` to use new sheetComponents
+
+**Files Created (December 7, 2025):**
+- `sheetComponents/BackgroundPersonalitySheet.tsx` - Separate page for notes, traits, ideals, bonds, flaws
+- `sheetComponents/InventorySheet.tsx` - Equipment, weapons, armor, consumables, treasure
+- `sheetComponents/inventory/` - InventoryHeader, InventoryTopRow, InventoryBlock, ItemRow
+- `sheetComponents/SpellSheet.tsx` - Spellcasting ability, slots, cantrips, prepared/known spells
+- `sheetComponents/spells/` - SpellLevelSection, SpellSlotTracker, SpellList
+- `canvasComponents/demoData/DEMO_WIZARD.ts` - Demo wizard character for spell testing
+- Updated `canvasComponents/demoData/DEMO_FIGHTER.ts` - Comprehensive inventory for all item types
 
 **Reference**: `DESIGN-Canvas-Character-Sheet-Integration.md`
 
@@ -85,7 +98,7 @@
 |-------|-------------|-------|------------|--------|
 | **Phase 1** | Setup | 3 | 1h | ✅ Complete |
 | **Phase 2** | Foundational (Rule Engine) | 10 | 4-6h | ✅ Complete |
-| **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | 🔄 In Progress |
+| **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | 🔄 In Progress (Canvas Rendering ✅) |
 | **Phase 4** | US4 - Save and Load | 6 | 6-8h | ⏳ Pending |
 | **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending |
 | **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
@@ -331,32 +344,26 @@ Each component renders a section of the character sheet. Display-only first, edi
 #### Phase 3.6d: PHB-Style Multi-Page Canvas (Blocking for visual quality)
 
 **Goal**: Implement proper D&D PHB character sheet styling with multi-page canvas rendering  
-**Design Document**: `research/DESIGN-PHB-Character-Sheet-Implementation.md` 🔒 LOCKED  
-**Key Decision**: Use `.character.frame` instead of `.monster.frame` to avoid font overrides
+**Status**: ✅ COMPLETE (via HTML-First approach - T110-T118)  
+**Approach Change**: Instead of T070-T075 plan, used HTML prototype-driven componentization
 
 - [x] T068 [US1] **Research**: Extract HTML source from StatblockGenerator canvas for reference styling ✅
 - [x] T069 [US1] **Research**: Get reference renders + deep research on Homebrewery CSS ✅
-- [ ] T070 [US1] Create `CharacterSheetPage.tsx` - Single page wrapper with `.page.phb` + `.columnWrapper`
-- [ ] T071 [US1] Create `PageBreakManager.ts` - Logic to determine which sections go on which page (may be simple fixed layout)
-- [ ] T072 [US1] Create `CharacterSheetRenderer.tsx` - Orchestrates 1-3 pages based on character (caster vs non-caster)
-- [ ] T073 [US1] Create section components in `canvasComponents/sections/`:
-  - T073a: `AbilityScoresSection.tsx` - 6-box grid layout (not inline table)
-  - T073b: `SavesSkillsSection.tsx` - Combined saves + skills with ●/○ proficiency markers
-  - T073c: `CombatStatsSection.tsx` - AC, Init, Speed, HP, Hit Dice, Death Saves
-  - T073d: `AttacksSection.tsx` - Weapon attacks table
-  - T073e: `FeaturesSection.tsx` - Class/Race features (collapsible)
-  - T073f: `EquipmentSection.tsx` - Inventory list
-  - T073g: `ProficienciesSection.tsx` - Languages, tools, armor, weapons
-  - T073h: `BackgroundSection.tsx` - Personality traits, ideals, bonds, flaws
-  - T073i: `SpellcastingSection.tsx` - Full-width `.spellList.wide` with slot tracker
-- [ ] T074 [US1] Create `CharacterComponents.css` with PHB-specific styles:
-  - `.character.frame` class (replaces `.monster.frame` for PCs)
-  - `.ability-box`, `.ability-scores-grid` for 6-box layout
-  - `.skill-item`, `.save-item` with proficiency markers
-  - `.death-saves`, `.spell-slot-tracker` checkbox styles
-  - `.combat-stats-grid` for AC/Init/Speed boxes
-  - Print optimization with `break-inside: avoid-column`
-- [ ] T075 [US1] Test multi-page rendering with DEMO_FIGHTER (expect 2 pages for L1 Fighter, 3 if caster)
+- [x] T070 [US1] Create `CharacterSheetPage.tsx` - Single page wrapper with `.page.phb` ✅ (via T112)
+- [x] T071 [US1] Create `PageBreakManager.ts` - ⏭️ SUPERSEDED: Using fixed multi-sheet layout instead
+- [x] T072 [US1] Create `CharacterSheetRenderer.tsx` - ⏭️ SUPERSEDED: `CharacterCanvas.tsx` handles sheet switching
+- [x] T073 [US1] Section components: ✅ COMPLETE (via T112, T115-T117)
+  - T073a: `AbilityScoresRow.tsx` ✅
+  - T073b: `SavingThrowsSection.tsx`, `SkillsSection.tsx` ✅
+  - T073c: `CombatStatsRow.tsx`, `HPSection.tsx` ✅
+  - T073d: Attacks in `InventorySheet.tsx` weapons section ✅
+  - T073e: `FeaturesSection.tsx` ✅
+  - T073f: `InventorySheet.tsx` ✅
+  - T073g: `ProficienciesSection.tsx` ✅
+  - T073h: `BackgroundPersonalitySheet.tsx` ✅
+  - T073i: `SpellSheet.tsx` ✅
+- [x] T074 [US1] Create `CharacterSheet.css` with PHB-specific styles ✅ (~2100 lines)
+- [x] T075 [US1] Test multi-page rendering with DEMO_FIGHTER and DEMO_WIZARD ✅
 
 ### 3.8 Integration Testing with Test Fixtures 🧪
 
@@ -593,7 +600,11 @@ After Phase 3 completes, these phases are independent:
 
 ---
 
+**Tasks Added (December 7, 2025 - All Sheets Visual Complete)**:
+- T115-T118: Additional sheet pages (Background/Personality, Inventory, Spells, Polish)
+- Marked T070-T075 as complete/superseded via HTML-first approach
+
 **Generated by speckit.tasks workflow**  
-**Updated**: December 2, 2025 (Canvas Enhancement Breakdown)  
-**Ready for implementation**
+**Updated**: December 7, 2025 (All Sheet Pages Visually Complete)  
+**Next**: Pagination integration (T105-T106)
 
