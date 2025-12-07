@@ -1289,6 +1289,355 @@
     margin: 0 var(--space-1);
 }
 
+/* ===== 12. Inventory Sheet ===== */
+
+/* Inventory Header */
+.inventory-sheet .inventory-header {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: flex-end;
+}
+
+.inventory-sheet .character-info {
+    flex: 1;
+    display: flex;
+    gap: var(--space-8);
+}
+
+.inventory-sheet .character-info .labeled-box {
+    flex: 1;
+}
+
+.inventory-sheet .character-info .labeled-box.narrow {
+    flex: 0 0 100px;
+}
+
+.inventory-sheet .character-info .labeled-box .value {
+    padding: var(--space-6) var(--space-10);
+    font-size: 13px;
+    min-height: 30px;
+}
+
+/* Top Row: Currency, Encumbrance, Attunement */
+.inventory-sheet .top-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+/* Currency Section */
+.inventory-sheet .currency-section {
+    padding: var(--space-10);
+    flex: 0 0 200px;
+}
+
+.inventory-sheet .currency-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-6);
+}
+
+.inventory-sheet .currency-item {
+    text-align: center;
+}
+
+.inventory-sheet .currency-item .coin-label {
+    font-size: 8px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    color: var(--text-red);
+    margin-bottom: var(--space-2);
+}
+
+.inventory-sheet .currency-item .coin-value {
+    width: 100%;
+    height: 28px;
+    border: 2px solid var(--border-color);
+    text-align: center;
+    font-size: 12px;
+    font-family: 'ScalySansRemake', sans-serif;
+    background: var(--bg-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inventory-sheet .currency-total {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px dashed var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.inventory-sheet .currency-total .total-label {
+    color: var(--text-red);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-size: 8px;
+}
+
+/* Encumbrance Section */
+.inventory-sheet .encumbrance-section {
+    padding: var(--space-10);
+    flex: 0 0 180px;
+}
+
+.inventory-sheet .encumbrance-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.inventory-sheet .encumbrance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.inventory-sheet .encumbrance-row .stat-label {
+    font-size: 10px;
+}
+
+.inventory-sheet .encumbrance-row .stat-value {
+    font-weight: bold;
+}
+
+.inventory-sheet .encumbrance-bar {
+    height: 12px;
+    background: #e8e0d0;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-top: var(--space-6);
+    overflow: hidden;
+}
+
+.inventory-sheet .encumbrance-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a9c4a 0%, #c9a227 60%, #c94a4a 100%);
+    border-radius: 6px 0 0 6px;
+    transition: width 0.3s ease;
+}
+
+/* Attunement Section */
+.inventory-sheet .attunement-section {
+    padding: var(--space-10);
+    flex: 1;
+}
+
+.inventory-sheet .attunement-slots {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.inventory-sheet .attunement-slot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.inventory-sheet .attunement-marker {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--bg-light);
+}
+
+.inventory-sheet .attunement-marker.active {
+    background: var(--border-color);
+}
+
+.inventory-sheet .attunement-item {
+    flex: 1;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 10px;
+    padding: var(--space-2) 0;
+    font-family: 'ScalySansRemake', sans-serif;
+    min-height: 18px;
+}
+
+/* Main Content: 3 Columns */
+.inventory-sheet .inventory-main-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-12);
+    padding-bottom: 40px;
+}
+
+.inventory-sheet .inventory-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+}
+
+/* Inventory Category Block */
+.inventory-sheet .inventory-block {
+    display: flex;
+    flex-direction: column;
+}
+
+.inventory-sheet .inventory-block.flex-grow {
+    flex: 1;
+}
+
+.inventory-sheet .item-list {
+    flex: 1;
+    padding: var(--space-6);
+}
+
+/* Item Row Grid */
+.inventory-sheet .item-row {
+    display: grid;
+    grid-template-columns: 30px 1fr 40px 35px;
+    gap: var(--space-4);
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-bottom: 1px dotted var(--border-light);
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.inventory-sheet .item-row:last-child {
+    border-bottom: none;
+}
+
+.inventory-sheet .item-row.header {
+    font-size: 7px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    color: var(--text-red);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-2);
+}
+
+.inventory-sheet .item-qty {
+    text-align: center;
+    font-weight: bold;
+}
+
+.inventory-sheet .item-name {
+    font-family: 'ScalySansRemake', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inventory-sheet .item-weight {
+    text-align: right;
+    color: var(--text-red);
+    font-size: 9px;
+}
+
+.inventory-sheet .item-value {
+    text-align: right;
+    font-size: 9px;
+}
+
+.inventory-sheet .item-row.empty {
+    border-bottom: 1px solid #ccc;
+    min-height: 20px;
+}
+
+/* Treasure/Valuables Section - 2 columns */
+.inventory-sheet .treasure-block .item-row {
+    grid-template-columns: 1fr 60px;
+}
+
+/* Container Section - dashed border */
+.inventory-sheet .container-block {
+    border: 2px dashed var(--border-light) !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+    background-image: none !important;
+}
+
+.inventory-sheet .container-block .block-header {
+    background: var(--border-light);
+}
+
+.inventory-sheet .container-info {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-8);
+    font-size: 8px;
+    font-family: 'ScalySansRemake', sans-serif;
+    background: rgba(156, 43, 27, 0.1);
+}
+
+/* Section Header (shared pattern) */
+.inventory-sheet .section-header {
+    font-size: 11px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-6);
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Block Header (white on red) */
+.inventory-sheet .block-header {
+    background: var(--border-color);
+    color: #fff;
+    padding: var(--space-5) var(--space-10);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inventory-sheet .block-header .block-title {
+    font-size: 11px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.inventory-sheet .block-header .block-weight {
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+    opacity: 0.9;
+}
+
+/* Notes Section */
+.inventory-sheet .notes-section {
+    margin-top: var(--space-12);
+}
+
+.inventory-sheet .notes-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.inventory-sheet .notes-box .notes-content {
+    flex: 1;
+    min-height: 60px;
+    padding: var(--space-8);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-12);
+}
+
+.inventory-sheet .notes-box .notes-column {
+    border-right: 1px dashed var(--border-light);
+    padding-right: var(--space-12);
+    font-size: 10px;
+    font-family: 'BookInsanityRemake', Georgia, serif;
+}
+
+.inventory-sheet .notes-box .notes-column:last-child {
+    border-right: none;
+    padding-right: 0;
+}
+
 /* ===== Print Styles ===== */
 @media print {
     .character-sheet {
@@ -1311,5 +1660,9 @@
 
     .character-canvas-area .character-sheet {
         margin-bottom: 0;
+    }
+
+    .inventory-sheet .inventory-block {
+        break-inside: avoid;
     }
 }

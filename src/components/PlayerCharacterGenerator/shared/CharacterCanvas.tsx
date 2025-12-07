@@ -17,6 +17,7 @@ import {
     CharacterSheetPage,
     CharacterSheetContainer,
     BackgroundPersonalitySheet,
+    InventorySheet,
     type Attack,
     type Feature
 } from '../sheetComponents';
@@ -154,6 +155,51 @@ const CharacterCanvas: React.FC = () => {
                         ideals={ideals}
                         bonds={bonds}
                         flaws={flaws}
+                    />
+
+                    {/* Page 3: Inventory Sheet */}
+                    <InventorySheet
+                        characterName={character.name}
+                        classAndLevel={classAndLevel}
+                        strength={dnd5e.abilityScores?.strength ?? 10}
+                        currency={{
+                            cp: dnd5e.currency?.cp ?? 0,
+                            sp: dnd5e.currency?.sp ?? 0,
+                            ep: dnd5e.currency?.ep ?? 0,
+                            gp: dnd5e.currency?.gp ?? 0,
+                            pp: dnd5e.currency?.pp ?? 0
+                        }}
+                        attunedItems={[
+                            { name: '', active: false },
+                            { name: '', active: false },
+                            { name: '', active: false }
+                        ]}
+                        weapons={(dnd5e.weapons || []).map((w, idx) => ({
+                            id: `weapon-${idx}`,
+                            name: w.name,
+                            quantity: 1,
+                            weight: w.weight,
+                            value: w.value ? `${w.value} gp` : '—'
+                        }))}
+                        armor={dnd5e.armor ? [{
+                            id: 'armor-1',
+                            name: dnd5e.armor.name + ' (worn)',
+                            quantity: 1,
+                            weight: dnd5e.armor.weight,
+                            notes: `AC ${dnd5e.armor.armorClass}`
+                        }] : []}
+                        magicItems={[]}
+                        adventuringGear={(dnd5e.equipment || []).map((e, idx) => ({
+                            id: `equip-${idx}`,
+                            name: e.name,
+                            quantity: e.quantity || 1,
+                            weight: e.weight,
+                            value: e.value ? `${e.value} gp` : '—'
+                        }))}
+                        treasure={[]}
+                        consumables={[]}
+                        otherItems={[]}
+                        containers={[]}
                     />
                 </CharacterSheetContainer>
             );

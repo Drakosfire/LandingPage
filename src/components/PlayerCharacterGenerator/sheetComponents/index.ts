@@ -46,3 +46,9 @@ export type { FooterBarProps } from './FooterBar';
 // Additional pages
 export { BackgroundPersonalitySheet } from './BackgroundPersonalitySheet';
 export type { BackgroundPersonalitySheetProps } from './BackgroundPersonalitySheet';
+
+export { InventorySheet } from './InventorySheet';
+export type { InventorySheetProps } from './InventorySheet';
+
+// Inventory sub-components
+export * from './inventory';
