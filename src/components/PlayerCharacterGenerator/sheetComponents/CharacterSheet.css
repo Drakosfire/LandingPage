@@ -319,56 +319,299 @@
     margin-bottom: 0;
 }
 
-/* ===== 4. Ability Scores Row ===== */
+/* ===== 4. Ability Scores Row (with Combat Status) ===== */
+/* ===== Ability Scores Row - Global Font Management ===== */
 .character-sheet .ability-scores-row {
     display: flex;
-    justify-content: space-between;
-    gap: var(--space-8);
+    gap: var(--space-4);
     margin-top: var(--space-1);
     margin-bottom: var(--space-1);
+    /* Global font sizing for this row */
+    --row-font-label: 9px;
+    --row-font-value: 18px;
+    --row-font-small: 11px;
 }
 
-.character-sheet .ability-box {
-    flex: 1;
-    padding: var(--space-5) var(--space-3) var(--space-4);
+/* Combat Status - Compact (in ability row) */
+.character-sheet .combat-status-compact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    flex: 0 0 auto;
+}
+
+.character-sheet .combat-stats-grid {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.character-sheet .combat-hp-col,
+.character-sheet .combat-stats-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.character-sheet .hp-row,
+.character-sheet .stat-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.character-sheet .hp-val {
+    font-size: var(--row-font-value);
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+    min-width: 30px;
     text-align: center;
-    position: relative;
 }
 
-.character-sheet .ability-box .ability-name {
-    font-size: 9px;
+.character-sheet .hp-input {
+    width: 30px;
+    height: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-light);
+    font-size: var(--row-font-small);
+    font-family: 'ScalySansRemake', sans-serif;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.character-sheet .hp-input.small {
+    height: 18px;
+}
+
+.character-sheet .hp-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+}
+
+.character-sheet .stat-val {
+    font-size: var(--row-font-value);
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+.character-sheet .stat-val .speed-ft {
+    font-size: var(--row-font-small);
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: normal;
+}
+
+.character-sheet .stat-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+}
+
+/* Death Saves - Bottom Row */
+.character-sheet .combat-death-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-color);
+}
+
+.character-sheet .death-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+}
+
+.character-sheet .death-group {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.character-sheet .death-group-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-weight: bold;
+    color: var(--text-red);
+    min-width: 10px;
+}
+
+.character-sheet .death-dot {
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-light);
+}
+
+.character-sheet .death-dot.success.filled {
+    background: #2d5016;
+}
+
+.character-sheet .death-dot.failure.filled {
+    background: var(--HB_Color_HorizontalRule);
+}
+
+/* Ability Scores Grid - 2 Column Horizontal Layout */
+.character-sheet .ability-scores-grid {
+    display: flex;
+    gap: var(--space-4);
+    flex: 1;
+    padding: var(--space-1);
+}
+
+.character-sheet .ability-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    flex: 1;
+}
+
+/* Ability Box - Horizontal */
+.character-sheet .ability-box-horizontal {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.character-sheet .ability-box-horizontal .ability-name {
+    font-size: var(--row-font-label);
     font-family: 'ScalySansSmallCapsRemake', sans-serif;
     font-weight: bold;
     text-transform: uppercase;
     color: var(--text-red);
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    min-width: 32px;
 }
 
-.character-sheet .ability-box .ability-score {
-    font-size: 24px;
+.character-sheet .ability-box-horizontal .ability-score {
+    font-size: var(--row-font-value);
     font-family: 'NodestoCapsCondensed', serif;
     font-weight: bold;
-    line-height: 1;
     color: var(--text-dark);
+    min-width: 24px;
+    text-align: center;
 }
 
-.character-sheet .ability-box .ability-modifier {
-    font-size: 14px;
+.character-sheet .ability-box-horizontal .ability-modifier {
+    font-size: var(--row-font-small);
     font-family: 'ScalySansRemake', sans-serif;
     font-weight: 600;
     color: #fff;
-    margin-top: var(--space-3);
-    padding: var(--space-2) var(--space-5);
+    padding: var(--space-1) var(--space-3);
     background: var(--border-color);
-    border-radius: 10px;
-    display: inline-block;
+    border-radius: 8px;
+    min-width: 28px;
+    text-align: center;
+}
+
+/* Meta Stats - Stacked (in ability row, right side) */
+.character-sheet .meta-stats-compact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    flex: 0 0 auto;
+}
+
+.character-sheet .meta-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.character-sheet .meta-row.death-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+}
+
+.character-sheet .meta-box {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+    background: var(--bg-light);
+}
+
+.character-sheet .meta-box.filled {
+    background: var(--border-color);
+    color: #fff;
+}
+
+.character-sheet .meta-val {
+    font-size: var(--row-font-small);
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: bold;
+    text-align: right;
+    min-width: 30px;
+}
+
+.character-sheet .meta-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    flex: 1;
+}
+
+.character-sheet .meta-lbl-stack {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    flex: 1;
+    line-height: 1.1;
+}
+
+.character-sheet .death-dots {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.character-sheet .death-dots .dot {
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-light);
+}
+
+.character-sheet .death-dots .dot.success.filled {
+    background: #2d5016;
+}
+
+.character-sheet .death-dots .dot.failure.filled {
+    background: var(--HB_Color_HorizontalRule);
+}
+
+.character-sheet .death-dots .dot-sep {
+    font-size: 8px;
+    color: var(--text-muted);
+    margin: 0 1px;
 }
 
 /* ===== 5. Main Layout (3 Columns) ===== */
 .character-sheet .sheet-main-content {
     display: grid;
-    grid-template-columns: 200px 240px 200px;
+    grid-template-columns: 160px 280px 200px;
     gap: var(--column-gap);
     margin-top: var(--space-1);
 }
@@ -491,86 +734,103 @@
     border-top: 2px solid var(--border-color);
 }
 
-/* ===== 7. Column 2: Combat Stats, HP, Attacks, Equipment ===== */
+/* ===== 7. Column 2: Combat Status, Attacks, Equipment ===== */
 
-/* Combat Stats Row */
-.character-sheet .combat-stats-row {
+/* Combat Status Section - Unified HP + AC/Init/Speed */
+.character-sheet .combat-status-section {
     display: flex;
-    gap: var(--space-8);
-    justify-content: center;
-}
-
-.character-sheet .combat-stat-box {
-    width: 65px;
-    padding: var(--padding-box) var(--space-2);
-    text-align: center;
-}
-
-.character-sheet .combat-stat-box .stat-value {
-    font-size: 22px;
-    font-family: 'NodestoCapsCondensed', serif;
-    font-weight: bold;
-    color: var(--text-dark);
-}
-
-.character-sheet .combat-stat-box .stat-label {
-    font-size: 8px;
-    margin-top: var(--space-1);
-}
-
-/* HP Section */
-.character-sheet .hp-section {
+    gap: var(--space-6);
     padding: var(--padding-section);
 }
 
-.character-sheet .hp-max-row {
+/* HP Column (left, narrower) */
+.character-sheet .combat-hp-column {
     display: flex;
-    align-items: center;
-    gap: var(--space-8);
-    margin-bottom: var(--space-8);
+    flex-direction: column;
+    gap: var(--space-4);
+    flex: 0 0 70px;
 }
 
-.character-sheet .hp-max-label {
-    font-size: 11px;
-    font-family: 'ScalySansRemake', sans-serif;
-}
-
-.character-sheet .hp-max-value {
-    flex: 1;
-    border-bottom: 1px solid var(--border-color);
+.character-sheet .hp-stat {
     text-align: center;
+}
+
+.character-sheet .hp-value {
+    font-size: 20px;
+    font-family: 'NodestoCapsCondensed', serif;
     font-weight: bold;
-    font-family: 'ScalySansRemake', sans-serif;
+    color: var(--text-dark);
+    line-height: 1;
 }
 
-.character-sheet .hp-current {
-    height: 30px;
-    border: 1px solid var(--border-color);
-    margin-bottom: 4px;
-    background: var(--bg-light);
-}
-
-.character-sheet .hp-current-label {
-    font-size: 10px;
-    font-family: 'ScalySansSmallCapsRemake', sans-serif;
-    text-transform: uppercase;
-    text-align: center;
-    color: var(--text-red);
-}
-
-.character-sheet .hp-temp {
+.character-sheet .hp-input {
     height: 24px;
     border: 1px solid var(--border-color);
-    margin-top: 6px;
     background: var(--bg-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: bold;
 }
 
-.character-sheet .hp-temp-label {
-    font-size: 10px;
+.character-sheet .hp-input.small {
+    height: 20px;
+    font-size: 12px;
+}
+
+.character-sheet .hp-label {
+    font-size: 8px;
     font-family: 'ScalySansSmallCapsRemake', sans-serif;
     text-transform: uppercase;
-    text-align: center;
     color: var(--text-red);
+    margin-top: var(--space-1);
+}
+
+/* Divider */
+.character-sheet .combat-divider {
+    width: 1px;
+    background: var(--border-color);
+    opacity: 0.5;
+    margin: var(--space-2) 0;
+}
+
+/* Combat Stats Column (right) */
+.character-sheet .combat-stats-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    flex: 1;
+}
+
+.character-sheet .combat-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.character-sheet .combat-value {
+    font-size: 20px;
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+    color: var(--text-dark);
+    min-width: 40px;
+    text-align: center;
+}
+
+.character-sheet .combat-value .speed-unit {
+    font-size: 12px;
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: normal;
+    margin-left: 1px;
+}
+
+.character-sheet .combat-label {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    font-weight: bold;
 }
 
 /* Hit Dice & Death Saves Row */
@@ -703,63 +963,55 @@
     min-width: 0;
 }
 
-/* Equipment Section */
+/* Equipment Section - 2 Column Layout */
 .character-sheet .equipment-section {
     padding: var(--padding-box-sm);
     display: flex;
     flex-direction: column;
-}
-
-.character-sheet .equipment-content {
-    display: flex;
-    gap: var(--gap-sm);
     flex: 1;
 }
 
-.character-sheet .currency-column {
+.character-sheet .equipment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-4);
+    flex: 1;
+    padding: var(--padding-box-xs);
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+    line-height: 1.4;
+}
+
+.character-sheet .equipment-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.character-sheet .currency-row {
     display: flex;
-    flex-direction: column;
-    gap: var(--gap-sm);
+    justify-content: center;
+    gap: var(--space-6);
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-3);
 }
 
 .character-sheet .currency-item {
     display: flex;
     align-items: center;
+    gap: var(--space-1);
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
 }
 
 .character-sheet .currency-label {
-    width: 20px;
-    height: 18px;
-    border: 2px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 8px;
-    font-family: 'ScalySansSmallCapsRemake', sans-serif;
     font-weight: bold;
-    background: var(--border-color);
-    color: #fff;
+    color: var(--text-red);
 }
 
 .character-sheet .currency-value {
-    width: 32px;
-    height: 18px;
-    border: 2px solid var(--border-color);
-    border-left: none;
     font-family: 'ScalySansRemake', sans-serif;
-    font-size: 10px;
-    background: var(--bg-light);
-    text-align: center;
-}
-
-.character-sheet .equipment-list {
-    flex: 1;
-    border: 1px solid var(--border-color);
-    padding: var(--padding-box-xs);
-    font-size: 10px;
-    font-family: 'ScalySansRemake', sans-serif;
-    background: var(--bg-light);
-    line-height: 1.3;
 }
 
 .character-sheet .equipment-title {
@@ -800,7 +1052,6 @@
 
 .character-sheet .features-box .text-area {
     flex: 1;
-    min-height: var(--min-height-textarea-md);
     padding: var(--padding-box-sm);
     font-size: 12px;
     font-family: 'BookInsanityRemake', Georgia, serif;
@@ -869,6 +1120,173 @@
     gap: var(--space-24);
     padding: var(--space-24);
     background: #4a3728;
+}
+
+/* ===== 10. Background & Personality Sheet ===== */
+
+/* Sheet header with title */
+.character-sheet .sheet-header {
+    text-align: center;
+    margin-bottom: var(--space-12);
+    padding-bottom: var(--space-8);
+    border-bottom: 3px solid var(--border-color);
+}
+
+.character-sheet .sheet-title {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--text-red);
+    letter-spacing: 1px;
+    margin: 0 0 var(--space-4);
+    text-transform: uppercase;
+}
+
+.character-sheet .sheet-subtitle {
+    font-family: 'ScalySansRemake', sans-serif;
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.character-sheet .sheet-subtitle .character-name {
+    font-weight: bold;
+    font-style: italic;
+}
+
+.character-sheet .sheet-subtitle .separator {
+    color: var(--border-light);
+}
+
+.character-sheet .sheet-subtitle .background-name {
+    font-style: italic;
+}
+
+/* Personality Grid - 2x2 layout */
+.character-sheet .personality-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap-md);
+    margin-bottom: var(--space-12);
+}
+
+/* Make personality boxes in grid taller */
+.character-sheet .personality-grid .personality-box {
+    min-height: 180px;
+}
+
+.character-sheet .personality-grid .personality-box .text-area {
+    min-height: 150px;
+    flex: 1;
+}
+
+/* Background & Personality specific overrides */
+.character-sheet.background-personality-sheet .notes-section {
+    margin-top: var(--space-6);
+    flex: 1;
+}
+
+.character-sheet.background-personality-sheet .notes-box {
+    min-height: 300px;
+}
+
+.character-sheet.background-personality-sheet .notes-box .notes-content {
+    min-height: 260px;
+}
+
+/* ===== 11. Footer Bar ===== */
+.character-sheet .sheet-footer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+    padding: var(--space-4) var(--space-8);
+    margin-top: var(--space-6);
+    background: var(--HB_Color_MonsterStatBackground);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.character-sheet .footer-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.character-sheet .footer-stat.death-saves {
+    gap: var(--space-2);
+}
+
+.character-sheet .footer-circle {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    background: var(--bg-light);
+}
+
+.character-sheet .footer-circle.filled {
+    background: var(--border-color);
+    color: #fff;
+}
+
+.character-sheet .footer-value {
+    font-size: 14px;
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: bold;
+    color: var(--text-dark);
+}
+
+.character-sheet .footer-label {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.character-sheet .footer-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-color);
+    opacity: 0.5;
+}
+
+.character-sheet .death-circles {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.character-sheet .death-dot {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-light);
+}
+
+.character-sheet .death-dot.filled.success {
+    background: #2d5016;
+}
+
+.character-sheet .death-dot.filled.failure {
+    background: var(--HB_Color_HorizontalRule);
+}
+
+.character-sheet .death-separator {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin: 0 var(--space-1);
 }
 
 /* ===== Print Styles ===== */

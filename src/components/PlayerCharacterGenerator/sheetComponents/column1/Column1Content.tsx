@@ -1,7 +1,8 @@
 /**
  * Column1Content Component
  * 
- * Aggregates all Column 1 content: Inspiration, Prof Bonus, Saves, Skills, Passive, Proficiencies.
+ * Aggregates all Column 1 content: Saves, Skills, Proficiencies.
+ * (Inspiration, Prof Bonus, Passive Perception moved to FooterBar)
  * 
  * @module PlayerCharacterGenerator/sheetComponents/column1
  */
@@ -20,10 +21,6 @@ export interface Column1ContentProps {
     proficientSaves: string[];
     /** Proficient skills */
     proficientSkills: string[];
-    /** Whether character has inspiration */
-    hasInspiration?: boolean;
-    /** Passive perception */
-    passivePerception?: number;
     /** Languages */
     languages?: string[];
     /** Armor proficiencies */
@@ -39,8 +36,6 @@ export const Column1Content: React.FC<Column1ContentProps> = ({
     proficiencyBonus,
     proficientSaves,
     proficientSkills,
-    hasInspiration = false,
-    passivePerception = 10,
     languages = ['Common'],
     armorProficiencies = [],
     weaponProficiencies = [],
@@ -48,20 +43,6 @@ export const Column1Content: React.FC<Column1ContentProps> = ({
 }) => {
     return (
         <>
-            {/* Inspiration & Prof Bonus */}
-            <div className="phb-section top-stats-box">
-                <div className="stat-group">
-                    <div className={`stat-circle ${hasInspiration ? 'filled' : ''}`}>
-                        {hasInspiration ? '✓' : ''}
-                    </div>
-                    <div className="stat-label">Inspiration</div>
-                </div>
-                <div className="stat-group">
-                    <div className="stat-circle">+{proficiencyBonus}</div>
-                    <div className="stat-label">Prof Bonus</div>
-                </div>
-            </div>
-
             {/* Saving Throws */}
             <SavingThrowsSection
                 abilityScores={abilityScores}
@@ -76,18 +57,12 @@ export const Column1Content: React.FC<Column1ContentProps> = ({
                 proficientSkills={proficientSkills}
             />
 
-            {/* Passive Perception */}
-            <div className="phb-section passive-box">
-                <div className="passive-value">{passivePerception}</div>
-                <div className="passive-label">Passive Wisdom (Perception)</div>
-            </div>
-
             {/* Proficiencies & Languages */}
             <div className="phb-section proficiencies-box">
                 <div className="text-area">
-                    <strong>Languages:</strong> {languages.join(', ')}<br />
+                    <strong>Lang:</strong> {languages.join(', ')}<br />
                     <strong>Armor:</strong> {armorProficiencies.length > 0 ? armorProficiencies.join(', ') : 'None'}<br />
-                    <strong>Weapons:</strong> {weaponProficiencies.length > 0 ? weaponProficiencies.join(', ') : 'None'}<br />
+                    <strong>Weap:</strong> {weaponProficiencies.length > 0 ? weaponProficiencies.join(', ') : 'None'}<br />
                     {toolProficiencies.length > 0 && (
                         <><strong>Tools:</strong> {toolProficiencies.join(', ')}</>
                     )}

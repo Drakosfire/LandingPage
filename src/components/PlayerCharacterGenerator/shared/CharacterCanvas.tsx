@@ -15,6 +15,8 @@ import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider
 import {
     CharacterSheet,
     CharacterSheetPage,
+    CharacterSheetContainer,
+    BackgroundPersonalitySheet,
     type Attack,
     type Feature
 } from '../sheetComponents';
@@ -95,59 +97,65 @@ const CharacterCanvas: React.FC = () => {
             const passivePerception = 10 + wisMod + (isProficientPerception ? (dnd5e.derivedStats?.proficiencyBonus ?? 2) : 0);
 
             return (
-                <CharacterSheet
-                    // Header
-                    name={character.name}
-                    classAndLevel={classAndLevel}
-                    race={dnd5e.race?.name || 'Unknown'}
-                    background={dnd5e.background?.name || 'Unknown'}
-                    playerName=""
-                    alignment={dnd5e.alignment || ''}
-                    xp={0}
-                    portraitUrl={undefined}
+                <CharacterSheetContainer>
+                    {/* Page 1: Main Character Sheet */}
+                    <CharacterSheet
+                        // Header
+                        name={character.name}
+                        classAndLevel={classAndLevel}
+                        race={dnd5e.race?.name || 'Unknown'}
+                        background={dnd5e.background?.name || 'Unknown'}
+                        playerName=""
+                        alignment={dnd5e.alignment || ''}
+                        xp={0}
+                        portraitUrl={undefined}
 
-                    // Ability Scores
-                    abilityScores={dnd5e.abilityScores}
+                        // Ability Scores
+                        abilityScores={dnd5e.abilityScores}
 
-                    // Proficiency
-                    proficiencyBonus={dnd5e.derivedStats?.proficiencyBonus ?? 2}
-                    proficientSaves={dnd5e.proficiencies?.savingThrows || []}
-                    proficientSkills={dnd5e.proficiencies?.skills || []}
-                    hasInspiration={false}
-                    passivePerception={passivePerception}
+                        // Proficiency
+                        proficiencyBonus={dnd5e.derivedStats?.proficiencyBonus ?? 2}
+                        proficientSaves={dnd5e.proficiencies?.savingThrows || []}
+                        proficientSkills={dnd5e.proficiencies?.skills || []}
+                        hasInspiration={false}
+                        passivePerception={passivePerception}
 
-                    // Languages & Proficiencies
-                    languages={dnd5e.proficiencies?.languages || ['Common']}
-                    armorProficiencies={dnd5e.proficiencies?.armor || []}
-                    weaponProficiencies={dnd5e.proficiencies?.weapons || []}
-                    toolProficiencies={dnd5e.proficiencies?.tools || []}
+                        // Languages & Proficiencies
+                        languages={dnd5e.proficiencies?.languages || ['Common']}
+                        armorProficiencies={dnd5e.proficiencies?.armor || []}
+                        weaponProficiencies={dnd5e.proficiencies?.weapons || []}
+                        toolProficiencies={dnd5e.proficiencies?.tools || []}
 
-                    // Combat
-                    armorClass={dnd5e.derivedStats?.armorClass ?? 10}
-                    initiative={dnd5e.derivedStats?.initiative ?? 0}
-                    speed={dnd5e.derivedStats?.speed?.walk ?? 30}
-                    maxHP={dnd5e.derivedStats?.maxHp ?? 1}
-                    currentHP={dnd5e.derivedStats?.currentHp}
-                    tempHP={dnd5e.derivedStats?.tempHp}
-                    hitDiceTotal={dnd5e.classes?.length > 0
-                        ? `${dnd5e.classes[0].level}d${dnd5e.classes[0].hitDie || 10}`
-                        : '1d10'}
-                    hitDiceCurrent={dnd5e.derivedStats?.hitDice?.current?.toString() ?? '1'}
+                        // Combat
+                        armorClass={dnd5e.derivedStats?.armorClass ?? 10}
+                        initiative={dnd5e.derivedStats?.initiative ?? 0}
+                        speed={dnd5e.derivedStats?.speed?.walk ?? 30}
+                        maxHP={dnd5e.derivedStats?.maxHp ?? 1}
+                        currentHP={dnd5e.derivedStats?.currentHp}
+                        tempHP={dnd5e.derivedStats?.tempHp}
+                        hitDiceTotal={dnd5e.classes?.length > 0
+                            ? `${dnd5e.classes[0].level}d${dnd5e.classes[0].hitDie || 10}`
+                            : '1d10'}
 
-                    // Attacks & Equipment
-                    attacks={attacks}
-                    currency={dnd5e.currency}
-                    equipment={equipmentList}
+                        // Attacks & Equipment
+                        attacks={attacks}
+                        currency={dnd5e.currency}
+                        equipment={equipmentList}
 
-                    // Personality
-                    traits={traits}
-                    ideals={ideals}
-                    bonds={bonds}
-                    flaws={flaws}
+                        // Features
+                        features={features}
+                    />
 
-                    // Features
-                    features={features}
-                />
+                    {/* Page 2: Background & Personality */}
+                    <BackgroundPersonalitySheet
+                        characterName={character.name}
+                        backgroundName={dnd5e.background?.name}
+                        traits={traits}
+                        ideals={ideals}
+                        bonds={bonds}
+                        flaws={flaws}
+                    />
+                </CharacterSheetContainer>
             );
         }
 

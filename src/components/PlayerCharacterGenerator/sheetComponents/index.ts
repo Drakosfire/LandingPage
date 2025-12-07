@@ -32,9 +32,17 @@ export { SavingThrowsSection, SkillsSection, Column1Content } from './column1';
 export type { SavingThrowsSectionProps, SkillsSectionProps, Column1ContentProps } from './column1';
 
 // Column 2 components
-export { CombatStatsRow, HPSection, Column2Content } from './column2';
-export type { CombatStatsRowProps, HPSectionProps, Column2ContentProps, Currency, Attack } from './column2';
+export { CombatStatusSection, CombatStatsRow, HPSection, Column2Content } from './column2';
+export type { CombatStatusSectionProps, CombatStatsRowProps, HPSectionProps, Column2ContentProps, Currency, Attack } from './column2';
 
 // Column 3 components
 export { PersonalitySection, FeaturesSection, Column3Content } from './column3';
 export type { PersonalitySectionProps, FeaturesSectionProps, Feature, Column3ContentProps } from './column3';
+
+// Footer Bar
+export { FooterBar } from './FooterBar';
+export type { FooterBarProps } from './FooterBar';
+
+// Additional pages
+export { BackgroundPersonalitySheet } from './BackgroundPersonalitySheet';
+export type { BackgroundPersonalitySheetProps } from './BackgroundPersonalitySheet';

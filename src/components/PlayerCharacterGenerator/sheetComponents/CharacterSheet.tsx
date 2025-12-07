@@ -51,7 +51,6 @@ export interface CharacterSheetProps {
     currentHP?: number;
     tempHP?: number;
     hitDiceTotal: string;
-    hitDiceCurrent: string;
     deathSaveSuccesses?: number;
     deathSaveFailures?: number;
 
@@ -59,12 +58,6 @@ export interface CharacterSheetProps {
     attacks?: Attack[];
     currency?: Currency;
     equipment?: string[];
-
-    // Personality
-    traits?: string;
-    ideals?: string;
-    bonds?: string;
-    flaws?: string;
 
     // Features
     features?: Feature[];
@@ -108,7 +101,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     currentHP,
     tempHP,
     hitDiceTotal,
-    hitDiceCurrent,
     deathSaveSuccesses,
     deathSaveFailures,
 
@@ -116,12 +108,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     attacks,
     currency,
     equipment,
-
-    // Personality
-    traits,
-    ideals,
-    bonds,
-    flaws,
 
     // Features
     features
@@ -140,8 +126,22 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                 portraitUrl={portraitUrl}
             />
 
-            {/* Ability Scores Row */}
-            <AbilityScoresRow scores={abilityScores} />
+            {/* Ability Scores Row (with Combat Status + Meta Stats) */}
+            <AbilityScoresRow
+                scores={abilityScores}
+                maxHP={maxHP}
+                currentHP={currentHP}
+                tempHP={tempHP}
+                armorClass={armorClass}
+                initiative={initiative}
+                speed={speed}
+                hasInspiration={hasInspiration}
+                proficiencyBonus={proficiencyBonus}
+                passivePerception={passivePerception}
+                hitDice={hitDiceTotal}
+                deathSaveSuccesses={deathSaveSuccesses}
+                deathSaveFailures={deathSaveFailures}
+            />
 
             {/* Main 3-Column Content */}
             <MainContentGrid
@@ -151,8 +151,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                         proficiencyBonus={proficiencyBonus}
                         proficientSaves={proficientSaves}
                         proficientSkills={proficientSkills}
-                        hasInspiration={hasInspiration}
-                        passivePerception={passivePerception}
                         languages={languages}
                         armorProficiencies={armorProficiencies}
                         weaponProficiencies={weaponProficiencies}
@@ -161,16 +159,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                 }
                 column2={
                     <Column2Content
-                        armorClass={armorClass}
-                        initiative={initiative}
-                        speed={speed}
-                        maxHP={maxHP}
-                        currentHP={currentHP}
-                        tempHP={tempHP}
-                        hitDiceTotal={hitDiceTotal}
-                        hitDiceCurrent={hitDiceCurrent}
-                        deathSaveSuccesses={deathSaveSuccesses}
-                        deathSaveFailures={deathSaveFailures}
                         attacks={attacks}
                         currency={currency}
                         equipment={equipment}
@@ -178,10 +166,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                 }
                 column3={
                     <Column3Content
-                        traits={traits}
-                        ideals={ideals}
-                        bonds={bonds}
-                        flaws={flaws}
                         features={features}
                     />
                 }
