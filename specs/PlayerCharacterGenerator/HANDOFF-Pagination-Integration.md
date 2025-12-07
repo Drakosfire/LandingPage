@@ -1,7 +1,41 @@
 # Handoff: Character Sheet Pagination Integration
 **Date:** December 7, 2025  
+**Updated:** December 7, 2025 (Phase 2 Complete)  
 **Type:** Feature Enhancement  
-**Estimated Effort:** 12-18 hours (multiple phases)
+**Estimated Effort:** 12-18 hours (multiple phases)  
+**Status:** Phase 2 Complete - Features overflow working with multi-page support
+
+---
+
+## Progress Summary
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Phase 0: Research & Spike | ✅ Complete | Canvas patterns understood |
+| Phase 1: Responsive Scaling | ✅ Complete | ResizeObserver + CSS transform working |
+| Phase 2: Features Overflow | ✅ Complete | Multi-page overflow with DOM measurement |
+| Phase 3: SpellSheet Pagination | ⏳ Pending | Most complex case |
+| Phase 4: Inventory Overflow | ⏳ Pending | |
+| Phase 6: Manual Add Lines | ⏳ Pending | |
+
+### Files Created (December 7, 2025)
+
+| File | Purpose |
+|------|---------|
+| `hooks/useMeasureItems.tsx` | Lightweight Canvas-pattern measurement hook |
+| `hooks/useFeaturesOverflow.tsx` | Features overflow detection & pagination |
+| `hooks/index.ts` | Hooks barrel export |
+| `sheetComponents/overflow/FeaturesOverflowPage.tsx` | Continuation page component |
+| `sheetComponents/overflow/FeaturesOverflowPage.css` | PHB-styled overflow styling |
+| `sheetComponents/overflow/index.ts` | Overflow components export |
+| `canvasComponents/demoData/DEMO_OVERFLOW.ts` | Test character with 18 features |
+
+### Key Decisions Made
+
+1. **Continuation page style:** Simplified overflow layout with PHB parchment background
+2. **Features overflow:** Stay on main sheet Column 3, overflow to continuation pages
+3. **Measurement approach:** Lightweight `useMeasureItems` hook (not full Canvas integration)
+4. **Mobile preservation:** Overflow disabled for mobile - uses natural scroll
 
 ---
 
@@ -26,11 +60,11 @@ These currently render as **fixed-height pages** without dynamic pagination. The
 Integrate the existing `sheetComponents` with the Canvas pagination system to handle dynamic content overflow while maintaining the current fixed-page layouts for primary sections.
 
 **Success Criteria:**
-- [ ] Primary pages (CharacterSheet, InventorySheet, SpellSheet) render at fixed height
-- [ ] Overflow content (features, inventory, spells) flows to continuation pages
+- [x] Primary pages (CharacterSheet, InventorySheet, SpellSheet) render at fixed height
+- [x] Overflow content (features) flows to continuation pages *(inventory, spells pending)*
 - [ ] User can manually add lines to expandable sections
-- [ ] AI-generated characters with long feature/spell lists paginate correctly
-- [ ] Responsive scaling works (fills viewport, no horizontal scroll)
+- [x] AI-generated characters with long feature lists paginate correctly
+- [x] Responsive scaling works (fills viewport, no horizontal scroll)
 
 ---
 
@@ -110,69 +144,67 @@ Character sheets have **fixed page shells** (header, ability scores stay put) bu
 
 ## Implementation Plan
 
-### Phase 0: Research & Spike (2-3 hours)
+### Phase 0: Research & Spike ✅ COMPLETE
 
 **Goal:** Understand how to adapt Canvas system for hybrid pagination.
 
-**Questions to Answer:**
-1. Can we use `useCanvasLayout` for only certain sections?
-2. How does StatblockGenerator handle "wide" components that span columns?
-3. What's the minimum integration needed for responsive scaling?
+**Questions Answered:**
+1. ✅ Can we use `useCanvasLayout` for only certain sections? → No, created lightweight alternative
+2. ✅ How does StatblockGenerator handle "wide" components? → Not needed for PCG
+3. ✅ What's the minimum integration for responsive scaling? → ResizeObserver + CSS transform
 
 **Spike Tasks:**
-- [ ] Read `useCanvasLayout` hook and identify required inputs
-- [ ] Understand `componentRegistry` pattern and how components register
-- [ ] Study how `MeasurementLayer` measures off-screen
-- [ ] Identify what CSS variables Canvas expects (--dm-page-width, etc.)
+- [x] Read `useCanvasLayout` hook and identify required inputs
+- [x] Understand `componentRegistry` pattern and how components register
+- [x] Study how `MeasurementLayer` measures off-screen
+- [x] Identify what CSS variables Canvas expects (--dm-page-width, etc.)
 
-### Phase 1: Responsive Scaling Only (3-4 hours)
+### Phase 1: Responsive Scaling Only ✅ COMPLETE
 
 **Goal:** Get sheets to scale responsively WITHOUT full pagination.
 
-This gives us the visual polish of responsive scaling while we work on pagination.
+**Tasks:**
+- [x] Add `ResizeObserver` to CharacterCanvas for scale calculation
+- [x] Apply CSS transform scaling like StatblockPage does
+- [x] Set CSS variables for page dimensions
+- [x] Test at various viewport sizes
+
+**Implementation:** See `CharacterCanvas.tsx` lines 205-232
+
+### Phase 2: Features Overflow Infrastructure ✅ COMPLETE
+
+**Goal:** Set up measurement infrastructure for features section.
+
+**Approach Change:** Instead of full `MeasurementCoordinator` integration, created lightweight `useMeasureItems` hook that borrows Canvas patterns but is simpler for PCG.
 
 **Tasks:**
-- [ ] Add `ResizeObserver` to CharacterCanvas for scale calculation
-- [ ] Apply CSS transform scaling like StatblockPage does
-- [ ] Set CSS variables for page dimensions
-- [ ] Test at various viewport sizes
+- [x] Create `useMeasureItems` hook with ResizeObserver-based DOM measurement
+- [x] Create `useFeaturesOverflow` hook for features split detection
+- [x] Create `FeaturesOverflowPage` component for continuation pages
+- [x] Wire measurement portal into CharacterCanvas
+- [x] Test with DEMO_OVERFLOW character (18 features)
 
-**Reference Pattern (from StatblockPage.tsx):**
+**Key Implementation Details:**
+
 ```typescript
-useLayoutEffect(() => {
-    const observer = new ResizeObserver((entries) => {
-        const availableWidth = entry.contentRect.width - paddingLeft - paddingRight;
-        const widthScale = availableWidth / baseWidthPx;
-        const nextScale = clamp(widthScale, MIN_SCALE, MAX_SCALE);
-        setScale(nextScale);
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-}, [baseWidthPx]);
+// useMeasureItems returns measurementPortal as React.ReactNode (not component function!)
+// This prevents infinite re-render loop - see LEARNINGS-Canvas-Measurement-Pagination-2025.md Issue 15
+const { heights, isComplete, measurementPortal } = useMeasureItems({
+    items: features,
+    renderItem: (feature) => <FeatureMeasureItem feature={feature} />,
+    cssContext: { className: 'page phb', contentWidthPx: 720 },
+    enabled: !isMobile,
+});
+
+// Render portal as element, NOT as component
+return <>{measurementPortal}</>; // ✅ CORRECT
+return <MeasurementPortal />;     // ❌ WRONG - causes infinite loop
 ```
 
-### Phase 2: MeasurementCoordinator Integration (4-5 hours)
-
-**Goal:** Set up measurement infrastructure for dynamic sections.
-
-**Tasks:**
-- [ ] Create `MeasurementCoordinator` in `PlayerCharacterGeneratorProvider`
-- [ ] Identify which sections need measurement:
-  - `FeaturesSection` (can grow with level)
-  - `InventoryBlock` (each category can grow)
-  - `SpellLevelSection` (each spell level can grow)
-- [ ] Create measurement wrapper components for dynamic sections
-- [ ] Wire `MeasurementPortal` into CharacterCanvas
-
-**Key Decision: Measurement Keys**
-
-Each measurable section needs a unique measurement key:
-```typescript
-// Pattern from StatblockGenerator
-const measurementKey = `${characterId}:features:block`;
-const measurementKey = `${characterId}:inventory:weapons:block`;
-const measurementKey = `${characterId}:spells:level1:block`;
-```
+**Files Created:**
+- `hooks/useMeasureItems.tsx` - Core measurement hook
+- `hooks/useFeaturesOverflow.tsx` - Features-specific overflow logic
+- `sheetComponents/overflow/FeaturesOverflowPage.tsx` - Overflow page component
 
 ### Phase 3: Pagination for SpellSheet (4-5 hours)
 
@@ -406,13 +438,13 @@ Canvas expects certain CSS variables. We should set these in CharacterCanvas:
 
 ## Open Questions
 
-1. **Should we start with scaling-only?** Get responsive working before full pagination?
-2. **Continuation page style:** Same PHB styling as primary pages?
-3. **Features overflow:** Stay on main sheet or dedicated features page?
-4. **Edit mode interaction:** How does pagination interact with edit mode?
-5. **Print optimization:** Do we need print-specific pagination logic?
+1. ~~**Should we start with scaling-only?**~~ → ✅ Yes, completed in Phase 1
+2. ~~**Continuation page style:**~~ → ✅ Simplified overflow layout with PHB parchment
+3. ~~**Features overflow:**~~ → ✅ Stay on main sheet Column 3, overflow to continuation pages
+4. **Edit mode interaction:** How does pagination interact with edit mode? *(deferred)*
+5. **Print optimization:** Do we need print-specific pagination logic? *(deferred)*
 
 ---
 
-**Next Step:** Start with Phase 0 (Research & Spike) to understand Canvas integration points, then Phase 1 (Responsive Scaling) for immediate visual improvement.
+**Next Step:** Phase 3 (SpellSheet Pagination) - Most complex overflow case with multiple spell levels.
 
