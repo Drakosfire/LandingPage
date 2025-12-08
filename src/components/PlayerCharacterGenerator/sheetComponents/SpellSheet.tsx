@@ -81,6 +81,27 @@ const getSlotInfo = (slots: SpellSlotLevel[], level: number): { total: number; u
 };
 
 /**
+ * Determine if a spell level should be shown
+ * Show if: has spells OR has slots (level 0/cantrips always shown if there are any cantrips)
+ */
+const shouldShowLevel = (
+    level: number,
+    spells: SpellEntry[],
+    slots: SpellSlotLevel[]
+): boolean => {
+    // Has spells at this level
+    if (spells.length > 0) return true;
+
+    // For leveled spells (1-9), check if character has slots
+    if (level > 0) {
+        const slotInfo = getSlotInfo(slots, level);
+        if (slotInfo.total > 0) return true;
+    }
+
+    return false;
+};
+
+/**
  * SpellSheet - Full spellcasting page
  */
 export const SpellSheet: React.FC<SpellSheetProps> = ({
@@ -128,92 +149,112 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
             <div className="spell-list-container">
                 {/* Column 1: Cantrips, 1st Level */}
                 <div className="spell-column">
-                    <SpellLevelBlock
-                        level={0}
-                        spells={cantrips}
-                        emptyRows={1}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
-                    <SpellLevelBlock
-                        level={1}
-                        spells={level1Spells}
-                        totalSlots={getSlotInfo(spellSlots, 1).total}
-                        usedSlots={getSlotInfo(spellSlots, 1).used}
-                        emptyRows={2}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
+                    {shouldShowLevel(0, cantrips, spellSlots) && (
+                        <SpellLevelBlock
+                            level={0}
+                            spells={cantrips}
+                            emptyRows={1}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
+                    {shouldShowLevel(1, level1Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={1}
+                            spells={level1Spells}
+                            totalSlots={getSlotInfo(spellSlots, 1).total}
+                            usedSlots={getSlotInfo(spellSlots, 1).used}
+                            emptyRows={2}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
                 </div>
 
                 {/* Column 2: 2nd, 3rd, 4th Level */}
                 <div className="spell-column">
-                    <SpellLevelBlock
-                        level={2}
-                        spells={level2Spells}
-                        totalSlots={getSlotInfo(spellSlots, 2).total}
-                        usedSlots={getSlotInfo(spellSlots, 2).used}
-                        emptyRows={2}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
-                    <SpellLevelBlock
-                        level={3}
-                        spells={level3Spells}
-                        totalSlots={getSlotInfo(spellSlots, 3).total}
-                        usedSlots={getSlotInfo(spellSlots, 3).used}
-                        emptyRows={2}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
-                    <SpellLevelBlock
-                        level={4}
-                        spells={level4Spells}
-                        totalSlots={getSlotInfo(spellSlots, 4).total}
-                        usedSlots={getSlotInfo(spellSlots, 4).used}
-                        emptyRows={2}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
+                    {shouldShowLevel(2, level2Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={2}
+                            spells={level2Spells}
+                            totalSlots={getSlotInfo(spellSlots, 2).total}
+                            usedSlots={getSlotInfo(spellSlots, 2).used}
+                            emptyRows={2}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
+                    {shouldShowLevel(3, level3Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={3}
+                            spells={level3Spells}
+                            totalSlots={getSlotInfo(spellSlots, 3).total}
+                            usedSlots={getSlotInfo(spellSlots, 3).used}
+                            emptyRows={2}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
+                    {shouldShowLevel(4, level4Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={4}
+                            spells={level4Spells}
+                            totalSlots={getSlotInfo(spellSlots, 4).total}
+                            usedSlots={getSlotInfo(spellSlots, 4).used}
+                            emptyRows={2}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
                 </div>
 
                 {/* Column 3: 5th-9th Level */}
                 <div className="spell-column">
-                    <SpellLevelBlock
-                        level={5}
-                        spells={level5Spells}
-                        totalSlots={getSlotInfo(spellSlots, 5).total}
-                        usedSlots={getSlotInfo(spellSlots, 5).used}
-                        emptyRows={1}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
-                    <SpellLevelBlock
-                        level={6}
-                        spells={level6Spells}
-                        totalSlots={getSlotInfo(spellSlots, 6).total}
-                        usedSlots={getSlotInfo(spellSlots, 6).used}
-                        emptyRows={1}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
-                    <SpellLevelBlock
-                        level={7}
-                        spells={level7Spells}
-                        totalSlots={getSlotInfo(spellSlots, 7).total}
-                        usedSlots={getSlotInfo(spellSlots, 7).used}
-                        emptyRows={1}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
-                    <SpellLevelBlock
-                        level={8}
-                        spells={level8Spells}
-                        totalSlots={getSlotInfo(spellSlots, 8).total}
-                        usedSlots={getSlotInfo(spellSlots, 8).used}
-                        emptyRows={1}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
-                    <SpellLevelBlock
-                        level={9}
-                        spells={level9Spells}
-                        totalSlots={getSlotInfo(spellSlots, 9).total}
-                        usedSlots={getSlotInfo(spellSlots, 9).used}
-                        emptyRows={1}
-                        onSpellInfoClick={handleSpellInfoClick}
-                    />
+                    {shouldShowLevel(5, level5Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={5}
+                            spells={level5Spells}
+                            totalSlots={getSlotInfo(spellSlots, 5).total}
+                            usedSlots={getSlotInfo(spellSlots, 5).used}
+                            emptyRows={1}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
+                    {shouldShowLevel(6, level6Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={6}
+                            spells={level6Spells}
+                            totalSlots={getSlotInfo(spellSlots, 6).total}
+                            usedSlots={getSlotInfo(spellSlots, 6).used}
+                            emptyRows={1}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
+                    {shouldShowLevel(7, level7Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={7}
+                            spells={level7Spells}
+                            totalSlots={getSlotInfo(spellSlots, 7).total}
+                            usedSlots={getSlotInfo(spellSlots, 7).used}
+                            emptyRows={1}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
+                    {shouldShowLevel(8, level8Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={8}
+                            spells={level8Spells}
+                            totalSlots={getSlotInfo(spellSlots, 8).total}
+                            usedSlots={getSlotInfo(spellSlots, 8).used}
+                            emptyRows={1}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
+                    {shouldShowLevel(9, level9Spells, spellSlots) && (
+                        <SpellLevelBlock
+                            level={9}
+                            spells={level9Spells}
+                            totalSlots={getSlotInfo(spellSlots, 9).total}
+                            usedSlots={getSlotInfo(spellSlots, 9).used}
+                            emptyRows={1}
+                            onSpellInfoClick={handleSpellInfoClick}
+                        />
+                    )}
                 </div>
             </div>
 

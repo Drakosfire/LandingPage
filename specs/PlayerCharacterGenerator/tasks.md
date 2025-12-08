@@ -53,27 +53,58 @@
 |------|-------------|--------|
 | **T119** | Mobile responsiveness - InventorySheet/SpellSheet not rendering | ⏳ Blocked |
 | **T120** | Offload CSS and images to CDN (fonts, backgrounds, icons) | ⏳ Pending |
-| **T121** | SpellSheet: Only show spell levels that have slots (hide empty levels) | ⏳ Pending |
+| **T121** | SpellSheet: Only show spell levels that have slots (hide empty levels) | ✅ Complete |
 
-### Interactivity (Future Phase)
+### Phase 3.7: Edit Mode (Inline Character Editing)
+
+**Goal:** Transform sheets from read-only display to editable documents  
+**Prerequisite:** Sheets render correctly (T118 ✅)  
+**Why Before Save/Load:** Users should see changes immediately; persistence is secondary
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T130** | Spell slot dots - click to mark used/expended (mobile + desktop) | ⏳ Pending |
-| **T131** | HP tracking - click to adjust current HP, temp HP | ⏳ Pending |
-| **T132** | Death saves - click to mark successes/failures | ⏳ Pending |
-| **T133** | Hit dice - click to track used dice | ⏳ Pending |
-| **T134** | Inspiration toggle - click to grant/remove | ⏳ Pending |
-| **T135** | Equipment checkboxes - mark equipped/attuned items | ⏳ Pending |
-| **T136** | Spell prepared checkboxes - toggle prepared spells | ⏳ Pending |
-| **T137** | Currency tracking - edit gold/silver/etc inline | ⏳ Pending |
-| **T138** | Consumables - track quantity used | ⏳ Pending |
+| **T140** | Create `useEditMode.ts` hook - edit state, dirty tracking, undo buffer | ⏳ Pending |
+| **T141** | Add inline text editing for CharacterHeader (name, class display) | ⏳ Pending |
+| **T142** | Add inline editing for personality traits, ideals, bonds, flaws | ⏳ Pending |
+| **T143** | Add inline editing for notes/backstory on BackgroundSheet | ⏳ Pending |
+| **T144** | HP tracking - click to adjust current HP, temp HP | ⏳ Pending |
+| **T145** | Death saves - click to mark successes/failures | ⏳ Pending |
+| **T146** | Hit dice - click to track used dice | ⏳ Pending |
+| **T147** | Inspiration toggle - click to grant/remove | ⏳ Pending |
+| **T148** | Spell slot dots - click to mark used/expended | ⏳ Pending |
+| **T149** | Spell prepared checkboxes - toggle prepared spells | ⏳ Pending |
 
-**Interactivity Note:** These tasks transform the sheet from read-only display to a functional play session tool. Consider:
-- State persistence (localStorage for session, cloud sync for long-term)
-- Undo/redo for accidental clicks
+### Phase 3.8: Edit Mode - Inventory & Equipment
+
+**Goal:** Complete inventory editing capabilities  
+**Prerequisite:** Core edit mode (T140-T149)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T150** | Equipment checkboxes - mark equipped/attuned items | ⏳ Pending |
+| **T151** | Currency tracking - edit gold/silver/etc inline | ⏳ Pending |
+| **T152** | Consumables - track quantity used | ⏳ Pending |
+| **T153** | Item quantity editing (add/remove/adjust) | ⏳ Pending |
+| **T154** | Visual edit mode toggle (pencil icon, border highlights) | ⏳ Pending |
+
+### Phase 3.9: Homebrew Mode (Custom Content)
+
+**Goal:** Allow adding non-SRD content to character  
+**Prerequisite:** Edit Mode working (Phase 3.7-3.8)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T155** | Add "Custom Feature" button to FeaturesSection | ⏳ Pending |
+| **T156** | Add "Custom Item" button to InventorySheet | ⏳ Pending |
+| **T157** | Add "Custom Spell" button to SpellSheet | ⏳ Pending |
+| **T158** | Create `CustomContentModal` for entering homebrew data | ⏳ Pending |
+| **T159** | Flag homebrew content visually (different styling/icon) | ⏳ Pending |
+
+**Edit Mode Note:** These tasks transform the sheet from read-only display to a functional play session tool. Key considerations:
+- Immediate visual feedback (no save required to see changes)
 - Touch-friendly tap targets (44px minimum)
-- Visual feedback on state changes (animations, color shifts)
+- Undo/redo for accidental clicks
+- State persistence handled in Phase 4 (Save/Load)
 
 **Files Created (December 4, 2025):**
 - `characterAdapters.ts` - Canvas adapter implementations for character data
@@ -126,9 +157,13 @@
 |-------|-------------|-------|------------|--------|
 | **Phase 1** | Setup | 3 | 1h | ✅ Complete |
 | **Phase 2** | Foundational (Rule Engine) | 10 | 4-6h | ✅ Complete |
-| **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | 🔄 In Progress (Canvas Rendering ✅) |
+| **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | 🔄 In Progress (Canvas ✅, Pagination ✅) |
+| **Phase 3.5b** | Wizard Polish & Integration | 7 | 14-16h | ⏳ **NEXT** (blocks Edit Mode) |
+| **Phase 3.7** | Edit Mode (Core) | 10 | 12-16h | ⏳ Pending |
+| **Phase 3.8** | Edit Mode (Inventory) | 5 | 6-8h | ⏳ Pending |
+| **Phase 3.9** | Homebrew Mode | 5 | 8-12h | ⏳ Pending |
 | **Phase 4** | US4 - Save and Load | 6 | 6-8h | ⏳ Pending |
-| **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending |
+| **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending (after Edit Mode) |
 | **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
 | **Phase 7** | US5 - Character Leveling | 4 | 8-10h | ⏳ Pending |
 | **Phase 8** | US6 - Export | 3 | 4-6h | ⏳ Pending |
@@ -322,6 +357,26 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 #### Integration
 - [x] T058 [US1] Wire all steps into `CharacterCreationWizard.tsx` ✅
 
+### 3.5b Wizard Polish & Integration (BLOCKING for Edit Mode)
+
+**Goal:** Make wizard fully functional end-to-end before Edit Mode  
+**Status:** ⏳ Not started - Critical gap identified December 8, 2025
+
+| Task | Description | Est. | Status |
+|------|-------------|------|--------|
+| **T058a** | Add `BasicInfoStep.tsx` - character name, backstory concept, pronouns (Step 0) | 2h | ⏳ |
+| **T058b** | Reorder wizard: Basic Info → Abilities → Race → Class → ... | 1h | ⏳ |
+| **T058c** | Wire wizard state to CharacterCanvas (see changes live) | 2h | ⏳ |
+| **T058d** | Add validation gating - disable Next until step validates | 2h | ⏳ |
+| **T058e** | Fix drawer height/overflow (scrollable content area) | 1h | ⏳ |
+| **T058f** | Manual end-to-end test: Create full character through wizard | 2h | ⏳ |
+| **T058g** | Validate all 7 test fixture characters can be created via wizard | 4h | ⏳ |
+
+**Why This Blocks Edit Mode:**
+- Can't edit a character that wasn't properly created
+- Need to verify wizard produces valid data before editing it
+- Canvas must display wizard output before adding edit capabilities
+
 ### 3.6 Canvas Enhancement
 
 **Goal**: Render complete character sheet on canvas with all data from wizard  
@@ -439,7 +494,7 @@ Each component renders a section of the character sheet. Display-only first, edi
 
 **Goal**: Generate complete character from text prompt  
 **Independent Test**: Enter concept → receive valid, editable character  
-**Depends On**: Phase 3 complete
+**Depends On**: Phase 3.7-3.9 complete (Edit Mode must work before AI generates editable characters)
 
 - [ ] T074 [US2] Create `playercharactergenerator_router.py` in `DungeonMindServer/routers/playercharactergenerator_router.py`
 - [ ] T075 [US2] Create `character_generator.py` service in `DungeonMindServer/services/character_generator.py`
@@ -512,24 +567,32 @@ This phase handles:
 ## 📊 Dependencies
 
 ```
-Phase 2 (Foundational) ──────────────────────────────────┐
-         │                                               │
-         ▼                                               │
-Phase 3 (US1: Manual Creation) ──────────────────────────┤
-         │                                               │
-         ├──────────────────┬───────────────┬───────────┤
-         ▼                  ▼               ▼           │
-Phase 4 (US4: Save/Load)  Phase 7 (US5)   Phase 8 (US6)│
-         │                                              │
-         ▼                                              │
-Phase 5 (US2: AI Generation) ───────────────────────────┤
-         │                                              │
-         ▼                                              │
-Phase 6 (US3: Portrait) ────────────────────────────────┘
-                                                        │
-                                                        ▼
-                                               Phase 9 (Polish)
+Phase 2 (Foundational) ──────────────────────────────────────────┐
+         │                                                       │
+         ▼                                                       │
+Phase 3 (US1: Manual Creation + Canvas Display) ─────────────────┤
+         │                                                       │
+         ▼                                                       │
+Phase 3.7-3.9 (Edit Mode + Homebrew) ← CRITICAL PATH ────────────┤
+         │                                                       │
+         ├──────────────────┬───────────────┬───────────────────┤
+         ▼                  ▼               ▼                   │
+Phase 4 (Save/Load)    Phase 7 (Leveling) Phase 8 (Export)      │
+         │                                                      │
+         ▼                                                      │
+Phase 5 (AI Generation) ← Requires Edit Mode to work ───────────┤
+         │                                                      │
+         ▼                                                      │
+Phase 6 (Portrait) ─────────────────────────────────────────────┘
+                                                                │
+                                                                ▼
+                                                       Phase 9 (Polish)
 ```
+
+**Key Change:** Edit Mode (Phase 3.7-3.9) is now on the critical path before AI Generation. This ensures:
+1. Manual character creation is fully exercised before automation
+2. Generated characters can be immediately edited
+3. Homebrew content system is available for AI-generated characters
 
 ---
 
@@ -561,23 +624,28 @@ After Phase 3 completes, these phases are independent:
 ## 🎯 Implementation Strategy
 
 ### MVP Scope (Recommended)
-**Phase 1 + Phase 2 + Phase 3 (US1 only)**
-- Delivers: Complete manual character creation (including level 1 subclasses, spellcasting, flexible bonuses)
-- Excludes: AI, portraits, save/load, leveling, export
-- Estimated: 83-113 hours
-- Value: Core product works end-to-end with ALL level 1 features
+**Phase 1 + Phase 2 + Phase 3 + Phase 3.7-3.9 + Phase 4**
+- Delivers: Complete manual character creation with inline editing and save/load
+- Includes: Level 1 characters, full editing, homebrew content, persistence
+- Excludes: AI generation, portraits, leveling, export
+- Estimated: 130-160 hours
+- Value: Fully functional character sheet tool (create, edit, save, load)
 
 ### Incremental Delivery
 1. **Sprint 1**: Phase 1-2 (Foundation + Rule Engine) - 5-7h ✅ COMPLETE
 2. **Sprint 2**: Phase 3.1 (Race Data) - 4-6h ✅ COMPLETE
-3. **Sprint 3**: Phase 3.1b + 3.2 (Flexible bonuses + Classes) - 12-18h
-4. **Sprint 4**: Phase 3.2b + 3.2c (Level 1 Subclasses + Spellcasting) - 12-18h
-5. **Sprint 5**: Phase 3.3-3.4 (Backgrounds + Validation) - 10-14h
-6. **Sprint 6**: Phase 3.5 (Wizard UI with subclass/spell selectors) - 24-32h
-7. **Sprint 7**: Phase 3.6 (Canvas - Demo Data, Components, Integration) - 14-18h
-8. **Sprint 8**: Phase 4-5 (Save/Load + AI) - 18-24h
-9. **Sprint 9**: Phase 6-8 (Portrait, Leveling, Export) - 16-22h
-10. **Sprint 10**: Phase 9 (Polish) - 2-4h
+3. **Sprint 3**: Phase 3.1b + 3.2 (Flexible bonuses + Classes) - 12-18h ✅ COMPLETE
+4. **Sprint 4**: Phase 3.2b + 3.2c (Level 1 Subclasses + Spellcasting) - 12-18h ✅ COMPLETE
+5. **Sprint 5**: Phase 3.3-3.4 (Backgrounds + Validation) - 10-14h ✅ COMPLETE
+6. **Sprint 6**: Phase 3.5 (Wizard UI with subclass/spell selectors) - 24-32h ✅ COMPLETE
+7. **Sprint 7**: Phase 3.6 (Canvas - Demo Data, Components, Pagination) - 14-18h ✅ COMPLETE
+8. **Sprint 8**: Phase 3.5b (Wizard Polish & Integration) - 14-16h ← **NEXT**
+9. **Sprint 9**: Phase 3.7 (Edit Mode - Core) - 12-16h
+10. **Sprint 10**: Phase 3.8-3.9 (Edit Mode - Inventory + Homebrew) - 14-20h
+11. **Sprint 11**: Phase 4 (Save/Load) - 6-8h
+12. **Sprint 12**: Phase 5 (AI Generation) - 12-16h
+13. **Sprint 13**: Phase 6-8 (Portrait, Leveling, Export) - 16-22h
+14. **Sprint 14**: Phase 9 (Polish) - 2-4h
 
 ---
 
@@ -598,19 +666,22 @@ After Phase 3 completes, these phases are independent:
 
 | Metric | Value |
 |--------|-------|
-| **Total Tasks** | 131 |
+| **Total Tasks** | 158 |
 | **Setup Tasks** | 3 (✅ complete) |
 | **Foundational Tasks** | 10 (✅ complete) |
 | **US1 Tasks** | 85 (includes subclass/spellcasting + canvas breakdown + 7 integration tests) |
-| **US2 Tasks** | 6 |
-| **US3 Tasks** | 2 |
-| **US4 Tasks** | 6 |
-| **US5 Tasks** | 4 |
-| **US6 Tasks** | 3 |
+| **Wizard Polish (3.5b)** | 7 (basic info, wiring, validation, testing) |
+| **Edit Mode Tasks (3.7)** | 10 (core editing, HP, spell slots) |
+| **Edit Mode - Inventory (3.8)** | 5 (equipment, currency, consumables) |
+| **Homebrew Mode Tasks (3.9)** | 5 (custom features, items, spells) |
+| **US2 Tasks (AI)** | 6 |
+| **US3 Tasks (Portrait)** | 2 |
+| **US4 Tasks (Save/Load)** | 6 |
+| **US5 Tasks (Leveling)** | 4 |
+| **US6 Tasks (Export)** | 3 |
 | **Polish Tasks** | 7 |
-| **Interactivity Tasks** | 9 |
 | **Parallel Opportunities** | 25+ tasks |
-| **MVP Tasks** | 91 (Phase 1-3) |
+| **MVP Tasks** | 111 (Phase 1-3 + Edit Mode + Save/Load) |
 
 **Tasks Added (December 2, 2025 - Canvas Breakdown)**:
 - T059a: Demo character data for canvas testing (1 task)
@@ -634,10 +705,18 @@ After Phase 3 completes, these phases are independent:
 - Marked T070-T075 as complete/superseded via HTML-first approach
 - T119: Mobile responsiveness debug (InventorySheet/SpellSheet not rendering)
 - T120: CDN optimization (offload CSS, images, fonts)
-- T121: SpellSheet only show levels with slots
-- T130-T138: Interactivity tasks (spell slots, HP, death saves, equipment, etc.)
+- T121: SpellSheet only show levels with slots ✅ Complete
+
+**Tasks Restructured (December 8, 2025 - Edit Mode + Phase Reorder)**:
+- **Phase 3.7 (Edit Mode)**: T140-T149 - Core inline editing, HP/spell tracking
+- **Phase 3.8 (Edit Mode - Inventory)**: T150-T154 - Equipment/currency editing
+- **Phase 3.9 (Homebrew Mode)**: T155-T159 - Custom content creation
+- Absorbed old T130-T138 interactivity tasks into Phase 3.7/3.8
+- **Reordered phases**: Edit Mode now comes BEFORE AI Generation
+- Updated dependency diagram to show Edit Mode as critical path
+- MVP now includes Edit Mode + Save/Load (111 tasks vs 91)
 
 **Generated by speckit.tasks workflow**  
-**Updated**: December 7, 2025 (All Sheet Pages Visually Complete + Polish + Interactivity)  
-**Next**: Pagination integration (T105-T106), then Mobile polish (T119-T121), then Interactivity (T130+)
+**Updated**: December 8, 2025 (Edit Mode phases added, Wizard Polish blocking phase identified)  
+**Next**: Phase 3.5b (Wizard Polish) → Phase 3.7 (Edit Mode) → Phase 4 (Save/Load) → Phase 5 (AI Generation)
 

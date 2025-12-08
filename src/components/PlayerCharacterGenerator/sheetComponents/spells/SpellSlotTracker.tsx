@@ -53,18 +53,20 @@ const SpellSlotLevelBox: React.FC<SpellSlotLevel> = ({ level, total, used }) => 
 
 /**
  * SpellSlotTracker - Full spell slot tracker row
+ * Only shows slot levels that have at least 1 slot
  */
 export const SpellSlotTracker: React.FC<SpellSlotTrackerProps> = ({ slots }) => {
-    // Ensure we have slots 1-9
-    const allSlots: SpellSlotLevel[] = [];
-    for (let level = 1; level <= 9; level++) {
-        const existing = slots.find(s => s.level === level);
-        allSlots.push(existing ?? { level, total: 0, used: 0 });
-    }
+    // Filter to only show levels with slots
+    const visibleSlots = slots
+        .filter(s => s.total > 0)
+        .sort((a, b) => a.level - b.level);
+
+    // Don't render anything if no slots
+    if (visibleSlots.length === 0) return null;
 
     return (
         <div className="spell-slots-section">
-            {allSlots.map((slot) => (
+            {visibleSlots.map((slot) => (
                 <SpellSlotLevelBox
                     key={slot.level}
                     level={slot.level}
