@@ -84,7 +84,7 @@ const getSpacingScale = (viewportWidth: number): number => {
 };
 
 const CharacterCanvas: React.FC = () => {
-    const { character } = usePlayerCharacterGenerator();
+    const { character, isEditMode, updateCharacter } = usePlayerCharacterGenerator();
 
     // ===== STATE =====
     const containerRef = useRef<HTMLDivElement>(null);
@@ -882,9 +882,10 @@ const CharacterCanvas: React.FC = () => {
     if (isMobile) {
         return (
             <div
-                className="character-canvas-area character-canvas-mobile"
+                className={`character-canvas-area character-canvas-mobile${isEditMode ? ' edit-mode' : ''}`}
                 ref={containerRef}
                 data-testid="character-canvas"
+                data-edit-mode={isEditMode}
                 style={{
                     width: '100%',
                     minHeight: '100%',
@@ -906,10 +907,11 @@ const CharacterCanvas: React.FC = () => {
             {spellsMeasurementPortal}
 
             <div
-                className="character-canvas-area"
+                className={`character-canvas-area${isEditMode ? ' edit-mode' : ''}`}
                 ref={containerRef}
                 style={containerStyle}
                 data-testid="character-canvas"
+                data-edit-mode={isEditMode}
             >
                 <div className="character-canvas-wrapper" style={transformWrapperStyle}>
                     <div className="character-canvas-renderer" style={canvasRendererStyle}>

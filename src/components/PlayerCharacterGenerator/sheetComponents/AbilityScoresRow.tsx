@@ -90,6 +90,7 @@ const ABILITIES: Array<{ key: keyof AbilityScores; abbrev: string }> = [
 
 /**
  * AbilityBox - Single ability score display (horizontal)
+ * In edit mode, clicking opens the ability scores drawer (complex edit)
  */
 interface AbilityBoxProps {
     abbrev: string;
@@ -97,7 +98,11 @@ interface AbilityBoxProps {
 }
 
 const AbilityBox: React.FC<AbilityBoxProps> = ({ abbrev, score }) => (
-    <div className="ability-box-horizontal" data-testid={`ability-${abbrev.toLowerCase()}`}>
+    <div 
+        className="ability-box-horizontal" 
+        data-testid={`ability-${abbrev.toLowerCase()}`}
+        data-editable="complex"
+    >
         <span className="ability-name">{abbrev}</span>
         <span className="ability-score">{score}</span>
         <span className="ability-modifier">{formatModifier(score)}</span>
@@ -164,18 +169,18 @@ const CombatStatus: React.FC<CombatStatusProps> = ({
                     <span className="hp-val">{maxHP}</span>
                     <span className="hp-lbl">HP Max</span>
                 </div>
-                <div className="hp-row">
+                <div className="hp-row" data-editable="quick">
                     <span className="hp-input">{currentHP ?? ''}</span>
                     <span className="hp-lbl">Current</span>
                 </div>
-                <div className="hp-row">
+                <div className="hp-row" data-editable="quick">
                     <span className="hp-input small">{tempHP ?? ''}</span>
                     <span className="hp-lbl">Temp</span>
                 </div>
             </div>
             {/* Combat Stats Column */}
             <div className="combat-stats-col">
-                <div className="stat-row">
+                <div className="stat-row" data-editable="complex">
                     <span className="stat-val">{armorClass}</span>
                     <span className="stat-lbl">AC</span>
                 </div>
@@ -183,14 +188,14 @@ const CombatStatus: React.FC<CombatStatusProps> = ({
                     <span className="stat-val">{formatInitiative(initiative)}</span>
                     <span className="stat-lbl">Init</span>
                 </div>
-                <div className="stat-row">
+                <div className="stat-row" data-editable="complex">
                     <span className="stat-val">{speed}<span className="speed-ft">ft</span></span>
                     <span className="stat-lbl">Speed</span>
                 </div>
             </div>
         </div>
         {/* Death Saves - Bottom Row */}
-        <div className="combat-death-row">
+        <div className="combat-death-row" data-editable="quick">
             <span className="death-lbl">Death Saves</span>
             <div className="death-group success-group">
                 <span className="death-group-lbl">S</span>
@@ -225,7 +230,7 @@ const MetaStats: React.FC<MetaStatsProps> = ({
     hitDice
 }) => (
     <div className="phb-section meta-stats-compact" data-testid="meta-stats">
-        <div className="meta-row">
+        <div className="meta-row" data-editable="quick">
             <span className="meta-lbl">Inspiration</span>
             <span className={`meta-box ${hasInspiration ? 'filled' : ''}`}>
                 {hasInspiration ? '✓' : ''}
@@ -242,7 +247,7 @@ const MetaStats: React.FC<MetaStatsProps> = ({
             <span className="meta-lbl">Passive</span>
             <span className="meta-val">{passivePerception}</span>
         </div>
-        <div className="meta-row">
+        <div className="meta-row" data-editable="quick">
             <span className="meta-lbl">Hit Dice</span>
             <span className="meta-val">{hitDice}</span>
         </div>

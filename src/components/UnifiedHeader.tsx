@@ -1,9 +1,9 @@
 // src/components/UnifiedHeader.tsx
 // Unified horizontal navigation header for all DungeonMind apps
 import React, { useState, useEffect, ReactNode } from 'react';
-import { Group, ActionIcon, Box, Badge, Title } from '@mantine/core';
+import { Group, ActionIcon, Box, Badge, Title, Tooltip } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { IconHelp } from '@tabler/icons-react';
+import { IconHelp, IconEdit, IconEye } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext, AppMetadata } from '../context/AppContext';
 import { NavigationDrawer } from './NavigationDrawer';
@@ -37,6 +37,11 @@ export interface UnifiedHeaderProps {
     showGeneration?: boolean;           // Show generation button (default: false)
     onGenerationClick?: () => void;     // Generation button click handler
     generationIconUrl?: string;         // Custom generation icon URL
+
+    // Edit Mode Toggle (optional)
+    showEditMode?: boolean;             // Show edit mode toggle (default: false)
+    isEditMode?: boolean;               // Current edit mode state
+    onEditModeToggle?: (enabled: boolean) => void; // Edit mode toggle handler
 
     // Feature flags
     showAuth?: boolean;                // Show login/logout button (default: true)
@@ -110,6 +115,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
     showGeneration = false,
     onGenerationClick,
     generationIconUrl,
+    showEditMode = false,
+    isEditMode = false,
+    onEditModeToggle,
     showAuth = true,
     showHelp = false,
     onHelpClick,
@@ -280,7 +288,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                     </Group>
                 )}
 
-                {/* Right Section: Save Badge + Projects + App Toolbox + Right Controls + Help Button */}
+                {/* Right Section: Save Badge + Edit Toggle + Projects + App Toolbox + Right Controls + Help Button */}
                 <Group gap={controlGap}>
                     {/* Save Status Badge (if provided) */}
                     {saveStatus && saveStatus !== 'idle' && (
@@ -299,6 +307,39 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                                 saveStatus === 'saved' ? 'Saved' :
                                     saveStatus === 'error' ? 'Error' : saveStatus}
                         </Badge>
+                    )}
+
+                    {/* Edit Mode Toggle (if enabled) */}
+                    {showEditMode && (
+                        <Tooltip 
+                            label={isEditMode ? 'Switch to View Mode' : 'Switch to Edit Mode'}
+                            zIndex={1100}
+                        >
+                            <ActionIcon
+                                onClick={() => onEditModeToggle?.(!isEditMode)}
+                                variant={isEditMode ? 'filled' : 'subtle'}
+                                color={isEditMode ? 'blue' : 'gray'}
+                                size={isMobile ? 'lg' : 'xl'}
+                                radius="md"
+                                data-tutorial="edit-mode-toggle"
+                                aria-label={isEditMode ? 'Switch to View Mode' : 'Switch to Edit Mode'}
+                                style={{
+                                    backgroundColor: isEditMode 
+                                        ? 'rgba(59, 130, 246, 0.9)' 
+                                        : 'rgba(255, 255, 255, 0.2)',
+                                    border: isEditMode 
+                                        ? '2px solid rgba(59, 130, 246, 1)' 
+                                        : '2px solid rgba(255, 255, 255, 0.4)',
+                                    transition: 'all 0.2s ease',
+                                }}
+                            >
+                                {isEditMode ? (
+                                    <IconEdit size={isMobile ? 20 : 24} color="white" />
+                                ) : (
+                                    <IconEye size={isMobile ? 20 : 24} color="white" />
+                                )}
+                            </ActionIcon>
+                        </Tooltip>
                     )}
 
                     {/* Projects Button (if enabled) */}

@@ -29,7 +29,12 @@ import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
  */
 const PlayerCharacterGeneratorInner: React.FC = () => {
     const [creationDrawerOpen, setCreationDrawerOpen] = useState(false);
-    const { loadDemoCharacter, demoCharacterOptions } = usePlayerCharacterGenerator();
+    const { 
+        loadDemoCharacter, 
+        demoCharacterOptions,
+        isEditMode,
+        setIsEditMode 
+    } = usePlayerCharacterGenerator();
 
     // Load D&D 5e PHB CSS
     useEffect(() => {
@@ -74,7 +79,10 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
                 toolboxSections={toolboxSections}
                 saveStatus="idle"
                 saveError={null}
-                showProjects={false}  // Phase 2+
+                showEditMode={true}
+                isEditMode={isEditMode}
+                onEditModeToggle={setIsEditMode}
+                showProjects={true}  // Show projects button (placeholder for Phase 2+)
                 onProjectsClick={handleProjectsClick}
                 showGeneration={true}  // Phase 1: Enable generation drawer
                 onGenerationClick={handleGenerationClick}

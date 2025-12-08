@@ -37,6 +37,12 @@ interface PlayerCharacterGeneratorContextType {
     validation: ValidationResult;
     isCharacterValid: boolean;
 
+    // ===== EDIT MODE =====
+    isEditMode: boolean;
+    setIsEditMode: (enabled: boolean) => void;
+    isHomebrewMode: boolean;
+    setIsHomebrewMode: (enabled: boolean) => void;
+
     // ===== PROJECT MANAGEMENT (Phase 4) =====
     // currentProject: CharacterProject | null;
     // saveProject: () => Promise<void>;
@@ -75,6 +81,19 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         empty.dnd5eData = createEmptyDnD5eCharacter();
         return empty;
     });
+
+    // ===== EDIT MODE STATE =====
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [isHomebrewMode, setIsHomebrewMode] = useState(false);
+
+    // Log edit mode changes
+    useEffect(() => {
+        console.log(`✏️ [PlayerCharacterGenerator] Edit mode: ${isEditMode ? 'ON' : 'OFF'}`);
+    }, [isEditMode]);
+
+    useEffect(() => {
+        console.log(`🍺 [PlayerCharacterGenerator] Homebrew mode: ${isHomebrewMode ? 'ON' : 'OFF'}`);
+    }, [isHomebrewMode]);
 
     // ===== DERIVED VALIDATION (from Rule Engine) =====
     const validation = useMemo<ValidationResult>(() => {
@@ -177,15 +196,20 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
                 resetCharacter,
                 getCharacter: () => character,
                 getValidation: () => validation,
-                demoOptions: DEMO_CHARACTER_OPTIONS
+                demoOptions: DEMO_CHARACTER_OPTIONS,
+                // Edit mode helpers
+                toggleEditMode: () => setIsEditMode(prev => !prev),
+                toggleHomebrewMode: () => setIsHomebrewMode(prev => !prev),
+                getEditMode: () => ({ isEditMode, isHomebrewMode })
             };
             console.log('🛠️ [PCG Debug] Helpers available: window.__PCG_DEBUG__');
             console.log('  - loadDemoCharacter(key): Load demo character (fighter, wizard)');
             console.log('  - resetCharacter(): Reset to empty character');
             console.log('  - getCharacter(): Get current character state');
-            console.log('  - demoOptions: Available demo characters');
+            console.log('  - toggleEditMode(): Toggle edit mode');
+            console.log('  - toggleHomebrewMode(): Toggle homebrew mode');
         }
-    }, [loadDemoCharacter, resetCharacter, character, validation]);
+    }, [loadDemoCharacter, resetCharacter, character, validation, isEditMode, isHomebrewMode]);
 
     // ===== CONTEXT VALUE =====
     const contextValue: PlayerCharacterGeneratorContextType = {
@@ -203,7 +227,13 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
 
         // Validation (from engine)
         validation,
-        isCharacterValid
+        isCharacterValid,
+
+        // Edit mode
+        isEditMode,
+        setIsEditMode,
+        isHomebrewMode,
+        setIsHomebrewMode
     };
 
     return (
