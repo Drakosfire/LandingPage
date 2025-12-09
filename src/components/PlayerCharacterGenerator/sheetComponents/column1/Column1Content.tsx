@@ -11,6 +11,20 @@ import React from 'react';
 import { SavingThrowsSection } from './SavingThrowsSection';
 import { SkillsSection } from './SkillsSection';
 import type { AbilityScores } from '../AbilityScoresRow';
+import { usePlayerCharacterGenerator } from '../../PlayerCharacterGeneratorProvider';
+
+/**
+ * Wizard step constants for navigation
+ */
+const WIZARD_STEPS = {
+    ABILITIES: 0,
+    RACE: 1,
+    CLASS: 2,
+    SPELLS: 3,
+    BACKGROUND: 4,
+    EQUIPMENT: 5,
+    REVIEW: 6
+} as const;
 
 export interface Column1ContentProps {
     /** Ability scores */
@@ -41,6 +55,15 @@ export const Column1Content: React.FC<Column1ContentProps> = ({
     weaponProficiencies = [],
     toolProficiencies = []
 }) => {
+    const { isEditMode, openDrawerToStep } = usePlayerCharacterGenerator();
+
+    const handleProficienciesClick = () => {
+        if (isEditMode) {
+            console.log('🔗 [Column1Content] Opening Class step (proficiencies from class/race)');
+            openDrawerToStep(WIZARD_STEPS.CLASS);
+        }
+    };
+
     return (
         <>
             {/* Saving Throws */}
@@ -58,7 +81,20 @@ export const Column1Content: React.FC<Column1ContentProps> = ({
             />
 
             {/* Proficiencies & Languages */}
-            <div className="phb-section proficiencies-box">
+            <div 
+                className="phb-section proficiencies-box"
+                data-editable={isEditMode ? "complex" : undefined}
+                onClick={handleProficienciesClick}
+                role={isEditMode ? 'button' : undefined}
+                tabIndex={isEditMode ? 0 : undefined}
+                onKeyDown={(e) => {
+                    if (isEditMode && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        handleProficienciesClick();
+                    }
+                }}
+                title={isEditMode ? "Edit proficiencies (Class/Race)" : undefined}
+            >
                 <div className="text-area">
                     <strong>Lang:</strong> {languages.join(', ')}<br />
                     <strong>Armor:</strong> {armorProficiencies.length > 0 ? armorProficiencies.join(', ') : 'None'}<br />
