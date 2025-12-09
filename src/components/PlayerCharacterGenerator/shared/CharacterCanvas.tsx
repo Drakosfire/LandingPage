@@ -148,6 +148,12 @@ const CharacterCanvas: React.FC = () => {
         });
     }, [updateDnD5eData, character?.dnd5eData?.personality]);
 
+    // Handler for notes changes (quick edit) - notes is in base Character, not DnD5e
+    const handleNotesChange = React.useCallback((value: string) => {
+        console.log('✏️ [CharacterCanvas] Notes changed:', value);
+        updateCharacter({ notes: value });
+    }, [updateCharacter]);
+
     // Handler for spell slot usage changes (quick edit)
     const handleSpellSlotUsageChange = React.useCallback((level: number, used: number) => {
         console.log(`✏️ [CharacterCanvas] Spell slot level ${level} usage changed:`, used);
@@ -670,10 +676,12 @@ const CharacterCanvas: React.FC = () => {
                         ideals={ideals}
                         bonds={bonds}
                         flaws={flaws}
+                        notes={character.notes || ''}
                         onTraitsChange={handleTraitsChange}
                         onIdealsChange={handleIdealsChange}
                         onBondsChange={handleBondsChange}
                         onFlawsChange={handleFlawsChange}
+                        onNotesChange={handleNotesChange}
                     />
 
                     {/* Page 3: Inventory Sheet */}

@@ -11,7 +11,7 @@
  * @module PlayerCharacterGenerator/sheetComponents
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { CharacterSheetPage } from './CharacterSheetPage';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import './CharacterSheet.css';
@@ -55,6 +55,8 @@ interface PersonalityBoxProps {
 /**
  * EditableTextarea - Inline editable textarea for personality fields
  * Shows static text when not editing, textarea when editing (click to edit)
+ * 
+ * Exposes startEditing() via ref so parent containers can trigger editing
  */
 interface EditableTextareaProps {
     value: string;
@@ -63,16 +65,30 @@ interface EditableTextareaProps {
     rows?: number;
 }
 
-const EditableTextarea: React.FC<EditableTextareaProps> = ({
+export interface EditableTextareaRef {
+    startEditing: () => void;
+}
+
+const EditableTextarea = forwardRef<EditableTextareaRef, EditableTextareaProps>(({
     value,
     onChange,
     placeholder = '',
     rows = 4
-}) => {
+}, ref) => {
     const { isEditMode } = usePlayerCharacterGenerator();
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(value);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Expose startEditing method via ref for parent containers
+    useImperativeHandle(ref, () => ({
+        startEditing: () => {
+            if (isEditMode && !isEditing) {
+                console.log('✏️ [EditableTextarea] Starting inline edit (via ref)');
+                setIsEditing(true);
+            }
+        }
+    }), [isEditMode, isEditing]);
 
     // Sync editValue when value prop changes (external update)
     useEffect(() => {
@@ -147,28 +163,50 @@ const EditableTextarea: React.FC<EditableTextareaProps> = ({
             {value || <span className="placeholder">{placeholder || '—'}</span>}
         </span>
     );
-};
+});
 
-const PersonalityBox: React.FC<PersonalityBoxProps> = ({ label, content, editable, onChange }) => (
-    <div 
-        className="phb-section personality-box personality-grid-item"
-        data-editable={editable ? "quick" : undefined}
-    >
-        <div className="text-area">
-            {editable && onChange ? (
-                <EditableTextarea
-                    value={content}
-                    onChange={onChange}
-                    placeholder={`Enter your ${label.toLowerCase()}`}
-                    rows={4}
-                />
-            ) : (
-                content || '—'
-            )}
+const PersonalityBox: React.FC<PersonalityBoxProps> = ({ label, content, editable, onChange }) => {
+    const editableTextareaRef = useRef<EditableTextareaRef>(null);
+    const { isEditMode } = usePlayerCharacterGenerator();
+    
+    // Click anywhere in the box to start editing (when in edit mode)
+    const handleContainerClick = useCallback(() => {
+        if (editable && isEditMode) {
+            editableTextareaRef.current?.startEditing();
+        }
+    }, [editable, isEditMode]);
+
+    return (
+        <div 
+            className="phb-section personality-box personality-grid-item"
+            data-editable={editable ? "quick" : undefined}
+            onClick={handleContainerClick}
+            role={editable && isEditMode ? 'button' : undefined}
+            tabIndex={editable && isEditMode ? 0 : undefined}
+            onKeyDown={editable && isEditMode ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleContainerClick();
+                }
+            } : undefined}
+        >
+            <div className="text-area">
+                {editable && onChange ? (
+                    <EditableTextarea
+                        ref={editableTextareaRef}
+                        value={content}
+                        onChange={onChange}
+                        placeholder={`Enter your ${label.toLowerCase()}`}
+                        rows={4}
+                    />
+                ) : (
+                    content || '—'
+                )}
+            </div>
+            <div className="box-label">{label}</div>
         </div>
-        <div className="box-label">{label}</div>
-    </div>
-);
+    );
+};
 
 /**
  * BackgroundPersonalitySheet - PHB-styled page for roleplay content
@@ -196,6 +234,16 @@ export const BackgroundPersonalitySheet: React.FC<BackgroundPersonalitySheetProp
     onFlawsChange,
     onNotesChange
 }) => {
+    const { isEditMode } = usePlayerCharacterGenerator();
+    const notesTextareaRef = useRef<EditableTextareaRef>(null);
+    
+    // Click anywhere in notes box to start editing
+    const handleNotesBoxClick = useCallback(() => {
+        if (onNotesChange && isEditMode) {
+            notesTextareaRef.current?.startEditing();
+        }
+    }, [onNotesChange, isEditMode]);
+    
     // Check if any edit callbacks are provided
     const hasEditCallbacks = !!(onTraitsChange || onIdealsChange || onBondsChange || onFlawsChange || onNotesChange);
     
@@ -244,16 +292,26 @@ export const BackgroundPersonalitySheet: React.FC<BackgroundPersonalitySheetProp
                 />
             </div>
 
-            {/* Notes Section */}
+            {/* Notes Section - click anywhere to edit */}
             <div className="notes-section">
                 <div 
                     className="phb-section notes-box"
                     data-editable={onNotesChange ? "quick" : undefined}
+                    onClick={handleNotesBoxClick}
+                    role={onNotesChange && isEditMode ? 'button' : undefined}
+                    tabIndex={onNotesChange && isEditMode ? 0 : undefined}
+                    onKeyDown={onNotesChange && isEditMode ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleNotesBoxClick();
+                        }
+                    } : undefined}
                 >
                     <div className="notes-content">
                         <div className="notes-column">
                             {onNotesChange ? (
                                 <EditableTextarea
+                                    ref={notesTextareaRef}
                                     value={notes}
                                     onChange={onNotesChange}
                                     placeholder="Enter notes here..."

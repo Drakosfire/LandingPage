@@ -2552,8 +2552,10 @@
 }
 
 /* Personality box quick edit styling */
+/* Click anywhere in the box to edit - entire container is clickable */
 .character-canvas-area.edit-mode .personality-box[data-editable="quick"] {
     position: relative;
+    cursor: text;
 }
 
 .character-canvas-area.edit-mode .personality-box[data-editable="quick"] .text-area {
@@ -2565,6 +2567,7 @@
     min-height: 60px;
 }
 
+/* Hover on entire box highlights it */
 .character-canvas-area.edit-mode .personality-box[data-editable="quick"]:hover .text-area {
     border-color: #2563eb !important;
     background-color: rgba(59, 130, 246, 0.2) !important;
@@ -2576,9 +2579,19 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
+/* Make editable textarea display fill the container */
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"] .editable-textarea-display {
+    display: block;
+    width: 100%;
+    min-height: 100%;
+    cursor: text;
+}
+
 /* Notes box quick edit styling */
+/* Click anywhere in the 3-column notes box to start editing */
 .character-canvas-area.edit-mode .notes-box[data-editable="quick"] {
     position: relative;
+    cursor: text;
 }
 
 .character-canvas-area.edit-mode .notes-box[data-editable="quick"] .notes-content {
@@ -2587,6 +2600,12 @@
     background-color: rgba(59, 130, 246, 0.1) !important;
     transition: all 0.15s ease;
     cursor: text;
+}
+
+/* All 3 columns are clickable */
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] .notes-column {
+    cursor: text;
+    min-height: 100px;
 }
 
 .character-canvas-area.edit-mode .notes-box[data-editable="quick"]:hover .notes-content {
@@ -2598,6 +2617,19 @@
     border-color: #1d4ed8 !important;
     background-color: rgba(255, 255, 255, 0.95) !important;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Make editable textarea fill the first column */
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] .editable-textarea-display {
+    display: block;
+    width: 100%;
+    min-height: 100%;
+    cursor: text;
+}
+
+/* When editing, textarea spans all columns */
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] .edit-textarea {
+    grid-column: 1 / -1; /* Span all columns when actively editing */
 }
 
 /* Editable textarea display styling */

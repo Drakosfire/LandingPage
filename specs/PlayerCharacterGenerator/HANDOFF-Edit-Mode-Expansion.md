@@ -274,16 +274,55 @@ const handleClassClick = () => {
 
 ### Pattern 4: Quick Edit Textarea (for traits) ✅ IMPLEMENTED
 ```tsx
-// From BackgroundPersonalitySheet.tsx - EditableTextarea component
-// Shows static text when not editing, textarea when editing (click to edit)
-<EditableTextarea
-    value={traits}
-    onChange={(v) => updateDnD5eData({ 
-        personality: { ...personality, traits: [v] } 
-    })}
-    placeholder="Enter your personality traits"
-    rows={4}
-/>
+// From BackgroundPersonalitySheet.tsx - EditableTextarea with container click
+// Key: useImperativeHandle exposes startEditing() for parent container to call
+
+// 1. Define ref type
+export interface EditableTextareaRef {
+    startEditing: () => void;
+}
+
+// 2. Component uses forwardRef + useImperativeHandle
+const EditableTextarea = forwardRef<EditableTextareaRef, EditableTextareaProps>((props, ref) => {
+    useImperativeHandle(ref, () => ({
+        startEditing: () => {
+            if (isEditMode && !isEditing) setIsEditing(true);
+        }
+    }), [isEditMode, isEditing]);
+    // ...
+});
+
+// 3. Parent container uses ref to forward clicks
+const PersonalityBox = ({ label, content, editable, onChange }) => {
+    const editableTextareaRef = useRef<EditableTextareaRef>(null);
+    
+    const handleContainerClick = useCallback(() => {
+        if (editable && isEditMode) {
+            editableTextareaRef.current?.startEditing();
+        }
+    }, [editable, isEditMode]);
+
+    return (
+        <div onClick={handleContainerClick} data-editable="quick">
+            <EditableTextarea ref={editableTextareaRef} ... />
+        </div>
+    );
+};
+```
+
+**CSS for full-box clickability:**
+```css
+/* Entire container is clickable */
+.personality-box[data-editable="quick"] {
+    cursor: text;
+}
+
+/* Make editable display fill container */
+.personality-box[data-editable="quick"] .editable-textarea-display {
+    display: block;
+    width: 100%;
+    min-height: 100%;
+}
 ```
 
 ### Pattern 5: Spell Slot Click Toggle ✅ IMPLEMENTED
