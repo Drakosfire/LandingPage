@@ -19,7 +19,7 @@ import type {
 
 // Extended ComponentDataReference type that includes 'character' type
 // This will be available in dungeonmind-canvas after rebuild, but we define it locally for now
-type ComponentDataReference = 
+type ComponentDataReference =
     | BaseComponentDataReference
     | { type: 'character'; path: string; sourceId?: string };
 import { createDefaultAdapters } from 'dungeonmind-canvas';

@@ -60,9 +60,9 @@ interface LabeledBoxProps {
     placeholder?: string;
 }
 
-const LabeledBox: React.FC<LabeledBoxProps> = ({ 
-    value, 
-    label, 
+const LabeledBox: React.FC<LabeledBoxProps> = ({
+    value,
+    label,
     className = '',
     editable,
     onClick,
@@ -71,7 +71,7 @@ const LabeledBox: React.FC<LabeledBoxProps> = ({
     placeholder = ''
 }) => {
     const editableTextRef = useRef<EditableTextRef>(null);
-    
+
     const handleContainerClick = () => {
         if (editable === 'complex') {
             onClick?.();
@@ -80,9 +80,9 @@ const LabeledBox: React.FC<LabeledBoxProps> = ({
             editableTextRef.current?.startEditing();
         }
     };
-    
+
     return (
-        <div 
+        <div
             className={`labeled-box ${className}`}
             data-editable={editable}
             onClick={handleContainerClick}
@@ -213,24 +213,24 @@ export const CharacterHeader: React.FC<CharacterHeaderProps> = ({
             <div className="header-content">
                 {/* Character Name + Player Name + XP Row */}
                 <div className="header-name-row">
-                    <LabeledBox 
-                        value={name || ''} 
-                        label="Character Name" 
+                    <LabeledBox
+                        value={name || ''}
+                        label="Character Name"
                         editable="quick"
                         onChange={handleNameChange}
                         placeholder="Enter name"
                     />
-                    <LabeledBox 
-                        value={playerName} 
-                        label="Player Name" 
+                    <LabeledBox
+                        value={playerName}
+                        label="Player Name"
                         editable="quick"
                         onChange={handlePlayerNameChange}
                         placeholder="Player"
                     />
-                    <LabeledBox 
-                        value={xp} 
-                        label="XP" 
-                        className="narrow" 
+                    <LabeledBox
+                        value={xp}
+                        label="XP"
+                        className="narrow"
                         editable="quick"
                         onChange={handleXPChange}
                         inputType="number"

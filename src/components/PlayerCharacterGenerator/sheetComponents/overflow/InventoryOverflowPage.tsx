@@ -54,9 +54,9 @@ const CategoryBlock: React.FC<{
     isContinued: boolean;
 }> = ({ title, items, isContinued }) => {
     if (items.length === 0) return null;
-    
+
     const displayTitle = isContinued ? `${title} (Continued)` : title;
-    
+
     return (
         <div className="overflow-inventory-category">
             <div className="overflow-inventory-category-header">
@@ -94,20 +94,20 @@ export const InventoryOverflowPage: React.FC<InventoryOverflowPageProps> = ({
     totalOverflowPages = 1
 }) => {
     if (pageData.categories.length === 0) return null;
-    
+
     // Build header text with page indicator for multi-page overflow
     const headerText = totalOverflowPages > 1
         ? `${characterName} — Inventory (Continued ${currentOverflowPage}/${totalOverflowPages})`
         : `${characterName} — Inventory (Continued)`;
-    
+
     // Count total items on this page
     const totalItems = pageData.categories.reduce((sum, cat) => sum + cat.items.length, 0);
-    
+
     // Distribute categories across 3 columns
     // Strategy: Fill columns left-to-right, trying to balance item counts
     const columns: typeof pageData.categories[] = [[], [], []];
     const columnHeights = [0, 0, 0];
-    
+
     for (const category of pageData.categories) {
         // Find shortest column
         const shortestIdx = columnHeights.indexOf(Math.min(...columnHeights));
@@ -115,12 +115,12 @@ export const InventoryOverflowPage: React.FC<InventoryOverflowPageProps> = ({
         // Estimate height: header + items
         columnHeights[shortestIdx] += 28 + (category.items.length * 24);
     }
-    
+
     return (
         <div className="page phb character-sheet overflow-page inventory-overflow-page">
             {/* Page Title */}
             <div className="phb-page-title">Inventory (Continued)</div>
-            
+
             {/* Header */}
             <header className="overflow-page-header">
                 <h2 className="overflow-page-title">{headerText}</h2>
@@ -128,7 +128,7 @@ export const InventoryOverflowPage: React.FC<InventoryOverflowPageProps> = ({
                     <span className="overflow-page-number">Page {pageNumber}</span>
                 )}
             </header>
-            
+
             {/* 3-Column Layout */}
             <div className="overflow-inventory-columns">
                 {columns.map((columnCategories, colIdx) => (
@@ -144,7 +144,7 @@ export const InventoryOverflowPage: React.FC<InventoryOverflowPageProps> = ({
                     </div>
                 ))}
             </div>
-            
+
             {/* Footer */}
             <footer className="overflow-page-footer">
                 <span className="overflow-page-count">

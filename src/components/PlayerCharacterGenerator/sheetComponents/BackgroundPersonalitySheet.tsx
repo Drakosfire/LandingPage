@@ -168,7 +168,7 @@ const EditableTextarea = forwardRef<EditableTextareaRef, EditableTextareaProps>(
 const PersonalityBox: React.FC<PersonalityBoxProps> = ({ label, content, editable, onChange }) => {
     const editableTextareaRef = useRef<EditableTextareaRef>(null);
     const { isEditMode } = usePlayerCharacterGenerator();
-    
+
     // Click anywhere in the box to start editing (when in edit mode)
     const handleContainerClick = useCallback(() => {
         if (editable && isEditMode) {
@@ -177,7 +177,7 @@ const PersonalityBox: React.FC<PersonalityBoxProps> = ({ label, content, editabl
     }, [editable, isEditMode]);
 
     return (
-        <div 
+        <div
             className="phb-section personality-box personality-grid-item"
             data-editable={editable ? "quick" : undefined}
             onClick={handleContainerClick}
@@ -236,17 +236,17 @@ export const BackgroundPersonalitySheet: React.FC<BackgroundPersonalitySheetProp
 }) => {
     const { isEditMode } = usePlayerCharacterGenerator();
     const notesTextareaRef = useRef<EditableTextareaRef>(null);
-    
+
     // Click anywhere in notes box to start editing
     const handleNotesBoxClick = useCallback(() => {
         if (onNotesChange && isEditMode) {
             notesTextareaRef.current?.startEditing();
         }
     }, [onNotesChange, isEditMode]);
-    
+
     // Check if any edit callbacks are provided
     const hasEditCallbacks = !!(onTraitsChange || onIdealsChange || onBondsChange || onFlawsChange || onNotesChange);
-    
+
     return (
         <CharacterSheetPage
             className="background-personality-sheet"
@@ -266,26 +266,26 @@ export const BackgroundPersonalitySheet: React.FC<BackgroundPersonalitySheetProp
 
             {/* Personality Grid - 2x2 layout */}
             <div className="personality-grid">
-                <PersonalityBox 
-                    label="Personality Traits" 
-                    content={traits} 
+                <PersonalityBox
+                    label="Personality Traits"
+                    content={traits}
                     editable={!!onTraitsChange}
                     onChange={onTraitsChange}
                 />
-                <PersonalityBox 
-                    label="Ideals" 
+                <PersonalityBox
+                    label="Ideals"
                     content={ideals}
                     editable={!!onIdealsChange}
                     onChange={onIdealsChange}
                 />
-                <PersonalityBox 
-                    label="Bonds" 
+                <PersonalityBox
+                    label="Bonds"
                     content={bonds}
                     editable={!!onBondsChange}
                     onChange={onBondsChange}
                 />
-                <PersonalityBox 
-                    label="Flaws" 
+                <PersonalityBox
+                    label="Flaws"
                     content={flaws}
                     editable={!!onFlawsChange}
                     onChange={onFlawsChange}
@@ -294,7 +294,7 @@ export const BackgroundPersonalitySheet: React.FC<BackgroundPersonalitySheetProp
 
             {/* Notes Section - click anywhere to edit */}
             <div className="notes-section">
-                <div 
+                <div
                     className="phb-section notes-box"
                     data-editable={onNotesChange ? "quick" : undefined}
                     onClick={handleNotesBoxClick}

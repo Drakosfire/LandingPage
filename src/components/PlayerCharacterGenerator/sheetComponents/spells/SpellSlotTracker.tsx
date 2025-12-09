@@ -44,12 +44,12 @@ interface SpellSlotLevelBoxProps extends SpellSlotLevel {
  * Single spell slot level box
  * In edit mode, clicking a circle toggles its state
  */
-const SpellSlotLevelBox: React.FC<SpellSlotLevelBoxProps> = ({ 
-    level, 
-    total, 
-    used, 
+const SpellSlotLevelBox: React.FC<SpellSlotLevelBoxProps> = ({
+    level,
+    total,
+    used,
     onSlotUsageChange,
-    isEditMode 
+    isEditMode
 }) => {
     const available = total - used;
 
@@ -58,7 +58,7 @@ const SpellSlotLevelBox: React.FC<SpellSlotLevelBoxProps> = ({
     // Clicking a used slot marks it as available
     const handleSlotClick = (slotIndex: number, isUsed: boolean) => {
         if (!isEditMode || !onSlotUsageChange) return;
-        
+
         if (isUsed) {
             // Clicking a used slot: reduce used count (marks rightmost used as available)
             const newUsed = Math.max(0, used - 1);
@@ -71,9 +71,9 @@ const SpellSlotLevelBox: React.FC<SpellSlotLevelBoxProps> = ({
             onSlotUsageChange(newUsed);
         }
     };
-    
+
     return (
-        <div 
+        <div
             className="phb-section spell-slot-level"
             data-editable={onSlotUsageChange ? "quick" : undefined}
         >
@@ -84,8 +84,8 @@ const SpellSlotLevelBox: React.FC<SpellSlotLevelBoxProps> = ({
             <div className="slot-circles">
                 {/* Available slots (clickable to mark as used) */}
                 {Array.from({ length: available }).map((_, idx) => (
-                    <div 
-                        key={`avail-${idx}`} 
+                    <div
+                        key={`avail-${idx}`}
                         className={`slot-circle ${isEditMode ? 'clickable' : ''}`}
                         onClick={() => handleSlotClick(idx, false)}
                         role={isEditMode ? 'button' : undefined}
@@ -101,8 +101,8 @@ const SpellSlotLevelBox: React.FC<SpellSlotLevelBoxProps> = ({
                 ))}
                 {/* Used slots (clickable to mark as available) */}
                 {Array.from({ length: used }).map((_, idx) => (
-                    <div 
-                        key={`used-${idx}`} 
+                    <div
+                        key={`used-${idx}`}
                         className={`slot-circle used ${isEditMode ? 'clickable' : ''}`}
                         onClick={() => handleSlotClick(idx, true)}
                         role={isEditMode ? 'button' : undefined}

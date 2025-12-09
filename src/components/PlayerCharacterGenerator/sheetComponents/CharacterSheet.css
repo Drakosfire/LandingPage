@@ -200,6 +200,23 @@
     background: var(--border-color);
 }
 
+/* Edit mode: clickable proficiency markers */
+.character-canvas-area.edit-mode .prof-marker.clickable {
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode .prof-marker.clickable:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    transform: scale(1.2);
+}
+
+.character-canvas-area.edit-mode .prof-marker.clickable:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
 /* ===== Stat Circle (responsive pill) ===== */
 .character-sheet .stat-circle {
     min-width: 30px;
@@ -1834,13 +1851,11 @@
 .character-canvas-area.edit-mode .spell-slot-level[data-editable="quick"] {
     border: 2px dashed #3b82f6 !important;
     border-radius: 4px;
-    background-color: rgba(59, 130, 246, 0.1) !important;
     transition: all 0.15s ease;
 }
 
 .character-canvas-area.edit-mode .spell-slot-level[data-editable="quick"]:hover {
     border-color: #2563eb !important;
-    background-color: rgba(59, 130, 246, 0.15) !important;
 }
 
 /* Spell List Container - 3 Columns */
@@ -2629,7 +2644,8 @@
 
 /* When editing, textarea spans all columns */
 .character-canvas-area.edit-mode .notes-box[data-editable="quick"] .edit-textarea {
-    grid-column: 1 / -1; /* Span all columns when actively editing */
+    grid-column: 1 / -1;
+    /* Span all columns when actively editing */
 }
 
 /* Editable textarea display styling */
@@ -2683,27 +2699,37 @@
 .character-canvas-area.edit-mode .attacks-section[data-editable="complex"] {
     border: 2px dotted #8b5cf6 !important;
     border-radius: 4px;
-    background-color: rgba(139, 92, 246, 0.1) !important;
     transition: all 0.15s ease;
     cursor: pointer;
 }
 
 .character-canvas-area.edit-mode .attacks-section[data-editable="complex"]:hover {
     border-color: #7c3aed !important;
-    background-color: rgba(139, 92, 246, 0.2) !important;
 }
 
 .character-canvas-area.edit-mode .equipment-grid[data-editable="complex"] {
     border: 2px dotted #8b5cf6 !important;
     border-radius: 4px;
-    background-color: rgba(139, 92, 246, 0.1) !important;
     transition: all 0.15s ease;
     cursor: pointer;
 }
 
 .character-canvas-area.edit-mode .equipment-grid[data-editable="complex"]:hover {
     border-color: #7c3aed !important;
-    background-color: rgba(139, 92, 246, 0.2) !important;
+}
+
+/* Saves and Skills sections complex edit */
+.character-canvas-area.edit-mode .saves-section[data-editable="complex"],
+.character-canvas-area.edit-mode .skills-section[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .saves-section[data-editable="complex"]:hover,
+.character-canvas-area.edit-mode .skills-section[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
 }
 
 /* ===== Print Styles ===== */

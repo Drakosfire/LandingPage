@@ -311,7 +311,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
 
                     {/* Edit Mode Toggle (if enabled) */}
                     {showEditMode && (
-                        <Tooltip 
+                        <Tooltip
                             label={isEditMode ? 'Switch to View Mode' : 'Switch to Edit Mode'}
                             zIndex={1100}
                         >
@@ -324,11 +324,11 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                                 data-tutorial="edit-mode-toggle"
                                 aria-label={isEditMode ? 'Switch to View Mode' : 'Switch to Edit Mode'}
                                 style={{
-                                    backgroundColor: isEditMode 
-                                        ? 'rgba(59, 130, 246, 0.9)' 
+                                    backgroundColor: isEditMode
+                                        ? 'rgba(59, 130, 246, 0.9)'
                                         : 'rgba(255, 255, 255, 0.2)',
-                                    border: isEditMode 
-                                        ? '2px solid rgba(59, 130, 246, 1)' 
+                                    border: isEditMode
+                                        ? '2px solid rgba(59, 130, 246, 1)'
                                         : '2px solid rgba(255, 255, 255, 0.4)',
                                     transition: 'all 0.2s ease',
                                 }}

@@ -2,12 +2,27 @@
  * SkillsSection Component
  * 
  * Displays the 18 D&D 5e skills with proficiency markers.
+ * In edit mode, clicking opens the Class wizard step (skills come from class/background).
  * 
  * @module PlayerCharacterGenerator/sheetComponents/column1
  */
 
 import React from 'react';
 import type { AbilityScores } from '../AbilityScoresRow';
+import { usePlayerCharacterGenerator } from '../../PlayerCharacterGeneratorProvider';
+
+/**
+ * Wizard step constants for navigation
+ */
+const WIZARD_STEPS = {
+    ABILITIES: 0,
+    RACE: 1,
+    CLASS: 2,
+    SPELLS: 3,
+    BACKGROUND: 4,
+    EQUIPMENT: 5,
+    REVIEW: 6
+} as const;
 
 export interface SkillsSectionProps {
     /** Ability scores for modifier calculation */
@@ -58,8 +73,31 @@ export const SkillsSection: React.FC<SkillsSectionProps> = ({
     proficiencyBonus,
     proficientSkills
 }) => {
+    const { isEditMode, openDrawerToStep } = usePlayerCharacterGenerator();
+
+    const handleSectionClick = () => {
+        if (isEditMode) {
+            console.log('🔗 [SkillsSection] Opening Class step (skills from class/background)');
+            openDrawerToStep(WIZARD_STEPS.CLASS);
+        }
+    };
+
     return (
-        <div className="phb-section skills-section" data-testid="skills-section">
+        <div 
+            className="phb-section skills-section" 
+            data-testid="skills-section"
+            data-editable={isEditMode ? "complex" : undefined}
+            onClick={handleSectionClick}
+            role={isEditMode ? 'button' : undefined}
+            tabIndex={isEditMode ? 0 : undefined}
+            onKeyDown={(e) => {
+                if (isEditMode && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    handleSectionClick();
+                }
+            }}
+            title={isEditMode ? "Edit skill proficiencies (Class/Background)" : undefined}
+        >
             {SKILLS.map((skill) => {
                 const isProficient = proficientSkills.includes(skill.name);
                 const baseMod = calculateModifier(abilityScores[skill.ability] ?? 10);

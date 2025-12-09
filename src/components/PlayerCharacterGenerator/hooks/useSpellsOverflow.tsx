@@ -145,7 +145,7 @@ const SpellMeasureItem: React.FC<{ spell: SpellWithLevel }> = ({ spell }) => (
  */
 const flattenSpells = (options: UseSpellsOverflowOptions): SpellWithLevel[] => {
     const spells: SpellWithLevel[] = [];
-    
+
     const addSpells = (level: number, levelSpells?: SpellEntry[]) => {
         if (levelSpells) {
             levelSpells.forEach(spell => {
@@ -153,7 +153,7 @@ const flattenSpells = (options: UseSpellsOverflowOptions): SpellWithLevel[] => {
             });
         }
     };
-    
+
     addSpells(0, options.cantrips);
     addSpells(1, options.level1Spells);
     addSpells(2, options.level2Spells);
@@ -164,7 +164,7 @@ const flattenSpells = (options: UseSpellsOverflowOptions): SpellWithLevel[] => {
     addSpells(7, options.level7Spells);
     addSpells(8, options.level8Spells);
     addSpells(9, options.level9Spells);
-    
+
     return spells;
 };
 
@@ -204,30 +204,30 @@ const paginateSpells = (
     const visibleLevels: number[] = [];
     const truncatedLevels: number[] = [];
     const overflowPages: SpellOverflowPageData[] = [];
-    
+
     if (allSpells.length === 0) {
         return { visibleSpellsByLevel, visibleLevels, truncatedLevels, overflowPages };
     }
-    
+
     // Track state as we iterate through spells
     let currentHeight = MAIN_SHEET_OVERHEAD_PX;
     let currentLevel = -1;
     let isMainSheet = true;
     let currentPage: SpellOverflowPageData | null = null;
     const maxHeight = () => isMainSheet ? mainSheetMaxHeight : overflowPageMaxHeight;
-    
+
     // Process each spell
     for (let i = 0; i < allSpells.length; i++) {
         const spell = allSpells[i];
         const spellHeight = heights.get(i) ?? estimateFallbackHeight(spell);
-        
+
         // Check if we're starting a new level
         const isNewLevel = spell.spellLevel !== currentLevel;
         const levelHeaderHeight = isNewLevel ? getLevelHeaderHeight(spell.spellLevel, !isMainSheet && currentPage !== null) : 0;
         const levelGap = isNewLevel && currentLevel !== -1 ? LEVEL_SECTION_GAP_PX : 0;
-        
+
         const totalHeightNeeded = levelHeaderHeight + levelGap + spellHeight + SPELL_GAP_PX;
-        
+
         // Check if this spell fits on current page/sheet
         if (currentHeight + totalHeightNeeded > maxHeight()) {
             if (isMainSheet) {
@@ -237,7 +237,7 @@ const paginateSpells = (
                     truncatedLevels.push(currentLevel);
                 }
                 isMainSheet = false;
-                
+
                 // Start first overflow page
                 currentPage = {
                     spellsByLevel: new Map(),
@@ -251,7 +251,7 @@ const paginateSpells = (
                 if (currentPage && currentLevel === spell.spellLevel) {
                     currentPage.continuesOnNextPage.push(currentLevel);
                 }
-                
+
                 currentPage = {
                     spellsByLevel: new Map(),
                     continuedLevels: spell.spellLevel === currentLevel ? [spell.spellLevel] : [],
@@ -261,17 +261,17 @@ const paginateSpells = (
                 currentHeight = OVERFLOW_PAGE_OVERHEAD_PX;
             }
         }
-        
+
         // Add level header height if starting new level
         if (isNewLevel) {
             currentHeight += levelHeaderHeight + levelGap;
             currentLevel = spell.spellLevel;
-            
+
             if (isMainSheet && !visibleLevels.includes(spell.spellLevel)) {
                 visibleLevels.push(spell.spellLevel);
             }
         }
-        
+
         // Add spell to appropriate collection
         if (isMainSheet) {
             if (!visibleSpellsByLevel.has(spell.spellLevel)) {
@@ -284,10 +284,10 @@ const paginateSpells = (
             }
             currentPage.spellsByLevel.get(spell.spellLevel)!.push(spell);
         }
-        
+
         currentHeight += spellHeight + SPELL_GAP_PX;
     }
-    
+
     return { visibleSpellsByLevel, visibleLevels, truncatedLevels, overflowPages };
 };
 
@@ -331,7 +331,7 @@ export const useSpellsOverflow = (options: UseSpellsOverflowOptions): SpellsOver
         overflowPageHeightPx = OVERFLOW_PAGE_AVAILABLE_HEIGHT_PX,
         enabled = true
     } = options;
-    
+
     // Flatten all spells into single array for measurement
     const allSpells = useMemo(() => flattenSpells(options), [
         options.cantrips,
@@ -345,22 +345,22 @@ export const useSpellsOverflow = (options: UseSpellsOverflowOptions): SpellsOver
         options.level8Spells,
         options.level9Spells
     ]);
-    
+
     // Render function for measurement - stable reference
     const renderSpell = useCallback((spell: SpellWithLevel, _index: number) => (
         <SpellMeasureItem spell={spell} />
     ), []);
-    
+
     // Key extractor for stable identity
-    const getSpellKey = useCallback((spell: SpellWithLevel, index: number) => 
-        spell.id || `spell-${spell.spellLevel}-${index}`, 
-    []);
-    
+    const getSpellKey = useCallback((spell: SpellWithLevel, index: number) =>
+        spell.id || `spell-${spell.spellLevel}-${index}`,
+        []);
+
     // Get actual measurements from DOM
-    const { 
-        heights, 
-        isComplete: isMeasurementComplete, 
-        measurementPortal 
+    const {
+        heights,
+        isComplete: isMeasurementComplete,
+        measurementPortal
     } = useMeasureItems({
         items: allSpells,
         renderItem: renderSpell,
@@ -368,7 +368,7 @@ export const useSpellsOverflow = (options: UseSpellsOverflowOptions): SpellsOver
         enabled,
         getKey: getSpellKey,
     });
-    
+
     // Calculate overflow based on measured heights
     const result = useMemo(() => {
         if (!enabled || allSpells.length === 0) {
@@ -381,14 +381,14 @@ export const useSpellsOverflow = (options: UseSpellsOverflowOptions): SpellsOver
                 overflowPageCount: 0,
             };
         }
-        
+
         const { visibleSpellsByLevel, visibleLevels, truncatedLevels, overflowPages } = paginateSpells(
             allSpells,
             heights,
             maxHeightPx,
             overflowPageHeightPx - OVERFLOW_PAGE_OVERHEAD_PX
         );
-        
+
         // Log split decision (development only)
         if (process.env.NODE_ENV !== 'production' && overflowPages.length > 0 && isMeasurementComplete) {
             console.log('📐 [SpellsOverflow] Split decision:', {
@@ -396,13 +396,13 @@ export const useSpellsOverflow = (options: UseSpellsOverflowOptions): SpellsOver
                 visibleLevels,
                 truncatedLevels,
                 overflowPages: overflowPages.length,
-                spellsPerPage: overflowPages.map(p => 
+                spellsPerPage: overflowPages.map(p =>
                     Array.from(p.spellsByLevel.values()).reduce((sum, spells) => sum + spells.length, 0)
                 ),
                 measurementsComplete: isMeasurementComplete,
             });
         }
-        
+
         return {
             visibleSpellsByLevel,
             visibleLevels,
@@ -412,7 +412,7 @@ export const useSpellsOverflow = (options: UseSpellsOverflowOptions): SpellsOver
             overflowPageCount: overflowPages.length,
         };
     }, [allSpells, heights, maxHeightPx, overflowPageHeightPx, enabled, isMeasurementComplete]);
-    
+
     return {
         ...result,
         isMeasurementComplete,

@@ -114,8 +114,8 @@ interface AbilityBoxProps {
 }
 
 const AbilityBox: React.FC<AbilityBoxProps> = ({ abbrev, score, onClick }) => (
-    <div 
-        className="ability-box-horizontal" 
+    <div
+        className="ability-box-horizontal"
         data-testid={`ability-${abbrev.toLowerCase()}`}
         data-editable="complex"
         onClick={onClick}
@@ -145,20 +145,20 @@ const AbilityScoresGrid: React.FC<AbilityScoresGridProps> = ({ scores, onAbility
         <div className="phb-section ability-scores-grid" data-testid="ability-scores-grid">
             <div className="ability-col">
                 {leftColumn.map(({ key, abbrev }) => (
-                    <AbilityBox 
-                        key={key} 
-                        abbrev={abbrev} 
-                        score={scores[key] ?? 10} 
+                    <AbilityBox
+                        key={key}
+                        abbrev={abbrev}
+                        score={scores[key] ?? 10}
                         onClick={onAbilityClick}
                     />
                 ))}
             </div>
             <div className="ability-col">
                 {rightColumn.map(({ key, abbrev }) => (
-                    <AbilityBox 
-                        key={key} 
-                        abbrev={abbrev} 
-                        score={scores[key] ?? 10} 
+                    <AbilityBox
+                        key={key}
+                        abbrev={abbrev}
+                        score={scores[key] ?? 10}
                         onClick={onAbilityClick}
                     />
                 ))}
@@ -285,8 +285,8 @@ const CombatStatus: React.FC<CombatStatusProps> = ({
             </div>
             {/* Combat Stats Column */}
             <div className="combat-stats-col">
-                <div 
-                    className="stat-row" 
+                <div
+                    className="stat-row"
                     data-editable="complex"
                     onClick={onACClick}
                     role={onACClick ? 'button' : undefined}
@@ -299,8 +299,8 @@ const CombatStatus: React.FC<CombatStatusProps> = ({
                     <span className="stat-val">{formatInitiative(initiative)}</span>
                     <span className="stat-lbl">Init</span>
                 </div>
-                <div 
-                    className="stat-row" 
+                <div
+                    className="stat-row"
                     data-editable="complex"
                     onClick={onSpeedClick}
                     role={onSpeedClick ? 'button' : undefined}
@@ -369,7 +369,7 @@ const MetaStats: React.FC<MetaStatsProps> = ({
     <div className="phb-section meta-stats-compact" data-testid="meta-stats">
         <div className="meta-row" data-editable="quick">
             <span className="meta-lbl">Inspiration</span>
-            <span 
+            <span
                 className={`inspiration-box ${hasInspiration ? 'filled' : ''} ${isEditMode ? 'clickable' : ''}`}
                 onClick={isEditMode ? onInspirationToggle : undefined}
                 role={isEditMode ? 'button' : undefined}
@@ -458,8 +458,8 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
         console.log('✏️ [AbilityScoresRow] Current HP changed:', value);
         // Note: This requires access to current derivedStats to properly merge
         // For now, we update through character context which has access to full state
-        updateDnD5eData({ 
-            derivedStats: { 
+        updateDnD5eData({
+            derivedStats: {
                 armorClass: armorClass,
                 initiative: initiative,
                 proficiencyBonus: proficiencyBonus,
@@ -471,14 +471,14 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
                 passivePerception: passivePerception,
                 passiveInvestigation: 10,
                 passiveInsight: 10
-            } 
+            }
         });
     };
 
     const handleTempHPChange = (value: number) => {
         console.log('✏️ [AbilityScoresRow] Temp HP changed:', value);
-        updateDnD5eData({ 
-            derivedStats: { 
+        updateDnD5eData({
+            derivedStats: {
                 armorClass: armorClass,
                 initiative: initiative,
                 proficiencyBonus: proficiencyBonus,
@@ -490,7 +490,7 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
                 passivePerception: passivePerception,
                 passiveInvestigation: 10,
                 passiveInsight: 10
-            } 
+            }
         });
     };
 
@@ -498,13 +498,13 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
     // Clicking a dot toggles: if already filled at that position, unfill; otherwise fill up to that position
     const handleDeathSaveSuccessClick = (index: number) => {
         if (!isEditMode) return;
-        
+
         // Toggle logic: if clicking a filled dot, reduce count; otherwise set count to index + 1
         const newCount = index < deathSaveSuccesses ? index : index + 1;
         console.log('✏️ [AbilityScoresRow] Death save success clicked:', { index, current: deathSaveSuccesses, newCount });
-        
-        updateDnD5eData({ 
-            derivedStats: { 
+
+        updateDnD5eData({
+            derivedStats: {
                 armorClass: armorClass,
                 initiative: initiative,
                 proficiencyBonus: proficiencyBonus,
@@ -517,19 +517,19 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
                 passivePerception: passivePerception,
                 passiveInvestigation: 10,
                 passiveInsight: 10
-            } 
+            }
         });
     };
 
     const handleDeathSaveFailureClick = (index: number) => {
         if (!isEditMode) return;
-        
+
         // Toggle logic: if clicking a filled dot, reduce count; otherwise set count to index + 1
         const newCount = index < deathSaveFailures ? index : index + 1;
         console.log('✏️ [AbilityScoresRow] Death save failure clicked:', { index, current: deathSaveFailures, newCount });
-        
-        updateDnD5eData({ 
-            derivedStats: { 
+
+        updateDnD5eData({
+            derivedStats: {
                 armorClass: armorClass,
                 initiative: initiative,
                 proficiencyBonus: proficiencyBonus,
@@ -542,19 +542,19 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
                 passivePerception: passivePerception,
                 passiveInvestigation: 10,
                 passiveInsight: 10
-            } 
+            }
         });
     };
 
     // Inspiration toggle handler
     const handleInspirationToggle = () => {
         if (!isEditMode) return;
-        
+
         const newValue = !hasInspiration;
         console.log('✏️ [AbilityScoresRow] Inspiration toggled:', newValue);
-        
-        updateDnD5eData({ 
-            derivedStats: { 
+
+        updateDnD5eData({
+            derivedStats: {
                 armorClass: armorClass,
                 initiative: initiative,
                 proficiencyBonus: proficiencyBonus,
@@ -568,7 +568,7 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
                 passivePerception: passivePerception,
                 passiveInvestigation: 10,
                 passiveInsight: 10
-            } 
+            }
         });
     };
 
@@ -594,8 +594,8 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
             />
 
             {/* Ability Scores (center - 2 column grid) */}
-            <AbilityScoresGrid 
-                scores={scores} 
+            <AbilityScoresGrid
+                scores={scores}
                 onAbilityClick={handleAbilityClick}
             />
 

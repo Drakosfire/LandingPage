@@ -2,12 +2,27 @@
  * SavingThrowsSection Component
  * 
  * Displays the 6 saving throws with proficiency markers.
+ * In edit mode, clicking opens the Class wizard step (saves come from class).
  * 
  * @module PlayerCharacterGenerator/sheetComponents/column1
  */
 
 import React from 'react';
 import type { AbilityScores } from '../AbilityScoresRow';
+import { usePlayerCharacterGenerator } from '../../PlayerCharacterGeneratorProvider';
+
+/**
+ * Wizard step constants for navigation
+ */
+const WIZARD_STEPS = {
+    ABILITIES: 0,
+    RACE: 1,
+    CLASS: 2,
+    SPELLS: 3,
+    BACKGROUND: 4,
+    EQUIPMENT: 5,
+    REVIEW: 6
+} as const;
 
 export interface SavingThrowsSectionProps {
     /** Ability scores for modifier calculation */
@@ -40,8 +55,31 @@ export const SavingThrowsSection: React.FC<SavingThrowsSectionProps> = ({
     proficiencyBonus,
     proficientSaves
 }) => {
+    const { isEditMode, openDrawerToStep } = usePlayerCharacterGenerator();
+
+    const handleSectionClick = () => {
+        if (isEditMode) {
+            console.log('🔗 [SavingThrowsSection] Opening Class step (saves from class)');
+            openDrawerToStep(WIZARD_STEPS.CLASS);
+        }
+    };
+
     return (
-        <div className="phb-section saves-section" data-testid="saving-throws-section">
+        <div 
+            className="phb-section saves-section" 
+            data-testid="saving-throws-section"
+            data-editable={isEditMode ? "complex" : undefined}
+            onClick={handleSectionClick}
+            role={isEditMode ? 'button' : undefined}
+            tabIndex={isEditMode ? 0 : undefined}
+            onKeyDown={(e) => {
+                if (isEditMode && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    handleSectionClick();
+                }
+            }}
+            title={isEditMode ? "Edit saving throw proficiencies (Class)" : undefined}
+        >
             {SAVES.map(({ key, name }) => {
                 const isProficient = proficientSaves.includes(key);
                 const baseMod = calculateModifier(abilityScores[key] ?? 10);

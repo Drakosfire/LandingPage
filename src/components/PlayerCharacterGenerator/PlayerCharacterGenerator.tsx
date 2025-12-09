@@ -28,8 +28,8 @@ import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
  * Inner component (has access to context)
  */
 const PlayerCharacterGeneratorInner: React.FC = () => {
-    const { 
-        loadDemoCharacter, 
+    const {
+        loadDemoCharacter,
         demoCharacterOptions,
         isEditMode,
         setIsEditMode,

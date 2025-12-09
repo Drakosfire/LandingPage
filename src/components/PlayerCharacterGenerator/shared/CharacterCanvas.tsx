@@ -92,7 +92,7 @@ const CharacterCanvas: React.FC = () => {
     const handleCurrencyChange = React.useCallback((currency: { cp?: number; sp?: number; ep?: number; gp?: number; pp?: number }) => {
         console.log('✏️ [CharacterCanvas] Currency changed:', currency);
         const currentCurrency = character?.dnd5eData?.currency;
-        updateDnD5eData({ 
+        updateDnD5eData({
             currency: {
                 cp: currency.cp ?? currentCurrency?.cp ?? 0,
                 sp: currency.sp ?? currentCurrency?.sp ?? 0,
@@ -107,44 +107,44 @@ const CharacterCanvas: React.FC = () => {
     const handleTraitsChange = React.useCallback((value: string) => {
         console.log('✏️ [CharacterCanvas] Traits changed:', value);
         const currentPersonality = character?.dnd5eData?.personality || {};
-        updateDnD5eData({ 
-            personality: { 
+        updateDnD5eData({
+            personality: {
                 ...currentPersonality,
                 traits: [value] // Store as array (D&D 5e format)
-            } 
+            }
         });
     }, [updateDnD5eData, character?.dnd5eData?.personality]);
 
     const handleIdealsChange = React.useCallback((value: string) => {
         console.log('✏️ [CharacterCanvas] Ideals changed:', value);
         const currentPersonality = character?.dnd5eData?.personality || {};
-        updateDnD5eData({ 
-            personality: { 
+        updateDnD5eData({
+            personality: {
                 ...currentPersonality,
                 ideals: [value]
-            } 
+            }
         });
     }, [updateDnD5eData, character?.dnd5eData?.personality]);
 
     const handleBondsChange = React.useCallback((value: string) => {
         console.log('✏️ [CharacterCanvas] Bonds changed:', value);
         const currentPersonality = character?.dnd5eData?.personality || {};
-        updateDnD5eData({ 
-            personality: { 
+        updateDnD5eData({
+            personality: {
                 ...currentPersonality,
                 bonds: [value]
-            } 
+            }
         });
     }, [updateDnD5eData, character?.dnd5eData?.personality]);
 
     const handleFlawsChange = React.useCallback((value: string) => {
         console.log('✏️ [CharacterCanvas] Flaws changed:', value);
         const currentPersonality = character?.dnd5eData?.personality || {};
-        updateDnD5eData({ 
-            personality: { 
+        updateDnD5eData({
+            personality: {
                 ...currentPersonality,
                 flaws: [value]
-            } 
+            }
         });
     }, [updateDnD5eData, character?.dnd5eData?.personality]);
 
@@ -238,7 +238,7 @@ const CharacterCanvas: React.FC = () => {
     const spellsData = useMemo(() => {
         const dnd5e = character?.dnd5eData;
         const spellcasting = dnd5e?.spellcasting;
-        
+
         if (!spellcasting) {
             return {
                 cantrips: [],

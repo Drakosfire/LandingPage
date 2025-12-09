@@ -105,7 +105,7 @@ export const Column2Content: React.FC<Column2ContentProps> = ({
     return (
         <>
             {/* Attacks Section */}
-            <div 
+            <div
                 className="phb-section attacks-section"
                 data-editable={isEditMode ? "complex" : undefined}
                 onClick={handleAttacksClick}
@@ -137,7 +137,7 @@ export const Column2Content: React.FC<Column2ContentProps> = ({
 
             {/* Equipment Section - 2 Column Layout */}
             <div className="phb-section equipment-section">
-                <div 
+                <div
                     className="equipment-grid"
                     data-editable={isEditMode ? "complex" : undefined}
                     onClick={handleEquipmentClick}

@@ -53,7 +53,7 @@ const OVERFLOW_CSS_CONTEXT = {
 // ============================================================================
 
 /** Categories of inventory items */
-export type InventoryCategory = 
+export type InventoryCategory =
     | 'weapons'
     | 'armor'
     | 'magicItems'
@@ -178,18 +178,18 @@ const splitInventoryIntoPages = (
 ): { visible: InventoryPageData; overflow: InventoryPageData[] } => {
     const visible: InventoryPageData = { categories: [] };
     const overflowPages: InventoryPageData[] = [];
-    
+
     // Track current heights
     let mainHeight = 0;
-    
+
     // For overflow pages, track height per column (3-column layout)
     let currentOverflowPage: InventoryPageData = { categories: [] };
     let columnHeights = [0, 0, 0]; // Track each column's height
-    
+
     // Helper to find the shortest column
     const getShortestColumnIdx = () => columnHeights.indexOf(Math.min(...columnHeights));
     const getShortestColumnHeight = () => Math.min(...columnHeights);
-    
+
     // Helper to start a new overflow page
     const startNewOverflowPage = () => {
         if (currentOverflowPage.categories.length > 0) {
@@ -198,14 +198,14 @@ const splitInventoryIntoPages = (
         currentOverflowPage = { categories: [] };
         columnHeights = [0, 0, 0];
     };
-    
+
     // Process each category
     for (const { key, title } of CATEGORY_CONFIG) {
         const items = inventory[key];
         if (items.length === 0) continue;
-        
+
         const categoryHeight = estimateCategoryHeight(items.length);
-        
+
         // Try to fit entire category in main section
         if (mainHeight + categoryHeight <= mainMaxHeight) {
             visible.categories.push({
@@ -217,20 +217,20 @@ const splitInventoryIntoPages = (
             mainHeight += categoryHeight;
             continue;
         }
-        
+
         // Category doesn't fit entirely in main - need to split
         let remainingItems = [...items];
         let isFirstChunkOfCategory = true;
-        
+
         // First, try to fit some items in main section
         if (mainHeight < mainMaxHeight) {
             const availableInMain = mainMaxHeight - mainHeight - CATEGORY_HEADER_HEIGHT_PX;
             const itemsThatFit = Math.floor(availableInMain / ITEM_ROW_HEIGHT_PX);
-            
+
             if (itemsThatFit > 0) {
                 const mainItems = remainingItems.slice(0, itemsThatFit);
                 remainingItems = remainingItems.slice(itemsThatFit);
-                
+
                 visible.categories.push({
                     category: key,
                     title,
@@ -241,28 +241,28 @@ const splitInventoryIntoPages = (
                 isFirstChunkOfCategory = false;
             }
         }
-        
+
         // Put remaining items in overflow pages (3-column layout)
         while (remainingItems.length > 0) {
             const headerHeight = CATEGORY_HEADER_HEIGHT_PX;
             const minHeightNeeded = headerHeight + ITEM_ROW_HEIGHT_PX;
-            
+
             // Check if ANY column has space for at least header + 1 item
             const shortestHeight = getShortestColumnHeight();
             if (shortestHeight + minHeightNeeded > overflowMaxHeight) {
                 // All columns are full, start new page
                 startNewOverflowPage();
             }
-            
+
             // Find shortest column and calculate available space
             const targetColumnIdx = getShortestColumnIdx();
             const availableHeight = overflowMaxHeight - columnHeights[targetColumnIdx] - headerHeight;
             const itemsThatFit = Math.max(1, Math.floor(availableHeight / ITEM_ROW_HEIGHT_PX));
-            
+
             // Take items for this chunk
             const chunkItems = remainingItems.slice(0, itemsThatFit);
             remainingItems = remainingItems.slice(itemsThatFit);
-            
+
             // Add to current overflow page
             currentOverflowPage.categories.push({
                 category: key,
@@ -270,18 +270,18 @@ const splitInventoryIntoPages = (
                 items: chunkItems,
                 isContinued: !isFirstChunkOfCategory,
             });
-            
+
             // Update the target column's height
             columnHeights[targetColumnIdx] += headerHeight + (chunkItems.length * ITEM_ROW_HEIGHT_PX);
             isFirstChunkOfCategory = false;
         }
     }
-    
+
     // Don't forget the last overflow page
     if (currentOverflowPage.categories.length > 0) {
         overflowPages.push(currentOverflowPage);
     }
-    
+
     return { visible, overflow: overflowPages };
 };
 
@@ -321,25 +321,25 @@ export const useInventoryOverflow = ({
     overflowPageHeightPx = OVERFLOW_PAGE_AVAILABLE_HEIGHT_PX,
     enabled = true
 }: UseInventoryOverflowOptions): InventoryOverflowState => {
-    
+
     // Flatten all items for measurement
     const allItems = useMemo(() => flattenInventory(inventory), [inventory]);
-    
+
     // Render function for measurement - stable reference
     const renderItem = useCallback((item: InventoryItem, _index: number) => (
         <InventoryMeasureItem item={item} />
     ), []);
-    
+
     // Key extractor for stable identity - stable reference
-    const getItemKey = useCallback((item: InventoryItem, index: number) => 
-        item.id || `item-${index}`, 
-    []);
-    
+    const getItemKey = useCallback((item: InventoryItem, index: number) =>
+        item.id || `item-${index}`,
+        []);
+
     // Get actual measurements from DOM
-    const { 
-        heights, 
-        isComplete: isMeasurementComplete, 
-        measurementPortal 
+    const {
+        heights,
+        isComplete: isMeasurementComplete,
+        measurementPortal
     } = useMeasureItems({
         items: allItems,
         renderItem,
@@ -347,7 +347,7 @@ export const useInventoryOverflow = ({
         enabled,
         getKey: getItemKey,
     });
-    
+
     // Calculate overflow based on inventory structure
     const result = useMemo(() => {
         if (!enabled || allItems.length === 0) {
@@ -358,16 +358,16 @@ export const useInventoryOverflow = ({
                 overflowPageCount: 0,
             };
         }
-        
+
         const availableMainHeight = maxHeightPx - MAIN_SECTION_OVERHEAD_PX;
         const availableOverflowHeight = overflowPageHeightPx - OVERFLOW_PAGE_OVERHEAD_PX;
-        
+
         const { visible, overflow } = splitInventoryIntoPages(
             inventory,
             availableMainHeight,
             availableOverflowHeight
         );
-        
+
         // Log split decision (development only)
         if (process.env.NODE_ENV !== 'production' && overflow.length > 0 && isMeasurementComplete) {
             console.log('📦 [InventoryOverflow] Split decision:', {
@@ -378,7 +378,7 @@ export const useInventoryOverflow = ({
                 measuredCount: heights.size,
             });
         }
-        
+
         return {
             visibleInventory: visible,
             overflowPages: overflow,
@@ -386,7 +386,7 @@ export const useInventoryOverflow = ({
             overflowPageCount: overflow.length,
         };
     }, [inventory, allItems, heights, maxHeightPx, overflowPageHeightPx, enabled, isMeasurementComplete]);
-    
+
     return {
         ...result,
         isMeasurementComplete,

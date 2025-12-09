@@ -10,8 +10,8 @@ export { useFeaturesOverflow } from './useFeaturesOverflow';
 export type { FeaturesOverflowState, UseFeaturesOverflowOptions } from './useFeaturesOverflow';
 
 export { useInventoryOverflow } from './useInventoryOverflow';
-export type { 
-    InventoryOverflowState, 
+export type {
+    InventoryOverflowState,
     UseInventoryOverflowOptions,
     InventoryPageData,
     InventoryInput,
@@ -19,18 +19,18 @@ export type {
 } from './useInventoryOverflow';
 
 export { useSpellsOverflow } from './useSpellsOverflow';
-export type { 
-    SpellsOverflowState, 
+export type {
+    SpellsOverflowState,
     UseSpellsOverflowOptions,
     SpellOverflowPageData,
-    SpellWithLevel 
+    SpellWithLevel
 } from './useSpellsOverflow';
 
 export { useMeasureItems } from './useMeasureItems';
-export type { 
-    UseMeasureItemsOptions, 
-    MeasureItemsResult, 
-    MeasureItemsCSSContext 
+export type {
+    UseMeasureItemsOptions,
+    MeasureItemsResult,
+    MeasureItemsCSSContext
 } from './useMeasureItems';
 
 export { useDetailModal } from './useDetailModal';

@@ -33,10 +33,10 @@ export interface SpellsOverflowPageProps {
  * Get level title with optional "(continued)" suffix
  */
 const getLevelTitle = (level: number, isContinued: boolean): string => {
-    const baseTitle = level === 0 
-        ? 'Cantrips' 
+    const baseTitle = level === 0
+        ? 'Cantrips'
         : `${level}${['st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'][level - 1]} Level`;
-    
+
     return isContinued ? `${baseTitle} (continued)` : baseTitle;
 };
 
@@ -57,23 +57,23 @@ export const SpellsOverflowPage: React.FC<SpellsOverflowPageProps> = ({
     onSpellInfoClick
 }) => {
     const { spellsByLevel, continuedLevels } = pageData;
-    
+
     // Get sorted levels for this page
     const levels = Array.from(spellsByLevel.keys()).sort((a, b) => a - b);
-    
+
     if (levels.length === 0) return null;
-    
+
     // Build header text with page indicator for multi-page overflow
     const headerText = totalOverflowPages > 1
         ? `${characterName} — Spells (Continued ${currentOverflowPage}/${totalOverflowPages})`
         : `${characterName} — Spells (Continued)`;
-    
+
     // Count total spells on this page
     const totalSpells = Array.from(spellsByLevel.values()).reduce(
-        (sum, spells) => sum + spells.length, 
+        (sum, spells) => sum + spells.length,
         0
     );
-    
+
     return (
         <div className="page phb character-sheet overflow-page spells-overflow-page">
             {/* Header */}
@@ -83,13 +83,13 @@ export const SpellsOverflowPage: React.FC<SpellsOverflowPageProps> = ({
                     <span className="overflow-page-number">Page {pageNumber}</span>
                 )}
             </header>
-            
+
             {/* Spell Levels */}
             <div className="overflow-spells-list">
                 {levels.map(level => {
                     const spells = spellsByLevel.get(level) || [];
                     const isContinued = continuedLevels.includes(level);
-                    
+
                     return (
                         <div key={`level-${level}`} className="overflow-spell-level">
                             <h3 className={`overflow-level-header ${isContinued ? 'continued' : ''}`}>
@@ -97,8 +97,8 @@ export const SpellsOverflowPage: React.FC<SpellsOverflowPageProps> = ({
                             </h3>
                             <div className="overflow-spell-level-list">
                                 {spells.map((spell, idx) => (
-                                    <div 
-                                        key={spell.id || `spell-${idx}`} 
+                                    <div
+                                        key={spell.id || `spell-${idx}`}
                                         className="overflow-spell-item"
                                         onClick={() => onSpellInfoClick?.(spell)}
                                         role={onSpellInfoClick ? 'button' : undefined}
@@ -110,9 +110,9 @@ export const SpellsOverflowPage: React.FC<SpellsOverflowPageProps> = ({
                                                 {spell.isPrepared ? '●' : '○'}
                                             </span>
                                         )}
-                                        
+
                                         <span className="spell-name">{spell.name}</span>
-                                        
+
                                         {/* Spell tags */}
                                         {spell.isConcentration && (
                                             <span className="spell-tag concentration" title="Concentration">C</span>
@@ -120,7 +120,7 @@ export const SpellsOverflowPage: React.FC<SpellsOverflowPageProps> = ({
                                         {spell.isRitual && (
                                             <span className="spell-tag ritual" title="Ritual">R</span>
                                         )}
-                                        
+
                                         {/* Info button */}
                                         {onSpellInfoClick && (
                                             <span className="spell-info-btn" title="View spell details">ⓘ</span>
@@ -132,7 +132,7 @@ export const SpellsOverflowPage: React.FC<SpellsOverflowPageProps> = ({
                     );
                 })}
             </div>
-            
+
             {/* Footer */}
             <footer className="overflow-page-footer">
                 <span className="overflow-page-count">
