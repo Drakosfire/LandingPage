@@ -18,6 +18,21 @@
  */
 
 import React from 'react';
+import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
+import { EditableText } from './EditableText';
+
+/**
+ * Wizard step constants for navigation
+ */
+const WIZARD_STEPS = {
+    ABILITIES: 0,
+    RACE: 1,
+    CLASS: 2,
+    SPELLS: 3,
+    BACKGROUND: 4,
+    EQUIPMENT: 5,
+    REVIEW: 6
+} as const;
 
 export interface AbilityScores {
     strength: number;
@@ -95,13 +110,17 @@ const ABILITIES: Array<{ key: keyof AbilityScores; abbrev: string }> = [
 interface AbilityBoxProps {
     abbrev: string;
     score: number;
+    onClick?: () => void;
 }
 
-const AbilityBox: React.FC<AbilityBoxProps> = ({ abbrev, score }) => (
+const AbilityBox: React.FC<AbilityBoxProps> = ({ abbrev, score, onClick }) => (
     <div 
         className="ability-box-horizontal" 
         data-testid={`ability-${abbrev.toLowerCase()}`}
         data-editable="complex"
+        onClick={onClick}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
     >
         <span className="ability-name">{abbrev}</span>
         <span className="ability-score">{score}</span>
@@ -114,9 +133,10 @@ const AbilityBox: React.FC<AbilityBoxProps> = ({ abbrev, score }) => (
  */
 interface AbilityScoresGridProps {
     scores: AbilityScores;
+    onAbilityClick?: () => void;
 }
 
-const AbilityScoresGrid: React.FC<AbilityScoresGridProps> = ({ scores }) => {
+const AbilityScoresGrid: React.FC<AbilityScoresGridProps> = ({ scores, onAbilityClick }) => {
     // Split abilities into two columns: STR/DEX/CON (physical) and INT/WIS/CHA (mental)
     const leftColumn = ABILITIES.slice(0, 3);  // STR, DEX, CON
     const rightColumn = ABILITIES.slice(3, 6); // INT, WIS, CHA
@@ -125,17 +145,56 @@ const AbilityScoresGrid: React.FC<AbilityScoresGridProps> = ({ scores }) => {
         <div className="phb-section ability-scores-grid" data-testid="ability-scores-grid">
             <div className="ability-col">
                 {leftColumn.map(({ key, abbrev }) => (
-                    <AbilityBox key={key} abbrev={abbrev} score={scores[key] ?? 10} />
+                    <AbilityBox 
+                        key={key} 
+                        abbrev={abbrev} 
+                        score={scores[key] ?? 10} 
+                        onClick={onAbilityClick}
+                    />
                 ))}
             </div>
             <div className="ability-col">
                 {rightColumn.map(({ key, abbrev }) => (
-                    <AbilityBox key={key} abbrev={abbrev} score={scores[key] ?? 10} />
+                    <AbilityBox 
+                        key={key} 
+                        abbrev={abbrev} 
+                        score={scores[key] ?? 10} 
+                        onClick={onAbilityClick}
+                    />
                 ))}
             </div>
         </div>
     );
 };
+
+/**
+ * DeathSaveDot - Individual clickable death save dot
+ * In edit mode, clicking toggles the save state
+ */
+interface DeathSaveDotProps {
+    index: number;
+    filled: boolean;
+    type: 'success' | 'failure';
+    onClick?: () => void;
+    isEditMode?: boolean;
+}
+
+const DeathSaveDot: React.FC<DeathSaveDotProps> = ({ index, filled, type, onClick, isEditMode }) => (
+    <span
+        key={`${type}-${index}`}
+        className={`death-dot ${type} ${filled ? 'filled' : ''} ${isEditMode ? 'clickable' : ''}`}
+        onClick={isEditMode ? onClick : undefined}
+        role={isEditMode ? 'button' : undefined}
+        tabIndex={isEditMode ? 0 : undefined}
+        onKeyDown={isEditMode ? (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick?.();
+            }
+        } : undefined}
+        aria-label={isEditMode ? `Toggle death save ${type} ${index + 1}` : undefined}
+    />
+);
 
 /**
  * CombatStatus - Compact HP + AC/Init/Speed + Death Saves display
@@ -149,6 +208,20 @@ interface CombatStatusProps {
     speed: number;
     deathSaveSuccesses: number;
     deathSaveFailures: number;
+    /** Click handler for AC (opens Equipment step) */
+    onACClick?: () => void;
+    /** Click handler for Speed (opens Race step) */
+    onSpeedClick?: () => void;
+    /** Change handler for current HP */
+    onCurrentHPChange?: (value: number) => void;
+    /** Change handler for temp HP */
+    onTempHPChange?: (value: number) => void;
+    /** Change handler for death save successes */
+    onDeathSaveSuccessClick?: (index: number) => void;
+    /** Change handler for death save failures */
+    onDeathSaveFailureClick?: (index: number) => void;
+    /** Whether edit mode is active */
+    isEditMode?: boolean;
 }
 
 const CombatStatus: React.FC<CombatStatusProps> = ({
@@ -159,7 +232,14 @@ const CombatStatus: React.FC<CombatStatusProps> = ({
     initiative,
     speed,
     deathSaveSuccesses,
-    deathSaveFailures
+    deathSaveFailures,
+    onACClick,
+    onSpeedClick,
+    onCurrentHPChange,
+    onTempHPChange,
+    onDeathSaveSuccessClick,
+    onDeathSaveFailureClick,
+    isEditMode
 }) => (
     <div className="phb-section combat-status-compact" data-testid="combat-status">
         <div className="combat-stats-grid">
@@ -170,17 +250,48 @@ const CombatStatus: React.FC<CombatStatusProps> = ({
                     <span className="hp-lbl">HP Max</span>
                 </div>
                 <div className="hp-row" data-editable="quick">
-                    <span className="hp-input">{currentHP ?? ''}</span>
+                    <span className="hp-input">
+                        {onCurrentHPChange ? (
+                            <EditableText
+                                value={currentHP ?? 0}
+                                onChange={(v) => onCurrentHPChange(Number(v))}
+                                type="number"
+                                min={0}
+                                max={maxHP}
+                                placeholder="0"
+                            />
+                        ) : (
+                            currentHP ?? ''
+                        )}
+                    </span>
                     <span className="hp-lbl">Current</span>
                 </div>
                 <div className="hp-row" data-editable="quick">
-                    <span className="hp-input small">{tempHP ?? ''}</span>
+                    <span className="hp-input small">
+                        {onTempHPChange ? (
+                            <EditableText
+                                value={tempHP ?? 0}
+                                onChange={(v) => onTempHPChange(Number(v))}
+                                type="number"
+                                min={0}
+                                placeholder="0"
+                            />
+                        ) : (
+                            tempHP ?? ''
+                        )}
+                    </span>
                     <span className="hp-lbl">Temp</span>
                 </div>
             </div>
             {/* Combat Stats Column */}
             <div className="combat-stats-col">
-                <div className="stat-row" data-editable="complex">
+                <div 
+                    className="stat-row" 
+                    data-editable="complex"
+                    onClick={onACClick}
+                    role={onACClick ? 'button' : undefined}
+                    tabIndex={onACClick ? 0 : undefined}
+                >
                     <span className="stat-val">{armorClass}</span>
                     <span className="stat-lbl">AC</span>
                 </div>
@@ -188,7 +299,13 @@ const CombatStatus: React.FC<CombatStatusProps> = ({
                     <span className="stat-val">{formatInitiative(initiative)}</span>
                     <span className="stat-lbl">Init</span>
                 </div>
-                <div className="stat-row" data-editable="complex">
+                <div 
+                    className="stat-row" 
+                    data-editable="complex"
+                    onClick={onSpeedClick}
+                    role={onSpeedClick ? 'button' : undefined}
+                    tabIndex={onSpeedClick ? 0 : undefined}
+                >
                     <span className="stat-val">{speed}<span className="speed-ft">ft</span></span>
                     <span className="stat-lbl">Speed</span>
                 </div>
@@ -200,13 +317,27 @@ const CombatStatus: React.FC<CombatStatusProps> = ({
             <div className="death-group success-group">
                 <span className="death-group-lbl">S</span>
                 {[0, 1, 2].map(i => (
-                    <span key={`s${i}`} className={`death-dot success ${i < deathSaveSuccesses ? 'filled' : ''}`} />
+                    <DeathSaveDot
+                        key={`s${i}`}
+                        index={i}
+                        filled={i < deathSaveSuccesses}
+                        type="success"
+                        onClick={() => onDeathSaveSuccessClick?.(i)}
+                        isEditMode={isEditMode}
+                    />
                 ))}
             </div>
             <div className="death-group failure-group">
                 <span className="death-group-lbl">F</span>
                 {[0, 1, 2].map(i => (
-                    <span key={`f${i}`} className={`death-dot failure ${i < deathSaveFailures ? 'filled' : ''}`} />
+                    <DeathSaveDot
+                        key={`f${i}`}
+                        index={i}
+                        filled={i < deathSaveFailures}
+                        type="failure"
+                        onClick={() => onDeathSaveFailureClick?.(i)}
+                        isEditMode={isEditMode}
+                    />
                 ))}
             </div>
         </div>
@@ -221,18 +352,37 @@ interface MetaStatsProps {
     proficiencyBonus: number;
     passivePerception: number;
     hitDice: string;
+    /** Click handler for inspiration toggle */
+    onInspirationToggle?: () => void;
+    /** Whether edit mode is active */
+    isEditMode?: boolean;
 }
 
 const MetaStats: React.FC<MetaStatsProps> = ({
     hasInspiration,
     proficiencyBonus,
     passivePerception,
-    hitDice
+    hitDice,
+    onInspirationToggle,
+    isEditMode
 }) => (
     <div className="phb-section meta-stats-compact" data-testid="meta-stats">
         <div className="meta-row" data-editable="quick">
             <span className="meta-lbl">Inspiration</span>
-            <span className={`meta-box ${hasInspiration ? 'filled' : ''}`}>
+            <span 
+                className={`inspiration-box ${hasInspiration ? 'filled' : ''} ${isEditMode ? 'clickable' : ''}`}
+                onClick={isEditMode ? onInspirationToggle : undefined}
+                role={isEditMode ? 'button' : undefined}
+                tabIndex={isEditMode ? 0 : undefined}
+                onKeyDown={isEditMode ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onInspirationToggle?.();
+                    }
+                } : undefined}
+                aria-label={isEditMode ? `Toggle inspiration (currently ${hasInspiration ? 'on' : 'off'})` : undefined}
+                aria-pressed={hasInspiration}
+            >
                 {hasInspiration ? '✓' : ''}
             </span>
         </div>
@@ -247,7 +397,7 @@ const MetaStats: React.FC<MetaStatsProps> = ({
             <span className="meta-lbl">Passive</span>
             <span className="meta-val">{passivePerception}</span>
         </div>
-        <div className="meta-row" data-editable="quick">
+        <div className="meta-row">
             <span className="meta-lbl">Hit Dice</span>
             <span className="meta-val">{hitDice}</span>
         </div>
@@ -256,6 +406,10 @@ const MetaStats: React.FC<MetaStatsProps> = ({
 
 /**
  * AbilityScoresRow - Combat Status + 6 Ability Boxes + Meta Stats
+ * 
+ * In Edit Mode, complex fields open the wizard drawer:
+ * - Ability scores → Abilities step (0)
+ * - AC, Speed → Equipment step (5) since they're derived from gear
  */
 export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
     scores,
@@ -272,6 +426,152 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
     deathSaveSuccesses = 0,
     deathSaveFailures = 0
 }) => {
+    const { isEditMode, openDrawerToStep, updateDnD5eData } = usePlayerCharacterGenerator();
+
+    // Click handler for ability scores (opens Abilities step)
+    const handleAbilityClick = () => {
+        if (isEditMode) {
+            console.log('🔗 [AbilityScoresRow] Opening Abilities step');
+            openDrawerToStep(WIZARD_STEPS.ABILITIES);
+        }
+    };
+
+    // Click handler for AC (opens Equipment step - armor determines AC)
+    const handleACClick = () => {
+        if (isEditMode) {
+            console.log('🔗 [AbilityScoresRow] Opening Equipment step (AC)');
+            openDrawerToStep(WIZARD_STEPS.EQUIPMENT);
+        }
+    };
+
+    // Click handler for Speed (opens Race step - race determines base speed)
+    const handleSpeedClick = () => {
+        if (isEditMode) {
+            console.log('🔗 [AbilityScoresRow] Opening Race step (Speed)');
+            openDrawerToStep(WIZARD_STEPS.RACE);
+        }
+    };
+
+    // Change handlers for HP (quick edit)
+    // HP is stored in derivedStats.currentHp / tempHp
+    const handleCurrentHPChange = (value: number) => {
+        console.log('✏️ [AbilityScoresRow] Current HP changed:', value);
+        // Note: This requires access to current derivedStats to properly merge
+        // For now, we update through character context which has access to full state
+        updateDnD5eData({ 
+            derivedStats: { 
+                armorClass: armorClass,
+                initiative: initiative,
+                proficiencyBonus: proficiencyBonus,
+                speed: { walk: speed },
+                maxHp: maxHP,
+                currentHp: value,
+                tempHp: tempHP ?? 0,
+                hitDice: { total: 1, current: 1, size: 8 },
+                passivePerception: passivePerception,
+                passiveInvestigation: 10,
+                passiveInsight: 10
+            } 
+        });
+    };
+
+    const handleTempHPChange = (value: number) => {
+        console.log('✏️ [AbilityScoresRow] Temp HP changed:', value);
+        updateDnD5eData({ 
+            derivedStats: { 
+                armorClass: armorClass,
+                initiative: initiative,
+                proficiencyBonus: proficiencyBonus,
+                speed: { walk: speed },
+                maxHp: maxHP,
+                currentHp: currentHP ?? maxHP,
+                tempHp: value,
+                hitDice: { total: 1, current: 1, size: 8 },
+                passivePerception: passivePerception,
+                passiveInvestigation: 10,
+                passiveInsight: 10
+            } 
+        });
+    };
+
+    // Death save click handler - toggle behavior
+    // Clicking a dot toggles: if already filled at that position, unfill; otherwise fill up to that position
+    const handleDeathSaveSuccessClick = (index: number) => {
+        if (!isEditMode) return;
+        
+        // Toggle logic: if clicking a filled dot, reduce count; otherwise set count to index + 1
+        const newCount = index < deathSaveSuccesses ? index : index + 1;
+        console.log('✏️ [AbilityScoresRow] Death save success clicked:', { index, current: deathSaveSuccesses, newCount });
+        
+        updateDnD5eData({ 
+            derivedStats: { 
+                armorClass: armorClass,
+                initiative: initiative,
+                proficiencyBonus: proficiencyBonus,
+                speed: { walk: speed },
+                maxHp: maxHP,
+                currentHp: currentHP ?? maxHP,
+                tempHp: tempHP ?? 0,
+                hitDice: { total: 1, current: 1, size: 8 },
+                deathSaves: { successes: newCount, failures: deathSaveFailures },
+                passivePerception: passivePerception,
+                passiveInvestigation: 10,
+                passiveInsight: 10
+            } 
+        });
+    };
+
+    const handleDeathSaveFailureClick = (index: number) => {
+        if (!isEditMode) return;
+        
+        // Toggle logic: if clicking a filled dot, reduce count; otherwise set count to index + 1
+        const newCount = index < deathSaveFailures ? index : index + 1;
+        console.log('✏️ [AbilityScoresRow] Death save failure clicked:', { index, current: deathSaveFailures, newCount });
+        
+        updateDnD5eData({ 
+            derivedStats: { 
+                armorClass: armorClass,
+                initiative: initiative,
+                proficiencyBonus: proficiencyBonus,
+                speed: { walk: speed },
+                maxHp: maxHP,
+                currentHp: currentHP ?? maxHP,
+                tempHp: tempHP ?? 0,
+                hitDice: { total: 1, current: 1, size: 8 },
+                deathSaves: { successes: deathSaveSuccesses, failures: newCount },
+                passivePerception: passivePerception,
+                passiveInvestigation: 10,
+                passiveInsight: 10
+            } 
+        });
+    };
+
+    // Inspiration toggle handler
+    const handleInspirationToggle = () => {
+        if (!isEditMode) return;
+        
+        const newValue = !hasInspiration;
+        console.log('✏️ [AbilityScoresRow] Inspiration toggled:', newValue);
+        
+        updateDnD5eData({ 
+            derivedStats: { 
+                armorClass: armorClass,
+                initiative: initiative,
+                proficiencyBonus: proficiencyBonus,
+                speed: { walk: speed },
+                maxHp: maxHP,
+                currentHp: currentHP ?? maxHP,
+                tempHp: tempHP ?? 0,
+                hitDice: { total: 1, current: 1, size: 8 },
+                deathSaves: { successes: deathSaveSuccesses, failures: deathSaveFailures },
+                hasInspiration: newValue,
+                passivePerception: passivePerception,
+                passiveInvestigation: 10,
+                passiveInsight: 10
+            } 
+        });
+    };
+
     return (
         <div className="ability-scores-row" data-testid="ability-scores-row">
             {/* Combat Status (left) */}
@@ -284,15 +584,27 @@ export const AbilityScoresRow: React.FC<AbilityScoresRowProps> = ({
                 speed={speed}
                 deathSaveSuccesses={deathSaveSuccesses}
                 deathSaveFailures={deathSaveFailures}
+                onACClick={handleACClick}
+                onSpeedClick={handleSpeedClick}
+                onCurrentHPChange={handleCurrentHPChange}
+                onTempHPChange={handleTempHPChange}
+                onDeathSaveSuccessClick={handleDeathSaveSuccessClick}
+                onDeathSaveFailureClick={handleDeathSaveFailureClick}
+                isEditMode={isEditMode}
             />
 
             {/* Ability Scores (center - 2 column grid) */}
-            <AbilityScoresGrid scores={scores} />
+            <AbilityScoresGrid 
+                scores={scores} 
+                onAbilityClick={handleAbilityClick}
+            />
 
             {/* Meta Stats (right) */}
             <MetaStats
                 hasInspiration={hasInspiration}
                 proficiencyBonus={proficiencyBonus}
+                onInspirationToggle={handleInspirationToggle}
+                isEditMode={isEditMode}
                 passivePerception={passivePerception}
                 hitDice={hitDice}
             />

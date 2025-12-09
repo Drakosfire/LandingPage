@@ -43,6 +43,18 @@ interface PlayerCharacterGeneratorContextType {
     isHomebrewMode: boolean;
     setIsHomebrewMode: (enabled: boolean) => void;
 
+    // ===== DRAWER/WIZARD CONTROL =====
+    /** Current wizard step (0-6) */
+    wizardStep: number;
+    /** Set wizard step directly */
+    setWizardStep: (step: number) => void;
+    /** Is creation drawer open */
+    isDrawerOpen: boolean;
+    /** Set drawer open state */
+    setDrawerOpen: (open: boolean) => void;
+    /** Open drawer to a specific wizard step (convenience function for edit mode) */
+    openDrawerToStep: (step: number) => void;
+
     // ===== PROJECT MANAGEMENT (Phase 4) =====
     // currentProject: CharacterProject | null;
     // saveProject: () => Promise<void>;
@@ -73,14 +85,61 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         return createDnD5eRuleEngine();
     }, []);
 
+    // ===== LOCALSTORAGE =====
+    const CHARACTER_STORAGE_KEY = 'pcg_character_state';
+
     // ===== STATE =====
     const [character, setCharacter] = useState<Character | null>(() => {
-        // Phase 0: Just create empty D&D 5e character
-        // Phase 4+: Try to restore from localStorage
+        // Try to restore from localStorage
+        try {
+            const saved = localStorage.getItem(CHARACTER_STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                console.log('📦 [PCG] Restored from localStorage:', parsed.name || '(unnamed)');
+                return parsed;
+            }
+        } catch (err) {
+            console.warn('⚠️ [PCG] Failed to restore from localStorage:', err);
+        }
+        
+        // Fallback: create empty character
         const empty = createEmptyCharacter();
         empty.dnd5eData = createEmptyDnD5eCharacter();
         return empty;
     });
+
+    // Debounced save to localStorage
+    useEffect(() => {
+        if (!character) return;
+        
+        const timer = setTimeout(() => {
+            try {
+                localStorage.setItem(CHARACTER_STORAGE_KEY, JSON.stringify(character));
+                console.log('💾 [PCG] Saved to localStorage');
+            } catch (err) {
+                console.error('❌ [PCG] localStorage save failed:', err);
+            }
+        }, 500); // 500ms debounce (reduced from 2s for better responsiveness)
+        
+        return () => clearTimeout(timer);
+    }, [character]);
+
+    // Save immediately on page unload (catches refresh/close before debounce fires)
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (character) {
+                try {
+                    localStorage.setItem(CHARACTER_STORAGE_KEY, JSON.stringify(character));
+                    console.log('💾 [PCG] Saved on unload');
+                } catch {
+                    // Ignore errors on unload
+                }
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [character]);
 
     // ===== EDIT MODE STATE =====
     const [isEditMode, setIsEditMode] = useState(false);
@@ -94,6 +153,37 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
     useEffect(() => {
         console.log(`🍺 [PlayerCharacterGenerator] Homebrew mode: ${isHomebrewMode ? 'ON' : 'OFF'}`);
     }, [isHomebrewMode]);
+
+    // ===== DRAWER/WIZARD STATE =====
+    const WIZARD_STEP_KEY = 'charactergen_wizard_step';
+    
+    const [isDrawerOpen, setDrawerOpen] = useState(false);
+    const [wizardStep, setWizardStepInternal] = useState<number>(() => {
+        // Restore from localStorage on mount
+        try {
+            const saved = localStorage.getItem(WIZARD_STEP_KEY);
+            return saved ? parseInt(saved) : 0;
+        } catch {
+            return 0;
+        }
+    });
+
+    // Persist wizard step to localStorage
+    const setWizardStep = useCallback((step: number) => {
+        setWizardStepInternal(step);
+        try {
+            localStorage.setItem(WIZARD_STEP_KEY, step.toString());
+        } catch {
+            // Ignore localStorage errors
+        }
+    }, []);
+
+    // Open drawer to a specific step (for edit mode complex field clicks)
+    const openDrawerToStep = useCallback((step: number) => {
+        console.log(`📂 [PlayerCharacterGenerator] Opening drawer to step ${step}`);
+        setWizardStep(step);
+        setDrawerOpen(true);
+    }, [setWizardStep]);
 
     // ===== DERIVED VALIDATION (from Rule Engine) =====
     const validation = useMemo<ValidationResult>(() => {
@@ -147,6 +237,13 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         const empty = createEmptyCharacter();
         empty.dnd5eData = createEmptyDnD5eCharacter();
         setCharacter(empty);
+        // Clear persisted state
+        try {
+            localStorage.removeItem(CHARACTER_STORAGE_KEY);
+            console.log('🗑️ [PCG] Cleared localStorage');
+        } catch {
+            // Ignore localStorage errors
+        }
     }, []);
 
     /**
@@ -200,16 +297,20 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
                 // Edit mode helpers
                 toggleEditMode: () => setIsEditMode(prev => !prev),
                 toggleHomebrewMode: () => setIsHomebrewMode(prev => !prev),
-                getEditMode: () => ({ isEditMode, isHomebrewMode })
+                getEditMode: () => ({ isEditMode, isHomebrewMode }),
+                // Drawer/wizard helpers
+                openDrawerToStep,
+                getWizardStep: () => wizardStep,
+                setWizardStep
             };
             console.log('🛠️ [PCG Debug] Helpers available: window.__PCG_DEBUG__');
             console.log('  - loadDemoCharacter(key): Load demo character (fighter, wizard)');
             console.log('  - resetCharacter(): Reset to empty character');
             console.log('  - getCharacter(): Get current character state');
             console.log('  - toggleEditMode(): Toggle edit mode');
-            console.log('  - toggleHomebrewMode(): Toggle homebrew mode');
+            console.log('  - openDrawerToStep(n): Open drawer to wizard step n');
         }
-    }, [loadDemoCharacter, resetCharacter, character, validation, isEditMode, isHomebrewMode]);
+    }, [loadDemoCharacter, resetCharacter, character, validation, isEditMode, isHomebrewMode, openDrawerToStep, wizardStep, setWizardStep]);
 
     // ===== CONTEXT VALUE =====
     const contextValue: PlayerCharacterGeneratorContextType = {
@@ -233,7 +334,14 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         isEditMode,
         setIsEditMode,
         isHomebrewMode,
-        setIsHomebrewMode
+        setIsHomebrewMode,
+
+        // Drawer/wizard control
+        wizardStep,
+        setWizardStep,
+        isDrawerOpen,
+        setDrawerOpen,
+        openDrawerToStep
     };
 
     return (

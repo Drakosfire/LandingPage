@@ -2,7 +2,7 @@
 
 **Date:** 2025-12-08  
 **Type:** Feature  
-**Last Updated:** 2025-12-08 23:00  
+**Last Updated:** 2025-12-09 00:45  
 **Tasks:** T058a-T058g  
 
 ---
@@ -15,18 +15,36 @@
 - Character name input exists (in ReviewStep only)
 - Validation exists in rule engine
 - Demo characters render on canvas correctly
+- **Edit Mode toggle** in UnifiedHeader (eye/pencil icons)
+- **Visual indicators** for editable fields (blue dashed = quick, purple dotted = complex)
+- **Complex field clicks** open wizard drawer to correct step (Class→2, Race→1, Background→4, etc.)
+- **Inline editing** for quick fields (name, HP, XP, alignment)
+- **localStorage persistence** for character data with 2s debounce
+- **Wizard step** controlled via context (enables drawer navigation from canvas)
 
 ### What's NOT Working ❌
 - **No name input early** - Character name only available in Review (Step 7)
-- **Wizard → Canvas not wired** - Wizard changes don't update canvas display
+- **Wizard → Canvas not fully wired** - Canvas reads from context but wizard changes may not reflect immediately
 - **No validation gating** - Users can advance with invalid/incomplete steps
-- **Drawer overflow** - Content may extend beyond viewport (unverified)
-- **Wizard never exercised** - No end-to-end test creating a character
 
-### Suspected Causes
-1. Name was intended for Review step but should be Step 0/1
-2. Wizard state lives in context but canvas reads from demo data
-3. Validation exists but isn't blocking step advancement
+### Edit Mode Polish (Completed) ✅
+- **Death Saves** - Clickable circles, toggle on click, persists ✅
+- **Inspiration** - 24x24 box, clickable toggle, persists ✅
+- **Hit Dice** - Confirmed: derived from class (not editable) ✅
+
+### Session Progress (2025-12-08/09)
+Edit Mode was prioritized over original wizard tasks:
+1. ✅ Edit toggle added to header
+2. ✅ isEditMode/isHomebrewMode in context
+3. ✅ Visual indicators CSS
+4. ✅ Complex field → drawer navigation
+5. ✅ Inline editing with EditableText component
+6. ✅ localStorage persistence (with beforeunload handler)
+7. ✅ Death saves - clickable dots with toggle
+8. ✅ Inspiration - 24x24 clickable box
+9. ✅ Hit Dice - confirmed derived (removed editable marker)
+10. ✅ Learnings documented (state architecture timing)
+11. ✅ Backlog updated (shared state utilities)
 
 ---
 
@@ -44,32 +62,50 @@ pnpm dev
 ```
 src/components/PlayerCharacterGenerator/
 ├── PlayerCharacterCreationDrawer.tsx      # Drawer container
+├── PlayerCharacterGeneratorProvider.tsx   # Context: character, editMode, wizardStep, localStorage
+├── PlayerCharacterGenerator.tsx           # Main component, uses drawer state from context
 ├── creationDrawerComponents/
-│   ├── CharacterCreationWizard.tsx        # Wizard orchestrator (lines 32-152)
-│   ├── AbilityScoresStep.tsx              # Step 1: Wrapper for Step1AbilityScores
-│   ├── RaceSelectionStep.tsx              # Step 2
-│   ├── ClassSelectionStep.tsx             # Step 3
-│   ├── SpellSelectionStep.tsx             # Step 4 (skipped for non-casters)
-│   ├── BackgroundSelectionStep.tsx        # Step 5
-│   ├── EquipmentStep.tsx                  # Step 6
-│   └── ReviewStep.tsx                     # Step 7: Has name input (lines 115-125)
-├── PlayerCharacterGeneratorProvider.tsx   # Context with character state
-└── shared/CharacterCanvas.tsx             # Canvas display (uses demo data)
+│   ├── CharacterCreationWizard.tsx        # Wizard orchestrator, uses step from context
+│   ├── AbilityScoresStep.tsx              # Step 0
+│   ├── RaceSelectionStep.tsx              # Step 1
+│   ├── ClassSelectionStep.tsx             # Step 2
+│   ├── SpellSelectionStep.tsx             # Step 3 (skipped for non-casters)
+│   ├── BackgroundSelectionStep.tsx        # Step 4
+│   ├── EquipmentStep.tsx                  # Step 5
+│   └── ReviewStep.tsx                     # Step 6
+├── sheetComponents/
+│   ├── CharacterHeader.tsx                # Inline edit: name, playerName, xp, alignment
+│   ├── AbilityScoresRow.tsx               # Inline edit: HP; complex click: abilities
+│   ├── EditableText.tsx                   # NEW: Reusable inline edit component
+│   └── CharacterSheet.css                 # Edit mode styles (lines 2230-2390)
+└── shared/CharacterCanvas.tsx             # Canvas display, reads from context
 ```
 
 ---
 
 ## Task Breakdown
 
-| Task | Description | Est. | Priority |
-|------|-------------|------|----------|
-| **T058e** | Fix drawer height/overflow | 1h | 1️⃣ |
-| **T058c** | Wire wizard state → CharacterCanvas | 2h | 2️⃣ |
-| **T058a** | Add BasicInfoStep (name, concept) | 2h | 3️⃣ |
-| **T058b** | Reorder wizard steps | 1h | 4️⃣ |
-| **T058d** | Add validation gating | 2h | 5️⃣ |
-| **T058f** | Manual E2E test | 2h | 6️⃣ |
-| **T058g** | Test all 7 fixture characters | 4h | 7️⃣ |
+| Task | Description | Est. | Priority | Status |
+|------|-------------|------|----------|--------|
+| **T058e** | Fix drawer height/overflow | 1h | — | ⏭️ Skipped |
+| **T058c** | Wire wizard state → CharacterCanvas | 2h | 1️⃣ | ⬜ Pending |
+| **T058a** | Add BasicInfoStep (name, concept) | 2h | 2️⃣ | ⬜ Pending |
+| **T058b** | Reorder wizard steps | 1h | 3️⃣ | ⬜ Pending |
+| **T058d** | Add validation gating | 2h | 4️⃣ | ⬜ Pending |
+| **T058f** | Manual E2E test | 2h | 5️⃣ | ⬜ Pending |
+| **T058g** | Test all 7 fixture characters | 4h | 6️⃣ | ⬜ Pending |
+
+### Edit Mode Tasks (Section Complete ✅)
+| Task | Description | Status |
+|------|-------------|--------|
+| Edit toggle | Add to UnifiedHeader | ✅ |
+| Visual indicators | CSS for quick/complex fields | ✅ |
+| Complex → Drawer | Click opens wizard to step | ✅ |
+| Inline editing | EditableText component | ✅ |
+| localStorage | Persistence + beforeunload | ✅ |
+| Death Saves | Clickable dots with toggle | ✅ |
+| Inspiration | 24x24 clickable box | ✅ |
+| Hit Dice | Confirmed derived (not editable) | ✅ |
 
 ---
 
@@ -202,32 +238,55 @@ Use these to verify wizard can produce valid characters:
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| T058e | ⬜ Not Started | Fix drawer overflow |
-| T058c | ⬜ Not Started | Wire wizard → canvas |
-| T058a | ⬜ Not Started | Add BasicInfoStep |
-| T058b | ⬜ Not Started | Reorder wizard steps |
-| T058d | ⬜ Not Started | Add validation gating |
-| T058f | ⬜ Not Started | Manual E2E test |
-| T058g | ⬜ Not Started | Test fixture characters |
+| Edit Mode | ✅ Complete | Toggle, indicators, inline edit, complex→drawer |
+| localStorage | ✅ Complete | Persistence + beforeunload |
+| Edit Polish | ✅ Complete | Death saves, inspiration, hit dice |
+| T058e | ⏭️ Skipped | Drawer overflow (not blocking) |
+| T058c | ⬜ Pending | Wire wizard → canvas |
+| T058a | ⬜ Pending | Add BasicInfoStep |
+| T058b | ⬜ Pending | Reorder wizard steps |
+| T058d | ⬜ Pending | Add validation gating |
+| T058f | ⬜ Pending | Manual E2E test |
+| T058g | ⬜ Pending | Test fixture characters |
+
+---
+
+## Files Modified This Session
+
+### Created
+- `sheetComponents/EditableText.tsx` (~140 lines) - Reusable inline edit component
+
+### Modified
+- `UnifiedHeader.tsx` - Edit mode toggle button
+- `PlayerCharacterGeneratorProvider.tsx` - isEditMode, wizardStep, localStorage
+- `PlayerCharacterGenerator.tsx` - Use drawer state from context
+- `CharacterCreationWizard.tsx` - Use wizard step from context
+- `CharacterHeader.tsx` - EditableText for name/xp/alignment
+- `AbilityScoresRow.tsx` - EditableText for HP, click handlers for abilities
+- `CharacterSheet.css` - Edit mode visual indicators (~100 lines added)
+- `types/character.types.ts` - Added `xp` and `playerName` fields
 
 ---
 
 ## Context
 
-This phase was identified on December 8, 2025 when reviewing task order. The wizard **exists** but was never **exercised**. Before Edit Mode (Phase 3.7) can begin, we need to verify:
+This phase was identified on December 8, 2025 when reviewing task order. The wizard **exists** but was never **exercised**.
 
-1. Users can actually create characters through the wizard
-2. Wizard data flows to the canvas display
-3. All validation works correctly
+**Session Pivot:** Edit Mode was prioritized because:
+1. User wanted immediate visual feedback for editable fields
+2. localStorage persistence was blocking testing
+3. Click-to-edit provides faster iteration than wizard-only creation
 
-**Principle:** "Test the pipes" - Can't edit what you can't create.
+**Remaining Principle:** "Test the pipes" - Still need to verify wizard can create characters end-to-end.
 
 ---
 
 ## References
 
 - **Tasks:** `specs/PlayerCharacterGenerator/tasks.md` (Phase 3.5b section)
+- **localStorage Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-LocalStorage-Persistence.md`
 - **Learnings:** `Docs/Learnings/LEARNINGS-PlayerCharacterGenerator-2025.md`
 - **Provider:** `src/components/PlayerCharacterGenerator/PlayerCharacterGeneratorProvider.tsx`
 - **Rule Engine:** `src/components/PlayerCharacterGenerator/engine/dnd5e/DnD5eRuleEngine.ts`
+- **Patterns:** `.cursor/rules/PATTERNS-Utilities.mdc` (persistence patterns)
 

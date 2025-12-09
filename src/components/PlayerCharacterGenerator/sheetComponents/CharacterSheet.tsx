@@ -61,6 +61,10 @@ export interface CharacterSheetProps {
 
     // Features
     features?: Feature[];
+
+    // Edit Mode Callbacks
+    /** Callback when currency changes */
+    onCurrencyChange?: (currency: Currency) => void;
 }
 
 /**
@@ -110,7 +114,10 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     equipment,
 
     // Features
-    features
+    features,
+
+    // Edit Mode Callbacks
+    onCurrencyChange
 }) => {
     return (
         <CharacterSheetPage>
@@ -162,6 +169,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                         attacks={attacks}
                         currency={currency}
                         equipment={equipment}
+                        onCurrencyChange={onCurrencyChange}
                     />
                 }
                 column3={

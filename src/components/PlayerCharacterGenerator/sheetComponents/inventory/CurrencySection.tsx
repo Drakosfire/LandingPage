@@ -3,10 +3,15 @@
  * 
  * Currency grid with 5 coin types and total value.
  * 
+ * Edit Mode Support:
+ * - All currency fields are Quick Edit (inline number inputs)
+ * 
  * @module PlayerCharacterGenerator/sheetComponents/inventory
  */
 
 import React from 'react';
+import { usePlayerCharacterGenerator } from '../../PlayerCharacterGeneratorProvider';
+import { EditableText } from '../EditableText';
 
 export interface Currency {
     cp: number;
@@ -21,6 +26,8 @@ export interface CurrencySectionProps {
     currency: Currency;
     /** Whether to show total value */
     showTotal?: boolean;
+    /** Callback when currency changes */
+    onCurrencyChange?: (currency: Currency) => void;
 }
 
 /**
@@ -48,11 +55,16 @@ const calculateTotalGP = (currency: Currency): string => {
 
 /**
  * CurrencySection - 5-coin grid with totals
+ * 
+ * In Edit Mode, currency values can be edited inline
  */
 export const CurrencySection: React.FC<CurrencySectionProps> = ({
     currency,
-    showTotal = true
+    showTotal = true,
+    onCurrencyChange
 }) => {
+    const { isEditMode } = usePlayerCharacterGenerator();
+
     const coins: { label: string; key: keyof Currency }[] = [
         { label: 'CP', key: 'cp' },
         { label: 'SP', key: 'sp' },
@@ -61,14 +73,37 @@ export const CurrencySection: React.FC<CurrencySectionProps> = ({
         { label: 'PP', key: 'pp' }
     ];
 
+    // Handler for individual coin value changes
+    const handleCoinChange = (key: keyof Currency, value: number) => {
+        if (onCurrencyChange) {
+            console.log(`✏️ [CurrencySection] ${key.toUpperCase()} changed:`, value);
+            onCurrencyChange({
+                ...currency,
+                [key]: value
+            });
+        }
+    };
+
     return (
         <div className="phb-section currency-section">
             <div className="section-header">Currency</div>
-            <div className="currency-grid">
+            <div className="currency-grid" data-editable={onCurrencyChange ? "quick" : undefined}>
                 {coins.map(({ label, key }) => (
                     <div key={key} className="currency-item">
                         <div className="coin-label">{label}</div>
-                        <div className="coin-value">{currency[key]}</div>
+                        <div className="coin-value">
+                            {onCurrencyChange ? (
+                                <EditableText
+                                    value={currency[key]}
+                                    onChange={(v) => handleCoinChange(key, Number(v))}
+                                    type="number"
+                                    min={0}
+                                    placeholder="0"
+                                />
+                            ) : (
+                                currency[key]
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>

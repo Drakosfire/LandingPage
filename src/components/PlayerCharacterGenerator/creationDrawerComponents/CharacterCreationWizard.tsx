@@ -15,8 +15,8 @@
  * @module CharacterGenerator
  */
 
-import React, { useState, useEffect } from 'react';
-import { Stack, Button, Group, Stepper, Text, Box } from '@mantine/core';
+import React, { useEffect } from 'react';
+import { Stack, Button, Group, Stepper, Box } from '@mantine/core';
 import AbilityScoresStep from './AbilityScoresStep';
 import RaceSelectionStep from './RaceSelectionStep';
 import ClassSelectionStep from './ClassSelectionStep';
@@ -26,21 +26,14 @@ import EquipmentStep from './EquipmentStep';
 import ReviewStep from './ReviewStep';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
-const WIZARD_STEP_KEY = 'charactergen_wizard_step';
 const TOTAL_STEPS = 7;
 
 const CharacterCreationWizard: React.FC = () => {
-    const { character, ruleEngine } = usePlayerCharacterGenerator();
+    const { character, ruleEngine, wizardStep, setWizardStep } = usePlayerCharacterGenerator();
 
-    // Restore last step from localStorage
-    const [currentStep, setCurrentStep] = useState<number>(() => {
-        try {
-            const saved = localStorage.getItem(WIZARD_STEP_KEY);
-            return saved ? parseInt(saved) : 0;
-        } catch {
-            return 0;
-        }
-    });
+    // Use wizardStep from context (localStorage persistence handled by provider)
+    const currentStep = wizardStep;
+    const setCurrentStep = setWizardStep;
 
     // Determine if current character is a spellcaster (for step 4 skip logic)
     const isSpellcaster = (): boolean => {
@@ -50,9 +43,8 @@ const CharacterCreationWizard: React.FC = () => {
         return classData?.spellcasting !== undefined;
     };
 
-    // Persist step to localStorage
+    // Log step changes
     useEffect(() => {
-        localStorage.setItem(WIZARD_STEP_KEY, currentStep.toString());
         console.log(`📍 [Wizard] Step ${currentStep + 1}/${TOTAL_STEPS}`);
     }, [currentStep]);
 

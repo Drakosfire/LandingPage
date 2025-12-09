@@ -52,6 +52,8 @@ export interface InventorySheetProps {
 
     /** Currency amounts */
     currency: Currency;
+    /** Callback when currency changes */
+    onCurrencyChange?: (currency: Currency) => void;
     /** Attuned magic items */
     attunedItems: AttunedItem[];
 
@@ -123,6 +125,7 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
         classAndLevel,
         strength,
         currency,
+        onCurrencyChange,
         attunedItems,
         weapons,
         armor,
@@ -158,7 +161,7 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
 
             {/* Top Row: Currency, Encumbrance, Attunement */}
             <div className="top-row">
-                <CurrencySection currency={currency} />
+                <CurrencySection currency={currency} onCurrencyChange={onCurrencyChange} />
                 <EncumbranceSection
                     currentWeight={totalWeight}
                     strength={strength}

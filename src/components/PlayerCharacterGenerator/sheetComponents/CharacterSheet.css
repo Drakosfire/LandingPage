@@ -459,6 +459,32 @@
     background: var(--HB_Color_HorizontalRule);
 }
 
+/* Death save dots in edit mode - clickable */
+.character-sheet .death-dot.clickable {
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.character-sheet .death-dot.clickable:hover {
+    transform: scale(1.3);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.character-sheet .death-dot.clickable.success:hover {
+    border-color: #2d5016;
+    box-shadow: 0 0 6px rgba(45, 80, 22, 0.5);
+}
+
+.character-sheet .death-dot.clickable.failure:hover {
+    border-color: var(--HB_Color_HorizontalRule);
+    box-shadow: 0 0 6px rgba(139, 69, 19, 0.5);
+}
+
+.character-sheet .death-dot.clickable:focus {
+    outline: 2px solid var(--edit-quick-color, #3b82f6);
+    outline-offset: 2px;
+}
+
 /* Ability Scores Grid - 2 Column Horizontal Layout */
 .character-sheet .ability-scores-grid {
     display: flex;
@@ -545,6 +571,44 @@
     justify-content: center;
     font-size: 10px;
     font-weight: bold;
+}
+
+/* Inspiration box - larger for better visibility and interaction */
+.character-sheet .inspiration-box {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'NodestoCapsCondensed', serif;
+    background: var(--bg-light);
+    transition: all 0.15s ease;
+}
+
+.character-sheet .inspiration-box.filled {
+    background: var(--HB_Color_HeaderUnderline, #c9ad6a);
+    color: var(--text-red, #58180D);
+    border-color: var(--HB_Color_HeaderUnderline, #c9ad6a);
+}
+
+/* Clickable inspiration in edit mode */
+.character-sheet .inspiration-box.clickable {
+    cursor: pointer;
+}
+
+.character-sheet .inspiration-box.clickable:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-color: var(--HB_Color_HeaderUnderline, #c9ad6a);
+}
+
+.character-sheet .inspiration-box.clickable:focus {
+    outline: 2px solid var(--edit-quick-color, #3b82f6);
+    outline-offset: 2px;
     background: var(--bg-light);
 }
 
@@ -1396,6 +1460,26 @@
     justify-content: center;
 }
 
+/* Edit mode - inventory currency grid */
+.character-canvas-area.edit-mode .inventory-sheet .currency-grid[data-editable="quick"] {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    padding: 4px;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode .inventory-sheet .currency-grid[data-editable="quick"]:hover {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+.character-canvas-area.edit-mode .inventory-sheet .currency-grid[data-editable="quick"]:focus-within {
+    border-color: #1d4ed8 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
 .inventory-sheet .currency-total {
     margin-top: var(--space-8);
     padding-top: var(--space-6);
@@ -1727,6 +1811,36 @@
 
 .spell-sheet .slot-circle.used {
     background: var(--border-color);
+}
+
+/* Edit mode - clickable spell slot circles */
+.character-canvas-area.edit-mode .spell-sheet .slot-circle.clickable {
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode .spell-sheet .slot-circle.clickable:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    transform: scale(1.1);
+}
+
+.character-canvas-area.edit-mode .spell-sheet .slot-circle.used.clickable:hover {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+/* Spell slot level box quick edit indicator */
+.character-canvas-area.edit-mode .spell-slot-level[data-editable="quick"] {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode .spell-slot-level[data-editable="quick"]:hover {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.15) !important;
 }
 
 /* Spell List Container - 3 Columns */
@@ -2435,6 +2549,129 @@
 .edit-mode-legend-icon.complex {
     border: 2px dotted rgba(139, 92, 246, 0.8);
     background: rgba(139, 92, 246, 0.1);
+}
+
+/* Personality box quick edit styling */
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"] {
+    position: relative;
+}
+
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"] .text-area {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    transition: all 0.15s ease;
+    cursor: text;
+    min-height: 60px;
+}
+
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"]:hover .text-area {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"]:focus-within .text-area {
+    border-color: #1d4ed8 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Notes box quick edit styling */
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] {
+    position: relative;
+}
+
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] .notes-content {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    transition: all 0.15s ease;
+    cursor: text;
+}
+
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"]:hover .notes-content {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"]:focus-within .notes-content {
+    border-color: #1d4ed8 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Editable textarea display styling */
+.editable-textarea-display {
+    display: block;
+    width: 100%;
+    min-height: 40px;
+}
+
+.editable-textarea-display.editable {
+    cursor: text;
+}
+
+.editable-textarea-display .placeholder {
+    color: var(--text-muted, #666);
+    font-style: italic;
+}
+
+/* Currency row quick edit styling */
+.character-canvas-area.edit-mode .currency-row[data-editable="quick"] {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    padding: 4px;
+}
+
+.character-canvas-area.edit-mode .currency-row[data-editable="quick"]:hover {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.currency-row .currency-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.currency-row .currency-label {
+    font-size: 9px;
+    font-weight: bold;
+    color: var(--text-muted, #666);
+}
+
+.currency-row .currency-input {
+    width: 40px;
+    text-align: center;
+}
+
+/* Equipment grid and attacks section complex edit */
+.character-canvas-area.edit-mode .attacks-section[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    background-color: rgba(139, 92, 246, 0.1) !important;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .attacks-section[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
+    background-color: rgba(139, 92, 246, 0.2) !important;
+}
+
+.character-canvas-area.edit-mode .equipment-grid[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    background-color: rgba(139, 92, 246, 0.1) !important;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .equipment-grid[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
+    background-color: rgba(139, 92, 246, 0.2) !important;
 }
 
 /* ===== Print Styles ===== */

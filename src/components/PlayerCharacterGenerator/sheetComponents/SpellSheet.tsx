@@ -70,6 +70,9 @@ export interface SpellSheetProps {
     level8Spells: SpellEntry[];
     /** 9th level spells */
     level9Spells: SpellEntry[];
+
+    /** Callback when spell slot usage changes */
+    onSlotUsageChange?: (level: number, used: number) => void;
 }
 
 /**
@@ -119,7 +122,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
     level6Spells,
     level7Spells,
     level8Spells,
-    level9Spells
+    level9Spells,
+    onSlotUsageChange
 }) => {
     // Modal state for spell details
     const { isOpen: isSpellModalOpen, data: selectedSpell, openModal: openSpellModal, closeModal: closeSpellModal } = useDetailModal<SpellEntry>();
@@ -143,7 +147,7 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
             />
 
             {/* Spell Slot Tracker */}
-            <SpellSlotTracker slots={spellSlots} />
+            <SpellSlotTracker slots={spellSlots} onSlotUsageChange={onSlotUsageChange} />
 
             {/* Spell List - 3 Columns */}
             <div className="spell-list-container">

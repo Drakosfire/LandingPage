@@ -1,7 +1,7 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 7, 2025 (All Sheet Pages Visually Complete)  
+**Updated**: December 9, 2025 (LocalStorage Persistence Complete)  
 **Source**: spec.md + plan.md  
 **Total Tasks**: 131 (124 + 7 integration tests)  
 **Estimated Hours**: 122-170h
@@ -40,6 +40,18 @@
 | **T117** | Build SpellSheet from prototype | ✅ Complete |
 | **T118** | Polish all sheet pages (spacing, layout, CSS variables) | ✅ Complete |
 
+### LocalStorage Persistence (Completed 2025-12-09)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T069** | localStorage auto-save with 2s debounce | ✅ Complete |
+| **T073** | Wire persistence into Provider | ✅ Complete |
+| **BugFix** | playerName saving to wrong location | ✅ Fixed |
+| **BugFix** | XP field missing from Character type | ✅ Fixed |
+| **BugFix** | Click area only on text, not full box | ✅ Fixed |
+
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-LocalStorage-Persistence.md`
+
 ### Ready for Next Phase (Pagination)
 
 | Task | Description | Status |
@@ -63,14 +75,14 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T140** | Create `useEditMode.ts` hook - edit state, dirty tracking, undo buffer | ⏳ Pending |
-| **T141** | Add inline text editing for CharacterHeader (name, class display) | ⏳ Pending |
+| **T140** | Create `useEditMode.ts` hook - edit state, dirty tracking, undo buffer | ✅ Complete (in Provider) |
+| **T141** | Add inline text editing for CharacterHeader (name, class display) | ✅ Complete |
 | **T142** | Add inline editing for personality traits, ideals, bonds, flaws | ⏳ Pending |
 | **T143** | Add inline editing for notes/backstory on BackgroundSheet | ⏳ Pending |
 | **T144** | HP tracking - click to adjust current HP, temp HP | ⏳ Pending |
-| **T145** | Death saves - click to mark successes/failures | ⏳ Pending |
-| **T146** | Hit dice - click to track used dice | ⏳ Pending |
-| **T147** | Inspiration toggle - click to grant/remove | ⏳ Pending |
+| **T145** | Death saves - click to mark successes/failures | 🔜 Next |
+| **T146** | Hit dice - click to track used dice (calculated, only `current` editable) | 🔜 Next |
+| **T147** | Inspiration toggle - click to grant/remove (needs UI change to box) | 🔜 Next |
 | **T148** | Spell slot dots - click to mark used/expended | ⏳ Pending |
 | **T149** | Spell prepared checkboxes - toggle prepared spells | ⏳ Pending |
 
@@ -482,11 +494,11 @@ Each component renders a section of the character sheet. Display-only first, edi
 **Depends On**: Phase 3 complete
 
 - [ ] T068 [US4] Create `useCharacterPersistence.ts` hook in `src/components/PlayerCharacterGenerator/hooks/useCharacterPersistence.ts`
-- [ ] T069 [US4] Implement localStorage auto-save with 2s debounce in `useCharacterPersistence.ts`
+- [x] T069 [US4] Implement localStorage auto-save with 2s debounce ✅ (in Provider directly, 2025-12-09)
 - [ ] T070 [US4] Implement cloud sync for logged-in users in `useCharacterPersistence.ts`
 - [ ] T071 [US4] Implement storage limit enforcement (5 anon / 50 logged-in) in `useCharacterPersistence.ts`
 - [ ] T072 [US4] Create `PlayerCharacterProjectsDrawer.tsx` in `src/components/PlayerCharacterGenerator/PlayerCharacterProjectsDrawer.tsx`
-- [ ] T073 [US4] Wire persistence hook into `PlayerCharacterGeneratorProvider.tsx`
+- [x] T073 [US4] Wire persistence hook into `PlayerCharacterGeneratorProvider.tsx` ✅ (localStorage only, 2025-12-09)
 
 ---
 

@@ -84,7 +84,93 @@ const getSpacingScale = (viewportWidth: number): number => {
 };
 
 const CharacterCanvas: React.FC = () => {
-    const { character, isEditMode, updateCharacter } = usePlayerCharacterGenerator();
+    const { character, isEditMode, updateCharacter, updateDnD5eData } = usePlayerCharacterGenerator();
+
+    // ===== EDIT MODE CALLBACKS =====
+    // Handler for currency changes (quick edit)
+    // Accepts partial currency and merges with existing values, ensuring all fields are numbers
+    const handleCurrencyChange = React.useCallback((currency: { cp?: number; sp?: number; ep?: number; gp?: number; pp?: number }) => {
+        console.log('✏️ [CharacterCanvas] Currency changed:', currency);
+        const currentCurrency = character?.dnd5eData?.currency;
+        updateDnD5eData({ 
+            currency: {
+                cp: currency.cp ?? currentCurrency?.cp ?? 0,
+                sp: currency.sp ?? currentCurrency?.sp ?? 0,
+                ep: currency.ep ?? currentCurrency?.ep ?? 0,
+                gp: currency.gp ?? currentCurrency?.gp ?? 0,
+                pp: currency.pp ?? currentCurrency?.pp ?? 0
+            }
+        });
+    }, [updateDnD5eData, character?.dnd5eData?.currency]);
+
+    // Handlers for personality field changes (quick edit)
+    const handleTraitsChange = React.useCallback((value: string) => {
+        console.log('✏️ [CharacterCanvas] Traits changed:', value);
+        const currentPersonality = character?.dnd5eData?.personality || {};
+        updateDnD5eData({ 
+            personality: { 
+                ...currentPersonality,
+                traits: [value] // Store as array (D&D 5e format)
+            } 
+        });
+    }, [updateDnD5eData, character?.dnd5eData?.personality]);
+
+    const handleIdealsChange = React.useCallback((value: string) => {
+        console.log('✏️ [CharacterCanvas] Ideals changed:', value);
+        const currentPersonality = character?.dnd5eData?.personality || {};
+        updateDnD5eData({ 
+            personality: { 
+                ...currentPersonality,
+                ideals: [value]
+            } 
+        });
+    }, [updateDnD5eData, character?.dnd5eData?.personality]);
+
+    const handleBondsChange = React.useCallback((value: string) => {
+        console.log('✏️ [CharacterCanvas] Bonds changed:', value);
+        const currentPersonality = character?.dnd5eData?.personality || {};
+        updateDnD5eData({ 
+            personality: { 
+                ...currentPersonality,
+                bonds: [value]
+            } 
+        });
+    }, [updateDnD5eData, character?.dnd5eData?.personality]);
+
+    const handleFlawsChange = React.useCallback((value: string) => {
+        console.log('✏️ [CharacterCanvas] Flaws changed:', value);
+        const currentPersonality = character?.dnd5eData?.personality || {};
+        updateDnD5eData({ 
+            personality: { 
+                ...currentPersonality,
+                flaws: [value]
+            } 
+        });
+    }, [updateDnD5eData, character?.dnd5eData?.personality]);
+
+    // Handler for spell slot usage changes (quick edit)
+    const handleSpellSlotUsageChange = React.useCallback((level: number, used: number) => {
+        console.log(`✏️ [CharacterCanvas] Spell slot level ${level} usage changed:`, used);
+        const currentSpellcasting = character?.dnd5eData?.spellcasting;
+        if (!currentSpellcasting) return;
+
+        const currentSlots = currentSpellcasting.spellSlots || {};
+        const levelKey = level as keyof typeof currentSlots;
+        const currentLevelData = currentSlots[levelKey] || { total: 0, used: 0 };
+
+        updateDnD5eData({
+            spellcasting: {
+                ...currentSpellcasting,
+                spellSlots: {
+                    ...currentSlots,
+                    [level]: {
+                        ...currentLevelData,
+                        used
+                    }
+                }
+            }
+        });
+    }, [updateDnD5eData, character?.dnd5eData?.spellcasting]);
 
     // ===== STATE =====
     const containerRef = useRef<HTMLDivElement>(null);
@@ -532,9 +618,9 @@ const CharacterCanvas: React.FC = () => {
                         classAndLevel={classAndLevel}
                         race={dnd5e.race?.name || 'Unknown'}
                         background={dnd5e.background?.name || 'Unknown'}
-                        playerName=""
+                        playerName={character.playerName || ''}
                         alignment={dnd5e.alignment || ''}
-                        xp={0}
+                        xp={character.xp || 0}
                         portraitUrl={undefined}
 
                         // Ability Scores
@@ -544,7 +630,7 @@ const CharacterCanvas: React.FC = () => {
                         proficiencyBonus={dnd5e.derivedStats?.proficiencyBonus ?? 2}
                         proficientSaves={dnd5e.proficiencies?.savingThrows || []}
                         proficientSkills={dnd5e.proficiencies?.skills || []}
-                        hasInspiration={false}
+                        hasInspiration={dnd5e.derivedStats?.hasInspiration ?? false}
                         passivePerception={passivePerception}
 
                         // Languages & Proficiencies
@@ -563,11 +649,14 @@ const CharacterCanvas: React.FC = () => {
                         hitDiceTotal={dnd5e.classes?.length > 0
                             ? `${dnd5e.classes[0].level}d${dnd5e.classes[0].hitDie || 10}`
                             : '1d10'}
+                        deathSaveSuccesses={dnd5e.derivedStats?.deathSaves?.successes ?? 0}
+                        deathSaveFailures={dnd5e.derivedStats?.deathSaves?.failures ?? 0}
 
                         // Attacks & Equipment
                         attacks={attacks}
                         currency={dnd5e.currency}
                         equipment={equipmentList}
+                        onCurrencyChange={handleCurrencyChange}
 
                         // Features (may be truncated if overflow detected)
                         features={visibleFeatures}
@@ -581,6 +670,10 @@ const CharacterCanvas: React.FC = () => {
                         ideals={ideals}
                         bonds={bonds}
                         flaws={flaws}
+                        onTraitsChange={handleTraitsChange}
+                        onIdealsChange={handleIdealsChange}
+                        onBondsChange={handleBondsChange}
+                        onFlawsChange={handleFlawsChange}
                     />
 
                     {/* Page 3: Inventory Sheet */}
@@ -595,6 +688,7 @@ const CharacterCanvas: React.FC = () => {
                             gp: dnd5e.currency?.gp ?? 0,
                             pp: dnd5e.currency?.pp ?? 0
                         }}
+                        onCurrencyChange={handleCurrencyChange}
                         attunedItems={(() => {
                             // Build attunement slots from character data
                             const maxSlots = dnd5e.attunement?.maxSlots ?? 3;
@@ -663,6 +757,7 @@ const CharacterCanvas: React.FC = () => {
                             level7Spells={displaySpellsData.level7Spells}
                             level8Spells={displaySpellsData.level8Spells}
                             level9Spells={displaySpellsData.level9Spells}
+                            onSlotUsageChange={handleSpellSlotUsageChange}
                         />
                     )}
 

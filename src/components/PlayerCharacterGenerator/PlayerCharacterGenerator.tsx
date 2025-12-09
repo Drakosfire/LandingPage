@@ -10,7 +10,7 @@
  * @module PlayerCharacterGenerator
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import '@mantine/core/styles.css';
 import '../../styles/mantineOverrides.css';
 import '../../styles/DesignSystem.css';
@@ -28,12 +28,13 @@ import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
  * Inner component (has access to context)
  */
 const PlayerCharacterGeneratorInner: React.FC = () => {
-    const [creationDrawerOpen, setCreationDrawerOpen] = useState(false);
     const { 
         loadDemoCharacter, 
         demoCharacterOptions,
         isEditMode,
-        setIsEditMode 
+        setIsEditMode,
+        isDrawerOpen,
+        setDrawerOpen
     } = usePlayerCharacterGenerator();
 
     // Load D&D 5e PHB CSS
@@ -68,7 +69,7 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
 
     const handleGenerationClick = () => {
         console.log('🎨 [PlayerCharacterGen] Opening creation drawer');
-        setCreationDrawerOpen(true);
+        setDrawerOpen(true);
     };
 
     return (
@@ -114,8 +115,8 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
 
             {/* Player Character Creation Drawer */}
             <PlayerCharacterCreationDrawer
-                opened={creationDrawerOpen}
-                onClose={() => setCreationDrawerOpen(false)}
+                opened={isDrawerOpen}
+                onClose={() => setDrawerOpen(false)}
             />
 
             {/* Footer */}

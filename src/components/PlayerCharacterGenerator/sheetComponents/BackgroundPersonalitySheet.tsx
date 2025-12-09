@@ -4,11 +4,16 @@
  * Second page of the character sheet focused on roleplay content.
  * Contains personality traits, ideals, bonds, flaws, and notes.
  * 
+ * Edit Mode Support:
+ * - All personality fields are Quick Edit (inline textarea)
+ * - Notes field is Quick Edit (inline textarea)
+ * 
  * @module PlayerCharacterGenerator/sheetComponents
  */
 
-import React from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { CharacterSheetPage } from './CharacterSheetPage';
+import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import './CharacterSheet.css';
 
 export interface BackgroundPersonalitySheetProps {
@@ -26,16 +31,141 @@ export interface BackgroundPersonalitySheetProps {
     characterName?: string;
     /** Background name */
     backgroundName?: string;
+    /** Callback when traits change */
+    onTraitsChange?: (value: string) => void;
+    /** Callback when ideals change */
+    onIdealsChange?: (value: string) => void;
+    /** Callback when bonds change */
+    onBondsChange?: (value: string) => void;
+    /** Callback when flaws change */
+    onFlawsChange?: (value: string) => void;
+    /** Callback when notes change */
+    onNotesChange?: (value: string) => void;
 }
 
 interface PersonalityBoxProps {
     label: string;
     content: string;
+    /** Whether the field is editable (quick edit) */
+    editable?: boolean;
+    /** Callback when content changes */
+    onChange?: (value: string) => void;
 }
 
-const PersonalityBox: React.FC<PersonalityBoxProps> = ({ label, content }) => (
-    <div className="phb-section personality-box personality-grid-item">
-        <div className="text-area">{content || '—'}</div>
+/**
+ * EditableTextarea - Inline editable textarea for personality fields
+ * Shows static text when not editing, textarea when editing (click to edit)
+ */
+interface EditableTextareaProps {
+    value: string;
+    onChange: (value: string) => void;
+    placeholder?: string;
+    rows?: number;
+}
+
+const EditableTextarea: React.FC<EditableTextareaProps> = ({
+    value,
+    onChange,
+    placeholder = '',
+    rows = 4
+}) => {
+    const { isEditMode } = usePlayerCharacterGenerator();
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState(value);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Sync editValue when value prop changes (external update)
+    useEffect(() => {
+        if (!isEditing) {
+            setEditValue(value);
+        }
+    }, [value, isEditing]);
+
+    // Focus textarea when editing starts
+    useEffect(() => {
+        if (isEditing && textareaRef.current) {
+            textareaRef.current.focus();
+            textareaRef.current.select();
+        }
+    }, [isEditing]);
+
+    const handleClick = useCallback(() => {
+        if (isEditMode && !isEditing) {
+            console.log('✏️ [EditableTextarea] Starting inline edit');
+            setIsEditing(true);
+        }
+    }, [isEditMode, isEditing]);
+
+    const handleSave = useCallback(() => {
+        console.log('💾 [EditableTextarea] Saving:', editValue);
+        setIsEditing(false);
+        onChange(editValue);
+    }, [editValue, onChange]);
+
+    const handleCancel = useCallback(() => {
+        console.log('❌ [EditableTextarea] Cancelled edit');
+        setIsEditing(false);
+        setEditValue(value); // Reset to original
+    }, [value]);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            handleCancel();
+        }
+        // Note: Enter does NOT save for textarea (allows multiline)
+        // Use blur or Tab to save
+    }, [handleCancel]);
+
+    const handleBlur = useCallback(() => {
+        handleSave();
+    }, [handleSave]);
+
+    if (isEditing) {
+        return (
+            <textarea
+                ref={textareaRef}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+                className="edit-textarea"
+                placeholder={placeholder}
+                rows={rows}
+            />
+        );
+    }
+
+    return (
+        <span
+            className={`editable-textarea-display ${isEditMode ? 'editable' : ''}`}
+            onClick={handleClick}
+            role={isEditMode ? 'button' : undefined}
+            tabIndex={isEditMode ? 0 : undefined}
+            onKeyDown={isEditMode ? (e) => e.key === 'Enter' && handleClick() : undefined}
+        >
+            {value || <span className="placeholder">{placeholder || '—'}</span>}
+        </span>
+    );
+};
+
+const PersonalityBox: React.FC<PersonalityBoxProps> = ({ label, content, editable, onChange }) => (
+    <div 
+        className="phb-section personality-box personality-grid-item"
+        data-editable={editable ? "quick" : undefined}
+    >
+        <div className="text-area">
+            {editable && onChange ? (
+                <EditableTextarea
+                    value={content}
+                    onChange={onChange}
+                    placeholder={`Enter your ${label.toLowerCase()}`}
+                    rows={4}
+                />
+            ) : (
+                content || '—'
+            )}
+        </div>
         <div className="box-label">{label}</div>
     </div>
 );
@@ -47,6 +177,10 @@ const PersonalityBox: React.FC<PersonalityBoxProps> = ({ label, content }) => (
  * - Title header
  * - 2x2 grid for personality traits, ideals, bonds, flaws
  * - Full-width notes section with 3-column layout
+ * 
+ * Edit Mode:
+ * - All personality fields support Quick Edit (inline textarea)
+ * - Notes field supports Quick Edit (inline textarea)
  */
 export const BackgroundPersonalitySheet: React.FC<BackgroundPersonalitySheetProps> = ({
     traits = '',
@@ -55,8 +189,16 @@ export const BackgroundPersonalitySheet: React.FC<BackgroundPersonalitySheetProp
     flaws = '',
     notes = '',
     characterName = '',
-    backgroundName = ''
+    backgroundName = '',
+    onTraitsChange,
+    onIdealsChange,
+    onBondsChange,
+    onFlawsChange,
+    onNotesChange
 }) => {
+    // Check if any edit callbacks are provided
+    const hasEditCallbacks = !!(onTraitsChange || onIdealsChange || onBondsChange || onFlawsChange || onNotesChange);
+    
     return (
         <CharacterSheetPage
             className="background-personality-sheet"
@@ -76,17 +218,51 @@ export const BackgroundPersonalitySheet: React.FC<BackgroundPersonalitySheetProp
 
             {/* Personality Grid - 2x2 layout */}
             <div className="personality-grid">
-                <PersonalityBox label="Personality Traits" content={traits} />
-                <PersonalityBox label="Ideals" content={ideals} />
-                <PersonalityBox label="Bonds" content={bonds} />
-                <PersonalityBox label="Flaws" content={flaws} />
+                <PersonalityBox 
+                    label="Personality Traits" 
+                    content={traits} 
+                    editable={!!onTraitsChange}
+                    onChange={onTraitsChange}
+                />
+                <PersonalityBox 
+                    label="Ideals" 
+                    content={ideals}
+                    editable={!!onIdealsChange}
+                    onChange={onIdealsChange}
+                />
+                <PersonalityBox 
+                    label="Bonds" 
+                    content={bonds}
+                    editable={!!onBondsChange}
+                    onChange={onBondsChange}
+                />
+                <PersonalityBox 
+                    label="Flaws" 
+                    content={flaws}
+                    editable={!!onFlawsChange}
+                    onChange={onFlawsChange}
+                />
             </div>
 
             {/* Notes Section */}
             <div className="notes-section">
-                <div className="phb-section notes-box">
+                <div 
+                    className="phb-section notes-box"
+                    data-editable={onNotesChange ? "quick" : undefined}
+                >
                     <div className="notes-content">
-                        <div className="notes-column">{notes}</div>
+                        <div className="notes-column">
+                            {onNotesChange ? (
+                                <EditableTextarea
+                                    value={notes}
+                                    onChange={onNotesChange}
+                                    placeholder="Enter notes here..."
+                                    rows={8}
+                                />
+                            ) : (
+                                notes
+                            )}
+                        </div>
                         <div className="notes-column"></div>
                         <div className="notes-column"></div>
                     </div>

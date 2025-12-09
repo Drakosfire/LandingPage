@@ -57,6 +57,7 @@ export interface Character {
     backstory?: string;             // Character backstory/history
     notes?: string;                 // Player/DM notes
     playerName?: string;            // Name of player (if PC)
+    xp?: number;                    // Experience points
 
     // ===== METADATA (universal) =====
     createdAt: string;              // ISO 8601 timestamp

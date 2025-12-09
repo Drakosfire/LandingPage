@@ -149,9 +149,9 @@ const MobileCharacterCanvas: React.FC = () => {
                         classAndLevel={classAndLevel}
                         race={dnd5e.race?.name || 'Unknown'}
                         background={dnd5e.background?.name || 'Unknown'}
-                        playerName=""
+                        playerName={character.playerName || ''}
                         alignment={dnd5e.alignment || ''}
-                        xp={0}
+                        xp={character.xp || 0}
                         portraitUrl={undefined}
                     />
                 </section>

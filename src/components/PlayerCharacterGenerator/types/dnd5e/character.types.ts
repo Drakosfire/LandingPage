@@ -120,6 +120,18 @@ export interface DnD5eDerivedStats {
         size: number;            // Die size (6, 8, 10, 12) from class
     };
 
+    // Death saves (PHB p. 197)
+    // At 0 HP, make a death save each turn
+    // 3 successes = stabilize, 3 failures = death
+    deathSaves?: {
+        successes: number;       // 0-3 successes
+        failures: number;        // 0-3 failures
+    };
+
+    // Inspiration (PHB p. 125)
+    // Granted by DM for good roleplay, can be spent for advantage
+    hasInspiration?: boolean;
+
     // Passive scores
     passivePerception: number;   // 10 + Perception skill modifier
     passiveInvestigation: number; // 10 + Investigation skill modifier
@@ -293,6 +305,8 @@ export function createEmptyDnD5eCharacter(): DnD5eCharacter {
             maxHp: 1,
             currentHp: 1,
             hitDice: { total: 1, current: 1, size: 6 },
+            deathSaves: { successes: 0, failures: 0 },
+            hasInspiration: false,
             passivePerception: 10,
             passiveInvestigation: 10,
             passiveInsight: 10
