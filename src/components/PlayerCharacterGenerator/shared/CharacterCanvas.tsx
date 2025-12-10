@@ -850,6 +850,8 @@ const CharacterCanvas: React.FC = () => {
     // ===== SPELLS OVERFLOW DETECTION (desktop only) =====
     // Uses actual DOM measurements for accurate spell overflow detection.
     // Implements per-spell overflow - spells flow continuously with "(continued)" labels.
+    // NOTE: SpellSheet uses 3-column layout, so maxHeightPx accounts for total capacity
+    // across all columns (~700px per column × 3 = ~2100px total capacity)
     const {
         visibleSpellsByLevel,
         overflowPages: spellsOverflowPages,
@@ -858,7 +860,7 @@ const CharacterCanvas: React.FC = () => {
         measurementPortal: spellsMeasurementPortal,
     } = useSpellsOverflow({
         ...spellsData,
-        maxHeightPx: 750, // Approximate height for spell list area on SpellSheet
+        maxHeightPx: 2100, // 3-column layout: ~700px per column × 3 columns
         enabled: !isMobile && !!character?.dnd5eData?.spellcasting
     });
 
