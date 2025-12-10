@@ -27,8 +27,10 @@ import {
     SpellSheet,
     type Attack,
     type Feature,
-    type SpellSlotLevel
+    type SpellSlotLevel,
+    type InventoryCategory
 } from '../sheetComponents';
+import type { InventoryItem } from '../sheetComponents/inventory';
 
 // Overflow components for pagination (desktop only)
 import { FeaturesOverflowPage, InventoryOverflowPage, SpellsOverflowPage } from '../sheetComponents/overflow';
@@ -178,6 +180,236 @@ const CharacterCanvas: React.FC = () => {
         });
     }, [updateDnD5eData, character?.dnd5eData?.spellcasting]);
 
+    // ===== INVENTORY CRUD HANDLERS =====
+    // Helper to update attunement array based on item's attuned state
+    // Always returns a valid DnD5eAttunement object
+    const updateAttunement = (itemId: string, isAttuned: boolean, currentAttunement: { maxSlots?: number; attunedItemIds?: string[] } | undefined): { maxSlots: number; attunedItemIds: string[] } => {
+        const currentIds = currentAttunement?.attunedItemIds || [];
+        const maxSlots = currentAttunement?.maxSlots ?? 3;
+        
+        if (isAttuned && !currentIds.includes(itemId)) {
+            // Add to attunement (check max slots)
+            if (currentIds.length >= maxSlots) {
+                console.warn('⚠️ [CharacterCanvas] Max attunement slots reached');
+                return { maxSlots, attunedItemIds: currentIds }; // Don't add if at max
+            }
+            console.log('✦ [CharacterCanvas] Attuning item:', itemId);
+            return {
+                maxSlots,
+                attunedItemIds: [...currentIds, itemId]
+            };
+        } else if (!isAttuned && currentIds.includes(itemId)) {
+            // Remove from attunement
+            console.log('✧ [CharacterCanvas] Unattuning item:', itemId);
+            return {
+                maxSlots,
+                attunedItemIds: currentIds.filter(id => id !== itemId)
+            };
+        }
+        // Return current state (with defaults for type safety)
+        return { maxSlots, attunedItemIds: currentIds };
+    };
+
+    // Handler for adding new inventory item
+    // Places item in correct array based on item TYPE, not just the category clicked from
+    const handleAddInventoryItem = React.useCallback((item: InventoryItem, _category: InventoryCategory) => {
+        console.log('➕ [CharacterCanvas] Adding item:', item.name, 'type:', item.type, 'attuned:', item.attuned);
+        const dnd5e = character?.dnd5eData;
+        if (!dnd5e) return;
+
+        // Determine storage location based on item type, not category
+        const isWeapon = item.type === 'weapon';
+        
+        // Prepare attunement update if needed
+        const newAttunement = item.attuned 
+            ? updateAttunement(item.id, true, dnd5e.attunement)
+            : dnd5e.attunement;
+
+        if (isWeapon) {
+            // Add to weapons array
+            const currentWeapons = dnd5e.weapons || [];
+            updateDnD5eData({
+                weapons: [...currentWeapons, {
+                    id: item.id,
+                    name: item.name,
+                    type: 'weapon',
+                    quantity: item.quantity,
+                    weight: item.weight,
+                    value: item.valueNumber,
+                    description: item.description,
+                    weaponCategory: item.weaponCategory || 'simple',
+                    weaponType: item.weaponType || 'melee',
+                    damage: item.damage || '1d6',
+                    damageType: item.damageType || 'bludgeoning',
+                    properties: item.properties || [],
+                    range: item.range,
+                    isMagical: item.isMagical,
+                    rarity: item.rarity,
+                    requiresAttunement: item.requiresAttunement
+                }],
+                attunement: newAttunement
+            });
+        } else {
+            // Add to equipment array (all non-weapon items)
+            const currentEquipment = dnd5e.equipment || [];
+            updateDnD5eData({
+                equipment: [...currentEquipment, {
+                    id: item.id,
+                    name: item.name,
+                    type: item.type || 'other',
+                    quantity: item.quantity,
+                    weight: item.weight,
+                    value: item.valueNumber,
+                    description: item.description,
+                    isMagical: item.isMagical,
+                    rarity: item.rarity,
+                    requiresAttunement: item.requiresAttunement
+                }],
+                attunement: newAttunement
+            });
+        }
+    }, [updateDnD5eData, character?.dnd5eData]);
+
+    // Handler for editing existing inventory item
+    // Handles cross-category moves when item type changes (e.g., changing gear to weapon)
+    // Also manages attunement state changes
+    const handleEditInventoryItem = React.useCallback((item: InventoryItem, category: InventoryCategory) => {
+        console.log('✏️ [CharacterCanvas] Editing item:', item.name, 'in', category, 'new type:', item.type, 'attuned:', item.attuned);
+        const dnd5e = character?.dnd5eData;
+        if (!dnd5e) return;
+
+        const currentWeapons = dnd5e.weapons || [];
+        const currentEquipment = dnd5e.equipment || [];
+        
+        // Update attunement based on item's attuned state
+        const newAttunement = updateAttunement(item.id, item.attuned || false, dnd5e.attunement);
+
+        // Determine if item needs to move between storage arrays based on type
+        const isNowWeapon = item.type === 'weapon';
+        const wasInWeapons = category === 'weapons';
+
+        // Check if item is moving from equipment to weapons
+        if (isNowWeapon && !wasInWeapons) {
+            console.log('🔄 [CharacterCanvas] Moving item to weapons array');
+            // Remove from equipment, add to weapons
+            const filteredEquipment = currentEquipment.filter(e => e.id !== item.id);
+            const newWeapon = {
+                id: item.id,
+                name: item.name,
+                type: 'weapon' as const,
+                quantity: item.quantity,
+                weight: item.weight,
+                value: item.valueNumber,
+                description: item.description,
+                weaponCategory: item.weaponCategory || 'simple',
+                weaponType: item.weaponType || 'melee',
+                damage: item.damage || '1d6',
+                damageType: item.damageType || 'bludgeoning',
+                properties: item.properties || [],
+                range: item.range,
+                isMagical: item.isMagical,
+                rarity: item.rarity,
+                requiresAttunement: item.requiresAttunement
+            };
+            updateDnD5eData({
+                equipment: filteredEquipment,
+                weapons: [...currentWeapons, newWeapon],
+                attunement: newAttunement
+            });
+            return;
+        }
+
+        // Check if item is moving from weapons to equipment
+        if (!isNowWeapon && wasInWeapons) {
+            console.log('🔄 [CharacterCanvas] Moving item from weapons to equipment');
+            // Remove from weapons, add to equipment
+            const filteredWeapons = currentWeapons.filter(w => w.id !== item.id);
+            const newEquipment = {
+                id: item.id,
+                name: item.name,
+                type: item.type || 'other',
+                quantity: item.quantity,
+                weight: item.weight,
+                value: item.valueNumber,
+                description: item.description,
+                isMagical: item.isMagical,
+                rarity: item.rarity,
+                requiresAttunement: item.requiresAttunement
+            };
+            updateDnD5eData({
+                weapons: filteredWeapons,
+                equipment: [...currentEquipment, newEquipment],
+                attunement: newAttunement
+            });
+            return;
+        }
+
+        // No cross-array move needed - update in place
+        if (wasInWeapons) {
+            // Update in weapons array
+            const updatedWeapons = currentWeapons.map(w =>
+                w.id === item.id ? {
+                    ...w,
+                    name: item.name,
+                    quantity: item.quantity,
+                    weight: item.weight,
+                    value: item.valueNumber,
+                    description: item.description,
+                    weaponCategory: item.weaponCategory || w.weaponCategory,
+                    weaponType: item.weaponType || w.weaponType,
+                    damage: item.damage || w.damage,
+                    damageType: item.damageType || w.damageType,
+                    properties: item.properties || w.properties,
+                    range: item.range,
+                    isMagical: item.isMagical,
+                    rarity: item.rarity,
+                    requiresAttunement: item.requiresAttunement
+                } : w
+            );
+            updateDnD5eData({ weapons: updatedWeapons, attunement: newAttunement });
+        } else {
+            // Update in equipment array
+            const updatedEquipment = currentEquipment.map(e =>
+                e.id === item.id ? {
+                    ...e,
+                    name: item.name,
+                    type: item.type || e.type,
+                    quantity: item.quantity,
+                    weight: item.weight,
+                    value: item.valueNumber,
+                    description: item.description,
+                    isMagical: item.isMagical,
+                    rarity: item.rarity,
+                    requiresAttunement: item.requiresAttunement
+                } : e
+            );
+            updateDnD5eData({ equipment: updatedEquipment, attunement: newAttunement });
+        }
+    }, [updateDnD5eData, character?.dnd5eData]);
+
+    // Handler for deleting inventory item
+    // Also removes from attunement if the item was attuned
+    const handleDeleteInventoryItem = React.useCallback((itemId: string, category: InventoryCategory) => {
+        console.log('🗑️ [CharacterCanvas] Deleting item:', itemId, 'from', category);
+        const dnd5e = character?.dnd5eData;
+        if (!dnd5e) return;
+
+        // Always try to remove from attunement (in case item was attuned)
+        const newAttunement = updateAttunement(itemId, false, dnd5e.attunement);
+
+        if (category === 'weapons') {
+            // Remove from weapons array
+            const currentWeapons = dnd5e.weapons || [];
+            const filteredWeapons = currentWeapons.filter(w => w.id !== itemId);
+            updateDnD5eData({ weapons: filteredWeapons, attunement: newAttunement });
+        } else {
+            // Remove from equipment array
+            const currentEquipment = dnd5e.equipment || [];
+            const filteredEquipment = currentEquipment.filter(e => e.id !== itemId);
+            updateDnD5eData({ equipment: filteredEquipment, attunement: newAttunement });
+        }
+    }, [updateDnD5eData, character?.dnd5eData]);
+
     // ===== STATE =====
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
@@ -326,8 +558,8 @@ const CharacterCanvas: React.FC = () => {
             valueNumber: w.value
         }));
 
-        // Map armor
-        const armor = dnd5e.armor ? [{
+        // Map armor - includes equipped armor AND armor items in equipment array
+        const equippedArmor = dnd5e.armor ? [{
             id: dnd5e.armor.id || 'armor-1',
             name: dnd5e.armor.name + ' (worn)',
             quantity: 1,
@@ -345,10 +577,30 @@ const CharacterCanvas: React.FC = () => {
             valueNumber: dnd5e.armor.value
         }] : [];
 
-        // Map magic items
+        // Also include armor/shield items from equipment array
+        const armorFromEquipment = (dnd5e.equipment || [])
+            .filter(e => e.type === 'armor' || e.type === 'shield')
+            .map((e, idx) => ({
+                id: e.id || `armor-equip-${idx}`,
+                name: e.name,
+                quantity: e.quantity || 1,
+                weight: e.weight,
+                notes: '—',
+                attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id),
+                type: e.type as 'armor' | 'shield',
+                description: e.description,
+                isMagical: e.isMagical,
+                rarity: e.rarity,
+                requiresAttunement: e.requiresAttunement,
+                valueNumber: e.value
+            }));
+
+        const armor = [...equippedArmor, ...armorFromEquipment];
+
+        // Map magic items (excludes weapon/armor/shield/consumable - those show in their own sections)
         const magicItems = (dnd5e.equipment || [])
             .filter(e => e.isMagical || e.type === 'wondrous item')
-            .filter(e => e.type !== 'weapon' && e.type !== 'armor' && e.type !== 'consumable')
+            .filter(e => e.type !== 'weapon' && e.type !== 'armor' && e.type !== 'shield' && e.type !== 'consumable')
             .map((e, idx) => ({
                 id: e.id || `magic-${idx}`,
                 name: e.name,
@@ -409,6 +661,21 @@ const CharacterCanvas: React.FC = () => {
                 valueNumber: e.value
             }));
 
+        // Map other items (catch-all for remaining types: tool, trinket, other, etc.)
+        const categorizedTypes = ['weapon', 'armor', 'shield', 'adventuring gear', 'container', 'treasure', 'consumable', 'wondrous item'];
+        const otherItems = (dnd5e.equipment || [])
+            .filter(e => !categorizedTypes.includes(e.type) && !e.isMagical)
+            .map((e, idx) => ({
+                id: e.id || `other-${idx}`,
+                name: e.name,
+                quantity: e.quantity || 1,
+                weight: e.weight,
+                notes: e.description?.slice(0, 20) || '—',
+                type: e.type,
+                description: e.description,
+                valueNumber: e.value
+            }));
+
         return {
             weapons,
             armor,
@@ -416,7 +683,7 @@ const CharacterCanvas: React.FC = () => {
             adventuringGear,
             treasure,
             consumables,
-            otherItems: [], // Not yet mapped from character data
+            otherItems,
         };
     }, [character?.dnd5eData]);
 
@@ -438,7 +705,7 @@ const CharacterCanvas: React.FC = () => {
     // ===== INVENTORY OVERFLOW DETECTION (desktop only) =====
     // Uses category-based overflow - items are grouped by category with 3-column layout.
     const {
-        visibleInventory,
+        // visibleInventory not used - overflow handled at page level
         overflowPages: inventoryOverflowPages,
         hasOverflow: hasInventoryOverflow,
         overflowPageCount: inventoryOverflowPageCount,
@@ -709,9 +976,9 @@ const CharacterCanvas: React.FC = () => {
                                 ...(dnd5e.armor ? [dnd5e.armor] : [])
                             ];
 
-                            const slots = attunedIds.map(itemId => {
+                            const slots: { id?: string; name: string; active: boolean }[] = attunedIds.map(itemId => {
                                 const item = allItems.find(i => i.id === itemId);
-                                return { name: item?.name ?? itemId, active: true };
+                                return { id: itemId, name: item?.name ?? itemId, active: true };
                             });
 
                             // Pad with empty slots
@@ -729,6 +996,9 @@ const CharacterCanvas: React.FC = () => {
                         consumables={inventoryData.consumables}
                         otherItems={inventoryData.otherItems}
                         containers={[]}
+                        onAddItem={handleAddInventoryItem}
+                        onEditItem={handleEditInventoryItem}
+                        onDeleteItem={handleDeleteInventoryItem}
                     />
 
                     {/* Page 4: Spell Sheet (if spellcaster) */}
@@ -872,7 +1142,30 @@ const CharacterCanvas: React.FC = () => {
                 </div>
             </CharacterSheetPage>
         );
-    }, [character, visibleFeatures, featuresOverflowPages, hasFeaturesOverflow, displaySpellsData, hasSpellsOverflow, spellsOverflowPages]);
+    }, [
+        character,
+        visibleFeatures,
+        featuresOverflowPages,
+        hasFeaturesOverflow,
+        featuresOverflowPageCount,
+        displaySpellsData,
+        hasSpellsOverflow,
+        spellsOverflowPages,
+        hasInventoryOverflow,
+        inventoryOverflowPages,
+        inventoryOverflowPageCount,
+        inventoryData,
+        handleCurrencyChange,
+        handleTraitsChange,
+        handleIdealsChange,
+        handleBondsChange,
+        handleFlawsChange,
+        handleNotesChange,
+        handleSpellSlotUsageChange,
+        handleAddInventoryItem,
+        handleEditInventoryItem,
+        handleDeleteInventoryItem
+    ]);
 
     // ===== PAGE COUNT =====
     // Calculate number of pages (for container height)

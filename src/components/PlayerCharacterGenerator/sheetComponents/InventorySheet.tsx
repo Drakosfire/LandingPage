@@ -24,7 +24,7 @@
  * @module PlayerCharacterGenerator/sheetComponents
  */
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { CharacterSheetPage } from './CharacterSheetPage';
 import {
     InventoryHeader,
@@ -39,8 +39,9 @@ import {
     InventoryItem,
     Container
 } from './inventory';
-import { ItemDetailModal } from './modals';
+import { ItemDetailModal, ItemEditModal, InventoryCategory } from './modals';
 import { useDetailModal } from '../hooks/useDetailModal';
+import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
 export interface InventorySheetProps {
     /** Character name */
@@ -77,6 +78,14 @@ export interface InventorySheetProps {
 
     /** Override current weight (auto-calculated if not provided) */
     currentWeight?: number;
+
+    // Inventory CRUD callbacks (edit mode)
+    /** Callback when an item is added to a category */
+    onAddItem?: (item: InventoryItem, category: InventoryCategory) => void;
+    /** Callback when an item is edited */
+    onEditItem?: (item: InventoryItem, category: InventoryCategory) => void;
+    /** Callback when an item is deleted */
+    onDeleteItem?: (itemId: string, category: InventoryCategory) => void;
 }
 
 /**
@@ -134,18 +143,124 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
         treasure,
         consumables,
         otherItems,
-        containers
+        containers,
+        onAddItem,
+        onEditItem,
+        onDeleteItem
     } = props;
 
+    const { isEditMode } = usePlayerCharacterGenerator();
     const totalWeight = calculateTotalWeight(props);
 
-    // Modal state for item details
+    // Modal state for item details (view mode)
     const { isOpen: isItemModalOpen, data: selectedItem, openModal: openItemModal, closeModal: closeItemModal } = useDetailModal<InventoryItem>();
 
-    // Handler for item info clicks
+    // Modal state for item editing (edit mode)
+    const [editModalState, setEditModalState] = useState<{
+        isOpen: boolean;
+        mode: 'add' | 'edit';
+        category?: InventoryCategory;
+        item?: InventoryItem;
+    }>({ isOpen: false, mode: 'add' });
+
+    // Handler for item info clicks (view mode)
     const handleItemInfoClick = (item: InventoryItem) => {
-        openItemModal(item);
+        if (!isEditMode) {
+            openItemModal(item);
+        }
     };
+
+    // Helper to find item by ID and determine its category
+    const findItemWithCategory = useCallback((itemId: string): { item: InventoryItem; category: InventoryCategory } | null => {
+        // Check each category
+        const weaponItem = weapons.find(item => item.id === itemId);
+        if (weaponItem) return { item: weaponItem, category: 'weapons' };
+
+        const armorItem = armor.find(item => item.id === itemId);
+        if (armorItem) return { item: armorItem, category: 'armor' };
+
+        const magicItem = magicItems.find(item => item.id === itemId);
+        if (magicItem) return { item: magicItem, category: 'magicItems' };
+
+        const gearItem = adventuringGear.find(item => item.id === itemId);
+        if (gearItem) return { item: gearItem, category: 'adventuringGear' };
+
+        const treasureItem = treasure.find(item => item.id === itemId);
+        if (treasureItem) return { item: treasureItem, category: 'treasure' };
+
+        const consumableItem = consumables.find(item => item.id === itemId);
+        if (consumableItem) return { item: consumableItem, category: 'consumables' };
+
+        const otherItem = otherItems.find(item => item.id === itemId);
+        if (otherItem) return { item: otherItem, category: 'otherItems' };
+
+        return null;
+    }, [weapons, armor, magicItems, adventuringGear, treasure, consumables, otherItems]);
+
+    // Handler for attuned item info (finds item by ID and opens detail modal)
+    const handleAttunedItemInfoClick = useCallback((itemId: string) => {
+        const found = findItemWithCategory(itemId);
+        if (found) {
+            console.log('ℹ️ [InventorySheet] Opening info for attuned item:', found.item.name);
+            openItemModal(found.item);
+        }
+    }, [findItemWithCategory, openItemModal]);
+
+    // Handler for attuned item edit click (finds item by ID and opens edit modal)
+    const handleAttunedItemEditClick = useCallback((itemId: string) => {
+        const found = findItemWithCategory(itemId);
+        if (found) {
+            console.log('✏️ [InventorySheet] Opening edit modal for attuned item:', found.item.name);
+            setEditModalState({
+                isOpen: true,
+                mode: 'edit',
+                category: found.category,
+                item: found.item
+            });
+        }
+    }, [findItemWithCategory]);
+
+    // Open edit modal for adding new item
+    const handleAddItem = useCallback((category: InventoryCategory) => {
+        console.log('➕ [InventorySheet] Opening add modal for:', category);
+        setEditModalState({
+            isOpen: true,
+            mode: 'add',
+            category
+        });
+    }, []);
+
+    // Open edit modal for editing existing item
+    const handleEditItem = useCallback((item: InventoryItem, category: InventoryCategory) => {
+        console.log('✏️ [InventorySheet] Opening edit modal for:', item.name);
+        setEditModalState({
+            isOpen: true,
+            mode: 'edit',
+            category,
+            item
+        });
+    }, []);
+
+    // Close edit modal
+    const handleCloseEditModal = useCallback(() => {
+        setEditModalState(prev => ({ ...prev, isOpen: false }));
+    }, []);
+
+    // Handle save from edit modal
+    const handleSaveItem = useCallback((item: InventoryItem, category: InventoryCategory) => {
+        if (editModalState.mode === 'add' && onAddItem) {
+            onAddItem(item, category);
+        } else if (editModalState.mode === 'edit' && onEditItem) {
+            onEditItem(item, category);
+        }
+    }, [editModalState.mode, onAddItem, onEditItem]);
+
+    // Handle delete from edit modal
+    const handleDeleteItem = useCallback((itemId: string, category: InventoryCategory) => {
+        if (onDeleteItem) {
+            onDeleteItem(itemId, category);
+        }
+    }, [onDeleteItem]);
 
     return (
         <CharacterSheetPage className="inventory-sheet" testId="inventory-sheet">
@@ -166,7 +281,11 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                     currentWeight={totalWeight}
                     strength={strength}
                 />
-                <AttunementSection attunedItems={attunedItems} />
+                <AttunementSection 
+                    attunedItems={attunedItems}
+                    onItemClick={handleAttunedItemEditClick}
+                    onItemInfo={handleAttunedItemInfoClick}
+                />
             </div>
 
             {/* Main Content: 3 Columns */}
@@ -179,6 +298,8 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         items={weapons}
                         emptyRows={1}
                         onItemInfoClick={handleItemInfoClick}
+                        onAddItem={() => handleAddItem('weapons')}
+                        onItemEdit={(item) => handleEditItem(item, 'weapons')}
                     />
                     <InventoryBlock
                         title="Armor & Shields"
@@ -188,6 +309,8 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         formatValue={(item) => item.notes || '—'}
                         emptyRows={1}
                         onItemInfoClick={handleItemInfoClick}
+                        onAddItem={() => handleAddItem('armor')}
+                        onItemEdit={(item) => handleEditItem(item, 'armor')}
                     />
                     <InventoryBlock
                         title="Magic Items"
@@ -198,6 +321,8 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         emptyRows={2}
                         flexGrow
                         onItemInfoClick={handleItemInfoClick}
+                        onAddItem={() => handleAddItem('magicItems')}
+                        onItemEdit={(item) => handleEditItem(item, 'magicItems')}
                     />
                 </div>
 
@@ -210,6 +335,8 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         emptyRows={4}
                         flexGrow
                         onItemInfoClick={handleItemInfoClick}
+                        onAddItem={() => handleAddItem('adventuringGear')}
+                        onItemEdit={(item) => handleEditItem(item, 'adventuringGear')}
                     />
                     {containers.map((container) => (
                         <ContainerBlock
@@ -227,6 +354,8 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         totalWeight={categoryWeight(treasure)}
                         items={treasure}
                         emptyRows={2}
+                        onAddItem={() => handleAddItem('treasure')}
+                        onItemEdit={(item) => handleEditItem(item, 'treasure')}
                     />
                     <InventoryBlock
                         title="Consumables"
@@ -237,6 +366,8 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         emptyRows={1}
                         className="consumables-block"
                         onItemInfoClick={handleItemInfoClick}
+                        onAddItem={() => handleAddItem('consumables')}
+                        onItemEdit={(item) => handleEditItem(item, 'consumables')}
                     />
                     <InventoryBlock
                         title="Other Items"
@@ -247,12 +378,14 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                         emptyRows={3}
                         flexGrow
                         onItemInfoClick={handleItemInfoClick}
+                        onAddItem={() => handleAddItem('otherItems')}
+                        onItemEdit={(item) => handleEditItem(item, 'otherItems')}
                     />
                 </div>
             </div>
 
-            {/* Item Detail Modal */}
-            {selectedItem && (
+            {/* Item Detail Modal (View Mode) */}
+            {selectedItem && !isEditMode && (
                 <ItemDetailModal
                     isOpen={isItemModalOpen}
                     onClose={closeItemModal}
@@ -278,6 +411,17 @@ export const InventorySheet: React.FC<InventorySheetProps> = (props) => {
                     acBonus={selectedItem.acBonus}
                 />
             )}
+
+            {/* Item Edit Modal (Edit Mode) */}
+            <ItemEditModal
+                isOpen={editModalState.isOpen}
+                onClose={handleCloseEditModal}
+                mode={editModalState.mode}
+                category={editModalState.category}
+                item={editModalState.item}
+                onSave={handleSaveItem}
+                onDelete={handleDeleteItem}
+            />
         </CharacterSheetPage>
     );
 };

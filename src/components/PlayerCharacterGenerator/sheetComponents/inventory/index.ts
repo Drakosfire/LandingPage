@@ -10,6 +10,9 @@
 export { ItemRow } from './ItemRow';
 export type { ItemRowProps } from './ItemRow';
 
+export { AddItemRow } from './AddItemRow';
+export type { AddItemRowProps } from './AddItemRow';
+
 // Category blocks
 export { InventoryBlock } from './InventoryBlock';
 export type { InventoryBlockProps, InventoryItem } from './InventoryBlock';

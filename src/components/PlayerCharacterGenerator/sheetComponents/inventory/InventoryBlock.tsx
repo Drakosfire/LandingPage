@@ -4,11 +4,17 @@
  * Reusable inventory category block with header and item list.
  * Used for Weapons, Armor, Magic Items, etc.
  * 
+ * Edit Mode Support:
+ * - Items become clickable to open edit modal
+ * - "Add Item" row appears at bottom of list
+ * 
  * @module PlayerCharacterGenerator/sheetComponents/inventory
  */
 
 import React from 'react';
+import { usePlayerCharacterGenerator } from '../../PlayerCharacterGeneratorProvider';
 import { ItemRow } from './ItemRow';
+import { AddItemRow } from './AddItemRow';
 import type { EquipmentType, MagicItemRarity, WeaponProperty } from '../../types/dnd5e/equipment.types';
 import type { DamageType } from '../../types/system.types';
 
@@ -69,8 +75,12 @@ export interface InventoryBlockProps {
     formatWeight?: (item: InventoryItem) => string;
     /** Additional CSS class for block-specific styling (e.g., 'consumables-block') */
     className?: string;
-    /** Callback when info button is clicked on an item */
+    /** Callback when info button is clicked on an item (view mode) */
     onItemInfoClick?: (item: InventoryItem) => void;
+    /** Callback when add item button is clicked (edit mode) */
+    onAddItem?: () => void;
+    /** Callback when existing item is clicked for editing (edit mode) */
+    onItemEdit?: (item: InventoryItem) => void;
 }
 
 /**
@@ -90,6 +100,10 @@ const defaultFormatValue = (item: InventoryItem): string => {
 
 /**
  * InventoryBlock - Category block with header and items
+ * 
+ * In edit mode:
+ * - Clicking an existing item opens edit modal (if onItemEdit provided)
+ * - "Add Item" row appears at bottom (if onAddItem provided)
  */
 export const InventoryBlock: React.FC<InventoryBlockProps> = ({
     title,
@@ -101,14 +115,28 @@ export const InventoryBlock: React.FC<InventoryBlockProps> = ({
     formatValue = defaultFormatValue,
     formatWeight = defaultFormatWeight,
     className,
-    onItemInfoClick
+    onItemInfoClick,
+    onAddItem,
+    onItemEdit
 }) => {
+    const { isEditMode } = usePlayerCharacterGenerator();
+
     const blockClasses = [
         'phb-section',
         'inventory-block',
         flexGrow && 'flex-grow',
         className
     ].filter(Boolean).join(' ');
+
+    // Determine click handler for items based on mode
+    const handleItemClick = (item: InventoryItem) => {
+        if (isEditMode && onItemEdit) {
+            console.log('✏️ [InventoryBlock] Edit item:', item.name);
+            onItemEdit(item);
+        } else if (onItemInfoClick) {
+            onItemInfoClick(item);
+        }
+    };
 
     return (
         <div className={blockClasses}>
@@ -125,10 +153,16 @@ export const InventoryBlock: React.FC<InventoryBlockProps> = ({
                         name={item.attuned ? `${item.name} ✦` : item.name}
                         weight={formatWeight(item)}
                         value={formatValue(item)}
-                        onInfoClick={onItemInfoClick ? () => onItemInfoClick(item) : undefined}
+                        onInfoClick={(onItemInfoClick || (isEditMode && onItemEdit)) ? () => handleItemClick(item) : undefined}
+                        isClickable={isEditMode && !!onItemEdit}
                     />
                 ))}
-                {Array.from({ length: emptyRows }).map((_, idx) => (
+                {/* Show Add Item row in edit mode when callback provided */}
+                {isEditMode && onAddItem && (
+                    <AddItemRow onAddItem={onAddItem} />
+                )}
+                {/* Only show empty rows when NOT in edit mode (replaced by AddItemRow) */}
+                {!isEditMode && Array.from({ length: emptyRows }).map((_, idx) => (
                     <ItemRow key={`empty-${idx}`} isEmpty />
                 ))}
             </div>

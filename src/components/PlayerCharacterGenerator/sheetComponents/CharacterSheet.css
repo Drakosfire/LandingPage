@@ -1597,6 +1597,44 @@
     min-height: 18px;
 }
 
+/* Clickable attunement slot in edit mode */
+.inventory-sheet .attunement-slot.clickable {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: var(--space-2) var(--space-4);
+    margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-4));
+    transition: background-color 0.15s ease;
+}
+
+.inventory-sheet .attunement-slot.clickable:hover {
+    background-color: rgba(139, 92, 246, 0.1); /* Light purple hover */
+}
+
+.inventory-sheet .attunement-slot.clickable:focus {
+    outline: 2px solid var(--quick-edit-blue);
+    outline-offset: 2px;
+}
+
+/* Info button in attunement slot */
+.inventory-sheet .attunement-slot .info-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-2);
+    border-radius: 50%;
+    color: var(--text-red);
+    opacity: 0.6;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.inventory-sheet .attunement-slot .info-btn:hover {
+    opacity: 1;
+    background-color: rgba(88, 23, 31, 0.1);
+}
+
 /* Main Content: 3 Columns */
 .inventory-sheet .inventory-main-content {
     flex: 1;
@@ -1679,6 +1717,76 @@
 .inventory-sheet .item-row.empty {
     border-bottom: 1px solid #ccc;
     min-height: 20px;
+}
+
+/* Clickable Item Row (Edit Mode) */
+.inventory-sheet .item-row.clickable {
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    border-radius: 2px;
+    margin: 0 -2px;
+    padding-left: calc(var(--space-4) + 2px);
+    padding-right: calc(var(--space-4) + 2px);
+}
+
+.inventory-sheet .item-row.clickable:hover {
+    background-color: rgba(139, 92, 246, 0.08);
+    border-color: #8b5cf6;
+}
+
+.inventory-sheet .item-row.clickable:focus {
+    outline: 2px solid #8b5cf6;
+    outline-offset: 1px;
+}
+
+/* Add Item Row (Edit Mode) */
+.inventory-sheet .item-row.add-item-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-6);
+    margin: var(--space-4) 0 0 0;
+    border: 2px dashed #3b82f6;
+    border-radius: 4px;
+    background: rgba(59, 130, 246, 0.04);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-height: 24px;
+    color: #3b82f6;
+    font-family: 'ScalySansRemake', sans-serif;
+    font-size: 10px;
+}
+
+.inventory-sheet .item-row.add-item-row:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.inventory-sheet .item-row.add-item-row:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.inventory-sheet .item-row.add-item-row .add-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3b82f6;
+    color: white;
+    flex-shrink: 0;
+}
+
+.inventory-sheet .item-row.add-item-row:hover .add-item-icon {
+    background: #2563eb;
+}
+
+.inventory-sheet .item-row.add-item-row .add-item-text {
+    font-style: italic;
+    opacity: 0.9;
 }
 
 /* Treasure/Valuables Section - 2 columns */

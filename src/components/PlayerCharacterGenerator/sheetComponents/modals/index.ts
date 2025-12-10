@@ -7,6 +7,9 @@
 export { ItemDetailModal } from './ItemDetailModal';
 export type { ItemDetailModalProps } from './ItemDetailModal';
 
+export { ItemEditModal } from './ItemEditModal';
+export type { ItemEditModalProps, InventoryCategory } from './ItemEditModal';
+
 export { SpellDetailModal } from './SpellDetailModal';
 export type { SpellDetailModalProps } from './SpellDetailModal';
 
