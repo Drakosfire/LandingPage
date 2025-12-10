@@ -410,6 +410,137 @@ const CharacterCanvas: React.FC = () => {
         }
     }, [updateDnD5eData, character?.dnd5eData]);
 
+    // ===== SPELL CRUD HANDLERS =====
+    // Handler for adding a new spell
+    const handleAddSpell = React.useCallback((level: number, spell: import('../sheetComponents/spells').SpellEntry) => {
+        console.log('➕ [CharacterCanvas] Adding spell:', spell.name, 'at level:', level);
+        const dnd5e = character?.dnd5eData;
+        if (!dnd5e?.spellcasting) return;
+
+        // Convert SpellEntry to DnD5eSpell format for storage
+        const newSpell = {
+            id: spell.id,
+            name: spell.name,
+            level: spell.level ?? level,
+            school: spell.school ?? 'evocation',
+            castingTime: spell.castingTime ?? '1 action',
+            range: spell.range ?? 'Self',
+            components: spell.components ?? { verbal: true, somatic: false, material: false },
+            duration: spell.duration ?? 'Instantaneous',
+            description: spell.description ?? '',
+            higherLevels: spell.higherLevels,
+            ritual: spell.isRitual,
+            concentration: spell.isConcentration,
+            damage: spell.damage,
+            healing: spell.healing,
+            classes: [dnd5e.spellcasting.class?.toLowerCase() ?? ''],
+            source: spell.source ?? 'Custom'
+        };
+
+        // Add to cantrips or spellsKnown depending on level
+        if (level === 0) {
+            const currentCantrips = dnd5e.spellcasting.cantrips || [];
+            // Check for duplicates
+            if (currentCantrips.some(c => c.id === newSpell.id)) {
+                console.warn('⚠️ [CharacterCanvas] Spell already known:', newSpell.name);
+                return;
+            }
+            updateDnD5eData({
+                spellcasting: {
+                    ...dnd5e.spellcasting,
+                    cantrips: [...currentCantrips, newSpell]
+                }
+            });
+        } else {
+            const currentSpells = dnd5e.spellcasting.spellsKnown || [];
+            // Check for duplicates
+            if (currentSpells.some(s => s.id === newSpell.id)) {
+                console.warn('⚠️ [CharacterCanvas] Spell already known:', newSpell.name);
+                return;
+            }
+            // Also add to prepared if user marked it as prepared
+            const currentPrepared = dnd5e.spellcasting.spellsPrepared || [];
+            const newPrepared = spell.isPrepared ? [...currentPrepared, newSpell.id] : currentPrepared;
+            
+            updateDnD5eData({
+                spellcasting: {
+                    ...dnd5e.spellcasting,
+                    spellsKnown: [...currentSpells, newSpell],
+                    spellsPrepared: newPrepared
+                }
+            });
+        }
+    }, [updateDnD5eData, character?.dnd5eData]);
+
+    // Handler for editing an existing spell (primarily for prepared toggle)
+    const handleEditSpell = React.useCallback((spellId: string, updates: Partial<import('../sheetComponents/spells').SpellEntry>) => {
+        console.log('✏️ [CharacterCanvas] Editing spell:', spellId, updates);
+        const dnd5e = character?.dnd5eData;
+        if (!dnd5e?.spellcasting) return;
+
+        // Handle prepared toggle
+        if ('isPrepared' in updates) {
+            const currentPrepared = dnd5e.spellcasting.spellsPrepared || [];
+            let newPrepared: string[];
+            
+            if (updates.isPrepared) {
+                // Add to prepared if not already
+                newPrepared = currentPrepared.includes(spellId) 
+                    ? currentPrepared 
+                    : [...currentPrepared, spellId];
+            } else {
+                // Remove from prepared
+                newPrepared = currentPrepared.filter(id => id !== spellId);
+            }
+            
+            updateDnD5eData({
+                spellcasting: {
+                    ...dnd5e.spellcasting,
+                    spellsPrepared: newPrepared
+                }
+            });
+        }
+    }, [updateDnD5eData, character?.dnd5eData]);
+
+    // Handler for removing a spell
+    const handleRemoveSpell = React.useCallback((spellId: string) => {
+        console.log('🗑️ [CharacterCanvas] Removing spell:', spellId);
+        const dnd5e = character?.dnd5eData;
+        if (!dnd5e?.spellcasting) return;
+
+        // Check cantrips first
+        const currentCantrips = dnd5e.spellcasting.cantrips || [];
+        const cantripIndex = currentCantrips.findIndex(c => c.id === spellId);
+        
+        if (cantripIndex !== -1) {
+            // Remove from cantrips
+            const newCantrips = currentCantrips.filter(c => c.id !== spellId);
+            updateDnD5eData({
+                spellcasting: {
+                    ...dnd5e.spellcasting,
+                    cantrips: newCantrips
+                }
+            });
+            return;
+        }
+
+        // Remove from spellsKnown
+        const currentSpells = dnd5e.spellcasting.spellsKnown || [];
+        const newSpells = currentSpells.filter(s => s.id !== spellId);
+        
+        // Also remove from prepared if present
+        const currentPrepared = dnd5e.spellcasting.spellsPrepared || [];
+        const newPrepared = currentPrepared.filter(id => id !== spellId);
+        
+        updateDnD5eData({
+            spellcasting: {
+                ...dnd5e.spellcasting,
+                spellsKnown: newSpells,
+                spellsPrepared: newPrepared
+            }
+        });
+    }, [updateDnD5eData, character?.dnd5eData]);
+
     // ===== STATE =====
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
@@ -1036,6 +1167,9 @@ const CharacterCanvas: React.FC = () => {
                             level8Spells={displaySpellsData.level8Spells}
                             level9Spells={displaySpellsData.level9Spells}
                             onSlotUsageChange={handleSpellSlotUsageChange}
+                            onAddSpell={handleAddSpell}
+                            onEditSpell={handleEditSpell}
+                            onRemoveSpell={handleRemoveSpell}
                         />
                     )}
 
@@ -1164,7 +1298,10 @@ const CharacterCanvas: React.FC = () => {
         handleSpellSlotUsageChange,
         handleAddInventoryItem,
         handleEditInventoryItem,
-        handleDeleteInventoryItem
+        handleDeleteInventoryItem,
+        handleAddSpell,
+        handleEditSpell,
+        handleRemoveSpell
     ]);
 
     // ===== PAGE COUNT =====

@@ -3,6 +3,7 @@
  * 
  * Full spellcasting page with PHB styling.
  * Includes header, spell slot tracker, and 3-column spell list.
+ * Supports edit mode for adding/editing/removing spells.
  * 
  * Layout:
  * ┌─────────────────────────────────────────────────────────────────────────┐
@@ -25,7 +26,7 @@
  * @module PlayerCharacterGenerator/sheetComponents
  */
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { CharacterSheetPage } from './CharacterSheetPage';
 import {
     SpellHeader,
@@ -34,8 +35,9 @@ import {
     SpellSlotLevel,
     SpellEntry
 } from './spells';
-import { SpellDetailModal } from './modals';
+import { SpellDetailModal, SpellEditModal } from './modals';
 import { useDetailModal } from '../hooks/useDetailModal';
+import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 
 export interface SpellSheetProps {
     /** Spellcasting class name */
@@ -73,6 +75,13 @@ export interface SpellSheetProps {
 
     /** Callback when spell slot usage changes */
     onSlotUsageChange?: (level: number, used: number) => void;
+    
+    /** Callback when a spell is added (edit mode) */
+    onAddSpell?: (level: number, spell: SpellEntry) => void;
+    /** Callback when a spell is edited (edit mode) */
+    onEditSpell?: (spellId: string, updates: Partial<SpellEntry>) => void;
+    /** Callback when a spell is removed (edit mode) */
+    onRemoveSpell?: (spellId: string) => void;
 }
 
 /**
@@ -123,15 +132,71 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
     level7Spells,
     level8Spells,
     level9Spells,
-    onSlotUsageChange
+    onSlotUsageChange,
+    onAddSpell,
+    onEditSpell,
+    onRemoveSpell
 }) => {
-    // Modal state for spell details
+    const { isEditMode } = usePlayerCharacterGenerator();
+    
+    // Modal state for spell details (view mode)
     const { isOpen: isSpellModalOpen, data: selectedSpell, openModal: openSpellModal, closeModal: closeSpellModal } = useDetailModal<SpellEntry>();
+    
+    // Modal state for spell editing (edit mode)
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editModalMode, setEditModalMode] = useState<'add' | 'edit'>('add');
+    const [editModalLevel, setEditModalLevel] = useState(0);
+    const [editingSpell, setEditingSpell] = useState<SpellEntry | undefined>(undefined);
 
-    // Handler for spell info clicks
+    // Handler for spell info clicks (view mode)
     const handleSpellInfoClick = (spell: SpellEntry) => {
-        openSpellModal(spell);
+        if (!isEditMode) {
+            openSpellModal(spell);
+        }
     };
+
+    // Handler for add spell button click (edit mode)
+    const handleAddSpellClick = useCallback((level: number) => {
+        console.log('➕ [SpellSheet] Opening add modal for level:', level);
+        setEditModalMode('add');
+        setEditModalLevel(level);
+        setEditingSpell(undefined);
+        setEditModalOpen(true);
+    }, []);
+
+    // Handler for spell edit click (edit mode)
+    const handleSpellEditClick = useCallback((spell: SpellEntry) => {
+        console.log('✏️ [SpellSheet] Opening edit modal for spell:', spell.name);
+        setEditModalMode('edit');
+        setEditModalLevel(spell.level ?? 0);
+        setEditingSpell(spell);
+        setEditModalOpen(true);
+    }, []);
+
+    // Handler for spell save from modal
+    const handleSpellSave = useCallback((spell: SpellEntry) => {
+        if (editModalMode === 'add' && onAddSpell) {
+            console.log('💾 [SpellSheet] Adding spell:', spell.name, 'at level:', editModalLevel);
+            onAddSpell(editModalLevel, spell);
+        } else if (editModalMode === 'edit' && onEditSpell && editingSpell?.id) {
+            console.log('💾 [SpellSheet] Updating spell:', spell.name);
+            onEditSpell(editingSpell.id, spell);
+        }
+    }, [editModalMode, editModalLevel, editingSpell, onAddSpell, onEditSpell]);
+
+    // Handler for spell remove from modal
+    const handleSpellRemove = useCallback((spellId: string) => {
+        if (onRemoveSpell) {
+            console.log('🗑️ [SpellSheet] Removing spell:', spellId);
+            onRemoveSpell(spellId);
+        }
+    }, [onRemoveSpell]);
+
+    // Close edit modal
+    const handleEditModalClose = useCallback(() => {
+        setEditModalOpen(false);
+        setEditingSpell(undefined);
+    }, []);
 
     return (
         <CharacterSheetPage className="spell-sheet" testId="spell-sheet">
@@ -159,6 +224,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             spells={cantrips}
                             emptyRows={1}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                     {shouldShowLevel(1, level1Spells, spellSlots) && (
@@ -169,6 +236,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 1).used}
                             emptyRows={2}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                 </div>
@@ -183,6 +252,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 2).used}
                             emptyRows={2}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                     {shouldShowLevel(3, level3Spells, spellSlots) && (
@@ -193,6 +264,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 3).used}
                             emptyRows={2}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                     {shouldShowLevel(4, level4Spells, spellSlots) && (
@@ -203,6 +276,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 4).used}
                             emptyRows={2}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                 </div>
@@ -217,6 +292,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 5).used}
                             emptyRows={1}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                     {shouldShowLevel(6, level6Spells, spellSlots) && (
@@ -227,6 +304,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 6).used}
                             emptyRows={1}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                     {shouldShowLevel(7, level7Spells, spellSlots) && (
@@ -237,6 +316,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 7).used}
                             emptyRows={1}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                     {shouldShowLevel(8, level8Spells, spellSlots) && (
@@ -247,6 +328,8 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 8).used}
                             emptyRows={1}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                     {shouldShowLevel(9, level9Spells, spellSlots) && (
@@ -257,13 +340,15 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                             usedSlots={getSlotInfo(spellSlots, 9).used}
                             emptyRows={1}
                             onSpellInfoClick={handleSpellInfoClick}
+                            onAddSpell={onAddSpell ? handleAddSpellClick : undefined}
+                            onSpellEdit={onEditSpell ? handleSpellEditClick : undefined}
                         />
                     )}
                 </div>
             </div>
 
-            {/* Spell Detail Modal */}
-            {selectedSpell && (
+            {/* Spell Detail Modal (View Mode) */}
+            {selectedSpell && !isEditMode && (
                 <SpellDetailModal
                     isOpen={isSpellModalOpen}
                     onClose={closeSpellModal}
@@ -284,6 +369,18 @@ export const SpellSheet: React.FC<SpellSheetProps> = ({
                     source={selectedSpell.source}
                 />
             )}
+
+            {/* Spell Edit Modal (Edit Mode) */}
+            <SpellEditModal
+                isOpen={editModalOpen}
+                onClose={handleEditModalClose}
+                mode={editModalMode}
+                spellLevel={editModalLevel}
+                spellcastingClass={spellcastingClass}
+                spell={editingSpell}
+                onSave={handleSpellSave}
+                onRemove={onRemoveSpell ? handleSpellRemove : undefined}
+            />
         </CharacterSheetPage>
     );
 };

@@ -18,3 +18,6 @@ export type { SpellSlotTrackerProps, SpellSlotLevel } from './SpellSlotTracker';
 export { SpellHeader } from './SpellHeader';
 export type { SpellHeaderProps } from './SpellHeader';
 
+export { AddSpellRow } from './AddSpellRow';
+export type { AddSpellRowProps } from './AddSpellRow';
+

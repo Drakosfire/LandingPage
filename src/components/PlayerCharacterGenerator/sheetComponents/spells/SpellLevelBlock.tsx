@@ -2,12 +2,15 @@
  * SpellLevelBlock Component
  * 
  * Block containing spells of a specific level with header.
+ * Supports edit mode for adding and editing spells.
  * 
  * @module PlayerCharacterGenerator/sheetComponents/spells
  */
 
 import React from 'react';
 import { SpellItem } from './SpellItem';
+import { AddSpellRow } from './AddSpellRow';
+import { usePlayerCharacterGenerator } from '../../PlayerCharacterGeneratorProvider';
 import type { SpellSchool } from '../../types/dnd5e/spell.types';
 import type { DamageType } from '../../types/system.types';
 
@@ -51,6 +54,10 @@ export interface SpellLevelBlockProps {
     emptyRows?: number;
     /** Callback when info button is clicked on a spell */
     onSpellInfoClick?: (spell: SpellEntry) => void;
+    /** Callback when add spell is clicked (edit mode) */
+    onAddSpell?: (level: number) => void;
+    /** Callback when existing spell is clicked for editing (edit mode) */
+    onSpellEdit?: (spell: SpellEntry) => void;
 }
 
 /**
@@ -83,8 +90,11 @@ export const SpellLevelBlock: React.FC<SpellLevelBlockProps> = ({
     totalSlots,
     usedSlots,
     emptyRows = 2,
-    onSpellInfoClick
+    onSpellInfoClick,
+    onAddSpell,
+    onSpellEdit
 }) => {
+    const { isEditMode } = usePlayerCharacterGenerator();
     const isCantrips = level === 0;
 
     const blockClasses = [
@@ -92,6 +102,24 @@ export const SpellLevelBlock: React.FC<SpellLevelBlockProps> = ({
         'spell-level-block',
         isCantrips && 'cantrips'
     ].filter(Boolean).join(' ');
+
+    // Determine click handler for spells based on mode
+    const handleSpellClick = (spell: SpellEntry) => {
+        if (isEditMode && onSpellEdit) {
+            console.log('✏️ [SpellLevelBlock] Edit spell:', spell.name);
+            onSpellEdit(spell);
+        } else if (onSpellInfoClick) {
+            onSpellInfoClick(spell);
+        }
+    };
+
+    // Handle add spell click
+    const handleAddSpell = () => {
+        if (onAddSpell) {
+            console.log('➕ [SpellLevelBlock] Add spell at level:', level);
+            onAddSpell(level);
+        }
+    };
 
     return (
         <div className={blockClasses}>
@@ -108,10 +136,16 @@ export const SpellLevelBlock: React.FC<SpellLevelBlockProps> = ({
                         isRitual={spell.isRitual}
                         isConcentration={spell.isConcentration}
                         showPrepared={!isCantrips}
-                        onInfoClick={onSpellInfoClick ? () => onSpellInfoClick(spell) : undefined}
+                        onInfoClick={(onSpellInfoClick || (isEditMode && onSpellEdit)) ? () => handleSpellClick(spell) : undefined}
+                        isClickable={isEditMode && !!onSpellEdit}
                     />
                 ))}
-                {Array.from({ length: emptyRows }).map((_, idx) => (
+                {/* Show Add Spell row in edit mode when callback provided */}
+                {isEditMode && onAddSpell && (
+                    <AddSpellRow onAddSpell={handleAddSpell} />
+                )}
+                {/* Only show empty rows when NOT in edit mode (replaced by AddSpellRow) */}
+                {!isEditMode && Array.from({ length: emptyRows }).map((_, idx) => (
                     <SpellItem
                         key={`empty-${idx}`}
                         isEmpty

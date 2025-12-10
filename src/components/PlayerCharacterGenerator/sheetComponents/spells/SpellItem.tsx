@@ -24,6 +24,8 @@ export interface SpellItemProps {
     isEmpty?: boolean;
     /** Callback for info button click */
     onInfoClick?: () => void;
+    /** Whether the row is clickable (edit mode) */
+    isClickable?: boolean;
 }
 
 /**
@@ -36,11 +38,13 @@ export const SpellItem: React.FC<SpellItemProps> = ({
     isConcentration = false,
     showPrepared = true,
     isEmpty = false,
-    onInfoClick
+    onInfoClick,
+    isClickable = false
 }) => {
     const itemClasses = [
         'spell-item',
-        isEmpty && 'empty'
+        isEmpty && 'empty',
+        isClickable && 'clickable'
     ].filter(Boolean).join(' ');
 
     const preparedClasses = [
@@ -48,12 +52,31 @@ export const SpellItem: React.FC<SpellItemProps> = ({
         isPrepared && 'checked'
     ].filter(Boolean).join(' ');
 
+    const handleClick = () => {
+        if (isClickable && onInfoClick) {
+            onInfoClick();
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (isClickable && onInfoClick && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            onInfoClick();
+        }
+    };
+
     return (
-        <div className={itemClasses}>
+        <div 
+            className={itemClasses}
+            onClick={isClickable ? handleClick : undefined}
+            onKeyDown={isClickable ? handleKeyDown : undefined}
+            role={isClickable ? 'button' : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+        >
             {showPrepared && <div className={preparedClasses} />}
             <div className="spell-name">
                 {name}
-                {onInfoClick && !isEmpty && <InfoButton onClick={onInfoClick} size="sm" />}
+                {onInfoClick && !isEmpty && !isClickable && <InfoButton onClick={onInfoClick} size="sm" />}
             </div>
             {(isRitual || isConcentration) && !isEmpty && (
                 <div className="spell-markers">
