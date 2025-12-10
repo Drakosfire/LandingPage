@@ -25,12 +25,14 @@ import {
     BackgroundPersonalitySheet,
     InventorySheet,
     SpellSheet,
-    type Attack,
+    ItemEditModal,
     type Feature,
     type SpellSlotLevel,
-    type InventoryCategory
+    type InventoryCategory,
+    type CharacterCombatStats
 } from '../sheetComponents';
 import type { InventoryItem } from '../sheetComponents/inventory';
+import type { InventoryCategory as ItemCategory } from '../sheetComponents/modals/ItemEditModal';
 
 // Overflow components for pagination (desktop only)
 import { FeaturesOverflowPage, InventoryOverflowPage, SpellsOverflowPage } from '../sheetComponents/overflow';
@@ -213,7 +215,7 @@ const CharacterCanvas: React.FC = () => {
     // Handler for adding new inventory item
     // Places item in correct array based on item TYPE, not just the category clicked from
     const handleAddInventoryItem = React.useCallback((item: InventoryItem, _category: InventoryCategory) => {
-        console.log('➕ [CharacterCanvas] Adding item:', item.name, 'type:', item.type, 'attuned:', item.attuned);
+        console.log('➕ [CharacterCanvas] Adding item:', item.name, 'type:', item.type, 'equipped:', item.equipped, 'attuned:', item.attuned);
         const dnd5e = character?.dnd5eData;
         if (!dnd5e) return;
 
@@ -237,6 +239,7 @@ const CharacterCanvas: React.FC = () => {
                     weight: item.weight,
                     value: item.valueNumber,
                     description: item.description,
+                    equipped: item.equipped,
                     weaponCategory: item.weaponCategory || 'simple',
                     weaponType: item.weaponType || 'melee',
                     damage: item.damage || '1d6',
@@ -261,6 +264,7 @@ const CharacterCanvas: React.FC = () => {
                     weight: item.weight,
                     value: item.valueNumber,
                     description: item.description,
+                    equipped: item.equipped,
                     isMagical: item.isMagical,
                     rarity: item.rarity,
                     requiresAttunement: item.requiresAttunement
@@ -301,6 +305,7 @@ const CharacterCanvas: React.FC = () => {
                 weight: item.weight,
                 value: item.valueNumber,
                 description: item.description,
+                equipped: item.equipped,
                 weaponCategory: item.weaponCategory || 'simple',
                 weaponType: item.weaponType || 'melee',
                 damage: item.damage || '1d6',
@@ -332,6 +337,7 @@ const CharacterCanvas: React.FC = () => {
                 weight: item.weight,
                 value: item.valueNumber,
                 description: item.description,
+                equipped: item.equipped,
                 isMagical: item.isMagical,
                 rarity: item.rarity,
                 requiresAttunement: item.requiresAttunement
@@ -355,6 +361,7 @@ const CharacterCanvas: React.FC = () => {
                     weight: item.weight,
                     value: item.valueNumber,
                     description: item.description,
+                    equipped: item.equipped,
                     weaponCategory: item.weaponCategory || w.weaponCategory,
                     weaponType: item.weaponType || w.weaponType,
                     damage: item.damage || w.damage,
@@ -378,6 +385,7 @@ const CharacterCanvas: React.FC = () => {
                     weight: item.weight,
                     value: item.valueNumber,
                     description: item.description,
+                    equipped: item.equipped,
                     isMagical: item.isMagical,
                     rarity: item.rarity,
                     requiresAttunement: item.requiresAttunement
@@ -541,6 +549,41 @@ const CharacterCanvas: React.FC = () => {
         });
     }, [updateDnD5eData, character?.dnd5eData]);
 
+    // ===== PAGE 1 ITEM EDIT MODAL STATE =====
+    // For editing items clicked from Page 1 Equipment/Attacks section
+    const [page1EditModalOpen, setPage1EditModalOpen] = useState(false);
+    const [page1EditingItem, setPage1EditingItem] = useState<InventoryItem | null>(null);
+    const [page1EditingCategory, setPage1EditingCategory] = useState<ItemCategory>('weapons');
+
+    // Handler for when item is clicked on Page 1 (opens ItemEditModal)
+    const handlePage1ItemEdit = React.useCallback((item: InventoryItem) => {
+        console.log('✏️ [CharacterCanvas] Page 1 item edit:', item.name);
+        setPage1EditingItem(item);
+        // Determine category from item type
+        const category: ItemCategory = item.type === 'weapon' ? 'weapons' 
+            : (item.type === 'armor' || item.type === 'shield') ? 'armor'
+            : item.isMagical ? 'magicItems'
+            : 'adventuringGear';
+        setPage1EditingCategory(category);
+        setPage1EditModalOpen(true);
+    }, []);
+
+    // Handler for saving item from Page 1 modal (routes to existing handlers)
+    const handlePage1ItemSave = React.useCallback((item: InventoryItem, category: ItemCategory) => {
+        console.log('💾 [CharacterCanvas] Page 1 item save:', item.name);
+        handleEditInventoryItem(item, category);
+        setPage1EditModalOpen(false);
+        setPage1EditingItem(null);
+    }, [handleEditInventoryItem]);
+
+    // Handler for deleting item from Page 1 modal (routes to existing handlers)
+    const handlePage1ItemDelete = React.useCallback((itemId: string, category: ItemCategory) => {
+        console.log('🗑️ [CharacterCanvas] Page 1 item delete:', itemId);
+        handleDeleteInventoryItem(itemId, category);
+        setPage1EditModalOpen(false);
+        setPage1EditingItem(null);
+    }, [handleDeleteInventoryItem]);
+
     // ===== STATE =====
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
@@ -667,13 +710,14 @@ const CharacterCanvas: React.FC = () => {
             };
         }
 
-        // Map weapons
+        // Map weapons (include equipped field for indicator)
         const weapons = (dnd5e.weapons || []).map((w, idx) => ({
             id: w.id || `weapon-${idx}`,
             name: w.name,
             quantity: 1,
             weight: w.weight,
             value: w.value ? `${w.value} gp` : '—',
+            equipped: w.equipped !== false, // default to equipped for backwards compat
             attuned: dnd5e.attunement?.attunedItemIds?.includes(w.id),
             type: 'weapon' as const,
             description: w.description,
@@ -696,6 +740,7 @@ const CharacterCanvas: React.FC = () => {
             quantity: 1,
             weight: dnd5e.armor.weight,
             notes: `AC ${dnd5e.armor.armorClass}`,
+            equipped: true, // worn armor is always equipped
             attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id),
             type: 'armor' as const,
             description: dnd5e.armor.description,
@@ -717,6 +762,7 @@ const CharacterCanvas: React.FC = () => {
                 quantity: e.quantity || 1,
                 weight: e.weight,
                 notes: '—',
+                equipped: e.equipped,
                 attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id),
                 type: e.type as 'armor' | 'shield',
                 description: e.description,
@@ -738,6 +784,7 @@ const CharacterCanvas: React.FC = () => {
                 quantity: e.quantity || 1,
                 weight: e.weight,
                 notes: e.rarity?.charAt(0).toUpperCase() || '—',
+                equipped: e.equipped,
                 attuned: dnd5e.attunement?.attunedItemIds?.includes(e.id),
                 type: e.type,
                 description: e.description,
@@ -757,6 +804,7 @@ const CharacterCanvas: React.FC = () => {
                 quantity: e.quantity || 1,
                 weight: e.weight,
                 value: e.value ? `${e.value} gp` : '—',
+                equipped: e.equipped,
                 type: e.type,
                 description: e.description,
                 valueNumber: e.value
@@ -771,6 +819,7 @@ const CharacterCanvas: React.FC = () => {
                 quantity: e.quantity || 1,
                 weight: e.weight,
                 value: e.value ? `${e.value} gp` : '—',
+                equipped: e.equipped,
                 type: 'treasure' as const,
                 description: e.description,
                 valueNumber: e.value
@@ -785,6 +834,7 @@ const CharacterCanvas: React.FC = () => {
                 quantity: e.quantity || 1,
                 weight: e.weight,
                 notes: e.description?.slice(0, 20) || '—',
+                equipped: e.equipped,
                 type: 'consumable' as const,
                 description: e.description,
                 isMagical: e.isMagical,
@@ -802,6 +852,7 @@ const CharacterCanvas: React.FC = () => {
                 quantity: e.quantity || 1,
                 weight: e.weight,
                 notes: e.description?.slice(0, 20) || '—',
+                equipped: e.equipped,
                 type: e.type,
                 description: e.description,
                 valueNumber: e.value
@@ -973,36 +1024,116 @@ const CharacterCanvas: React.FC = () => {
                 ? dnd5e.classes.map(c => `${c.name} ${c.level}`).join(' / ')
                 : 'Unknown';
 
-            // Build attacks array from weapons
-            const attacks: Attack[] = (dnd5e.weapons || []).map(weapon => {
-                const strMod = Math.floor(((dnd5e.abilityScores?.strength ?? 10) - 10) / 2);
-                const dexMod = Math.floor(((dnd5e.abilityScores?.dexterity ?? 10) - 10) / 2);
-                const profBonus = dnd5e.derivedStats?.proficiencyBonus ?? 2;
+            // ===== UNIFIED EQUIPMENT MODEL =====
+            // Build equipped items from all inventory sources
+            // Items with equipped: true show on Page 1
+            const strMod = Math.floor(((dnd5e.abilityScores?.strength ?? 10) - 10) / 2);
+            const dexMod = Math.floor(((dnd5e.abilityScores?.dexterity ?? 10) - 10) / 2);
+            const conMod = Math.floor(((dnd5e.abilityScores?.constitution ?? 10) - 10) / 2);
+            const intMod = Math.floor(((dnd5e.abilityScores?.intelligence ?? 10) - 10) / 2);
+            const wisMod = Math.floor(((dnd5e.abilityScores?.wisdom ?? 10) - 10) / 2);
+            const chaMod = Math.floor(((dnd5e.abilityScores?.charisma ?? 10) - 10) / 2);
+            const profBonus = dnd5e.derivedStats?.proficiencyBonus ?? 2;
 
-                // Use DEX for finesse/ranged, STR otherwise
-                const isFinesse = weapon.properties?.includes('finesse');
-                const isRanged = weapon.weaponType === 'ranged';
-                const abilityMod = (isFinesse || isRanged) ? Math.max(strMod, dexMod) : strMod;
+            // Character stats for attack bonus calculations
+            const characterStats: CharacterCombatStats = {
+                abilityModifiers: {
+                    str: strMod,
+                    dex: dexMod,
+                    con: conMod,
+                    int: intMod,
+                    wis: wisMod,
+                    cha: chaMod
+                },
+                proficiencyBonus: profBonus
+            };
 
-                const attackBonus = abilityMod + profBonus;
-                const damageMod = abilityMod >= 0 ? `+${abilityMod}` : `${abilityMod}`;
+            // Build equipped items from weapons and equipment
+            // Only items with equipped: true (or undefined for backwards compat) show on Page 1
+            const equippedItems: InventoryItem[] = [];
 
-                return {
-                    name: weapon.name,
-                    attackBonus: `+${attackBonus}`,
-                    damage: `${weapon.damage}${damageMod} ${weapon.damageType?.slice(0, 5) || ''}`
-                };
+            // Add equipped weapons (default to equipped if undefined for backwards compatibility)
+            (dnd5e.weapons || []).forEach(weapon => {
+                const isEquipped = weapon.equipped !== false; // undefined or true = equipped
+                if (isEquipped) {
+                    equippedItems.push({
+                        id: weapon.id,
+                        name: weapon.name,
+                        quantity: 1,
+                        weight: weapon.weight,
+                        type: 'weapon',
+                        equipped: true,
+                        attuned: dnd5e.attunement?.attunedItemIds?.includes(weapon.id),
+                        damage: weapon.damage,
+                        damageType: weapon.damageType,
+                        properties: weapon.properties,
+                        range: weapon.range,
+                        weaponCategory: weapon.weaponCategory,
+                        weaponType: weapon.weaponType,
+                        description: weapon.description,
+                        isMagical: weapon.isMagical,
+                        rarity: weapon.rarity,
+                        requiresAttunement: weapon.requiresAttunement,
+                        valueNumber: weapon.value
+                    });
+                }
+            });
+
+            // Add worn armor (armor is always equipped when present)
+            if (dnd5e.armor) {
+                equippedItems.push({
+                    id: dnd5e.armor.id || 'armor-worn',
+                    name: dnd5e.armor.name,
+                    quantity: 1,
+                    weight: dnd5e.armor.weight,
+                    type: 'armor',
+                    equipped: true,
+                    attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id),
+                    armorClass: dnd5e.armor.armorClass,
+                    armorCategory: dnd5e.armor.armorCategory,
+                    stealthDisadvantage: dnd5e.armor.stealthDisadvantage,
+                    description: dnd5e.armor.description,
+                    isMagical: dnd5e.armor.isMagical,
+                    rarity: dnd5e.armor.rarity,
+                    requiresAttunement: dnd5e.armor.requiresAttunement,
+                    valueNumber: dnd5e.armor.value
+                });
+            }
+
+            // Add shield if present (shield is a boolean flag in the type)
+            if (dnd5e.shield) {
+                equippedItems.push({
+                    id: 'shield-worn',
+                    name: 'Shield',
+                    quantity: 1,
+                    type: 'shield',
+                    equipped: true,
+                    acBonus: 2 // Standard shield AC bonus
+                });
+            }
+
+            // Add equipped general equipment items
+            (dnd5e.equipment || []).forEach(item => {
+                if (item.equipped) {
+                    equippedItems.push({
+                        id: item.id,
+                        name: item.name,
+                        quantity: item.quantity || 1,
+                        weight: item.weight,
+                        type: item.type,
+                        equipped: true,
+                        attuned: dnd5e.attunement?.attunedItemIds?.includes(item.id),
+                        description: item.description,
+                        isMagical: item.isMagical,
+                        rarity: item.rarity,
+                        requiresAttunement: item.requiresAttunement,
+                        valueNumber: item.value
+                    });
+                }
             });
 
             // Features are now extracted via useMemo above for overflow detection
             // Use visibleFeatures (desktop) or allFeatures (not applicable here, mobile uses scroll)
-
-            // Build equipment list
-            const equipmentList: string[] = [];
-            if (dnd5e.armor) equipmentList.push(dnd5e.armor.name);
-            if (dnd5e.shield) equipmentList.push('Shield');
-            dnd5e.weapons?.forEach(w => equipmentList.push(w.name));
-            dnd5e.equipment?.forEach(e => equipmentList.push(e.name));
 
             // Build personality strings
             const traits = dnd5e.personality?.traits?.join(' ') || '';
@@ -1010,10 +1141,9 @@ const CharacterCanvas: React.FC = () => {
             const bonds = dnd5e.personality?.bonds?.join(' ') || '';
             const flaws = dnd5e.personality?.flaws?.join(' ') || '';
 
-            // Calculate passive perception
-            const wisMod = Math.floor(((dnd5e.abilityScores?.wisdom ?? 10) - 10) / 2);
+            // Calculate passive perception (reuses wisMod from characterStats above)
             const isProficientPerception = dnd5e.proficiencies?.skills?.includes('Perception');
-            const passivePerception = 10 + wisMod + (isProficientPerception ? (dnd5e.derivedStats?.proficiencyBonus ?? 2) : 0);
+            const passivePerception = 10 + wisMod + (isProficientPerception ? profBonus : 0);
 
             return (
                 <CharacterSheetContainer>
@@ -1058,11 +1188,12 @@ const CharacterCanvas: React.FC = () => {
                         deathSaveSuccesses={dnd5e.derivedStats?.deathSaves?.successes ?? 0}
                         deathSaveFailures={dnd5e.derivedStats?.deathSaves?.failures ?? 0}
 
-                        // Attacks & Equipment
-                        attacks={attacks}
+                        // Equipment (Unified Model)
+                        equippedItems={equippedItems}
                         currency={dnd5e.currency}
-                        equipment={equipmentList}
+                        characterStats={characterStats}
                         onCurrencyChange={handleCurrencyChange}
+                        onItemEdit={handlePage1ItemEdit}
 
                         // Features (may be truncated if overflow detected)
                         features={visibleFeatures}
@@ -1303,7 +1434,8 @@ const CharacterCanvas: React.FC = () => {
         handleDeleteInventoryItem,
         handleAddSpell,
         handleEditSpell,
-        handleRemoveSpell
+        handleRemoveSpell,
+        handlePage1ItemEdit
     ]);
 
     // ===== PAGE COUNT =====
@@ -1440,6 +1572,20 @@ const CharacterCanvas: React.FC = () => {
             {featuresMeasurementPortal}
             {inventoryMeasurementPortal}
             {spellsMeasurementPortal}
+
+            {/* Page 1 Item Edit Modal (for editing items clicked from Attacks/Equipment sections) */}
+            <ItemEditModal
+                isOpen={page1EditModalOpen}
+                onClose={() => {
+                    setPage1EditModalOpen(false);
+                    setPage1EditingItem(null);
+                }}
+                mode="edit"
+                category={page1EditingCategory}
+                item={page1EditingItem ?? undefined}
+                onSave={handlePage1ItemSave}
+                onDelete={handlePage1ItemDelete}
+            />
 
             <div
                 className={`character-canvas-area${isEditMode ? ' edit-mode' : ''}`}

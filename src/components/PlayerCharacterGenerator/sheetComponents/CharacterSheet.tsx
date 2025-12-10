@@ -4,6 +4,11 @@
  * Complete PHB-styled character sheet that brings together all sections.
  * This is the main entry point for rendering a character sheet.
  * 
+ * **Unified Equipment Model:**
+ * - Uses single `equippedItems: InventoryItem[]` as source of truth
+ * - Attacks derived from equipped weapons
+ * - Equipment section shows all equipped items
+ * 
  * @module PlayerCharacterGenerator/sheetComponents
  */
 
@@ -13,8 +18,9 @@ import { CharacterHeader } from './CharacterHeader';
 import { AbilityScoresRow, AbilityScores } from './AbilityScoresRow';
 import { MainContentGrid } from './MainContentGrid';
 import { Column1Content } from './column1';
-import { Column2Content, Attack, Currency } from './column2';
+import { Column2Content, Currency, CharacterCombatStats } from './column2';
 import { Column3Content, Feature } from './column3';
+import type { InventoryItem } from './inventory/InventoryBlock';
 
 export interface CharacterSheetProps {
     // Header
@@ -54,10 +60,13 @@ export interface CharacterSheetProps {
     deathSaveSuccesses?: number;
     deathSaveFailures?: number;
 
-    // Attacks & Equipment
-    attacks?: Attack[];
+    // Equipment (Unified Model)
+    /** All equipped items (source of truth) - attacks derived from equipped weapons */
+    equippedItems?: InventoryItem[];
+    /** Currency */
     currency?: Currency;
-    equipment?: string[];
+    /** Character combat stats for attack bonus calculations */
+    characterStats?: CharacterCombatStats;
 
     // Features
     features?: Feature[];
@@ -65,6 +74,8 @@ export interface CharacterSheetProps {
     // Edit Mode Callbacks
     /** Callback when currency changes */
     onCurrencyChange?: (currency: Currency) => void;
+    /** Callback when item is clicked for editing */
+    onItemEdit?: (item: InventoryItem) => void;
 }
 
 /**
@@ -108,16 +119,17 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     deathSaveSuccesses,
     deathSaveFailures,
 
-    // Attacks & Equipment
-    attacks,
+    // Equipment (Unified Model)
+    equippedItems,
     currency,
-    equipment,
+    characterStats,
 
     // Features
     features,
 
     // Edit Mode Callbacks
-    onCurrencyChange
+    onCurrencyChange,
+    onItemEdit
 }) => {
     return (
         <CharacterSheetPage>
@@ -166,10 +178,11 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                 }
                 column2={
                     <Column2Content
-                        attacks={attacks}
+                        equippedItems={equippedItems}
                         currency={currency}
-                        equipment={equipment}
+                        characterStats={characterStats}
                         onCurrencyChange={onCurrencyChange}
+                        onItemEdit={onItemEdit}
                     />
                 }
                 column3={

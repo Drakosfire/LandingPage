@@ -51,6 +51,9 @@ export interface DnD5eEquipmentItem {
     value?: number;                  // Value in gold pieces (per item)
     description?: string;            // Item description
 
+    // Equipment status
+    equipped?: boolean;              // Shows on Page 1 when true
+
     // Magic item properties (isMagical ≠ requiresAttunement)
     // e.g., Potion of Healing is magical but doesn't require attunement
     isMagical?: boolean;             // Whether this is a magic item

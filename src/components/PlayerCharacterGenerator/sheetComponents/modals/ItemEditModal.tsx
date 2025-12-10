@@ -514,6 +514,21 @@ export const ItemEditModal: React.FC<ItemEditModalProps> = ({
                     </>
                 )}
 
+                {/* Equipment Status */}
+                <Divider label="Status" labelPosition="center" styles={{ label: { fontFamily: "'ScalySansSmallCapsRemake', sans-serif", color: 'var(--text-red)' } }} />
+                <Grid gutter="md">
+                    <Grid.Col span={6}>
+                        <Checkbox
+                            label="Equipped (show on Page 1)"
+                            checked={formData.equipped || false}
+                            onChange={(e) => handleFieldChange('equipped', e.currentTarget.checked)}
+                            styles={{
+                                label: { fontFamily: "'ScalySansRemake', sans-serif", fontWeight: 500 }
+                            }}
+                        />
+                    </Grid.Col>
+                </Grid>
+
                 {/* Magic Properties */}
                 <Divider label="Magic Properties" labelPosition="center" styles={{ label: { fontFamily: "'ScalySansSmallCapsRemake', sans-serif", color: 'var(--text-red)' } }} />
                 <Grid gutter="md">

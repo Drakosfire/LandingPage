@@ -33,7 +33,7 @@ export type { SavingThrowsSectionProps, SkillsSectionProps, Column1ContentProps 
 
 // Column 2 components
 export { CombatStatusSection, CombatStatsRow, HPSection, Column2Content } from './column2';
-export type { CombatStatusSectionProps, CombatStatsRowProps, HPSectionProps, Column2ContentProps, Currency, Attack } from './column2';
+export type { CombatStatusSectionProps, CombatStatsRowProps, HPSectionProps, Column2ContentProps, Currency, Attack, CharacterCombatStats } from './column2';
 
 // Column 3 components
 export { PersonalitySection, FeaturesSection, Column3Content } from './column3';

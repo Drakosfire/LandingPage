@@ -28,6 +28,9 @@ export interface InventoryItem {
     attuned?: boolean;
     containerId?: string;
 
+    /** Is this item currently equipped? Shows on Page 1 Equipment section */
+    equipped?: boolean;
+
     // Extended fields for detail modal (optional)
     type?: EquipmentType;
     description?: string;
@@ -146,17 +149,24 @@ export const InventoryBlock: React.FC<InventoryBlockProps> = ({
             </div>
             <div className="item-list">
                 <ItemRow isHeader headers={headers} />
-                {items.map((item) => (
-                    <ItemRow
-                        key={item.id}
-                        quantity={item.quantity}
-                        name={item.attuned ? `${item.name} ✦` : item.name}
-                        weight={formatWeight(item)}
-                        value={formatValue(item)}
-                        onInfoClick={(onItemInfoClick || (isEditMode && onItemEdit)) ? () => handleItemClick(item) : undefined}
-                        isClickable={isEditMode && !!onItemEdit}
-                    />
-                ))}
+                {items.map((item) => {
+                    // Build display name with indicators
+                    let displayName = item.name;
+                    if (item.equipped) displayName = `⚔️ ${displayName}`;
+                    if (item.attuned) displayName = `${displayName} ✦`;
+                    
+                    return (
+                        <ItemRow
+                            key={item.id}
+                            quantity={item.quantity}
+                            name={displayName}
+                            weight={formatWeight(item)}
+                            value={formatValue(item)}
+                            onInfoClick={(onItemInfoClick || (isEditMode && onItemEdit)) ? () => handleItemClick(item) : undefined}
+                            isClickable={isEditMode && !!onItemEdit}
+                        />
+                    );
+                })}
                 {/* Show Add Item row in edit mode when callback provided */}
                 {isEditMode && onAddItem && (
                     <AddItemRow onAddItem={onAddItem} />

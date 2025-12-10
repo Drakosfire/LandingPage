@@ -19,8 +19,8 @@ import {
     Column1Content,
     Column2Content,
     FeaturesSection,
-    type Attack,
-    type Feature
+    type Feature,
+    type CharacterCombatStats
 } from '../sheetComponents';
 
 // Import inventory sub-components (not full InventorySheet page)
@@ -97,24 +97,96 @@ const MobileCharacterCanvas: React.FC = () => {
             ? dnd5e.classes.map(c => `${c.name} ${c.level}`).join(' / ')
             : 'Unknown';
 
-        // Build attacks array from weapons
-        const attacks: Attack[] = (dnd5e.weapons || []).map(weapon => {
-            const strMod = Math.floor(((dnd5e.abilityScores?.strength ?? 10) - 10) / 2);
-            const dexMod = Math.floor(((dnd5e.abilityScores?.dexterity ?? 10) - 10) / 2);
-            const profBonus = dnd5e.derivedStats?.proficiencyBonus ?? 2;
+        // Build character combat stats for attack bonus calculations
+        const strMod = Math.floor(((dnd5e.abilityScores?.strength ?? 10) - 10) / 2);
+        const dexMod = Math.floor(((dnd5e.abilityScores?.dexterity ?? 10) - 10) / 2);
+        const conMod = Math.floor(((dnd5e.abilityScores?.constitution ?? 10) - 10) / 2);
+        const intMod = Math.floor(((dnd5e.abilityScores?.intelligence ?? 10) - 10) / 2);
+        const wisMod = Math.floor(((dnd5e.abilityScores?.wisdom ?? 10) - 10) / 2);
+        const chaMod = Math.floor(((dnd5e.abilityScores?.charisma ?? 10) - 10) / 2);
+        const profBonus = dnd5e.derivedStats?.proficiencyBonus ?? 2;
 
-            const isFinesse = weapon.properties?.includes('finesse');
-            const isRanged = weapon.weaponType === 'ranged';
-            const abilityMod = (isFinesse || isRanged) ? Math.max(strMod, dexMod) : strMod;
+        const characterStats: CharacterCombatStats = {
+            abilityModifiers: { str: strMod, dex: dexMod, con: conMod, int: intMod, wis: wisMod, cha: chaMod },
+            proficiencyBonus: profBonus
+        };
 
-            const attackBonus = abilityMod + profBonus;
-            const damageMod = abilityMod >= 0 ? `+${abilityMod}` : `${abilityMod}`;
+        // Build equipped items from weapons and armor
+        const equippedItems: InventoryItem[] = [];
 
-            return {
-                name: weapon.name,
-                attackBonus: `+${attackBonus}`,
-                damage: `${weapon.damage}${damageMod} ${weapon.damageType?.slice(0, 5) || ''}`
-            };
+        // Add equipped weapons (default to equipped if undefined for backwards compatibility)
+        (dnd5e.weapons || []).forEach(weapon => {
+            const isEquipped = weapon.equipped !== false;
+            if (isEquipped) {
+                equippedItems.push({
+                    id: weapon.id,
+                    name: weapon.name,
+                    quantity: 1,
+                    weight: weapon.weight,
+                    type: 'weapon',
+                    equipped: true,
+                    attuned: dnd5e.attunement?.attunedItemIds?.includes(weapon.id),
+                    damage: weapon.damage,
+                    damageType: weapon.damageType,
+                    properties: weapon.properties,
+                    range: weapon.range,
+                    weaponCategory: weapon.weaponCategory,
+                    weaponType: weapon.weaponType,
+                    description: weapon.description,
+                    isMagical: weapon.isMagical,
+                    rarity: weapon.rarity,
+                    requiresAttunement: weapon.requiresAttunement,
+                    valueNumber: weapon.value
+                });
+            }
+        });
+
+        // Add worn armor (armor is always equipped when present)
+        if (dnd5e.armor) {
+            equippedItems.push({
+                id: dnd5e.armor.id || 'armor-worn',
+                name: dnd5e.armor.name,
+                quantity: 1,
+                weight: dnd5e.armor.weight,
+                type: 'armor',
+                equipped: true,
+                attuned: dnd5e.attunement?.attunedItemIds?.includes(dnd5e.armor.id),
+                armorClass: dnd5e.armor.armorClass,
+                armorCategory: dnd5e.armor.armorCategory,
+                stealthDisadvantage: dnd5e.armor.stealthDisadvantage
+            });
+        }
+
+        // Add shield if present
+        if (dnd5e.shield) {
+            equippedItems.push({
+                id: 'shield-worn',
+                name: 'Shield',
+                quantity: 1,
+                type: 'shield',
+                equipped: true,
+                acBonus: 2
+            });
+        }
+
+        // Add equipped general equipment items
+        (dnd5e.equipment || []).forEach(item => {
+            if (item.equipped) {
+                equippedItems.push({
+                    id: item.id,
+                    name: item.name,
+                    quantity: item.quantity || 1,
+                    weight: item.weight,
+                    type: item.type,
+                    equipped: true,
+                    attuned: dnd5e.attunement?.attunedItemIds?.includes(item.id),
+                    description: item.description,
+                    isMagical: item.isMagical,
+                    rarity: item.rarity,
+                    requiresAttunement: item.requiresAttunement,
+                    valueNumber: item.value
+                });
+            }
         });
 
         // Build features array
@@ -128,17 +200,9 @@ const MobileCharacterCanvas: React.FC = () => {
             features.push({ name: f.name, description: f.description });
         });
 
-        // Build equipment list
-        const equipmentList: string[] = [];
-        if (dnd5e.armor) equipmentList.push(dnd5e.armor.name);
-        if (dnd5e.shield) equipmentList.push('Shield');
-        dnd5e.weapons?.forEach(w => equipmentList.push(w.name));
-        dnd5e.equipment?.forEach(e => equipmentList.push(e.name));
-
-        // Calculate passive perception
-        const wisMod = Math.floor(((dnd5e.abilityScores?.wisdom ?? 10) - 10) / 2);
+        // Calculate passive perception (reuses wisMod from characterStats above)
         const isProficientPerception = dnd5e.proficiencies?.skills?.includes('Perception');
-        const passivePerception = 10 + wisMod + (isProficientPerception ? (dnd5e.derivedStats?.proficiencyBonus ?? 2) : 0);
+        const passivePerception = 10 + wisMod + (isProficientPerception ? profBonus : 0);
 
         return (
             <>
@@ -181,9 +245,9 @@ const MobileCharacterCanvas: React.FC = () => {
                 <section className="mobile-section">
                     <h3 className="mobile-section-title">Combat & Equipment</h3>
                     <Column2Content
-                        attacks={attacks}
+                        equippedItems={equippedItems}
                         currency={dnd5e.currency}
-                        equipment={equipmentList}
+                        characterStats={characterStats}
                     />
                 </section>
 
