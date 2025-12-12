@@ -1,9 +1,9 @@
 // src/components/UnifiedHeader.tsx
 // Unified horizontal navigation header for all DungeonMind apps
 import React, { useState, useEffect, ReactNode } from 'react';
-import { Group, ActionIcon, Box, Badge, Title, Tooltip } from '@mantine/core';
+import { Group, ActionIcon, Box, Badge, Title, Tooltip, Loader } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { IconHelp, IconEdit, IconEye } from '@tabler/icons-react';
+import { IconHelp, IconEdit, IconEye, IconDeviceFloppy, IconCheck, IconAlertTriangle } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext, AppMetadata } from '../context/AppContext';
 import { NavigationDrawer } from './NavigationDrawer';
@@ -24,9 +24,12 @@ export interface UnifiedHeaderProps {
     toolboxSections?: ToolboxSection[]; // Toolbox sections for app controls
     showToolbox?: boolean;              // Show app toolbox (default: true if toolboxSections provided)
 
-    // Save Status (optional)
+    // Save Button & Status (optional)
     saveStatus?: 'idle' | 'saving' | 'saved' | 'error'; // Save status indicator
     saveError?: string | null;          // Error message if saveStatus is 'error'
+    onSaveClick?: () => void;           // Manual save button click handler
+    showSaveButton?: boolean;           // Show save button (default: true if onSaveClick provided)
+    isUnsaved?: boolean;                // True when content exists but hasn't been saved to cloud
 
     // Projects Button (optional)
     showProjects?: boolean;             // Show projects button (default: false)
@@ -109,6 +112,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
     showToolbox,
     saveStatus,
     saveError,
+    onSaveClick,
+    showSaveButton,
+    isUnsaved = false,
     showProjects = false,
     onProjectsClick,
     projectsIconUrl,
@@ -173,6 +179,61 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
 
     // Determine if toolbox should be shown (default: true if toolboxSections provided)
     const shouldShowToolbox = showToolbox !== undefined ? showToolbox : (toolboxSections && toolboxSections.length > 0);
+
+    // Determine if save button should be shown (default: true if onSaveClick provided)
+    const shouldShowSaveButton = showSaveButton !== undefined ? showSaveButton : !!onSaveClick;
+
+    // Save button handler
+    const handleSaveClick = () => {
+        if (!isLoggedIn) {
+            alert('Please log in to save your work');
+            return;
+        }
+        if (saveStatus === 'saving') {
+            return; // Already saving
+        }
+        onSaveClick?.();
+    };
+
+    // Get save button icon based on status
+    const getSaveButtonIcon = () => {
+        const size = isMobile ? 18 : 22;
+        switch (saveStatus) {
+            case 'saving':
+                return <Loader size={size} color="white" />;
+            case 'saved':
+                return <IconCheck size={size} color="white" />;
+            case 'error':
+                return <IconAlertTriangle size={size} color="white" />;
+            default:
+                return <IconDeviceFloppy size={size} color="white" />;
+        }
+    };
+
+    // Get save button tooltip text
+    const getSaveTooltipText = () => {
+        if (!isLoggedIn) return 'Log in to save';
+        if (saveStatus === 'saving') return 'Saving...';
+        if (saveStatus === 'saved') return 'All changes saved';
+        if (saveStatus === 'error') return saveError || 'Save failed - click to retry';
+        if (isUnsaved) return 'Unsaved - Click to save';
+        return 'Save now';
+    };
+
+    // Get save button color based on status
+    const getSaveButtonColor = () => {
+        switch (saveStatus) {
+            case 'saving':
+                return 'rgba(251, 191, 36, 0.9)'; // Yellow
+            case 'saved':
+                return 'rgba(34, 197, 94, 0.9)';  // Green
+            case 'error':
+                return 'rgba(239, 68, 68, 0.9)'; // Red
+            default:
+                // Show orange for unsaved, blue for idle
+                return isUnsaved ? 'rgba(249, 115, 22, 0.9)' : 'rgba(59, 130, 246, 0.9)'; // Orange or Blue
+        }
+    };
 
     return (
         <>
@@ -288,10 +349,38 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                     </Group>
                 )}
 
-                {/* Right Section: Save Badge + Edit Toggle + Projects + App Toolbox + Right Controls + Help Button */}
+                {/* Right Section: Save Button + Edit Toggle + Projects + App Toolbox + Right Controls + Help Button */}
                 <Group gap={controlGap}>
-                    {/* Save Status Badge (if provided) */}
-                    {saveStatus && saveStatus !== 'idle' && (
+                    {/* Save Button (clickable with status indicator) */}
+                    {shouldShowSaveButton && (
+                        <Tooltip
+                            label={getSaveTooltipText()}
+                            zIndex={1100}
+                            position="bottom"
+                        >
+                            <ActionIcon
+                                onClick={handleSaveClick}
+                                variant="filled"
+                                size={isMobile ? 'lg' : 'xl'}
+                                radius="md"
+                                data-tutorial="save-button"
+                                aria-label={getSaveTooltipText()}
+                                disabled={saveStatus === 'saving'}
+                                style={{
+                                    backgroundColor: getSaveButtonColor(),
+                                    border: '2px solid rgba(255, 255, 255, 0.4)',
+                                    opacity: isLoggedIn ? 1 : 0.5,
+                                    cursor: !isLoggedIn || saveStatus === 'saving' ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s ease',
+                                }}
+                            >
+                                {getSaveButtonIcon()}
+                            </ActionIcon>
+                        </Tooltip>
+                    )}
+
+                    {/* Save Status Badge (fallback for apps without save button but with status) */}
+                    {!shouldShowSaveButton && saveStatus && saveStatus !== 'idle' && (
                         <Badge
                             color={
                                 saveStatus === 'saving' ? 'yellow' :

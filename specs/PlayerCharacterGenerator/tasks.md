@@ -1,7 +1,7 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 10, 2025 (Edit Mode Phase 1 + Equipment Modal Complete)  
+**Updated**: December 11, 2025 (Wizard Polish Complete)  
 **Source**: spec.md + plan.md  
 **Total Tasks**: 145+ (expanded with edit mode, equipment/spell modals)  
 **Estimated Hours**: 140-190h
@@ -66,10 +66,10 @@
 | **EM-06** | BackgroundPersonalitySheet (Traits, Ideals, Bonds, Flaws) | ✅ Complete |
 | **EM-07** | InventorySheet CurrencySection | ✅ Complete |
 | **EM-08** | SpellSheet SpellSlotTracker (click-to-toggle) | ✅ Complete |
-| **EM-09** | Column 1 (Skills/Saves) → complex edit | ⬜ Pending |
-| **EM-10** | Column 3 (Features) → complex edit | ⬜ Pending |
-| **EM-11** | InventorySheet Attunement toggles | ⬜ Pending |
-| **EM-12** | SpellSheet Prepared spell toggles | ⬜ Pending |
+| **EM-09** | Column 1 (Skills/Saves) → complex edit | ✅ Complete |
+| **EM-10** | Column 3 (Features) → complex edit | ✅ Complete |
+| **EM-11** | InventorySheet Attunement toggles | ✅ Complete |
+| **EM-12** | SpellSheet Prepared spell toggles | ✅ Complete |
 
 **Key Patterns Established:**
 - `EditableText` component for inline editing
@@ -110,9 +110,9 @@
 | **PG-01** | Research & Spike (Canvas patterns) | ✅ Complete |
 | **PG-02** | Responsive Scaling (ResizeObserver) | ✅ Complete |
 | **PG-03** | Features Overflow (multi-page) | ✅ Complete |
-| **PG-04** | SpellSheet Pagination | ⬜ Pending |
-| **PG-05** | Inventory Overflow | ⬜ Pending |
-| **PG-06** | Manual Add Lines | ⬜ Pending |
+| **PG-04** | SpellSheet Pagination | ✅ Complete |
+| **PG-05** | Inventory Overflow | ✅ Complete |
+| **PG-06** | Manual Add Lines | ✅ Complete |
 
 ### Ready for Next Phase (Wizard)
 
@@ -165,7 +165,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T150** | Equipment checkboxes - mark equipped/attuned items | ⬜ Pending (see HANDOFF-Unified-Equipment-Model) |
+| **T150** | Equipment checkboxes - mark equipped/attuned items | ✅ Complete |
 | **T151** | Currency tracking - edit gold/silver/etc inline | ✅ Complete (Column2Content + CurrencySection) |
 | **T152** | Consumables - track quantity used | ✅ Complete (ItemEditModal) |
 | **T153** | Item quantity editing (add/remove/adjust) | ✅ Complete (ItemEditModal) |
@@ -249,14 +249,14 @@
 | **Phase 1** | Setup | 3 | 1h | ✅ Complete |
 | **Phase 2** | Foundational (Rule Engine) | 10 | 4-6h | ✅ Complete |
 | **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | ✅ Complete (Canvas, Pagination, Sheet Pages) |
-| **Phase 3.5b** | Wizard Polish & Integration | 7 | 14-16h | ⏳ **NEXT** |
+| **Phase 3.5b** | Wizard Polish & Integration | 9 | 14-16h | ✅ Complete |
 | **Phase 3.6** | Edit Mode Expansion | 12 | 8-12h | ✅ Phase 1 Complete (8/12 tasks) |
 | **Phase 3.7** | Edit Mode (Core) | 10 | 12-16h | ✅ Mostly Complete (8/10 tasks) |
 | **Phase 3.8** | Edit Mode (Inventory) | 5 | 6-8h | ✅ Mostly Complete (4/5 tasks) |
 | **Phase 3.8b** | Editable Spell Modal | 6 | 6-8h | ⬜ Not Started |
 | **Phase 3.8c** | Unified Equipment Model | 5 | 4-5h | ⬜ Not Started |
 | **Phase 3.9** | Homebrew Mode | 5 | 8-12h | ⏳ Pending |
-| **Phase 4** | US4 - Save and Load | 6 | 6-8h | 🔄 Phase 1 Complete (localStorage) |
+| **Phase 4** | US4 - Save and Load (Character Roster) | 22 | 8h | 🔜 Next |
 | **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending |
 | **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
 | **Phase 7** | US5 - Character Leveling | 4 | 8-10h | ⏳ Pending |
@@ -271,7 +271,7 @@
 - LocalStorage persistence Phase 1 complete (save/restore)
 
 **Remaining Critical Path:**
-1. **Wizard Polish (3.5b)** - Make wizard fully functional
+1. ~~**Wizard Polish (3.5b)**~~ - ✅ Complete
 2. **Editable Spell Modal (3.8b)** - Add/edit/remove spells
 3. **Unified Equipment Model (3.8c)** - Single source of truth for equipment
 
@@ -457,28 +457,32 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 #### Integration
 - [x] T058 [US1] Wire all steps into `CharacterCreationWizard.tsx` ✅
 
-### 3.5b Wizard Polish & Integration (NOW ACTIVE)
+### 3.5b Wizard Polish & Integration (COMPLETE)
 
 **Goal:** Make wizard fully functional end-to-end  
-**Status:** 🔜 **STARTING NOW** (December 10, 2025)  
+**Status:** ✅ **COMPLETE** (December 11, 2025)  
 **Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Wizard-Polish.md`
 
 | Task | Description | Est. | Status |
 |------|-------------|------|--------|
-| **T058a** | Add `BasicInfoStep.tsx` - character name, backstory concept, pronouns (Step 0) | 2h | ⏳ |
-| **T058b** | Reorder wizard: Basic Info → Abilities → Race → Class → ... | 1h | ⏳ |
-| **T058c** | Wire wizard state to CharacterCanvas (see changes live) | 2h | ⏳ |
-| **T058d** | Add validation gating - disable Next until step validates | 2h | ⏳ |
-| **T058e** | Fix drawer height/overflow (scrollable content area) | 1h | ⏳ |
-| **T058f** | Manual end-to-end test: Create full character through wizard | 2h | ⏳ |
+| **T058a** | Add `BasicInfoStep.tsx` - character name, backstory concept, pronouns (Step 0) | 2h | ✅ |
+| **T058b** | Reorder wizard: Basic Info → Abilities → Race → Class → ... | 1h | ✅ |
+| **T058c** | Wire wizard state to CharacterCanvas (see changes live) | 2h | ✅ |
+| **T058d** | ~~Validation gating~~ → Free navigation (users can explore steps freely) | 2h | ✅ |
+| **T058e** | Fix drawer height/overflow (scrollable content area) | 1h | ✅ |
+| **T058f** | Manual end-to-end test: Create full character through wizard | 2h | ✅ |
 | **T058g** | Validate all 7 test fixture characters can be created via wizard | 4h | ⏳ |
+| **T161** | Weapon sub-selection ("Any simple weapon" → specific weapon picker) | 2h | ✅ |
+| **T162** | Spell selection integration (fixed case sensitivity bug) | 1h | ✅ |
 
-**Why This is Critical:**
-- Edit Mode is largely complete but only tested with demo characters
-- Need wizard to produce valid characters for real-world testing
-- Canvas integration allows seeing changes live during wizard steps
-- Validation gating ensures characters are complete before sheet display
-- **Note:** Edit Mode sheets ARE working - this is about the wizard UI flow
+**Session Highlights (December 10-11, 2025):**
+- Unified step navigation for mobile AND desktop (StepNav component)
+- Removed nested ScrollAreas (parent drawer handles all scrolling)
+- Added 100px bottom padding + curved corners to drawer
+- Added "Changes saved automatically..." footer to ALL 8 steps
+- Skill overlap replacement shows green confirmation box after selection
+- Weapon sub-selection with searchable dropdown + confirmation box
+- Fixed spell selection case sensitivity bug (`getClassById('Warlock')` vs `id: 'warlock'`)
 
 ### 3.6 Canvas Enhancement
 
@@ -580,16 +584,57 @@ Each component renders a section of the character sheet. Display-only first, edi
 
 ## Phase 4: US4 - Save and Load Characters (P2)
 
-**Goal**: Auto-save to localStorage, cloud sync for logged-in users  
-**Independent Test**: Create character → close browser → reopen → load with all data intact  
+**Goal**: Multi-character management with cloud sync  
+**Design:** Option 2 "Delightful" - Character Roster (approved 2025-12-11)  
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Save-Load.md`  
 **Depends On**: Phase 3 complete
 
-- [ ] T068 [US4] Create `useCharacterPersistence.ts` hook in `src/components/PlayerCharacterGenerator/hooks/useCharacterPersistence.ts`
-- [x] T069 [US4] Implement localStorage auto-save with 2s debounce ✅ (in Provider directly, 2025-12-09)
-- [ ] T070 [US4] Implement cloud sync for logged-in users in `useCharacterPersistence.ts`
-- [ ] T071 [US4] Implement storage limit enforcement (5 anon / 50 logged-in) in `useCharacterPersistence.ts`
-- [ ] T072 [US4] Create `PlayerCharacterProjectsDrawer.tsx` in `src/components/PlayerCharacterGenerator/PlayerCharacterProjectsDrawer.tsx`
-- [x] T073 [US4] Wire persistence hook into `PlayerCharacterGeneratorProvider.tsx` ✅ (localStorage only, 2025-12-09)
+### Phase 4a: Provider CRUD Functions (2h)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T068a** | Add `currentProject` state + `CharacterProject` type | ⬜ |
+| **T068b** | Add `saveStatus` state | ⬜ |
+| **T068c** | Implement `createProject(name, description)` | ⬜ |
+| **T068d** | Implement `loadProject(projectId)` | ⬜ |
+| **T068e** | Implement `deleteProject(projectId)` | ⬜ |
+| **T068f** | Implement `listProjects()` | ⬜ |
+| **T068g** | Implement `saveProject()` (manual) | ⬜ |
+
+### Phase 4b: Character Roster Drawer UI (3h)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T072a** | Create `CharacterProjectSummary` type | ⬜ |
+| **T072b** | Create `PlayerCharacterRosterDrawer.tsx` | ⬜ |
+| **T072c** | Create `CharacterRoster.tsx` with character cards | ⬜ |
+| **T072d** | Add class icons (🗡️ Fighter, 🔮 Wizard, etc.) | ⬜ |
+| **T072e** | Wire "Create New Character" → reset + wizard | ⬜ |
+| **T072f** | Add roster button to UnifiedHeader | ⬜ |
+
+### Phase 4c: Firestore Cloud Sync (2h)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T070a** | Debounced Firestore save useEffect (2s) | ⬜ |
+| **T070b** | Content hash deduplication | ⬜ |
+| **T070c** | Backend: `POST /api/playercharactergenerator/save-project` | ⬜ |
+| **T070d** | Backend: `GET /api/playercharactergenerator/list-projects` | ⬜ |
+| **T070e** | Backend: `DELETE /api/playercharactergenerator/delete-project` | ⬜ |
+
+### Phase 4d: Polish & Testing (1h)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T074a** | Test: Create → save → reload → verify | ⬜ |
+| **T074b** | Test: Switch characters → verify state | ⬜ |
+| **T074c** | Test: Delete character → verify removal | ⬜ |
+| **T074d** | Test: Anon user → localStorage only | ⬜ |
+| **T074e** | Mobile: Roster drawer on mobile | ⬜ |
+
+### Already Complete
+- [x] T069 [US4] localStorage auto-save ✅ (2025-12-09)
+- [x] T073 [US4] Provider persistence wiring ✅ (2025-12-09)
 
 ---
 
@@ -742,7 +787,7 @@ After Phase 3 completes, these phases are independent:
 5. **Sprint 5**: Phase 3.3-3.4 (Backgrounds + Validation) - 10-14h ✅ COMPLETE
 6. **Sprint 6**: Phase 3.5 (Wizard UI with subclass/spell selectors) - 24-32h ✅ COMPLETE
 7. **Sprint 7**: Phase 3.6 (Canvas - Demo Data, Components, Pagination) - 14-18h ✅ COMPLETE
-8. **Sprint 8**: Phase 3.5b (Wizard Polish & Integration) - 14-16h ← **NEXT**
+8. **Sprint 8**: Phase 3.5b (Wizard Polish & Integration) - 14-16h ✅ **COMPLETE**
 9. **Sprint 9**: Phase 3.7 (Edit Mode - Core) - 12-16h
 10. **Sprint 10**: Phase 3.8-3.9 (Edit Mode - Inventory + Homebrew) - 14-20h
 11. **Sprint 11**: Phase 4 (Save/Load) - 6-8h
@@ -820,6 +865,6 @@ After Phase 3 completes, these phases are independent:
 - MVP now includes Edit Mode + Save/Load (111 tasks vs 91)
 
 **Generated by speckit.tasks workflow**  
-**Updated**: December 8, 2025 (Edit Mode phases added, Wizard Polish blocking phase identified)  
-**Next**: Phase 3.5b (Wizard Polish) → Phase 3.7 (Edit Mode) → Phase 4 (Save/Load) → Phase 5 (AI Generation)
+**Updated**: December 11, 2025 (Wizard Polish complete, spell selection fixed)  
+**Next**: Phase 3.7 (Edit Mode expansion) → Phase 4 (Save/Load) → Phase 5 (AI Generation) → Leveling Up (backlogged)
 

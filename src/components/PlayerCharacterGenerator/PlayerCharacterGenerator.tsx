@@ -10,7 +10,7 @@
  * @module PlayerCharacterGenerator
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import '@mantine/core/styles.css';
 import '../../styles/mantineOverrides.css';
 import '../../styles/DesignSystem.css';
@@ -23,6 +23,7 @@ import { DND_CSS_BASE_URL } from '../../config';
 import Footer from '../Footer';
 import CharacterCanvas from './shared/CharacterCanvas';
 import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
+import PlayerCharacterRosterDrawer from './PlayerCharacterRosterDrawer';
 
 /**
  * Inner component (has access to context)
@@ -34,8 +35,18 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
         isEditMode,
         setIsEditMode,
         isDrawerOpen,
-        setDrawerOpen
+        setDrawerOpen,
+        saveStatus,
+        saveProject,
+        isUnsavedNewCharacter
     } = usePlayerCharacterGenerator();
+
+    // Compute effective save status for header
+    // Show "unsaved" when character has content but no project
+    const effectiveSaveStatus = isUnsavedNewCharacter ? 'idle' : saveStatus;
+
+    // Character Roster drawer state
+    const [isRosterOpen, setIsRosterOpen] = useState(false);
 
     // Load D&D 5e PHB CSS
     useEffect(() => {
@@ -62,14 +73,25 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
         demoCharacterOptions
     });
 
-    // Placeholder handlers for UnifiedHeader
+    // Handler for opening Character Roster drawer
     const handleProjectsClick = () => {
-        console.log('📂 [PlayerCharacterGen] Projects (Phase 2+)');
+        console.log('📂 [PlayerCharacterGen] Opening Character Roster');
+        setIsRosterOpen(true);
     };
 
     const handleGenerationClick = () => {
         console.log('🎨 [PlayerCharacterGen] Opening creation drawer');
         setDrawerOpen(true);
+    };
+
+    // Handler for manual save button
+    const handleSaveClick = async () => {
+        console.log('💾 [PlayerCharacterGen] Manual save triggered');
+        try {
+            await saveProject();
+        } catch (err) {
+            console.error('❌ [PlayerCharacterGen] Manual save failed:', err);
+        }
     };
 
     return (
@@ -78,14 +100,16 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
             <UnifiedHeader
                 app={CHARACTER_GENERATOR_APP}
                 toolboxSections={toolboxSections}
-                saveStatus="idle"
+                saveStatus={effectiveSaveStatus}
                 saveError={null}
+                onSaveClick={handleSaveClick}
+                isUnsaved={isUnsavedNewCharacter}
                 showEditMode={true}
                 isEditMode={isEditMode}
                 onEditModeToggle={setIsEditMode}
-                showProjects={true}  // Show projects button (placeholder for Phase 2+)
+                showProjects={true}  // Character Roster (Phase 4)
                 onProjectsClick={handleProjectsClick}
-                showGeneration={true}  // Phase 1: Enable generation drawer
+                showGeneration={true}  // Creation Wizard drawer
                 onGenerationClick={handleGenerationClick}
                 showAuth={true}
                 showHelp={false}  // Phase 2+
@@ -117,6 +141,12 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
             <PlayerCharacterCreationDrawer
                 opened={isDrawerOpen}
                 onClose={() => setDrawerOpen(false)}
+            />
+
+            {/* Character Roster Drawer (Phase 4) */}
+            <PlayerCharacterRosterDrawer
+                opened={isRosterOpen}
+                onClose={() => setIsRosterOpen(false)}
             />
 
             {/* Footer */}
