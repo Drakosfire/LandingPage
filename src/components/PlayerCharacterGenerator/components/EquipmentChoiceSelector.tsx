@@ -7,15 +7,18 @@
  * @module CharacterGenerator/components
  */
 
-import React, { useCallback, useState } from 'react';
-import { Box, Stack, Radio, Text, Paper, Group, Badge, Divider, Popover, ActionIcon } from '@mantine/core';
-import { IconSword, IconShield, IconBackpack, IconTool, IconInfoCircle } from '@tabler/icons-react';
+import React, { useCallback, useState, useMemo } from 'react';
+import { Box, Stack, Radio, Text, Paper, Group, Badge, Divider, Popover, ActionIcon, Select } from '@mantine/core';
+import { IconSword, IconShield, IconBackpack, IconTool, IconInfoCircle, IconCheck } from '@tabler/icons-react';
 import type { EquipmentChoiceGroup, EquipmentItem } from '../engine';
 
 interface EquipmentChoiceSelectorProps {
     equipmentGroups: EquipmentChoiceGroup[];
     selectedChoices: Record<string, number>;
     onChoiceSelect: (groupId: string, optionIndex: number) => void;
+    /** Track specific weapon sub-selections for "any simple weapon" type choices */
+    weaponSubSelections?: Record<string, string>;
+    onWeaponSubSelect?: (groupId: string, weaponName: string) => void;
 }
 
 // Get icon for item type
@@ -79,17 +82,100 @@ const WEAPON_DATA: Record<string, { damage: string; properties: string[] }> = {
     'dagger': { damage: '1d4 piercing', properties: ['Finesse', 'Light', 'Thrown (20/60)'] },
     'quarterstaff': { damage: '1d6 bludgeoning', properties: ['Versatile (1d8)'] },
     'scimitar': { damage: '1d6 slashing', properties: ['Finesse', 'Light'] },
+    'club': { damage: '1d4 bludgeoning', properties: ['Light'] },
+    'greatclub': { damage: '1d8 bludgeoning', properties: ['Two-handed'] },
+    'light hammer': { damage: '1d4 bludgeoning', properties: ['Light', 'Thrown (20/60)'] },
+    'sickle': { damage: '1d4 slashing', properties: ['Light'] },
+    'spear': { damage: '1d6 piercing', properties: ['Thrown (20/60)', 'Versatile (1d8)'] },
+    'crossbow, light': { damage: '1d8 piercing', properties: ['Ammunition', 'Loading', 'Two-handed'] },
+    'dart': { damage: '1d4 piercing', properties: ['Finesse', 'Thrown (20/60)'] },
+    'sling': { damage: '1d4 bludgeoning', properties: ['Ammunition'] },
+    'flail': { damage: '1d8 bludgeoning', properties: [] },
+    'glaive': { damage: '1d10 slashing', properties: ['Heavy', 'Reach', 'Two-handed'] },
+    'halberd': { damage: '1d10 slashing', properties: ['Heavy', 'Reach', 'Two-handed'] },
+    'lance': { damage: '1d12 piercing', properties: ['Reach', 'Special'] },
+    'maul': { damage: '2d6 bludgeoning', properties: ['Heavy', 'Two-handed'] },
+    'morningstar': { damage: '1d8 piercing', properties: [] },
+    'pike': { damage: '1d10 piercing', properties: ['Heavy', 'Reach', 'Two-handed'] },
+    'trident': { damage: '1d6 piercing', properties: ['Thrown (20/60)', 'Versatile (1d8)'] },
+    'war pick': { damage: '1d8 piercing', properties: [] },
+    'whip': { damage: '1d4 slashing', properties: ['Finesse', 'Reach'] },
+    'crossbow, hand': { damage: '1d6 piercing', properties: ['Ammunition', 'Light', 'Loading'] },
+    'crossbow, heavy': { damage: '1d10 piercing', properties: ['Ammunition', 'Heavy', 'Loading', 'Two-handed'] },
+    'net': { damage: '-', properties: ['Special', 'Thrown (5/15)'] },
+    'blowgun': { damage: '1 piercing', properties: ['Ammunition', 'Loading'] },
+};
+
+// Weapon category lists - TODO: Move to rule engine data files
+const SIMPLE_MELEE_WEAPONS = [
+    'Club', 'Dagger', 'Greatclub', 'Handaxe', 'Javelin', 'Light Hammer', 
+    'Mace', 'Quarterstaff', 'Sickle', 'Spear'
+];
+
+const SIMPLE_RANGED_WEAPONS = [
+    'Crossbow, light', 'Dart', 'Shortbow', 'Sling'
+];
+
+const SIMPLE_WEAPONS = [...SIMPLE_MELEE_WEAPONS, ...SIMPLE_RANGED_WEAPONS];
+
+const MARTIAL_MELEE_WEAPONS = [
+    'Battleaxe', 'Flail', 'Glaive', 'Greataxe', 'Greatsword', 'Halberd',
+    'Lance', 'Longsword', 'Maul', 'Morningstar', 'Pike', 'Rapier',
+    'Scimitar', 'Shortsword', 'Trident', 'War Pick', 'Warhammer', 'Whip'
+];
+
+const MARTIAL_RANGED_WEAPONS = [
+    'Blowgun', 'Crossbow, hand', 'Crossbow, heavy', 'Longbow', 'Net'
+];
+
+const MARTIAL_WEAPONS = [...MARTIAL_MELEE_WEAPONS, ...MARTIAL_RANGED_WEAPONS];
+
+// Map choice item IDs to weapon lists
+const WEAPON_CHOICE_LISTS: Record<string, string[]> = {
+    'simple-weapon-choice': SIMPLE_WEAPONS,
+    'simple-melee-choice': SIMPLE_MELEE_WEAPONS,
+    'simple-ranged-choice': SIMPLE_RANGED_WEAPONS,
+    'martial-weapon-choice': MARTIAL_WEAPONS,
+    'martial-melee-choice': MARTIAL_MELEE_WEAPONS,
+    'martial-ranged-choice': MARTIAL_RANGED_WEAPONS,
+};
+
+// Check if an item ID is a weapon choice placeholder
+const isWeaponChoice = (itemId: string): boolean => {
+    return itemId in WEAPON_CHOICE_LISTS;
+};
+
+// Get weapon options for a choice item ID
+const getWeaponOptions = (itemId: string): { value: string; label: string }[] => {
+    const weapons = WEAPON_CHOICE_LISTS[itemId] || [];
+    return weapons.map(w => ({ value: w.toLowerCase(), label: w }));
 };
 
 const EquipmentChoiceSelector: React.FC<EquipmentChoiceSelectorProps> = ({
     equipmentGroups,
     selectedChoices,
-    onChoiceSelect
+    onChoiceSelect,
+    weaponSubSelections: externalWeaponSubSelections,
+    onWeaponSubSelect
 }) => {
+    // Local state for weapon sub-selections (fallback if not controlled externally)
+    const [localWeaponSubSelections, setLocalWeaponSubSelections] = useState<Record<string, string>>({});
+    
+    // Use external state if provided, otherwise use local
+    const weaponSubSelections = externalWeaponSubSelections ?? localWeaponSubSelections;
+    
     const handleChange = useCallback((groupId: string, value: string) => {
         const optionIndex = parseInt(value, 10);
         onChoiceSelect(groupId, optionIndex);
     }, [onChoiceSelect]);
+
+    const handleWeaponSubSelect = useCallback((groupId: string, weaponName: string | null) => {
+        if (onWeaponSubSelect && weaponName) {
+            onWeaponSubSelect(groupId, weaponName);
+        } else if (weaponName) {
+            setLocalWeaponSubSelections(prev => ({ ...prev, [groupId]: weaponName }));
+        }
+    }, [onWeaponSubSelect]);
 
     // Get info content for an item
     const getItemInfo = (item: EquipmentItem) => {
@@ -249,15 +335,71 @@ const EquipmentChoiceSelector: React.FC<EquipmentChoiceSelectorProps> = ({
                             </Stack>
                         </Radio.Group>
 
-                        {/* Show selected items detail */}
-                        {hasSelection && group.options[selectedIndex] && (
-                            <>
-                                <Divider my="xs" />
-                                <Text size="xs" c="dimmed">
-                                    Receiving: {formatItems(group.options[selectedIndex].items)}
-                                </Text>
-                            </>
-                        )}
+                        {/* Show selected items detail and weapon sub-selector if needed */}
+                        {hasSelection && group.options[selectedIndex] && (() => {
+                            const selectedOption = group.options[selectedIndex];
+                            // Check if any items are weapon choice placeholders (check by id)
+                            const weaponChoiceItem = selectedOption.items.find(item => 
+                                isWeaponChoice(item.id)
+                            );
+                            const weaponOptions = weaponChoiceItem ? getWeaponOptions(weaponChoiceItem.id) : [];
+                            const selectedWeapon = weaponSubSelections[group.id];
+                            
+                            return (
+                                <>
+                                    <Divider my="xs" />
+                                    {weaponOptions.length > 0 ? (
+                                        // Show weapon sub-selector
+                                        <Box>
+                                            {selectedWeapon ? (
+                                                // Show confirmation when weapon selected
+                                                <Box
+                                                    p="xs"
+                                                    style={{
+                                                        backgroundColor: 'var(--mantine-color-green-0)',
+                                                        borderRadius: 'var(--mantine-radius-sm)',
+                                                        border: '1px solid var(--mantine-color-green-4)'
+                                                    }}
+                                                >
+                                                    <Group justify="space-between" align="center">
+                                                        <Group gap="xs">
+                                                            <IconCheck size={14} color="var(--mantine-color-green-6)" />
+                                                            <Text size="sm" fw={500}>
+                                                                {weaponOptions.find(w => w.value === selectedWeapon)?.label || selectedWeapon}
+                                                            </Text>
+                                                        </Group>
+                                                        <Text
+                                                            size="xs"
+                                                            c="blue"
+                                                            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                                            onClick={() => handleWeaponSubSelect(group.id, '')}
+                                                        >
+                                                            Change
+                                                        </Text>
+                                                    </Group>
+                                                </Box>
+                                            ) : (
+                                                // Show dropdown to select weapon
+                                                <Select
+                                                    placeholder="Choose your weapon..."
+                                                    data={weaponOptions}
+                                                    value={selectedWeapon || null}
+                                                    onChange={(value) => handleWeaponSubSelect(group.id, value)}
+                                                    size="sm"
+                                                    searchable
+                                                    comboboxProps={{ withinPortal: true, zIndex: 500 }}
+                                                />
+                                            )}
+                                        </Box>
+                                    ) : (
+                                        // Regular items display
+                                        <Text size="xs" c="dimmed">
+                                            Receiving: {formatItems(selectedOption.items)}
+                                        </Text>
+                                    )}
+                                </>
+                            );
+                        })()}
                     </Paper>
                 );
             })}
@@ -272,6 +414,35 @@ const EquipmentChoiceSelector: React.FC<EquipmentChoiceSelectorProps> = ({
                             if (selectedIndex === undefined) return null;
                             const option = group.options[selectedIndex];
                             if (!option) return null;
+
+                            // Check for weapon sub-selection (check by id)
+                            const weaponChoiceItem = option.items.find(item => 
+                                isWeaponChoice(item.id)
+                            );
+                            const selectedWeapon = weaponSubSelections[group.id];
+
+                            // If there's a weapon choice, show the specific selection
+                            if (weaponChoiceItem && selectedWeapon) {
+                                const otherItems = option.items.filter(item => 
+                                    !isWeaponChoice(item.id)
+                                );
+                                const weaponLabel = WEAPON_CHOICE_LISTS[weaponChoiceItem.id]
+                                    ?.find(w => w.toLowerCase() === selectedWeapon) || selectedWeapon;
+                                return (
+                                    <Text key={group.id} size="sm">
+                                        • {weaponLabel}{otherItems.length > 0 ? `, ${formatItems(otherItems)}` : ''}
+                                    </Text>
+                                );
+                            }
+
+                            // If weapon choice but not yet selected, show placeholder
+                            if (weaponChoiceItem && !selectedWeapon) {
+                                return (
+                                    <Text key={group.id} size="sm" c="orange">
+                                        • {option.description} <Text span size="xs">(choose weapon above)</Text>
+                                    </Text>
+                                );
+                            }
 
                             return (
                                 <Text key={group.id} size="sm">

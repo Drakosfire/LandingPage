@@ -87,7 +87,8 @@ Wizard polish tasks completed:
 10. ✅ Added "Changes are saved automatically..." footer to ALL steps for consistency
 11. ✅ **T058e** Drawer overflow fixed (scroll cleanup, 100px padding, curved corners)
 12. ✅ **T058f** Manual E2E test completed
-13. 🔄 Identified: T161 (weapon sub-selection), T162 (spell selection missing)
+13. ✅ **T161** Weapon sub-selection added (simple/martial weapon dropdowns)
+14. 🔄 Remaining: T162 (spell selection missing)
 
 ---
 
