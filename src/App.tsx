@@ -25,12 +25,15 @@ import UnifiedHeaderTest from './pages/UnifiedHeaderTest';
 // Component to conditionally render Footer
 const ConditionalFooter: React.FC = () => {
   const location = useLocation();
-  const isCardGeneratorRoute = location.pathname === '/cardgenerator';
-  const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
-  const isCharacterGeneratorRoute = location.pathname === '/charactergenerator';
+  
+  // Hide footer on all generator routes (exact or nested)
+  const generatorRoutes = ['/cardgenerator', '/statblockgenerator', '/charactergenerator'];
+  const isGeneratorRoute = generatorRoutes.some(route => 
+    location.pathname === route || location.pathname.startsWith(route + '/')
+  );
 
   // Don't render Footer on generator routes
-  if (isCardGeneratorRoute || isStatBlockGeneratorRoute || isCharacterGeneratorRoute) {
+  if (isGeneratorRoute) {
     return null;
   }
 

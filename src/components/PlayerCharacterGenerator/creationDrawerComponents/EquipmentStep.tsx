@@ -119,7 +119,7 @@ const EquipmentStep: React.FC = () => {
     }
 
     return (
-        <Stack gap="md" h="100%">
+        <Stack gap="md">
             {/* Header */}
             <Box>
                 <Title order={4}>Equipment Summary</Title>
@@ -244,6 +244,11 @@ const EquipmentStep: React.FC = () => {
                     </Text>
                 </Group>
             </Box>
+
+            {/* Live preview note */}
+            <Text size="xs" c="dimmed" ta="center">
+                Changes are saved automatically and shown on the character sheet.
+            </Text>
         </Stack>
     );
 };

@@ -2,7 +2,7 @@
 
 **Date:** 2025-12-08  
 **Type:** Feature  
-**Last Updated:** 2025-12-09 00:45  
+**Last Updated:** 2025-12-11 (Session 3)  
 **Tasks:** T058a-T058g  
 
 ---
@@ -10,29 +10,39 @@
 ## 🚨 CURRENT STATE
 
 ### What's Working ✅
-- 7-step wizard structure exists with Next/Previous navigation
-- All step components exist (Abilities, Race, Class, Spells, Background, Equipment, Review)
-- Character name input exists (in ReviewStep only)
-- Validation exists in rule engine
+- **8-step wizard** with BasicInfo as Step 0 (name, concept, pronouns)
+- All step components exist (BasicInfo, Abilities, Race, Class, Spells, Background, Equipment, Review)
+- **Live preview on canvas** - Wizard changes update character sheet immediately
+- **Unified step nav** - Compact `← 1. Basics →` nav works on both mobile AND desktop
+- **"New" button** - Resets character and wizard to start fresh
+- **Free navigation** - Next/Previous always enabled, steps always clickable
 - Demo characters render on canvas correctly
 - **Edit Mode toggle** in UnifiedHeader (eye/pencil icons)
 - **Visual indicators** for editable fields (blue dashed = quick, purple dotted = complex)
-- **Complex field clicks** open wizard drawer to correct step (Class→2, Race→1, Background→4, etc.)
+- **Complex field clicks** open wizard drawer to correct step (Class→3, Race→2, Background→5, etc.)
 - **Inline editing** for quick fields (name, HP, XP, alignment)
-- **localStorage persistence** for character data with 2s debounce
+- **localStorage persistence** for character data with 500ms debounce + beforeunload
 - **Wizard step** controlled via context (enables drawer navigation from canvas)
 
 ### What's NOT Working ❌
-- **No name input early** - Character name only available in Review (Step 7)
-- **Wizard → Canvas not fully wired** - Canvas reads from context but wizard changes may not reflect immediately
-- **No validation gating** - Users can advance with invalid/incomplete steps
+- **T058e: Drawer overflow** - Content cut off at bottom, needs proper fitting
+- **T058f: Manual E2E test** - Pending
+- **T058g: Test fixture characters** - Pending
+- **T161: Weapon sub-selection** - "Any simple weapon" should prompt specific weapon choice
+- **T162: Spell selection missing** - Warlock (and other casters) not prompted to select spells
+- **Checkbox icon centering** - Backlogged (P3 in DUNGEONOVERMIND_BACKLOG.md)
+
+### Backlogged for Later
+- **T160: Equipment data in Rule Engine** - Move weapon/pack data from hardcoded to rule engine for full info popovers
+- **T161: Weapon sub-selection** - Equipment choices like "Any simple weapon" need drill-down selector
+- **T162: Spell selection integration** - Wire SpellSelectionStep to actually populate for casters
 
 ### Edit Mode Polish (Completed) ✅
 - **Death Saves** - Clickable circles, toggle on click, persists ✅
 - **Inspiration** - 24x24 box, clickable toggle, persists ✅
 - **Hit Dice** - Confirmed: derived from class (not editable) ✅
 
-### Session Progress (2025-12-08/09)
+### Session 1 Progress (2025-12-08/09)
 Edit Mode was prioritized over original wizard tasks:
 1. ✅ Edit toggle added to header
 2. ✅ isEditMode/isHomebrewMode in context
@@ -45,6 +55,35 @@ Edit Mode was prioritized over original wizard tasks:
 9. ✅ Hit Dice - confirmed derived (removed editable marker)
 10. ✅ Learnings documented (state architecture timing)
 11. ✅ Backlog updated (shared state utilities)
+
+### Session 2 Progress (2025-12-10)
+Wizard polish tasks completed:
+1. ✅ **T058c** - Wizard → Canvas wiring (ability scores update context directly)
+2. ✅ **T058a** - BasicInfoStep created (name, concept, pronouns as Step 0)
+3. ✅ **T058b** - Wizard reordered to 8 steps (BasicInfo first)
+4. ✅ **T058d** - ~~Validation gating~~ → Free navigation (users can explore steps freely)
+5. ✅ Updated WIZARD_STEPS constants across all sheet components
+6. ✅ Stepper steps clickable for direct navigation
+7. ✅ Point buy handles out-of-range scores gracefully
+8. ✅ Unified step nav for mobile AND desktop (← 1. Basics →)
+9. ✅ Removed bottom nav buttons and Stepper (redundant with header nav)
+13. ✅ "New" button in drawer header (resets character and wizard)
+10. ✅ Fixed dark theme colors in RaceCard/RaceSelectionStep
+11. ✅ Added info buttons to equipment choices (weapons, packs)
+12. ✅ Drawer z-index raised above footer (350)
+
+### Session 3 Progress (2025-12-11)
+1. ✅ "New" button added to drawer header (resets character + wizard)
+2. ✅ Unified step nav for all viewport sizes (removed mobile-only restriction)
+3. ✅ Removed full Stepper from wizard (redundant with compact nav)
+4. ✅ Renamed `MobileStepNav` → `StepNav` (exported as both for compatibility)
+5. ✅ Fixed Select dropdown z-index in BasicInfoStep (pronouns)
+6. ✅ Added bottom padding (60px) to scrollable content area
+7. ✅ Removed nested ScrollAreas from Class/Race/Background/Equipment/Spell steps
+8. ✅ Removed `h="100%"` from step Stacks (let parent drawer control scrolling)
+9. ✅ Added curved corners to drawer (12px border-radius)
+10. ✅ Added "Changes are saved automatically..." footer to ALL steps for consistency
+11. 🔄 Identified: T161 (weapon sub-selection), T162 (spell selection missing)
 
 ---
 
@@ -87,11 +126,11 @@ src/components/PlayerCharacterGenerator/
 
 | Task | Description | Est. | Priority | Status |
 |------|-------------|------|----------|--------|
+| **T058c** | Wire wizard state → CharacterCanvas | 2h | 1️⃣ | ✅ Done |
+| **T058a** | Add BasicInfoStep (name, concept) | 2h | 2️⃣ | ✅ Done |
+| **T058b** | Reorder wizard steps | 1h | 3️⃣ | ✅ Done |
+| **T058d** | Free navigation (removed gating) | 1h | 4️⃣ | ✅ Done |
 | **T058e** | Fix drawer height/overflow | 1h | — | ⏭️ Skipped |
-| **T058c** | Wire wizard state → CharacterCanvas | 2h | 1️⃣ | ⬜ Pending |
-| **T058a** | Add BasicInfoStep (name, concept) | 2h | 2️⃣ | ⬜ Pending |
-| **T058b** | Reorder wizard steps | 1h | 3️⃣ | ⬜ Pending |
-| **T058d** | Add validation gating | 2h | 4️⃣ | ⬜ Pending |
 | **T058f** | Manual E2E test | 2h | 5️⃣ | ⬜ Pending |
 | **T058g** | Test all 7 fixture characters | 4h | 6️⃣ | ⬜ Pending |
 
@@ -137,83 +176,48 @@ styles={{
 
 ---
 
-### T058c: Wire Wizard → Canvas
+### T058c: Wire Wizard → Canvas ✅ DONE
 
-**Current state flow:**
-```
-CharacterCreationWizard
-    ↓ uses
-PlayerCharacterGeneratorProvider (has `character` state)
-    ↓ but
-CharacterCanvas reads from `selectedCharacter` prop or DEMO data
-```
+**Solution:** Made `Step1AbilityScores` update context directly (same pattern as Race/Class steps).
 
-**Fix approach:**
-1. In `PlayerCharacterGenerator.tsx`, pass `character` from context to `CharacterCanvas`
-2. Or make `CharacterCanvas` read from context directly
-
-**Key file:** `src/components/PlayerCharacterGenerator/PlayerCharacterGenerator.tsx`
+**Changes:**
+- Removed local `baseScores` state in favor of reading from context
+- Removed "Confirm" button - scores update live
+- Added `handleScoresChange` callback for bulk updates (dice roll, standard array)
+- Canvas shows changes immediately as user interacts with wizard
 
 ---
 
-### T058a: Add BasicInfoStep
+### T058a: Add BasicInfoStep ✅ DONE
 
-**Create new file:** `creationDrawerComponents/BasicInfoStep.tsx`
+**Created:** `creationDrawerComponents/BasicInfoStep.tsx`
 
-```tsx
-// Inputs:
-// - Character name (required)
-// - Backstory concept (optional, 2-3 sentences)
-// - Pronouns (optional dropdown)
+**Fields:**
+- Character name (required for validation)
+- Player name (optional)
+- Character concept (optional, 2-3 sentences)
+- Pronouns (optional dropdown: he/him, she/her, they/them, other)
 
-// Validation: name must be non-empty
-```
-
-**Update CharacterCreationWizard.tsx:**
-```tsx
-// Before:
-// Step 0: AbilityScoresStep
-// Step 1: RaceSelectionStep
-// ...
-
-// After:
-// Step 0: BasicInfoStep (NEW)
-// Step 1: AbilityScoresStep  
-// Step 2: RaceSelectionStep
-// ...
-```
+**New types added to `DnD5eCharacter`:**
+- `pronouns?: string`
+- `backstoryConcept?: string`
 
 ---
 
-### T058d: Validation Gating
+### T058d: Navigation ✅ DONE (Changed Approach)
 
-**Current handleNext (CharacterCreationWizard.tsx:59-71):**
-```tsx
-const handleNext = () => {
-    if (currentStep < TOTAL_STEPS - 1) {
-        let nextStep = currentStep + 1;
-        // ... skip logic for non-casters
-        setCurrentStep(nextStep);
-    }
-};
-```
+**Decision:** Validation gating was too restrictive. Users need to explore steps freely.
 
-**Add validation check:**
-```tsx
-const handleNext = () => {
-    // Get validation for current step
-    const stepValidation = ruleEngine.validateStep(currentStep, character);
-    
-    if (!stepValidation.isValid) {
-        // Show errors, don't advance
-        return;
-    }
-    
-    // ... existing logic
-};
-```
+**Current behavior:**
+- Next/Previous buttons always enabled
+- Stepper steps clickable for direct navigation
+- Users can work on steps in any order
+- Validation runs on Review step (Finish button) but doesn't block exploration
 
-**Note:** `validateStep()` already exists in DnD5eRuleEngine
+**Rationale:** Wizard UX should support:
+- Skipping ahead to see what's coming
+- Going back to compare options
+- Non-linear character creation workflows
 
 ---
 
@@ -241,11 +245,11 @@ Use these to verify wizard can produce valid characters:
 | Edit Mode | ✅ Complete | Toggle, indicators, inline edit, complex→drawer |
 | localStorage | ✅ Complete | Persistence + beforeunload |
 | Edit Polish | ✅ Complete | Death saves, inspiration, hit dice |
+| T058c | ✅ Complete | Wizard → canvas live preview |
+| T058a | ✅ Complete | BasicInfoStep as Step 0 |
+| T058b | ✅ Complete | 8-step wizard reordering |
+| T058d | ✅ Complete | Free navigation (gating removed) |
 | T058e | ⏭️ Skipped | Drawer overflow (not blocking) |
-| T058c | ⬜ Pending | Wire wizard → canvas |
-| T058a | ⬜ Pending | Add BasicInfoStep |
-| T058b | ⬜ Pending | Reorder wizard steps |
-| T058d | ⬜ Pending | Add validation gating |
 | T058f | ⬜ Pending | Manual E2E test |
 | T058g | ⬜ Pending | Test fixture characters |
 
@@ -253,10 +257,11 @@ Use these to verify wizard can produce valid characters:
 
 ## Files Modified This Session
 
-### Created
+### Session 1 (Edit Mode)
+**Created:**
 - `sheetComponents/EditableText.tsx` (~140 lines) - Reusable inline edit component
 
-### Modified
+**Modified:**
 - `UnifiedHeader.tsx` - Edit mode toggle button
 - `PlayerCharacterGeneratorProvider.tsx` - isEditMode, wizardStep, localStorage
 - `PlayerCharacterGenerator.tsx` - Use drawer state from context
@@ -265,6 +270,22 @@ Use these to verify wizard can produce valid characters:
 - `AbilityScoresRow.tsx` - EditableText for HP, click handlers for abilities
 - `CharacterSheet.css` - Edit mode visual indicators (~100 lines added)
 - `types/character.types.ts` - Added `xp` and `playerName` fields
+
+### Session 2 (Wizard Polish)
+**Created:**
+- `creationDrawerComponents/BasicInfoStep.tsx` (~140 lines) - Name, concept, pronouns
+
+**Modified:**
+- `components/Step1AbilityScores.tsx` - Update context directly (no confirm button)
+- `creationDrawerComponents/CharacterCreationWizard.tsx` - 8 steps, validation gating
+- `types/dnd5e/character.types.ts` - Added `pronouns` and `backstoryConcept` fields
+- 6 sheet components - Updated WIZARD_STEPS constants for new step ordering:
+  - `CharacterHeader.tsx`
+  - `AbilityScoresRow.tsx`
+  - `column1/Column1Content.tsx`
+  - `column1/SavingThrowsSection.tsx`
+  - `column1/SkillsSection.tsx`
+  - `column3/FeaturesSection.tsx`
 
 ---
 

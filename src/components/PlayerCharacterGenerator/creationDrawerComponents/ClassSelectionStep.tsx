@@ -19,7 +19,7 @@
  */
 
 import React, { useMemo, useCallback } from 'react';
-import { Stack, Text, Box, ScrollArea, Alert, Divider, Title } from '@mantine/core';
+import { Stack, Text, Box, Alert, Divider, Title } from '@mantine/core';
 import { IconAlertCircle, IconWand } from '@tabler/icons-react';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import ClassCard from '../components/ClassCard';
@@ -157,7 +157,7 @@ const ClassSelectionStep: React.FC = () => {
     }
 
     return (
-        <Stack gap="md" h="100%">
+        <Stack gap="md">
             {/* Header */}
             <Box>
                 <Title order={4}>Class Selection</Title>
@@ -181,20 +181,18 @@ const ClassSelectionStep: React.FC = () => {
                 </Alert>
             )}
 
-            {/* Scrollable Class List */}
-            <ScrollArea style={{ flex: 1 }} offsetScrollbars>
-                <Stack gap="xs">
-                    {availableClasses.map(classData => (
-                        <ClassCard
-                            key={classData.id}
-                            classData={classData}
-                            isSelected={selectedClass?.id === classData.id}
-                            onSelect={handleClassSelect}
-                            requiresL1Subclass={ruleEngine.requiresLevel1Subclass(classData.id)}
-                        />
-                    ))}
-                </Stack>
-            </ScrollArea>
+            {/* Class List - parent drawer handles scrolling */}
+            <Stack gap="xs">
+                {availableClasses.map(classData => (
+                    <ClassCard
+                        key={classData.id}
+                        classData={classData}
+                        isSelected={selectedClass?.id === classData.id}
+                        onSelect={handleClassSelect}
+                        requiresL1Subclass={ruleEngine.requiresLevel1Subclass(classData.id)}
+                    />
+                ))}
+            </Stack>
 
             {/* Subsections (only shown when a class is selected) */}
             {selectedClass && (
@@ -299,6 +297,11 @@ const ClassSelectionStep: React.FC = () => {
                     </Text>
                 </Box>
             )}
+
+            {/* Live preview note */}
+            <Text size="xs" c="dimmed" ta="center">
+                Changes are saved automatically and shown on the character sheet.
+            </Text>
         </Stack>
     );
 };

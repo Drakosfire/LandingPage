@@ -91,7 +91,7 @@ const SpellSelectionStep: React.FC = () => {
     }
 
     return (
-        <Stack gap="md" h="100%">
+        <Stack gap="md">
             {/* Header */}
             <Box>
                 <Group gap="xs">
@@ -115,7 +115,7 @@ const SpellSelectionStep: React.FC = () => {
             )}
 
             {/* Spell Selector Component */}
-            <Box style={{ flex: 1, overflowY: 'auto' }}>
+            <Box>
                 <SpellSelector
                     spellcastingInfo={spellcastingInfo}
                     availableCantrips={availableCantrips}
@@ -126,6 +126,11 @@ const SpellSelectionStep: React.FC = () => {
                     onSpellsChange={handleSpellsChange}
                 />
             </Box>
+
+            {/* Live preview note */}
+            <Text size="xs" c="dimmed" ta="center">
+                Changes are saved automatically and shown on the character sheet.
+            </Text>
         </Stack>
     );
 };

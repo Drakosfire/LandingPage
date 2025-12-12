@@ -14,13 +14,14 @@ import { usePlayerCharacterGenerator } from '../../PlayerCharacterGeneratorProvi
  * Wizard step constants for navigation
  */
 const WIZARD_STEPS = {
-    ABILITIES: 0,
-    RACE: 1,
-    CLASS: 2,
-    SPELLS: 3,
-    BACKGROUND: 4,
-    EQUIPMENT: 5,
-    REVIEW: 6
+    BASICS: 0,
+    ABILITIES: 1,
+    RACE: 2,
+    CLASS: 3,
+    SPELLS: 4,
+    BACKGROUND: 5,
+    EQUIPMENT: 6,
+    REVIEW: 7
 } as const;
 
 export interface Feature {

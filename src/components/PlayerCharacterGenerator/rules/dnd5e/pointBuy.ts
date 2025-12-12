@@ -39,16 +39,16 @@ const POINT_BUY_COSTS: Record<number, number> = {
 /**
  * Get the point cost for a given ability score
  * 
- * @param score - Ability score (must be 8-15)
- * @returns Point cost
- * @throws Error if score is out of range
+ * @param score - Ability score (ideally 8-15, but handles out-of-range gracefully)
+ * @returns Point cost (0 if below min, max cost if above max)
  */
 export function getPointBuyCost(score: number): number {
-    if (score < POINT_BUY_MIN_SCORE || score > POINT_BUY_MAX_SCORE) {
-        throw new Error(
-            `Point buy scores must be between ${POINT_BUY_MIN_SCORE} and ${POINT_BUY_MAX_SCORE} ` +
-            `(got: ${score})`
-        );
+    // Handle out-of-range scores gracefully (e.g., racial bonuses applied)
+    if (score < POINT_BUY_MIN_SCORE) {
+        return 0;
+    }
+    if (score > POINT_BUY_MAX_SCORE) {
+        return POINT_BUY_COSTS[POINT_BUY_MAX_SCORE];
     }
     return POINT_BUY_COSTS[score];
 }
@@ -153,19 +153,13 @@ export function validatePointBuy(scores: DnD5eAbilityScores): ValidationResult {
  * @returns True if score can be increased
  */
 export function canIncrease(currentScore: number, pointsRemaining: number): boolean {
-    // Can't exceed max
+    // Can't exceed max (or if already above max from racial bonuses)
     if (currentScore >= POINT_BUY_MAX_SCORE) {
         return false;
     }
     
     // Check if we have enough points for the increase
-    const nextScore = currentScore + 1;
-    const currentCost = currentScore >= POINT_BUY_MIN_SCORE 
-        ? getPointBuyCost(currentScore) 
-        : 0;
-    const nextCost = getPointBuyCost(nextScore);
-    const costDifference = nextCost - currentCost;
-    
+    const costDifference = getIncreaseCost(currentScore);
     return pointsRemaining >= costDifference;
 }
 
@@ -173,9 +167,10 @@ export function canIncrease(currentScore: number, pointsRemaining: number): bool
  * Check if an ability score can be decreased
  * 
  * @param currentScore - Current ability score
- * @returns True if score can be decreased
+ * @returns True if score can be decreased (must be above min and within valid range)
  */
 export function canDecrease(currentScore: number): boolean {
+    // Can decrease if above minimum and within or above valid range
     return currentScore > POINT_BUY_MIN_SCORE;
 }
 
@@ -183,16 +178,22 @@ export function canDecrease(currentScore: number): boolean {
  * Get the cost to increase a score by 1
  * 
  * @param currentScore - Current ability score
- * @returns Cost to increase, or 0 if cannot increase
+ * @returns Cost to increase, or 0 if cannot increase or score is out of range
  */
 export function getIncreaseCost(currentScore: number): number {
+    // Cannot increase above max or if already above range
     if (currentScore >= POINT_BUY_MAX_SCORE) {
         return 0;
     }
     
-    const currentCost = currentScore >= POINT_BUY_MIN_SCORE 
-        ? getPointBuyCost(currentScore) 
-        : 0;
+    // For scores below min, cost is the cost of the next valid score
+    if (currentScore < POINT_BUY_MIN_SCORE) {
+        return currentScore + 1 <= POINT_BUY_MAX_SCORE 
+            ? getPointBuyCost(Math.max(currentScore + 1, POINT_BUY_MIN_SCORE))
+            : 0;
+    }
+    
+    const currentCost = getPointBuyCost(currentScore);
     const nextCost = getPointBuyCost(currentScore + 1);
     
     return nextCost - currentCost;
@@ -202,17 +203,21 @@ export function getIncreaseCost(currentScore: number): number {
  * Get the points refunded by decreasing a score by 1
  * 
  * @param currentScore - Current ability score
- * @returns Points refunded, or 0 if cannot decrease
+ * @returns Points refunded, or 0 if cannot decrease or score is out of range
  */
 export function getDecreaseRefund(currentScore: number): number {
+    // Cannot decrease below minimum or if score is out of valid range
     if (currentScore <= POINT_BUY_MIN_SCORE) {
         return 0;
     }
     
-    const currentCost = getPointBuyCost(currentScore);
-    const prevCost = currentScore > POINT_BUY_MIN_SCORE 
-        ? getPointBuyCost(currentScore - 1) 
-        : 0;
+    // For scores above max (e.g., racial bonuses applied), 
+    // calculate as if decreasing from max
+    const effectiveScore = Math.min(currentScore, POINT_BUY_MAX_SCORE);
+    const effectivePrevScore = Math.max(effectiveScore - 1, POINT_BUY_MIN_SCORE);
+    
+    const currentCost = getPointBuyCost(effectiveScore);
+    const prevCost = getPointBuyCost(effectivePrevScore);
     
     return currentCost - prevCost;
 }

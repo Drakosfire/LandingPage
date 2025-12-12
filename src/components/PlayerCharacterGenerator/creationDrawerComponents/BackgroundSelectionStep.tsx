@@ -15,7 +15,7 @@
  */
 
 import React, { useMemo, useCallback, useState } from 'react';
-import { Stack, Text, Box, ScrollArea, Alert, Title, Radio, Group, Paper, Divider } from '@mantine/core';
+import { Stack, Text, Box, Alert, Title, Radio, Group, Paper, Divider } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import BackgroundCard from '../components/BackgroundCard';
@@ -125,7 +125,7 @@ const BackgroundSelectionStep: React.FC = () => {
     }
 
     return (
-        <Stack gap="md" h="100%">
+        <Stack gap="md">
             {/* Header */}
             <Box>
                 <Title order={4}>Background Selection</Title>
@@ -149,23 +149,21 @@ const BackgroundSelectionStep: React.FC = () => {
                 </Alert>
             )}
 
-            {/* Scrollable Background List */}
-            <ScrollArea style={{ flex: 1 }} offsetScrollbars>
-                <Stack gap="xs">
-                    {availableBackgrounds.map(background => (
-                        <BackgroundCard
-                            key={background.id}
-                            background={background}
-                            isSelected={selectedBackground?.id === background.id}
-                            onSelect={handleBackgroundSelect}
-                            hasSkillOverlap={
-                                selectedBackground?.id === background.id &&
-                                skillOverlaps.length > 0
-                            }
-                        />
-                    ))}
-                </Stack>
-            </ScrollArea>
+            {/* Background List - parent drawer handles scrolling */}
+            <Stack gap="xs">
+                {availableBackgrounds.map(background => (
+                    <BackgroundCard
+                        key={background.id}
+                        background={background}
+                        isSelected={selectedBackground?.id === background.id}
+                        onSelect={handleBackgroundSelect}
+                        hasSkillOverlap={
+                            selectedBackground?.id === background.id &&
+                            skillOverlaps.length > 0
+                        }
+                    />
+                ))}
+            </Stack>
 
             {/* Skill Overlap Warning */}
             {selectedBackground && skillOverlaps.length > 0 && (
@@ -230,6 +228,11 @@ const BackgroundSelectionStep: React.FC = () => {
                     </Text>
                 </Box>
             )}
+
+            {/* Live preview note */}
+            <Text size="xs" c="dimmed" ta="center">
+                Changes are saved automatically and shown on the character sheet.
+            </Text>
         </Stack>
     );
 };

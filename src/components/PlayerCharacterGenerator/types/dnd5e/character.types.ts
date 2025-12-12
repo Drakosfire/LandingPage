@@ -63,6 +63,8 @@ export interface DnD5eCharacter {
 
     // ===== OPTIONAL DETAILS =====
     alignment?: Alignment;
+    pronouns?: string;           // Character's pronouns (he/him, she/her, they/them, etc.)
+    backstoryConcept?: string;   // 1-2 sentence character concept/hook
     age?: number;
     height?: string;
     weight?: string;

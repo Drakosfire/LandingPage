@@ -78,8 +78,11 @@ const SpellCard: React.FC<{
                     <Checkbox
                         checked={isSelected}
                         disabled={isDisabled && !isSelected}
+                        color="violet"
                         onChange={() => {}}
-                        styles={{ input: { cursor: isDisabled && !isSelected ? 'not-allowed' : 'pointer' } }}
+                        styles={{ 
+                            input: { cursor: isDisabled && !isSelected ? 'not-allowed' : 'pointer' }
+                        }}
                     />
                     <div>
                         <Group gap="xs">

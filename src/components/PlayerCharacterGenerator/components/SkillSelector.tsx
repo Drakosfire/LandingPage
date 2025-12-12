@@ -103,6 +103,7 @@ const SkillSelector: React.FC<SkillSelectorProps> = ({
                             label={SKILL_DISPLAY_NAMES[skill] || skill}
                             checked={isSelected}
                             disabled={isDisabled}
+                            color="red"
                             onChange={(event) => handleCheckboxChange(skill, event.currentTarget.checked)}
                             styles={{
                                 label: {

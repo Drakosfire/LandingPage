@@ -290,6 +290,11 @@ const ReviewStep: React.FC = () => {
                         : 'Complete all steps to finalize your character'}
                 </Text>
             </Box>
+
+            {/* Live preview note */}
+            <Text size="xs" c="dimmed" ta="center">
+                Your character is saved automatically. Close the drawer to view the full sheet.
+            </Text>
         </Stack>
     );
 };

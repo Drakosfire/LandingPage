@@ -15,7 +15,7 @@
  */
 
 import React, { useMemo, useCallback } from 'react';
-import { Stack, Text, Box, ScrollArea, Alert } from '@mantine/core';
+import { Stack, Text, Box, Alert } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import RaceCard from '../components/RaceCard';
@@ -127,7 +127,7 @@ const RaceSelectionStep: React.FC = () => {
     }, [allRaces, ruleEngine]);
 
     return (
-        <Stack gap="md" h="100%">
+        <Stack gap="md">
             {/* Header */}
             <Box>
                 <Text fw={600} size="lg">Race Selection</Text>
@@ -150,48 +150,46 @@ const RaceSelectionStep: React.FC = () => {
                 </Alert>
             )}
 
-            {/* Scrollable Race List */}
-            <ScrollArea style={{ flex: 1 }} offsetScrollbars>
-                <Stack gap="xs">
-                    {baseRaceOptions.map((baseRaceOption) => {
-                        // Get full race data for display
-                        const fullRaceData = getFullRaceData(baseRaceOption);
-                        if (!fullRaceData) return null;
+            {/* Race List - parent drawer handles scrolling */}
+            <Stack gap="xs">
+                {baseRaceOptions.map((baseRaceOption) => {
+                    // Get full race data for display
+                    const fullRaceData = getFullRaceData(baseRaceOption);
+                    if (!fullRaceData) return null;
 
-                        // Get subraces for this base race
-                        const subraces = ruleEngine.getSubraces(baseRaceOption.id);
-                        const hasSubraces = subraces.length > 0;
+                    // Get subraces for this base race
+                    const subraces = ruleEngine.getSubraces(baseRaceOption.id);
+                    const hasSubraces = subraces.length > 0;
 
-                        // Check if this race or one of its subraces is selected
-                        const isSelected = selectedBaseRace === baseRaceOption.id ||
-                            subraces.some(sr => sr.id === selectedRaceId);
+                    // Check if this race or one of its subraces is selected
+                    const isSelected = selectedBaseRace === baseRaceOption.id ||
+                        subraces.some(sr => sr.id === selectedRaceId);
 
-                        return (
-                            <RaceCard
-                                key={baseRaceOption.id}
-                                race={fullRaceData}
-                                isSelected={isSelected}
-                                onSelect={hasSubraces ? undefined : handleRaceSelect}
-                                subraces={hasSubraces ? subraces : undefined}
-                                selectedSubraceId={selectedRaceId}
-                                onSubraceSelect={handleSubraceSelect}
-                                bonusesDisplay={formatAbilityBonuses(fullRaceData)}
-                                hasFlexibleBonuses={hasFlexibleBonuses && isSelected}
-                                flexibleBonusOptions={flexibleBonusOptions}
-                                currentFlexibleChoices={character?.dnd5eData?.flexibleAbilityBonusChoices}
-                                onFlexibleBonusChange={handleFlexibleBonusChange}
-                            />
-                        );
-                    })}
-                </Stack>
-            </ScrollArea>
+                    return (
+                        <RaceCard
+                            key={baseRaceOption.id}
+                            race={fullRaceData}
+                            isSelected={isSelected}
+                            onSelect={hasSubraces ? undefined : handleRaceSelect}
+                            subraces={hasSubraces ? subraces : undefined}
+                            selectedSubraceId={selectedRaceId}
+                            onSubraceSelect={handleSubraceSelect}
+                            bonusesDisplay={formatAbilityBonuses(fullRaceData)}
+                            hasFlexibleBonuses={hasFlexibleBonuses && isSelected}
+                            flexibleBonusOptions={flexibleBonusOptions}
+                            currentFlexibleChoices={character?.dnd5eData?.flexibleAbilityBonusChoices}
+                            onFlexibleBonusChange={handleFlexibleBonusChange}
+                        />
+                    );
+                })}
+            </Stack>
 
             {/* Selection Summary */}
             {selectedRaceId && character?.dnd5eData?.race && (
                 <Box
                     p="sm"
                     style={{
-                        backgroundColor: 'var(--mantine-color-dark-6)',
+                        backgroundColor: 'var(--mantine-color-gray-1)',
                         borderRadius: 'var(--mantine-radius-md)',
                         borderLeft: '4px solid var(--mantine-color-red-6)'
                     }}
@@ -204,6 +202,11 @@ const RaceSelectionStep: React.FC = () => {
                     </Text>
                 </Box>
             )}
+
+            {/* Live preview note */}
+            <Text size="xs" c="dimmed" ta="center">
+                Changes are saved automatically and shown on the character sheet.
+            </Text>
         </Stack>
     );
 };

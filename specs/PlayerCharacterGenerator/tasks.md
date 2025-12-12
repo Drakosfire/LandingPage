@@ -1,10 +1,10 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 9, 2025 (LocalStorage Persistence Complete)  
+**Updated**: December 10, 2025 (Edit Mode Phase 1 + Equipment Modal Complete)  
 **Source**: spec.md + plan.md  
-**Total Tasks**: 131 (124 + 7 integration tests)  
-**Estimated Hours**: 122-170h
+**Total Tasks**: 145+ (expanded with edit mode, equipment/spell modals)  
+**Estimated Hours**: 140-190h
 
 ---
 
@@ -52,7 +52,69 @@
 
 **Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-LocalStorage-Persistence.md`
 
-### Ready for Next Phase (Pagination)
+### Edit Mode Expansion (December 9-10, 2025)
+
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Edit-Mode-Expansion.md`
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **EM-01** | Edit toggle in UnifiedHeader (eye/pencil icons) | ✅ Complete |
+| **EM-02** | Visual indicators (blue dashed = quick, purple dotted = complex) | ✅ Complete |
+| **EM-03** | CharacterHeader inline edit (name, playerName, XP, alignment) | ✅ Complete |
+| **EM-04** | AbilityScoresRow (HP, death saves, inspiration) | ✅ Complete |
+| **EM-05** | Column2Content (Currency, Attacks complex, Equipment complex) | ✅ Complete |
+| **EM-06** | BackgroundPersonalitySheet (Traits, Ideals, Bonds, Flaws) | ✅ Complete |
+| **EM-07** | InventorySheet CurrencySection | ✅ Complete |
+| **EM-08** | SpellSheet SpellSlotTracker (click-to-toggle) | ✅ Complete |
+| **EM-09** | Column 1 (Skills/Saves) → complex edit | ⬜ Pending |
+| **EM-10** | Column 3 (Features) → complex edit | ⬜ Pending |
+| **EM-11** | InventorySheet Attunement toggles | ⬜ Pending |
+| **EM-12** | SpellSheet Prepared spell toggles | ⬜ Pending |
+
+**Key Patterns Established:**
+- `EditableText` component for inline editing
+- `EditableTextarea` with `useImperativeHandle` for container click forwarding
+- `data-editable="quick"` and `data-editable="complex"` attributes
+- `openDrawerToStep(WIZARD_STEPS.X)` for complex fields
+
+### Editable Equipment Modal (December 9-10, 2025)
+
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Editable-Equipment-Modal.md`
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **EQM-01** | AddItemRow component ("+" button in edit mode) | ✅ Complete |
+| **EQM-02** | ItemEditModal component (add/edit/delete) | ✅ Complete |
+| **EQM-03** | InventoryBlock integration (onAddItem, onItemEdit) | ✅ Complete |
+| **EQM-04** | CharacterCanvas inventory CRUD handlers | ✅ Complete |
+| **EQM-05** | Polish & testing | 🔄 In Progress |
+
+### Mobile Responsiveness (December 7, 2025)
+
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Mobile-Responsiveness.md`
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **MR-01** | ResizeObserver + CSS transform scaling | ✅ Complete |
+| **MR-02** | Hybrid system (canvas vars + calc()) | ✅ Complete |
+| **MR-03** | Mobile canvas with viewport switch at 800px | ✅ Complete |
+| **MR-04** | InventorySheet + SpellSheet mobile CSS fix | ✅ Complete |
+| **MR-05** | Polish and device testing | ⬜ Pending |
+
+### Pagination Integration (December 7, 2025)
+
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Pagination-Integration.md`
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **PG-01** | Research & Spike (Canvas patterns) | ✅ Complete |
+| **PG-02** | Responsive Scaling (ResizeObserver) | ✅ Complete |
+| **PG-03** | Features Overflow (multi-page) | ✅ Complete |
+| **PG-04** | SpellSheet Pagination | ⬜ Pending |
+| **PG-05** | Inventory Overflow | ⬜ Pending |
+| **PG-06** | Manual Add Lines | ⬜ Pending |
+
+### Ready for Next Phase (Wizard)
 
 | Task | Description | Status |
 |------|-------------|--------|
@@ -63,41 +125,58 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T119** | Mobile responsiveness - InventorySheet/SpellSheet not rendering | ⏳ Blocked |
+| **T119** | Mobile responsiveness - InventorySheet/SpellSheet CSS fix | ✅ Complete |
 | **T120** | Offload CSS and images to CDN (fonts, backgrounds, icons) | ⏳ Pending |
 | **T121** | SpellSheet: Only show spell levels that have slots (hide empty levels) | ✅ Complete |
+
+### Pending Handoff Work
+
+| Handoff | Priority | Est. Hours | Status |
+|---------|----------|------------|--------|
+| `HANDOFF-Editable-Spell-Modal.md` | P2 | 6-8h | ⬜ Not Started |
+| `HANDOFF-Unified-Equipment-Model.md` | P2 | 4-5h | ⬜ Not Started |
+| `HANDOFF-Edit-Mode-Expansion.md` Phase 2-4 | P3 | 4-6h | ⬜ Skills, Features, Attunement |
+| `HANDOFF-Pagination-Integration.md` Phase 3-6 | P3 | 6-8h | ⬜ SpellSheet, Inventory overflow |
 
 ### Phase 3.7: Edit Mode (Inline Character Editing)
 
 **Goal:** Transform sheets from read-only display to editable documents  
 **Prerequisite:** Sheets render correctly (T118 ✅)  
-**Why Before Save/Load:** Users should see changes immediately; persistence is secondary
+**Status:** 🔄 Mostly Complete (via HANDOFF-Edit-Mode-Expansion)
 
 | Task | Description | Status |
 |------|-------------|--------|
 | **T140** | Create `useEditMode.ts` hook - edit state, dirty tracking, undo buffer | ✅ Complete (in Provider) |
-| **T141** | Add inline text editing for CharacterHeader (name, class display) | ✅ Complete |
-| **T142** | Add inline editing for personality traits, ideals, bonds, flaws | ⏳ Pending |
-| **T143** | Add inline editing for notes/backstory on BackgroundSheet | ⏳ Pending |
-| **T144** | HP tracking - click to adjust current HP, temp HP | ⏳ Pending |
-| **T145** | Death saves - click to mark successes/failures | 🔜 Next |
-| **T146** | Hit dice - click to track used dice (calculated, only `current` editable) | 🔜 Next |
-| **T147** | Inspiration toggle - click to grant/remove (needs UI change to box) | 🔜 Next |
-| **T148** | Spell slot dots - click to mark used/expended | ⏳ Pending |
+| **T141** | Add inline text editing for CharacterHeader (name, playerName, XP, alignment) | ✅ Complete |
+| **T142** | Add inline editing for personality traits, ideals, bonds, flaws | ✅ Complete (BackgroundPersonalitySheet) |
+| **T143** | Add inline editing for notes/backstory on BackgroundSheet | ⏳ Pending (backstory not done) |
+| **T144** | HP tracking - click to adjust current HP, temp HP | ✅ Complete (AbilityScoresRow) |
+| **T145** | Death saves - click to mark successes/failures | ✅ Complete |
+| **T146** | Hit dice - confirmed derived from class (not editable) | ✅ N/A |
+| **T147** | Inspiration toggle - click to grant/remove | ✅ Complete |
+| **T148** | Spell slot dots - click to mark used/expended | ✅ Complete (SpellSlotTracker) |
 | **T149** | Spell prepared checkboxes - toggle prepared spells | ⏳ Pending |
 
 ### Phase 3.8: Edit Mode - Inventory & Equipment
 
 **Goal:** Complete inventory editing capabilities  
-**Prerequisite:** Core edit mode (T140-T149)
+**Prerequisite:** Core edit mode (T140-T149)  
+**Status:** 🔄 Mostly Complete (via HANDOFF-Editable-Equipment-Modal)
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T150** | Equipment checkboxes - mark equipped/attuned items | ⏳ Pending |
-| **T151** | Currency tracking - edit gold/silver/etc inline | ⏳ Pending |
-| **T152** | Consumables - track quantity used | ⏳ Pending |
-| **T153** | Item quantity editing (add/remove/adjust) | ⏳ Pending |
-| **T154** | Visual edit mode toggle (pencil icon, border highlights) | ⏳ Pending |
+| **T150** | Equipment checkboxes - mark equipped/attuned items | ⬜ Pending (see HANDOFF-Unified-Equipment-Model) |
+| **T151** | Currency tracking - edit gold/silver/etc inline | ✅ Complete (Column2Content + CurrencySection) |
+| **T152** | Consumables - track quantity used | ✅ Complete (ItemEditModal) |
+| **T153** | Item quantity editing (add/remove/adjust) | ✅ Complete (ItemEditModal) |
+| **T154** | Visual edit mode toggle (pencil icon, border highlights) | ✅ Complete (UnifiedHeader) |
+| **T160** | Equipment data in Rule Engine (weapons, armor, packs, gear with full stats) | ⬜ Pending |
+
+**T160 Details:** Move equipment data from hardcoded `EquipmentChoiceSelector` to rule engine:
+- Create `engine/data/equipment.ts` with all PHB weapons, armor, packs, gear
+- Add `getEquipmentDetails(itemId)` method to `DnD5eRuleEngine`
+- Include: damage, properties, weight, value, pack contents, armor AC/type
+- Info popovers in wizard will query rule engine instead of local data
 
 ### Phase 3.9: Homebrew Mode (Custom Content)
 
@@ -169,23 +248,32 @@
 |-------|-------------|-------|------------|--------|
 | **Phase 1** | Setup | 3 | 1h | ✅ Complete |
 | **Phase 2** | Foundational (Rule Engine) | 10 | 4-6h | ✅ Complete |
-| **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | 🔄 In Progress (Canvas ✅, Pagination ✅) |
-| **Phase 3.5b** | Wizard Polish & Integration | 7 | 14-16h | ⏳ **NEXT** (blocks Edit Mode) |
-| **Phase 3.7** | Edit Mode (Core) | 10 | 12-16h | ⏳ Pending |
-| **Phase 3.8** | Edit Mode (Inventory) | 5 | 6-8h | ⏳ Pending |
+| **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | ✅ Complete (Canvas, Pagination, Sheet Pages) |
+| **Phase 3.5b** | Wizard Polish & Integration | 7 | 14-16h | ⏳ **NEXT** |
+| **Phase 3.6** | Edit Mode Expansion | 12 | 8-12h | ✅ Phase 1 Complete (8/12 tasks) |
+| **Phase 3.7** | Edit Mode (Core) | 10 | 12-16h | ✅ Mostly Complete (8/10 tasks) |
+| **Phase 3.8** | Edit Mode (Inventory) | 5 | 6-8h | ✅ Mostly Complete (4/5 tasks) |
+| **Phase 3.8b** | Editable Spell Modal | 6 | 6-8h | ⬜ Not Started |
+| **Phase 3.8c** | Unified Equipment Model | 5 | 4-5h | ⬜ Not Started |
 | **Phase 3.9** | Homebrew Mode | 5 | 8-12h | ⏳ Pending |
-| **Phase 4** | US4 - Save and Load | 6 | 6-8h | ⏳ Pending |
-| **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending (after Edit Mode) |
+| **Phase 4** | US4 - Save and Load | 6 | 6-8h | 🔄 Phase 1 Complete (localStorage) |
+| **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending |
 | **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
 | **Phase 7** | US5 - Character Leveling | 4 | 8-10h | ⏳ Pending |
 | **Phase 8** | US6 - Export | 3 | 4-6h | ⏳ Pending |
 | **Phase 9** | Polish | 3 | 2-4h | ⏳ Pending |
 
-**Changes from GPT-5 Review**:
-- Added Level 1 subclass tasks (Cleric, Sorcerer, Warlock)
-- Added spellcasting info tasks
-- Added flexible ability bonus tasks (Half-Elf)
-- Moved subclass selection to Phase 3 for level 1 classes
+**December 2025 Progress:**
+- Edit Mode Phase 1 complete (currency, personality, spell slots, attacks/equipment)
+- Editable Equipment Modal complete (add/edit/delete items)
+- Mobile responsiveness complete (viewport switch, CSS fixes)
+- Pagination Phase 0-2 complete (scaling, features overflow)
+- LocalStorage persistence Phase 1 complete (save/restore)
+
+**Remaining Critical Path:**
+1. **Wizard Polish (3.5b)** - Make wizard fully functional
+2. **Editable Spell Modal (3.8b)** - Add/edit/remove spells
+3. **Unified Equipment Model (3.8c)** - Single source of truth for equipment
 
 ---
 
@@ -369,10 +457,11 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 #### Integration
 - [x] T058 [US1] Wire all steps into `CharacterCreationWizard.tsx` ✅
 
-### 3.5b Wizard Polish & Integration (BLOCKING for Edit Mode)
+### 3.5b Wizard Polish & Integration (NOW ACTIVE)
 
-**Goal:** Make wizard fully functional end-to-end before Edit Mode  
-**Status:** ⏳ Not started - Critical gap identified December 8, 2025
+**Goal:** Make wizard fully functional end-to-end  
+**Status:** 🔜 **STARTING NOW** (December 10, 2025)  
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Wizard-Polish.md`
 
 | Task | Description | Est. | Status |
 |------|-------------|------|--------|
@@ -384,10 +473,12 @@ Source: https://github.com/foundryvtt/dnd5e/tree/5.2.x/packs/_source
 | **T058f** | Manual end-to-end test: Create full character through wizard | 2h | ⏳ |
 | **T058g** | Validate all 7 test fixture characters can be created via wizard | 4h | ⏳ |
 
-**Why This Blocks Edit Mode:**
-- Can't edit a character that wasn't properly created
-- Need to verify wizard produces valid data before editing it
-- Canvas must display wizard output before adding edit capabilities
+**Why This is Critical:**
+- Edit Mode is largely complete but only tested with demo characters
+- Need wizard to produce valid characters for real-world testing
+- Canvas integration allows seeing changes live during wizard steps
+- Validation gating ensures characters are complete before sheet display
+- **Note:** Edit Mode sheets ARE working - this is about the wizard UI flow
 
 ### 3.6 Canvas Enhancement
 

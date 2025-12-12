@@ -9,11 +9,10 @@
  * @module CharacterGenerator/components
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { 
     Stack, 
     SegmentedControl, 
-    Button, 
     Paper, 
     Text, 
     Title,
@@ -24,17 +23,16 @@ import {
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import { 
     DnD5eAbilityScores,
-    AbilityScoreMethod,
-    createEmptyDnD5eCharacter
+    AbilityScoreMethod
 } from '../types';
 import { 
     validatePointBuy,
     calculateTotalPointsSpent
 } from '../rules/dnd5e/pointBuy';
 import { POINT_BUY_TOTAL } from '../types/dnd5e/abilityScores.types';
-import { validateStandardArray, STANDARD_ARRAY_VALUES } from '../rules/dnd5e/standardArray';
+import { validateStandardArray } from '../rules/dnd5e/standardArray';
 import { applyRacialBonuses } from '../rules/dnd5e/racialBonuses';
-import { rollAbilityScores, shouldRerollScores } from '../rules/dnd5e/diceRoller';
+import { rollAbilityScores } from '../rules/dnd5e/diceRoller';
 
 // Sub-components
 import { PointBuyInterface } from './PointBuyInterface';
@@ -44,14 +42,18 @@ import { AbilityScoreDisplay } from './AbilityScoreDisplay';
 
 /**
  * Step 1: Ability Score Assignment Component
+ * 
+ * Updates character context directly (live preview on canvas).
+ * Consistent with RaceSelectionStep and ClassSelectionStep patterns.
  */
 export const Step1AbilityScores: React.FC = () => {
     const { character, updateDnD5eData } = usePlayerCharacterGenerator();
     
-    // State
+    // Method selection (local state - only affects UI, not character data)
     const [method, setMethod] = useState<AbilityScoreMethod>('pointBuy');
-    const [baseScores, setBaseScores] = useState<DnD5eAbilityScores>(() => {
-        // Initialize from character if exists, otherwise default to 8s
+    
+    // Get base scores from context (single source of truth)
+    const baseScores: DnD5eAbilityScores = useMemo(() => {
         if (character?.dnd5eData?.abilityScores) {
             return character.dnd5eData.abilityScores;
         }
@@ -63,7 +65,7 @@ export const Step1AbilityScores: React.FC = () => {
             wisdom: 8,
             charisma: 8
         };
-    });
+    }, [character?.dnd5eData?.abilityScores]);
     
     // Point buy calculation
     const pointsSpent = useMemo(() => {
@@ -94,57 +96,61 @@ export const Step1AbilityScores: React.FC = () => {
         return applyRacialBonuses(baseScores, race);
     }, [baseScores, character?.dnd5eData?.race]);
     
-    // Handlers
-    const handleScoreChange = (ability: keyof DnD5eAbilityScores, value: number) => {
-        setBaseScores(prev => ({ ...prev, [ability]: value }));
-        console.log(`📝 [Step1] ${ability} set to ${value}`);
-    };
+    // ===== HANDLERS (update context directly for live preview) =====
     
-    const handleMethodChange = (newMethod: string) => {
+    // Update a single ability score - writes to context immediately
+    const handleScoreChange = useCallback((ability: keyof DnD5eAbilityScores, value: number) => {
+        console.log(`📝 [Step1] ${ability} set to ${value}`);
+        updateDnD5eData({
+            abilityScores: {
+                ...baseScores,
+                [ability]: value
+            }
+        });
+    }, [updateDnD5eData, baseScores]);
+    
+    // Update all scores at once (for StandardArray drag-drop or dice roll)
+    const handleScoresChange = useCallback((newScores: DnD5eAbilityScores) => {
+        console.log('📝 [Step1] All scores updated:', newScores);
+        updateDnD5eData({
+            abilityScores: newScores
+        });
+    }, [updateDnD5eData]);
+    
+    const handleMethodChange = useCallback((newMethod: string) => {
         setMethod(newMethod as AbilityScoreMethod);
         console.log(`🔄 [Step1] Method changed to ${newMethod}`);
         
         // Reset to default scores when changing method
         if (newMethod === 'pointBuy' || newMethod === 'standardArray') {
-            setBaseScores({
+            const defaultScores = {
                 strength: 8,
                 dexterity: 8,
                 constitution: 8,
                 intelligence: 8,
                 wisdom: 8,
                 charisma: 8
-            });
+            };
+            updateDnD5eData({ abilityScores: defaultScores });
         }
-    };
+    }, [updateDnD5eData]);
     
-    const handleRollDice = () => {
+    const handleRollDice = useCallback(() => {
         const rollResult = rollAbilityScores();
         const [str, dex, con, int, wis, cha] = rollResult.scores;
         
-        setBaseScores({
+        const rolledScores = {
             strength: str,
             dexterity: dex,
             constitution: con,
             intelligence: int,
             wisdom: wis,
             charisma: cha
-        });
+        };
         
         console.log('🎲 [Step1] Rolled scores:', rollResult.scores);
-    };
-    
-    const handleConfirm = () => {
-        if (!validation.isValid) {
-            console.warn('⚠️ [Step1] Cannot confirm: validation errors');
-            return;
-        }
-        
-        console.log('✅ [Step1] Confirming ability scores:', finalScores);
-        
-        updateDnD5eData({
-            abilityScores: finalScores
-        });
-    };
+        updateDnD5eData({ abilityScores: rolledScores });
+    }, [updateDnD5eData]);
     
     return (
         <Stack gap="lg" data-testid="step1-ability-scores">
@@ -180,7 +186,7 @@ export const Step1AbilityScores: React.FC = () => {
                 {method === 'standardArray' && (
                     <StandardArrayInterface
                         scores={baseScores}
-                        onScoresChange={setBaseScores}
+                        onScoresChange={handleScoresChange}
                     />
                 )}
                 
@@ -188,7 +194,7 @@ export const Step1AbilityScores: React.FC = () => {
                     <DiceRollerInterface
                         scores={baseScores}
                         onRoll={handleRollDice}
-                        onScoresChange={setBaseScores}
+                        onScoresChange={handleScoresChange}
                     />
                 )}
             </Paper>
@@ -235,15 +241,10 @@ export const Step1AbilityScores: React.FC = () => {
                 )}
             </Group>
             
-            {/* Confirm Button */}
-            <Button
-                onClick={handleConfirm}
-                disabled={!validation.isValid}
-                size="lg"
-                data-testid="confirm-button"
-            >
-                Confirm Ability Scores
-            </Button>
+            {/* Live preview note - scores update canvas automatically */}
+            <Text size="xs" c="dimmed" ta="center">
+                Changes are saved automatically and shown on the character sheet.
+            </Text>
         </Stack>
     );
 };

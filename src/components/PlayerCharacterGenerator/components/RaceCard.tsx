@@ -75,7 +75,7 @@ const RaceCard: React.FC<RaceCardProps> = ({
             style={{
                 cursor: 'pointer',
                 borderColor: isSelected ? 'var(--mantine-color-red-6)' : undefined,
-                backgroundColor: isSelected ? 'var(--mantine-color-dark-6)' : undefined,
+                backgroundColor: isSelected ? 'var(--mantine-color-red-0)' : undefined,
                 transition: 'all 0.15s ease'
             }}
             onClick={handleSelect}
@@ -130,7 +130,7 @@ const RaceCard: React.FC<RaceCardProps> = ({
                     <Box
                         p="xs"
                         style={{
-                            backgroundColor: 'var(--mantine-color-dark-7)',
+                            backgroundColor: 'var(--mantine-color-gray-1)',
                             borderRadius: 'var(--mantine-radius-sm)'
                         }}
                     >
