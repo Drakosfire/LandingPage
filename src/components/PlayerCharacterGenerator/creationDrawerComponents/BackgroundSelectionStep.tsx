@@ -16,7 +16,7 @@
 
 import React, { useMemo, useCallback, useState } from 'react';
 import { Stack, Text, Box, Alert, Title, Radio, Group, Paper, Divider } from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
+import { IconAlertCircle, IconAlertTriangle, IconCheck } from '@tabler/icons-react';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import BackgroundCard from '../components/BackgroundCard';
 import type { DnD5eBackground } from '../types';
@@ -179,28 +179,65 @@ const BackgroundSelectionStep: React.FC = () => {
                     </Text>
 
                     <Stack gap="md">
-                        {skillOverlaps.map(overlappingSkill => (
-                            <Box key={overlappingSkill}>
-                                <Text size="sm" mb="xs">
-                                    Replace <strong>{formatSkillName(overlappingSkill)}</strong> with:
-                                </Text>
-                                <Radio.Group
-                                    value={replacementSkills[overlappingSkill] || ''}
-                                    onChange={(value) => handleReplacementSelect(overlappingSkill, value)}
-                                >
-                                    <Group gap="md">
-                                        {availableReplacements.slice(0, 6).map(skill => (
-                                            <Radio
-                                                key={skill}
-                                                value={skill}
-                                                label={formatSkillName(skill)}
-                                                size="sm"
-                                            />
-                                        ))}
-                                    </Group>
-                                </Radio.Group>
-                            </Box>
-                        ))}
+                        {skillOverlaps.map(overlappingSkill => {
+                            const selectedReplacement = replacementSkills[overlappingSkill];
+                            
+                            return (
+                                <Box key={overlappingSkill}>
+                                    {selectedReplacement ? (
+                                        // Show confirmation box when selected
+                                        <Box
+                                            p="sm"
+                                            style={{
+                                                backgroundColor: 'var(--mantine-color-green-0)',
+                                                borderRadius: 'var(--mantine-radius-sm)',
+                                                border: '1px solid var(--mantine-color-green-4)'
+                                            }}
+                                        >
+                                            <Group justify="space-between" align="center">
+                                                <Group gap="xs">
+                                                    <IconCheck size={16} color="var(--mantine-color-green-6)" />
+                                                    <Text size="sm">
+                                                        <Text span c="dimmed" size="sm">{formatSkillName(overlappingSkill)} →</Text>{' '}
+                                                        <Text span fw={600}>{formatSkillName(selectedReplacement)}</Text>
+                                                    </Text>
+                                                </Group>
+                                                <Text
+                                                    size="xs"
+                                                    c="blue"
+                                                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                                    onClick={() => handleReplacementSelect(overlappingSkill, '')}
+                                                >
+                                                    Change
+                                                </Text>
+                                            </Group>
+                                        </Box>
+                                    ) : (
+                                        // Show radio options when not yet selected
+                                        <>
+                                            <Text size="sm" mb="xs">
+                                                Replace <strong>{formatSkillName(overlappingSkill)}</strong> with:
+                                            </Text>
+                                            <Radio.Group
+                                                value=""
+                                                onChange={(value) => handleReplacementSelect(overlappingSkill, value)}
+                                            >
+                                                <Group gap="md">
+                                                    {availableReplacements.slice(0, 6).map(skill => (
+                                                        <Radio
+                                                            key={skill}
+                                                            value={skill}
+                                                            label={formatSkillName(skill)}
+                                                            size="sm"
+                                                        />
+                                                    ))}
+                                                </Group>
+                                            </Radio.Group>
+                                        </>
+                                    )}
+                                </Box>
+                            );
+                        })}
                     </Stack>
                 </Paper>
             )}

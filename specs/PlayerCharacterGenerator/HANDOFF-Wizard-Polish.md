@@ -25,12 +25,14 @@
 - **Wizard step** controlled via context (enables drawer navigation from canvas)
 
 ### What's NOT Working ❌
-- **T058e: Drawer overflow** - Content cut off at bottom, needs proper fitting
-- **T058f: Manual E2E test** - Pending
 - **T058g: Test fixture characters** - Pending
 - **T161: Weapon sub-selection** - "Any simple weapon" should prompt specific weapon choice
 - **T162: Spell selection missing** - Warlock (and other casters) not prompted to select spells
 - **Checkbox icon centering** - Backlogged (P3 in DUNGEONOVERMIND_BACKLOG.md)
+
+### Recently Completed ✅
+- **T058e: Drawer overflow** - Fixed with scroll cleanup, 100px bottom padding, curved corners ✅
+- **T058f: Manual E2E test** - Completed ✅
 
 ### Backlogged for Later
 - **T160: Equipment data in Rule Engine** - Move weapon/pack data from hardcoded to rule engine for full info popovers
@@ -83,7 +85,9 @@ Wizard polish tasks completed:
 8. ✅ Removed `h="100%"` from step Stacks (let parent drawer control scrolling)
 9. ✅ Added curved corners to drawer (12px border-radius)
 10. ✅ Added "Changes are saved automatically..." footer to ALL steps for consistency
-11. 🔄 Identified: T161 (weapon sub-selection), T162 (spell selection missing)
+11. ✅ **T058e** Drawer overflow fixed (scroll cleanup, 100px padding, curved corners)
+12. ✅ **T058f** Manual E2E test completed
+13. 🔄 Identified: T161 (weapon sub-selection), T162 (spell selection missing)
 
 ---
 
