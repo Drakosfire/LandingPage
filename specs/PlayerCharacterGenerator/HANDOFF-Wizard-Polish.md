@@ -27,7 +27,7 @@
 ### What's NOT Working ❌
 - **T058g: Test fixture characters** - Pending
 - **T161: Weapon sub-selection** - "Any simple weapon" should prompt specific weapon choice
-- **T162: Spell selection missing** - Warlock (and other casters) not prompted to select spells
+- **T162: Spell selection missing** - See `HANDOFF-Spell-Selection-Wizard.md` for full investigation
 - **Checkbox icon centering** - Backlogged (P3 in DUNGEONOVERMIND_BACKLOG.md)
 
 ### Recently Completed ✅

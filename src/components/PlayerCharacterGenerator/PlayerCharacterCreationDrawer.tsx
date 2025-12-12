@@ -49,7 +49,8 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
     const isSpellcaster = (): boolean => {
         if (!character?.dnd5eData?.classes?.length) return false;
         const primaryClass = character.dnd5eData.classes[0];
-        const classData = ruleEngine.getClassById(primaryClass.name);
+        // Class IDs are lowercase (e.g., 'warlock'), but name is capitalized (e.g., 'Warlock')
+        const classData = ruleEngine.getClassById(primaryClass.name.toLowerCase());
         return classData?.spellcasting !== undefined;
     };
 
@@ -102,19 +103,19 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
             data-testid="character-creation-drawer"
         >
             {/* Sticky tabs header */}
-            <Tabs 
-                value={activeTab} 
+            <Tabs
+                value={activeTab}
                 onChange={(val) => setActiveTab(val as any)}
-                style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
                     height: '100%'
                 }}
             >
-                <Box 
-                    style={{ 
-                        position: 'sticky', 
-                        top: 0, 
+                <Box
+                    style={{
+                        position: 'sticky',
+                        top: 0,
                         zIndex: 10,
                         background: 'var(--mantine-color-body)',
                         borderBottom: '1px solid var(--mantine-color-gray-3)'
@@ -136,12 +137,12 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
                             Portrait
                         </Tabs.Tab>
                     </Tabs.List>
-                    
+
                     {/* Step nav - always visible on Build tab */}
                     {activeTab === 'creation' && (
-                        <Box 
-                            p="xs" 
-                            style={{ 
+                        <Box
+                            p="xs"
+                            style={{
                                 borderTop: '1px solid var(--mantine-color-gray-2)',
                                 background: 'var(--mantine-color-gray-0)'
                             }}
@@ -171,10 +172,10 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
                 </Box>
 
                 {/* Scrollable content area */}
-                <Box 
-                    style={{ 
-                        flex: 1, 
-                        overflowY: 'auto', 
+                <Box
+                    style={{
+                        flex: 1,
+                        overflowY: 'auto',
                         padding: 'var(--mantine-spacing-md)',
                         paddingBottom: '100px' // Extra space at bottom for last content to be visible
                     }}

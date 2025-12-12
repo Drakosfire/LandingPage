@@ -31,7 +31,14 @@ const SpellSelectionStep: React.FC = () => {
     // Get spellcasting info
     const spellcastingInfo = useMemo(() => {
         if (!dnd5eData) return null;
-        return ruleEngine.getSpellcastingInfo(dnd5eData);
+        const info = ruleEngine.getSpellcastingInfo(dnd5eData);
+        console.log('🔮 [SpellStep] spellcastingInfo:', {
+            isSpellcaster: info.isSpellcaster,
+            class: info.spellcastingClass,
+            cantripsKnown: info.cantripsKnown,
+            maxSpellsKnown: info.maxSpellsKnown
+        });
+        return info;
     }, [dnd5eData, ruleEngine]);
 
     // Get selected class data
@@ -44,13 +51,17 @@ const SpellSelectionStep: React.FC = () => {
     // Get available cantrips
     const availableCantrips = useMemo(() => {
         if (!dnd5eData) return [];
-        return ruleEngine.getAvailableSpells(dnd5eData, 0);
+        const cantrips = ruleEngine.getAvailableSpells(dnd5eData, 0);
+        console.log('🔮 [SpellStep] availableCantrips:', cantrips.length, cantrips.map(s => s.name));
+        return cantrips;
     }, [dnd5eData, ruleEngine]);
 
     // Get available 1st level spells
     const availableSpells = useMemo(() => {
         if (!dnd5eData) return [];
-        return ruleEngine.getAvailableSpells(dnd5eData, 1);
+        const spells = ruleEngine.getAvailableSpells(dnd5eData, 1);
+        console.log('🔮 [SpellStep] availableSpells:', spells.length, spells.map(s => s.name));
+        return spells;
     }, [dnd5eData, ruleEngine]);
 
     // Current selections
