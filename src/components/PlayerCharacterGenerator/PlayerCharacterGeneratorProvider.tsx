@@ -294,7 +294,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
             // Key fields that indicate meaningful changes
             abilityScores: character.dnd5eData?.abilityScores,
             background: character.dnd5eData?.background?.name,
-            spellCount: character.dnd5eData?.spells?.length || 0
+            spellCount: character.dnd5eData?.spellcasting?.spellsKnown?.length || 0
         });
 
         // Skip if content hasn't changed since last save

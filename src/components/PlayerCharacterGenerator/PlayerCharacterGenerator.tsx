@@ -73,15 +73,32 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
         demoCharacterOptions
     });
 
-    // Handler for opening Character Roster drawer
+    // Handler for Character Roster drawer (toggle + mutual exclusion)
     const handleProjectsClick = () => {
-        console.log('📂 [PlayerCharacterGen] Opening Character Roster');
-        setIsRosterOpen(true);
+        if (isRosterOpen) {
+            // Toggle: close if already open
+            console.log('📂 [PlayerCharacterGen] Closing Character Roster (toggle)');
+            setIsRosterOpen(false);
+        } else {
+            // Close creation drawer, open roster
+            console.log('📂 [PlayerCharacterGen] Opening Character Roster');
+            setDrawerOpen(false);
+            setIsRosterOpen(true);
+        }
     };
 
+    // Handler for Creation drawer (toggle + mutual exclusion)
     const handleGenerationClick = () => {
-        console.log('🎨 [PlayerCharacterGen] Opening creation drawer');
-        setDrawerOpen(true);
+        if (isDrawerOpen) {
+            // Toggle: close if already open
+            console.log('🎨 [PlayerCharacterGen] Closing creation drawer (toggle)');
+            setDrawerOpen(false);
+        } else {
+            // Close roster drawer, open creation
+            console.log('🎨 [PlayerCharacterGen] Opening creation drawer');
+            setIsRosterOpen(false);
+            setDrawerOpen(true);
+        }
     };
 
     // Handler for manual save button

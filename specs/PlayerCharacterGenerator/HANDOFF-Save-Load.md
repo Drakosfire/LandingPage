@@ -1,7 +1,7 @@
 # Handoff: Save/Load Characters (Phase 4)
 **Date:** 2025-12-11  
 **Type:** Feature  
-**Last Updated:** 2025-12-11 18:00  
+**Last Updated:** 2025-12-11 (CRUD confirmed working)  
 
 ---
 
@@ -12,12 +12,13 @@
 - localStorage restore on mount
 - `beforeunload` save on browser close
 - Wizard step persistence to localStorage
-- Single character editing (no multi-character management)
+- **Multi-character management** - Character Roster drawer with load/delete
+- **Cloud sync** - Debounced Firestore save (2s) for logged-in users
+- **Backend API** - Full CRUD endpoints working
+- **Explicit project management** - "New Character" clears project, manual save creates project
 
-### What's NOT Working ❌
-- **No cloud sync** - Characters only exist in localStorage (lost on clear cache)
-- **No multi-character** - Can only work on one character at a time
-- **No Projects drawer** - No UI to list/load/delete saved characters
+### Backlog (UX Enhancement)
+- **Drawer mutual exclusion** - Clicking Projects while Editor drawer is open should auto-close Editor and open Projects
 
 ---
 
@@ -393,9 +394,15 @@ routers/
 | P4b | ✅ Complete | Character Roster Drawer UI | 3h |
 | P4c | ✅ Complete | Firestore cloud sync (debounced auto-save) | 2h |
 | P4c.1 | ✅ Complete | Option 1 (Standard) - Explicit project management | 1h |
-| P4d | 🔜 Next | Polish + testing | 1h |
+| P4d | ✅ Complete | Polish + testing | 1h |
 
-**Decision:** Option 2 (Delightful) approved 2025-12-11
+**Phase 4: COMPLETE** ✅ (December 11, 2025)
+
+**Backlog Items (UnifiedHeader Drawer Behavior):**
+- **T074f:** Drawer toggle - clicking nav button toggles its drawer (open↔close)
+- **T074g:** Drawer exclusion - opening one drawer auto-closes any other open drawer
+
+This is standard UX for all drawers connected to UnifiedHeader across the app.
 
 ---
 

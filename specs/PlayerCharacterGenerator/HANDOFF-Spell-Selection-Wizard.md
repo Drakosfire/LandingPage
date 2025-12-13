@@ -1,3 +1,4 @@
+
 # Handoff: Spell Selection in Character Builder (Step 4)
 **Date:** 2025-12-11  
 **Type:** Bug / Feature Integration  

@@ -1,7 +1,7 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 11, 2025 (Wizard Polish Complete)  
+**Updated**: December 11, 2025 (Save/Load CRUD Complete)  
 **Source**: spec.md + plan.md  
 **Total Tasks**: 145+ (expanded with edit mode, equipment/spell modals)  
 **Estimated Hours**: 140-190h
@@ -256,7 +256,7 @@
 | **Phase 3.8b** | Editable Spell Modal | 6 | 6-8h | ⬜ Not Started |
 | **Phase 3.8c** | Unified Equipment Model | 5 | 4-5h | ⬜ Not Started |
 | **Phase 3.9** | Homebrew Mode | 5 | 8-12h | ⏳ Pending |
-| **Phase 4** | US4 - Save and Load (Character Roster) | 22 | 8h | 🔜 Next |
+| **Phase 4** | US4 - Save and Load (Character Roster) | 22 | 8h | ✅ Complete |
 | **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending |
 | **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
 | **Phase 7** | US5 - Character Leveling | 4 | 8-10h | ⏳ Pending |
@@ -269,11 +269,15 @@
 - Mobile responsiveness complete (viewport switch, CSS fixes)
 - Pagination Phase 0-2 complete (scaling, features overflow)
 - LocalStorage persistence Phase 1 complete (save/restore)
+- **Save/Load Phase 4a-4c complete** (CRUD, Character Roster UI, Firestore sync)
+- Fixed "New Character" overwrite bug with explicit project management
 
 **Remaining Critical Path:**
 1. ~~**Wizard Polish (3.5b)**~~ - ✅ Complete
-2. **Editable Spell Modal (3.8b)** - Add/edit/remove spells
-3. **Unified Equipment Model (3.8c)** - Single source of truth for equipment
+2. ~~**Save/Load (Phase 4)**~~ - ✅ Complete
+3. **Editable Spell Modal (3.8b)** - Add/edit/remove spells
+4. **Unified Equipment Model (3.8c)** - Single source of truth for equipment
+5. **AI Generation (Phase 5)** - Generate character from text prompt
 
 ---
 
@@ -587,50 +591,69 @@ Each component renders a section of the character sheet. Display-only first, edi
 **Goal**: Multi-character management with cloud sync  
 **Design:** Option 2 "Delightful" - Character Roster (approved 2025-12-11)  
 **Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Save-Load.md`  
+**Status:** ✅ **Core CRUD Complete** (December 11, 2025)  
 **Depends On**: Phase 3 complete
 
-### Phase 4a: Provider CRUD Functions (2h)
+### Phase 4a: Provider CRUD Functions (2h) ✅ Complete
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T068a** | Add `currentProject` state + `CharacterProject` type | ⬜ |
-| **T068b** | Add `saveStatus` state | ⬜ |
-| **T068c** | Implement `createProject(name, description)` | ⬜ |
-| **T068d** | Implement `loadProject(projectId)` | ⬜ |
-| **T068e** | Implement `deleteProject(projectId)` | ⬜ |
-| **T068f** | Implement `listProjects()` | ⬜ |
-| **T068g** | Implement `saveProject()` (manual) | ⬜ |
+| **T068a** | Add `currentProject` state + `CharacterProject` type | ✅ |
+| **T068b** | Add `saveStatus` state | ✅ |
+| **T068c** | Implement `createProject(name, description)` | ✅ |
+| **T068d** | Implement `loadProject(projectId)` | ✅ |
+| **T068e** | Implement `deleteProject(projectId)` | ✅ |
+| **T068f** | Implement `listProjects()` | ✅ |
+| **T068g** | Implement `saveProject()` (manual) | ✅ |
 
-### Phase 4b: Character Roster Drawer UI (3h)
-
-| Task | Description | Status |
-|------|-------------|--------|
-| **T072a** | Create `CharacterProjectSummary` type | ⬜ |
-| **T072b** | Create `PlayerCharacterRosterDrawer.tsx` | ⬜ |
-| **T072c** | Create `CharacterRoster.tsx` with character cards | ⬜ |
-| **T072d** | Add class icons (🗡️ Fighter, 🔮 Wizard, etc.) | ⬜ |
-| **T072e** | Wire "Create New Character" → reset + wizard | ⬜ |
-| **T072f** | Add roster button to UnifiedHeader | ⬜ |
-
-### Phase 4c: Firestore Cloud Sync (2h)
+### Phase 4b: Character Roster Drawer UI (3h) ✅ Complete
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T070a** | Debounced Firestore save useEffect (2s) | ⬜ |
-| **T070b** | Content hash deduplication | ⬜ |
-| **T070c** | Backend: `POST /api/playercharactergenerator/save-project` | ⬜ |
-| **T070d** | Backend: `GET /api/playercharactergenerator/list-projects` | ⬜ |
-| **T070e** | Backend: `DELETE /api/playercharactergenerator/delete-project` | ⬜ |
+| **T072a** | Create `CharacterProjectSummary` type | ✅ |
+| **T072b** | Create `PlayerCharacterRosterDrawer.tsx` | ✅ |
+| **T072c** | Create `CharacterRoster.tsx` with character cards | ✅ |
+| **T072d** | Add class icons (🗡️ Fighter, 🔮 Wizard, etc.) | ✅ |
+| **T072e** | Wire "Create New Character" → reset + wizard | ✅ |
+| **T072f** | Add roster button to UnifiedHeader | ✅ |
 
-### Phase 4d: Polish & Testing (1h)
+### Phase 4c: Firestore Cloud Sync (2h) ✅ Complete
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T074a** | Test: Create → save → reload → verify | ⬜ |
-| **T074b** | Test: Switch characters → verify state | ⬜ |
-| **T074c** | Test: Delete character → verify removal | ⬜ |
-| **T074d** | Test: Anon user → localStorage only | ⬜ |
-| **T074e** | Mobile: Roster drawer on mobile | ⬜ |
+| **T070a** | Debounced Firestore save useEffect (2s) | ✅ |
+| **T070b** | Content hash deduplication | ✅ |
+| **T070c** | Backend: `POST /api/playercharactergenerator/save-project` | ✅ |
+| **T070d** | Backend: `GET /api/playercharactergenerator/list-projects` | ✅ |
+| **T070e** | Backend: `DELETE /api/playercharactergenerator/delete-project` | ✅ |
+
+**Additional Fix (Option 1 - Standard):**
+- ✅ Added `clearCurrentProject()` for explicit project management
+- ✅ Added `isUnsavedNewCharacter` derived state
+- ✅ Gated auto-save on `currentProject?.id` existence
+- ✅ Fixed "New Character" flow to prevent overwrites
+
+### Phase 4d: Polish & Testing (1h) ✅ Complete
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T074a** | Test: Create → save → reload → verify | ✅ |
+| **T074b** | Test: Switch characters → verify state | ✅ |
+| **T074c** | Test: Delete character → verify removal | ✅ |
+| **T074d** | Test: Anon user → localStorage only | ✅ |
+| **T074e** | Mobile: Roster drawer on mobile | ✅ |
+
+### Backlog: UnifiedHeader Drawer Behavior (Standard Pattern)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T074f** | **Drawer toggle:** Clicking a nav button toggles its drawer (open→close, close→open) | ⬜ Backlog |
+| **T074g** | **Drawer exclusion:** Opening one drawer auto-closes any other open drawer | ⬜ Backlog |
+
+**Standard behavior:** All drawers connected to UnifiedHeader should follow this pattern:
+- Click Projects button → opens Projects drawer (if closed) OR closes it (if open)
+- Click Generation button → opens Generation drawer (if closed) OR closes it (if open)
+- Opening Projects while Generation is open → closes Generation, opens Projects
 
 ### Already Complete
 - [x] T069 [US4] localStorage auto-save ✅ (2025-12-09)
@@ -865,6 +888,6 @@ After Phase 3 completes, these phases are independent:
 - MVP now includes Edit Mode + Save/Load (111 tasks vs 91)
 
 **Generated by speckit.tasks workflow**  
-**Updated**: December 11, 2025 (Wizard Polish complete, spell selection fixed)  
-**Next**: Phase 3.7 (Edit Mode expansion) → Phase 4 (Save/Load) → Phase 5 (AI Generation) → Leveling Up (backlogged)
+**Updated**: December 11, 2025 (Phase 4 Save/Load complete)  
+**Next**: Phase 3.8b (Editable Spell Modal) → Phase 5 (AI Generation)
 
