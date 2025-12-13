@@ -16,6 +16,7 @@ import {
     TestResult,
     AiPreferences,
     GenerationConstraints,
+    GenerationInput,
 } from './types';
 import {
     generatePilotTestCases,
@@ -31,6 +32,92 @@ import {
     getMockConstraints,
 } from './promptBuilder';
 import { translatePreferences } from './preferenceTranslator';
+
+// ============================================================================
+// API CONFIGURATION
+// ============================================================================
+
+/**
+ * Get the API URL - works in browser and Node.js
+ */
+function getApiUrl(): string {
+    // Browser environment
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'dev.dungeonmind.net') {
+            return 'https://dev.dungeonmind.net';
+        }
+        if (hostname === 'localhost') {
+            return 'http://localhost:7860';
+        }
+        return 'https://www.dungeonmind.net';
+    }
+    // Node.js environment (for testing)
+    return process.env.DUNGEONMIND_API_URL || 'http://localhost:7860';
+}
+
+const API_URL = getApiUrl();
+
+/**
+ * API response type from backend
+ */
+interface ApiGenerationResponse {
+    success: boolean;
+    data?: {
+        preferences: AiPreferences;
+        rawResponse: string;
+        generationInfo: {
+            promptVersion: string;
+            model: string;
+            timestamp: string;
+            promptTokens: number;
+            completionTokens: number;
+            totalTokens: number;
+        };
+    };
+    error?: string;
+    generationTimeSeconds?: number;
+}
+
+/**
+ * Call the real backend API to generate preferences
+ */
+async function callGeneratePreferencesApi(
+    input: GenerationInput
+): Promise<{ success: boolean; data?: ApiGenerationResponse['data']; error?: string }> {
+    try {
+        const response = await fetch(`${API_URL}/api/playercharactergenerator/generate-preferences`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                input: {
+                    classId: input.classId,
+                    raceId: input.raceId,
+                    level: input.level,
+                    backgroundId: input.backgroundId,
+                    concept: input.concept,
+                },
+            }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return { success: false, error: `API error: ${response.status} - ${errorText}` };
+        }
+
+        const result: ApiGenerationResponse = await response.json();
+
+        if (!result.success) {
+            return { success: false, error: result.error || 'Unknown error' };
+        }
+
+        return { success: true, data: result.data };
+    } catch (error) {
+        return { success: false, error: `Network error: ${error}` };
+    }
+}
 
 // ============================================================================
 // MOCK RESPONSES (for testing without API)
@@ -237,6 +324,8 @@ export async function runTestCase(
 
         // 3. Get AI response
         let rawResponse: string;
+        let preferences: AiPreferences | null = null;
+
         if (useMockResponse) {
             rawResponse = getMockResponse(testCase.input.classId);
             console.log(`   🤖 Using mock response`);
@@ -247,14 +336,37 @@ export async function runTestCase(
             result.metrics.totalTokens = result.metrics.promptTokens + result.metrics.completionTokens;
             result.metrics.costUsd = (result.metrics.totalTokens / 1000) * 0.01; // Rough estimate
         } else {
-            // TODO: Real API call would go here
-            throw new Error('Real API calls not yet implemented');
+            // Real API call
+            console.log(`   🌐 Calling real API at ${API_URL}...`);
+            const apiResult = await callGeneratePreferencesApi(testCase.input);
+
+            if (!apiResult.success || !apiResult.data) {
+                throw new Error(apiResult.error || 'API call failed');
+            }
+
+            rawResponse = apiResult.data.rawResponse;
+            preferences = apiResult.data.preferences as AiPreferences;
+
+            // Record real metrics from API
+            const genInfo = apiResult.data.generationInfo;
+            result.metrics.promptTokens = genInfo.promptTokens;
+            result.metrics.completionTokens = genInfo.completionTokens;
+            result.metrics.totalTokens = genInfo.totalTokens;
+            // GPT-4o pricing: $2.50/1M input, $10/1M output
+            result.metrics.costUsd =
+                (genInfo.promptTokens / 1000000) * 2.50 +
+                (genInfo.completionTokens / 1000000) * 10.00;
+
+            console.log(`   🤖 Real API response received (${genInfo.totalTokens} tokens)`);
         }
 
         result.aiGeneration.rawResponse = rawResponse;
 
-        // 4. Parse response
-        const preferences = parseAiResponse(rawResponse);
+        // 4. Parse response (API already provides parsed preferences, mock needs parsing)
+        if (!preferences) {
+            preferences = parseAiResponse(rawResponse);
+        }
+
         if (preferences) {
             result.aiGeneration.parseSuccess = true;
             result.aiGeneration.preferences = preferences;
