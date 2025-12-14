@@ -11,10 +11,11 @@
  * @module PlayerCharacterGenerator
  */
 
-import React, { useState, useEffect } from 'react';
-import { Drawer, Tabs, Title, Stack, Box, Button, Group } from '@mantine/core';
-import { IconUsers, IconPhoto, IconPlus } from '@tabler/icons-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Drawer, Tabs, Title, Stack, Box, Button, Group, Text } from '@mantine/core';
+import { IconUsers, IconPhoto, IconPlus, IconSparkles } from '@tabler/icons-react';
 import CharacterCreationWizard, { StepNav, TOTAL_STEPS } from './creationDrawerComponents/CharacterCreationWizard';
+import AIGenerationTab from './creationDrawerComponents/AIGenerationTab';
 import { usePlayerCharacterGenerator } from './PlayerCharacterGeneratorProvider';
 
 interface PlayerCharacterCreationDrawerProps {
@@ -26,13 +27,32 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
     opened,
     onClose,
 }) => {
-    const [activeTab, setActiveTab] = useState<'creation' | 'portrait'>('creation');
+    const [activeTab, setActiveTab] = useState<'generate' | 'creation' | 'portrait'>('generate');
     const { character, ruleEngine, wizardStep, setWizardStep, resetCharacter } = usePlayerCharacterGenerator();
+
+    // Lightweight toast (DesignSystem.css has `.toast` styles; we keep local to the drawer for now)
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+    const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(() => {
+        return () => {
+            if (toastTimerRef.current) {
+                clearTimeout(toastTimerRef.current);
+            }
+        };
+    }, []);
+
+    const showToast = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+        setToast({ message, type });
+        if (toastTimerRef.current) {
+            clearTimeout(toastTimerRef.current);
+        }
+        toastTimerRef.current = setTimeout(() => setToast(null), 3000);
+    }, []);
 
     // Reset to creation tab when drawer opens
     useEffect(() => {
         if (opened) {
-            setActiveTab('creation');
+            setActiveTab('generate');
         }
     }, [opened]);
 
@@ -41,6 +61,7 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
         if (window.confirm('Start a new character? Current progress will be lost.')) {
             resetCharacter();
             setWizardStep(0);
+            setActiveTab('generate');
             console.log('🆕 [Drawer] New character created');
         }
     };
@@ -102,6 +123,14 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
             }}
             data-testid="character-creation-drawer"
         >
+            {toast && (
+                <div className={`toast ${toast.type}`} role="status" aria-live="polite">
+                    <Text size="sm" fw={600} mb={4}>
+                        {toast.type === 'success' ? '✨ Success' : toast.type === 'error' ? 'Error' : 'Notice'}
+                    </Text>
+                    <Text size="sm">{toast.message}</Text>
+                </div>
+            )}
             {/* Sticky tabs header */}
             <Tabs
                 value={activeTab}
@@ -122,6 +151,13 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
                     }}
                 >
                     <Tabs.List grow>
+                        <Tabs.Tab
+                            value="generate"
+                            leftSection={<IconSparkles size={16} />}
+                            data-testid="character-generate-tab"
+                        >
+                            Generate
+                        </Tabs.Tab>
                         <Tabs.Tab
                             value="creation"
                             leftSection={<IconUsers size={16} />}
@@ -180,6 +216,16 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
                         paddingBottom: '100px' // Extra space at bottom for last content to be visible
                     }}
                 >
+                    <Tabs.Panel value="generate" style={{ minHeight: '100%' }}>
+                        <AIGenerationTab
+                            onGenerationComplete={() => {
+                                setActiveTab('creation');
+                                setWizardStep(7); // Review step
+                                showToast('Character created! Review and customize below.', 'success');
+                            }}
+                        />
+                    </Tabs.Panel>
+
                     <Tabs.Panel value="creation" style={{ minHeight: '100%' }}>
                         <CharacterCreationWizard />
                     </Tabs.Panel>
