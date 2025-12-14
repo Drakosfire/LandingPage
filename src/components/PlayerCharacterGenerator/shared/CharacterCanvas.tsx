@@ -1157,7 +1157,7 @@ const CharacterCanvas: React.FC = () => {
                         playerName={character.playerName || ''}
                         alignment={dnd5e.alignment || ''}
                         xp={character.xp || 0}
-                        portraitUrl={undefined}
+                        portraitUrl={character.portrait}
 
                         // Ability Scores
                         abilityScores={dnd5e.abilityScores}

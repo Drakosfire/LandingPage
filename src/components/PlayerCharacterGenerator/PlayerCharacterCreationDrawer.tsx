@@ -16,6 +16,7 @@ import { Drawer, Tabs, Title, Stack, Box, Button, Group, Text } from '@mantine/c
 import { IconUsers, IconPhoto, IconPlus, IconSparkles } from '@tabler/icons-react';
 import CharacterCreationWizard, { StepNav, TOTAL_STEPS } from './creationDrawerComponents/CharacterCreationWizard';
 import AIGenerationTab from './creationDrawerComponents/AIGenerationTab';
+import PortraitGenerationTab from './creationDrawerComponents/PortraitGenerationTab';
 import { usePlayerCharacterGenerator } from './PlayerCharacterGeneratorProvider';
 
 interface PlayerCharacterCreationDrawerProps {
@@ -231,14 +232,7 @@ const PlayerCharacterCreationDrawer: React.FC<PlayerCharacterCreationDrawerProps
                     </Tabs.Panel>
 
                     <Tabs.Panel value="portrait" style={{ minHeight: '100%' }}>
-                        <Stack gap="md">
-                            <Title order={5}>Portrait Generation</Title>
-                            <Box p="md" style={{ border: '1px dashed gray', borderRadius: '8px' }}>
-                                Phase 1: Portrait generation placeholder
-                                <br />
-                                Will lift ImageGenerationTab from StatblockGenerator in Phase 2
-                            </Box>
-                        </Stack>
+                        <PortraitGenerationTab />
                     </Tabs.Panel>
                 </Box>
             </Tabs>

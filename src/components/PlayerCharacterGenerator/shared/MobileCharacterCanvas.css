@@ -168,12 +168,17 @@
     max-width: 300px;
     margin: 0 auto;
     flex-shrink: 0;
+    /* Match desktop: opaque parchment-like backing for transparent images */
+    background: var(--bg-page);
 }
 
 .mobile-character-canvas.character-sheet .portrait-box img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    /* Override global PHB CSS: `.page img { z-index: -1; }` */
+    position: relative;
+    z-index: 1;
 }
 
 /* Header content - full width */

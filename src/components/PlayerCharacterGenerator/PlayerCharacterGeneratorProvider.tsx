@@ -294,7 +294,19 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
             // Key fields that indicate meaningful changes
             abilityScores: character.dnd5eData?.abilityScores,
             background: character.dnd5eData?.background?.name,
-            spellCount: character.dnd5eData?.spellcasting?.spellsKnown?.length || 0
+            spellCount: character.dnd5eData?.spellcasting?.spellsKnown?.length || 0,
+
+            // Portrait (local-first upload + generation) should trigger cloud save when signed in.
+            // Avoid hashing large data URLs by only including a small fingerprint + counts.
+            portraitSource: character.portraitMeta?.source,
+            portraitCaption: character.portraitCaption || '',
+            portraitAlt: character.portraitAlt || '',
+            portraitFingerprint: character.portrait ? character.portrait.slice(0, 128) : null,
+            portraitPromptFingerprint: character.portraitPrompt ? character.portraitPrompt.slice(0, 128) : null,
+            portraitGalleryCount: character.portraitGallery?.length || 0,
+            portraitGalleryLastId: character.portraitGallery && character.portraitGallery.length > 0
+                ? character.portraitGallery[character.portraitGallery.length - 1].id
+                : null
         });
 
         // Skip if content hasn't changed since last save

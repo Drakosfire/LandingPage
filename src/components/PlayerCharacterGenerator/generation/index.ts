@@ -72,6 +72,7 @@ export {
     generatePilotTestCases,
     generateRepresentativeSample,
     generateFilteredMatrix,
+
     generateFilteredSample,
     generateFullMatrix,
 

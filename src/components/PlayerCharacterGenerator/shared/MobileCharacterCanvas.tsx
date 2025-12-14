@@ -216,7 +216,7 @@ const MobileCharacterCanvas: React.FC = () => {
                         playerName={character.playerName || ''}
                         alignment={dnd5e.alignment || ''}
                         xp={character.xp || 0}
-                        portraitUrl={undefined}
+                        portraitUrl={character.portrait}
                     />
                 </section>
 

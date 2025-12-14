@@ -54,6 +54,10 @@ export interface Character {
     description?: string;           // Brief character description
     portrait?: string;              // Portrait image URL
     portraitPrompt?: string;        // AI prompt used for portrait
+    portraitCaption?: string;       // Short flavorful caption (editable)
+    portraitAlt?: string;           // Accessibility + print fallback (editable)
+    portraitMeta?: PortraitMeta;    // Source/model/style metadata for selected portrait
+    portraitGallery?: PortraitGalleryItem[]; // Candidate portrait images
     backstory?: string;             // Character backstory/history
     notes?: string;                 // Player/DM notes
     playerName?: string;            // Name of player (if PC)
@@ -65,6 +69,26 @@ export interface Character {
     createdBy?: string;             // User ID who created
     lastModifiedBy?: string;        // User ID who last modified
     version?: number;               // Version number for change tracking
+}
+
+export type PortraitSource = 'generated' | 'uploaded' | 'library';
+
+export interface PortraitMeta {
+    source: PortraitSource;
+    model?: string;
+    styleId?: string;
+    negativePrompt?: string;
+    seed?: string;
+    createdAt?: string;
+}
+
+export interface PortraitGalleryItem {
+    id: string;
+    url: string;
+    prompt: string;
+    caption?: string;
+    alt?: string;
+    meta?: PortraitMeta;
 }
 
 /**
