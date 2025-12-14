@@ -164,13 +164,22 @@ export interface FeatureChoice {
 export interface SpellcastingConstraints {
     ability: AbilityName;
     casterType?: 'known' | 'prepared';
-    preparedFormula?: 'abilityModPlusLevel';
+    preparedFormula?: 'abilityModPlusLevel' | 'abilityModPlusHalfLevel';
     cantripsKnown: number;
     spellsKnown?: number;        // For known casters (bard, sorcerer, ranger)
     spellsPrepared?: number;     // For prepared casters (cleric, druid, wizard)
     maxSpellLevel: number;       // Based on character level
     availableCantrips: SpellOption[];
     availableSpells: SpellOption[];
+
+    /**
+     * Pact magic metadata (Warlock). Not yet used for slot math in E4,
+     * but it’s important for validation/UX as we add warlock.
+     */
+    pactMagic?: {
+        slots: number;
+        slotLevel: number;
+    };
 }
 
 /**

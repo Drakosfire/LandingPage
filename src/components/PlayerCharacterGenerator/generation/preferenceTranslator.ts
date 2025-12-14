@@ -566,7 +566,7 @@ export function translateFeatureChoices(
 
     for (const feature of featureChoices) {
         // Check if AI expressed a preference for this feature
-        if (feature.featureId === 'fighting-style' && preferences.fightingStylePreference) {
+        if (feature.featureId.includes('fighting-style') && preferences.fightingStylePreference) {
             // Validate the preference is a valid option
             const validOption = feature.options.find(
                 opt => opt.id === preferences.fightingStylePreference?.id
@@ -667,11 +667,17 @@ export function translateSpellThemes(
 
     // Select spells
     let spellCount = constraints.spellsKnown || constraints.spellsPrepared || 0;
-    if (constraints.casterType === 'prepared' && constraints.preparedFormula === 'abilityModPlusLevel') {
+    if (constraints.casterType === 'prepared' && constraints.preparedFormula) {
         const abilityKey = constraints.ability;
         const score = abilityScores?.[abilityKey] ?? 10;
         const mod = Math.floor((score - 10) / 2);
-        spellCount = Math.max(1, mod + level);
+
+        if (constraints.preparedFormula === 'abilityModPlusLevel') {
+            spellCount = Math.max(1, mod + level);
+        } else if (constraints.preparedFormula === 'abilityModPlusHalfLevel') {
+            const halfLevel = Math.floor(level / 2);
+            spellCount = Math.max(1, mod + halfLevel);
+        }
     }
     const selectedSpells = selectSpellsByThemes(
         spellThemes,
