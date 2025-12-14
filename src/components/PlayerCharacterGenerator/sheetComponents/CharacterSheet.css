@@ -2967,34 +2967,142 @@
 }
 
 /* ===== Print Styles ===== */
+/* Based on StatblockGenerator print pattern (canvas-print.css) */
+@page {
+    size: letter portrait;
+    margin: 0.25in;
+}
+
 @media print {
+    /* Firefox: prevent hidden UI (visibility-hidden) from still taking layout space.
+       Only keep the canvas container in the document flow to avoid a leading blank page. */
+    .generator-layout > * {
+        display: none !important;
+    }
+
+    .generator-layout > .generator-canvas-container {
+        display: block !important;
+    }
+
+    /* Color adjustment for backgrounds */
     .character-sheet {
-        page-break-before: always;
-        page-break-after: always;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+    }
+
+    /* Remove scaling for print (match StatblockGenerator approach) */
+    .character-canvas-wrapper {
+        transform: none !important;
+        transform-origin: top center !important;
+    }
+
+    /* Center pages in the printable area */
+    .character-sheet {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Ensure PHB page container keeps its intended vertical flow in print */
+    .page.phb.character-sheet {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Page break rules (Firefox-safe):
+       Prefer break-after on all-but-last page to avoid blank pages between pages in Firefox. */
+    .character-sheet-container > .page.phb.character-sheet {
+        break-before: avoid !important;
+        page-break-before: avoid !important;
+    }
+
+    .character-sheet-container > .page.phb.character-sheet:not(:last-child) {
+        break-after: page !important;
+        page-break-after: always !important;
+    }
+
+    .character-sheet-container > .page.phb.character-sheet:last-child {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+    }
+
+    /* Prevent splitting within a sheet */
+    .character-sheet {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
     }
 
     .character-sheet .phb-section {
         break-inside: avoid;
     }
 
-    /* Remove container styles for print */
+    /* Remove gaps between pages (critical for preventing blank pages) */
+    .character-sheet-container {
+        gap: 0 !important;
+    }
+
+    /* Firefox: override screen-level !important gap rules (more specific selector wins) */
+    .character-canvas-renderer .character-sheet-container {
+        gap: 0 !important;
+    }
+
+    /* Neutralize app-shell sizing that can introduce phantom print pages */
+    .generator-canvas-container {
+        min-height: auto !important;
+        height: auto !important;
+        max-height: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+        width: auto !important;
+        max-width: none !important;
+        display: block !important;
+    }
+
+    /* Ensure intermediate canvas containers don't enforce flex sizing/heights in print */
+    .character-canvas-area,
+    .character-canvas-renderer,
+    .character-canvas-wrapper {
+        height: auto !important;
+        max-height: none !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    /* Avoid flex/gap pagination quirks for multi-page print */
+    .character-sheet-container {
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+
+    /* Ensure parent canvas area doesn't keep flex row/gap behavior in print */
+    .character-canvas-area {
+        display: block !important;
+        gap: 0 !important;
+    }
+
+    /* Prevent “brown blank pages” from canvas backgrounds printing between pages */
     .character-canvas-area,
     .character-sheet-container {
-        padding: 0;
-        background: none;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
-    .character-canvas-area .character-sheet {
-        margin-bottom: 0;
+    /* Remove pseudo-elements that can cause blank pages */
+    .character-sheet-container::after,
+    .character-sheet-container::before {
+        display: none !important;
+        content: none !important;
     }
 
+    /* Prevent splitting within content blocks */
     .inventory-sheet .inventory-block {
         break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .spell-sheet .spell-level-block {
         break-inside: avoid;
+        page-break-inside: avoid;
     }
 }

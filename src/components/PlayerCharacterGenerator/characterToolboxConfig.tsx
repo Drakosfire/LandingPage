@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import { IconHelp, IconUser, IconSword, IconWand } from '@tabler/icons-react';
+import { IconHelp, IconPrinter, IconUser, IconSword, IconWand, IconFileText } from '@tabler/icons-react';
 import { ToolboxSection } from '../AppToolbox';
 
 /**
@@ -27,9 +27,13 @@ export interface CharacterToolboxConfigProps {
     // Help
     handleHelpTutorial?: () => void;
 
+    // Export
+    handlePrintPDF?: () => void;
+
     // Dev Tools
     loadDemoCharacter?: (key: string) => void;
     demoCharacterOptions?: DemoCharacterOption[];
+    capturePrintSnapshot?: () => void;
 
     // Phase 2+: Save, Export, etc.
     // isLoggedIn?: boolean;
@@ -57,7 +61,7 @@ const getDemoIcon = (key: string) => {
 export const createCharacterToolboxSections = (
     props: CharacterToolboxConfigProps
 ): ToolboxSection[] => {
-    const { handleHelpTutorial, loadDemoCharacter, demoCharacterOptions = [] } = props;
+    const { handleHelpTutorial, handlePrintPDF, loadDemoCharacter, demoCharacterOptions = [], capturePrintSnapshot } = props;
 
     // Build demo character controls from options
     const demoControls = demoCharacterOptions.map(option => ({
@@ -69,21 +73,49 @@ export const createCharacterToolboxSections = (
         disabled: !loadDemoCharacter
     }));
 
+    const devControls = [
+        ...(demoControls.length > 0 ? demoControls : [
+            {
+                id: 'load-demo',
+                type: 'menu-item' as const,
+                label: 'Load Demo Character',
+                icon: <IconUser size={16} />,
+                onClick: () => loadDemoCharacter?.('fighter'),
+                disabled: !loadDemoCharacter
+            }
+        ]),
+        ...(capturePrintSnapshot ? [{
+            id: 'capture-print-snapshot',
+            type: 'menu-item' as const,
+            label: 'Capture Print Snapshot (HTML)',
+            icon: <IconFileText size={16} />,
+            onClick: () => capturePrintSnapshot(),
+            disabled: false
+        }] : [])
+    ];
+
     return [
+        // Section 0: Export
+        {
+            id: 'export',
+            label: 'Export',
+            controls: [
+                {
+                    id: 'print-pdf',
+                    type: 'menu-item' as const,
+                    label: 'Print / Save PDF',
+                    icon: <IconPrinter size={16} />,
+                    onClick: () => handlePrintPDF?.(),
+                    disabled: !handlePrintPDF
+                }
+            ]
+        },
+
         // Section 1: Dev Tools (for testing)
         {
             id: 'dev',
             label: 'Dev Tools',
-            controls: demoControls.length > 0 ? demoControls : [
-                {
-                    id: 'load-demo',
-                    type: 'menu-item' as const,
-                    label: 'Load Demo Character',
-                    icon: <IconUser size={16} />,
-                    onClick: () => loadDemoCharacter?.('fighter'),
-                    disabled: !loadDemoCharacter
-                }
-            ]
+            controls: devControls
         },
 
         // Section 2: Help (placeholder for Phase 1)
