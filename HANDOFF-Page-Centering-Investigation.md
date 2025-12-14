@@ -3,21 +3,22 @@
 **Date:** 2025-12-14  
 **Type:** Bug Investigation  
 **Last Updated:** 2025-12-14  
-**Status:** 🔄 Investigation Needed  
+**Status:** ✅ Fixes Applied  
 
 ---
 
 ## 🚨 CURRENT STATE
 
-### What's Working ✅
-- Canvas pages (StatblockGenerator, PlayerCharacterGenerator) center correctly
-- Canvas CSS layer architecture is functioning
-- Generator routes have proper layout
-
 ### What's NOT Working ❌
-- **All non-generator pages no longer center** - Home page, About sections, Blog pages
+- **ALL pages no longer center** - Home page, About sections, Blog pages, AND generator pages
 - **Suspected cause**: Global CSS reset added for Canvas compatibility is too aggressive
-- **Affected pages**: `/`, `/blog`, `/blog/:id`, `/ruleslawyer`, `/cardgenerator` (non-canvas areas)
+- **Affected pages**: ALL pages including:
+  - `/` (Home page)
+  - `/blog`, `/blog/:id` (Blog pages)
+  - `/ruleslawyer` (Rules Lawyer)
+  - `/cardgenerator` (Card Generator)
+  - `/statblockgenerator` (Statblock Generator - canvas AND non-canvas areas)
+  - `/charactergenerator` (Player Character Generator - canvas AND non-canvas areas)
 
 ### Suspected Causes
 
@@ -126,15 +127,16 @@ body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *):not(.cha
 
 ### Step 5: Verify CSS Specificity
 
-**Check if Canvas CSS is affecting non-canvas pages:**
+**Check if global CSS is affecting all pages:**
 
 ```bash
 # Search for any global rules that might affect centering
 grep -r "margin.*0" src/styles/canvas/
 grep -r "max-width" src/styles/canvas/
+grep -r "margin.*0" src/styles/App.css
 ```
 
-**Expected:** Canvas CSS should only affect `.dm-canvas-responsive` and `.dm-canvas-measurement-layer` elements.
+**Expected:** Global reset should not remove `margin: 0 auto` from container elements. Canvas CSS should only affect `.dm-canvas-responsive` and `.dm-canvas-measurement-layer` elements.
 
 ---
 
@@ -270,7 +272,7 @@ section:not(.dm-canvas-responsive section):not(.dm-canvas-measurement-layer sect
 }
 ```
 
-**Rationale:** Explicitly center sections that aren't canvas-related.
+**Rationale:** Explicitly center sections that aren't canvas-related. Note: This may need to be adjusted if canvas sections also need centering.
 
 ---
 
@@ -291,12 +293,11 @@ section:not(.dm-canvas-responsive section):not(.dm-canvas-measurement-layer sect
    - [ ] Main content area is centered
 
 4. **Card Generator (`/cardgenerator`)**
-   - [ ] Non-canvas areas (if any) are centered
-   - [ ] Canvas areas remain unaffected
+   - [ ] All content areas are centered
 
-5. **Generator Routes (should be unaffected)**
-   - [ ] `/statblockgenerator` - Canvas still centers correctly
-   - [ ] `/charactergenerator` - Canvas still centers correctly
+5. **Generator Routes (ALL affected)**
+   - [ ] `/statblockgenerator` - All content areas (canvas AND non-canvas) are centered
+   - [ ] `/charactergenerator` - All content areas (canvas AND non-canvas) are centered
 
 ### Browser Testing
 - [ ] Chrome/Edge (Chromium)
@@ -320,7 +321,7 @@ The Canvas CSS uses CSS layers to control cascade priority:
 3. `theme` - Colors, fonts, backgrounds (Themes own)
 4. `canvas-overrides` - Structural overrides (highest)
 
-**Key Point:** Canvas CSS should NOT affect non-canvas pages. The global reset in `App.css` was added to prevent Canvas styles from leaking, but it may be too aggressive.
+**Key Point:** The global reset in `App.css` was added to prevent Canvas styles from leaking, but it's too aggressive and is removing centering margins from ALL pages, including generator pages.
 
 ### Previous Changes
 
@@ -334,11 +335,11 @@ The Canvas CSS uses CSS layers to control cascade priority:
 ## 🎯 Success Criteria
 
 **Fixed when:**
-- ✅ All non-generator pages have centered content
+- ✅ ALL pages have centered content (home, blog, generators, etc.)
 - ✅ Sections respect `max-width` constraints
-- ✅ Canvas pages remain unaffected
+- ✅ Canvas areas AND non-canvas areas on generator pages are centered
 - ✅ Responsive behavior works on all viewport sizes
-- ✅ No visual regressions on generator routes
+- ✅ No visual regressions on any routes
 
 ---
 
@@ -360,5 +361,51 @@ The Canvas CSS uses CSS layers to control cascade priority:
 
 ---
 
-**Next Action:** Start with Step 1 (Verify the Issue) to confirm the problem before applying fixes.
+---
+
+## ✅ FIXES APPLIED
+
+**Date:** 2025-12-14
+
+### Changes Made
+
+1. **Fixed Global Reset** (`src/styles/App.css:22-25`)
+   - Excluded `.app-container`, `.main-content`, `section`, and common container classes from global margin reset
+   - Prevents `margin: 0` from removing `margin: 0 auto` on container elements
+
+2. **Fixed Conflicting `.app-container` Definition** (`src/components/AppLinks.css:1-4`)
+   - Added `max-width: 1200px; margin: 0 auto;` to ensure centering
+   - Now matches the definition in `App.css`
+
+3. **Added Explicit Section Centering** (`src/styles/App.css:50-55`)
+   - Added `max-width: 1200px; margin: 0 auto;` to all non-canvas sections
+   - Ensures sections center properly
+
+### Files Modified
+- `src/styles/App.css` - Global reset exclusions and section centering
+- `src/components/AppLinks.css` - Fixed `.app-container` definition
+
+### Additional Fixes (Round 2)
+
+**Issues Found:**
+1. Generator pages (StatBlockGenerator, PCG) still pulled to the right
+2. NavBar popup/drawer appearing centered when it shouldn't
+
+**Fixes Applied:**
+1. Excluded generator layout classes from global reset:
+   - `.generator-canvas-container`
+   - `.generator-main-content`
+   - `.generator-layout`
+2. Excluded Mantine drawer classes from global reset:
+   - `.mantine-Drawer-content`
+   - `.mantine-Drawer-root`
+   - `.mantine-Drawer-inner`
+3. Added generator-specific overrides to prevent `.main-content` margin conflicts
+4. Excluded Mantine drawers from section centering rules
+
+### Next Steps
+- Test generator pages to verify centering works
+- Test NavBar drawer/popup positioning
+- Check responsive behavior on mobile/tablet/desktop
+- Verify all pages remain unaffected
 
