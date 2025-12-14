@@ -169,7 +169,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
     }, [elevated]);
 
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-        e.currentTarget.style.display = 'none';
+        console.error('❌ [UnifiedHeader] Image failed to load:', e.currentTarget.src);
+        // Don't hide the image, show a fallback or keep it visible for debugging
+        e.currentTarget.style.opacity = '0.5';
     };
 
     // Projects button click handler
@@ -222,7 +224,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                             width: size,
                             height: size,
                             objectFit: 'contain',
-                            filter: 'brightness(0) invert(1)' // Make white
+                            display: 'block'
                         }}
                     />
                 );
@@ -450,7 +452,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                                             width: isMobile ? 20 : 24,
                                             height: isMobile ? 20 : 24,
                                             objectFit: 'contain',
-                                            filter: 'brightness(0) invert(1)' // Make white
+                                            display: 'block'
                                         }}
                                     />
                                 ) : (
