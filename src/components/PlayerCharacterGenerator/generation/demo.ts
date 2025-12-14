@@ -140,13 +140,36 @@ async function runTestCasesWithConcurrency(
     let nextIndex = 0;
     let completed = 0;
     const startedAt = Date.now();
-    const worker = async (): Promise<void> => {
+    let inFlight = 0;
+    let maxInFlightObserved = 0;
+
+    const shouldLogConcurrency = concurrency > 1;
+    if (shouldLogConcurrency) {
+        console.log(
+            `\n🧵 [Concurrency] Starting worker pool: concurrency=${concurrency}, totalCases=${testCases.length}, mode=${useLiveApi ? 'LIVE' : 'MOCK'}`
+        );
+    }
+
+    const worker = async (workerId: number): Promise<void> => {
+        if (shouldLogConcurrency) {
+            console.log(`🧵 [Concurrency] Worker ${workerId} started`);
+        }
         while (true) {
             const idx = nextIndex;
             nextIndex += 1;
             if (idx >= testCases.length) return;
 
             const testCase = testCases[idx];
+            const t0 = Date.now();
+
+            inFlight += 1;
+            maxInFlightObserved = Math.max(maxInFlightObserved, inFlight);
+            if (shouldLogConcurrency) {
+                console.log(
+                    `🧵 [Concurrency] W${workerId} START ${idx + 1}/${testCases.length} | inFlight=${inFlight}/${concurrency} | ${testCase.id}`
+                );
+            }
+
             // runTestCase(..., useMockResponse) so: useMock = !useLiveApi
             const result = await runTestCase(testCase, !useLiveApi, { backendValidate, backendCompute, maxRetries });
             results[idx] = result;
@@ -160,11 +183,26 @@ async function runTestCasesWithConcurrency(
                 const etaMs = Math.max(0, Math.floor(avgPer * remaining));
                 console.log(`   ⏱️  Progress: ${completed}/${testCases.length} (ETA ~${Math.round(etaMs / 1000)}s)`);
             }
+
+            const durationMs = Date.now() - t0;
+            const ok = result.aiGeneration.parseSuccess && result.translation.success && result.validation.isValid;
+            if (shouldLogConcurrency) {
+                console.log(
+                    `🧵 [Concurrency] W${workerId} END   ${idx + 1}/${testCases.length} | inFlight=${inFlight - 1}/${concurrency} | ${ok ? '✅ OK' : '❌ FAIL'} | ${durationMs}ms | ${testCase.id}`
+                );
+            }
+            inFlight -= 1;
         }
     };
 
-    const workers = Array.from({ length: concurrency }, () => worker());
+    const workers = Array.from({ length: concurrency }, (_v, i) => worker(i + 1));
     await Promise.all(workers);
+
+    if (shouldLogConcurrency) {
+        console.log(
+            `🧵 [Concurrency] Pool complete: maxInFlightObserved=${maxInFlightObserved}/${concurrency}, completed=${completed}/${testCases.length}`
+        );
+    }
     return results;
 }
 
@@ -327,7 +365,8 @@ async function main() {
                     );
                     process.exit(1);
                 }
-                await runRepresentativeSample(count, useLiveApi, useLiveApi ? Math.max(1, concurrency) : 1);
+                // Allow concurrency in MOCK runs too (useful for verifying worker pool behavior without token spend).
+                await runRepresentativeSample(count, useLiveApi, Math.max(1, concurrency));
                 break;
 
             case 'pilot':
