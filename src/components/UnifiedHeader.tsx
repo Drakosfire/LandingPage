@@ -3,11 +3,16 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 import { Group, ActionIcon, Box, Badge, Title, Tooltip, Loader } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { IconHelp, IconEdit, IconEye, IconDeviceFloppy, IconCheck, IconAlertTriangle } from '@tabler/icons-react';
+import { IconHelp, IconEye, IconCheck, IconAlertTriangle } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext, AppMetadata } from '../context/AppContext';
 import { NavigationDrawer } from './NavigationDrawer';
 import { AppToolbox, ToolboxSection } from './AppToolbox';
+
+// Icon image URLs
+const EDIT_ICON_URL = 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/d33a77cb-d126-42f1-5219-0be558ec3500/public';
+const SAVE_ICON_URL = 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/4890ed87-7804-4770-28c4-14bc220fb000/public';
+const UNSAVED_ICON_URL = 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/5b10b4e1-8add-4a25-4a3b-61ba94684b00/public';
 
 /**
  * UnifiedHeader props
@@ -206,7 +211,21 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
             case 'error':
                 return <IconAlertTriangle size={size} color="white" />;
             default:
-                return <IconDeviceFloppy size={size} color="white" />;
+                // Use UnSaved icon if there are unsaved changes, otherwise use Save icon
+                const iconUrl = isUnsaved ? UNSAVED_ICON_URL : SAVE_ICON_URL;
+                return (
+                    <img
+                        src={iconUrl}
+                        alt={isUnsaved ? 'Unsaved' : 'Save'}
+                        onError={handleImageError}
+                        style={{
+                            width: size,
+                            height: size,
+                            objectFit: 'contain',
+                            filter: 'brightness(0) invert(1)' // Make white
+                        }}
+                    />
+                );
         }
     };
 
@@ -423,7 +442,17 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                                 }}
                             >
                                 {isEditMode ? (
-                                    <IconEdit size={isMobile ? 20 : 24} color="white" />
+                                    <img
+                                        src={EDIT_ICON_URL}
+                                        alt="Edit Mode"
+                                        onError={handleImageError}
+                                        style={{
+                                            width: isMobile ? 20 : 24,
+                                            height: isMobile ? 20 : 24,
+                                            objectFit: 'contain',
+                                            filter: 'brightness(0) invert(1)' // Make white
+                                        }}
+                                    />
                                 ) : (
                                     <IconEye size={isMobile ? 20 : 24} color="white" />
                                 )}
