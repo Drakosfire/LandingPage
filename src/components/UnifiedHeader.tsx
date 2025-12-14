@@ -204,14 +204,13 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
 
     // Get save button icon based on status
     const getSaveButtonIcon = () => {
-        const size = isMobile ? 18 : 22;
         switch (saveStatus) {
             case 'saving':
-                return <Loader size={size} color="white" />;
+                return <Loader size={isMobile ? 18 : 22} color="white" />;
             case 'saved':
-                return <IconCheck size={size} color="white" />;
+                return <IconCheck size={isMobile ? 18 : 22} color="white" />;
             case 'error':
-                return <IconAlertTriangle size={size} color="white" />;
+                return <IconAlertTriangle size={isMobile ? 18 : 22} color="white" />;
             default:
                 // Use UnSaved icon if there are unsaved changes, otherwise use Save icon
                 const iconUrl = isUnsaved ? UNSAVED_ICON_URL : SAVE_ICON_URL;
@@ -221,10 +220,10 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                         alt={isUnsaved ? 'Unsaved' : 'Save'}
                         onError={handleImageError}
                         style={{
-                            width: size,
-                            height: size,
+                            height: iconSize,
                             objectFit: 'contain',
-                            display: 'block'
+                            display: 'block',
+                            cursor: 'pointer'
                         }}
                     />
                 );
@@ -381,18 +380,28 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                         >
                             <ActionIcon
                                 onClick={handleSaveClick}
-                                variant="filled"
+                                variant="transparent"
                                 size={isMobile ? 'lg' : 'xl'}
-                                radius="md"
                                 data-tutorial="save-button"
                                 aria-label={getSaveTooltipText()}
                                 disabled={saveStatus === 'saving'}
-                                style={{
-                                    backgroundColor: getSaveButtonColor(),
-                                    border: '2px solid rgba(255, 255, 255, 0.4)',
-                                    opacity: isLoggedIn ? 1 : 0.5,
-                                    cursor: !isLoggedIn || saveStatus === 'saving' ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.2s ease',
+                                styles={{
+                                    root: {
+                                        padding: 'var(--mantine-spacing-xs)',
+                                        borderRadius: 'var(--mantine-radius-sm)',
+                                        width: iconSize,
+                                        height: iconSize,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: isLoggedIn ? 1 : 0.5,
+                                        cursor: !isLoggedIn || saveStatus === 'saving' ? 'not-allowed' : 'pointer',
+                                        '&:hover': {
+                                            backgroundColor: 'var(--mantine-color-blue-1)',
+                                            transform: 'scale(1.05)',
+                                            transition: 'all 0.2s ease'
+                                        }
+                                    }
                                 }}
                             >
                                 {getSaveButtonIcon()}
@@ -427,37 +436,41 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                         >
                             <ActionIcon
                                 onClick={() => onEditModeToggle?.(!isEditMode)}
-                                variant={isEditMode ? 'filled' : 'subtle'}
-                                color={isEditMode ? 'blue' : 'gray'}
+                                variant="transparent"
                                 size={isMobile ? 'lg' : 'xl'}
-                                radius="md"
                                 data-tutorial="edit-mode-toggle"
                                 aria-label={isEditMode ? 'Switch to View Mode' : 'Switch to Edit Mode'}
-                                style={{
-                                    backgroundColor: isEditMode
-                                        ? 'rgba(59, 130, 246, 0.9)'
-                                        : 'rgba(255, 255, 255, 0.2)',
-                                    border: isEditMode
-                                        ? '2px solid rgba(59, 130, 246, 1)'
-                                        : '2px solid rgba(255, 255, 255, 0.4)',
-                                    transition: 'all 0.2s ease',
+                                styles={{
+                                    root: {
+                                        padding: 'var(--mantine-spacing-xs)',
+                                        borderRadius: 'var(--mantine-radius-sm)',
+                                        width: iconSize,
+                                        height: iconSize,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: isEditMode ? 'rgba(59, 130, 246, 0.3)' : 'transparent',
+                                        border: isEditMode ? '2px solid rgba(59, 130, 246, 0.6)' : '2px solid transparent',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            backgroundColor: isEditMode ? 'rgba(59, 130, 246, 0.4)' : 'var(--mantine-color-blue-1)',
+                                            transform: 'scale(1.05)',
+                                        }
+                                    }
                                 }}
                             >
-                                {isEditMode ? (
-                                    <img
-                                        src={EDIT_ICON_URL}
-                                        alt="Edit Mode"
-                                        onError={handleImageError}
-                                        style={{
-                                            width: isMobile ? 20 : 24,
-                                            height: isMobile ? 20 : 24,
-                                            objectFit: 'contain',
-                                            display: 'block'
-                                        }}
-                                    />
-                                ) : (
-                                    <IconEye size={isMobile ? 20 : 24} color="white" />
-                                )}
+                                <img
+                                    src={EDIT_ICON_URL}
+                                    alt={isEditMode ? 'Edit Mode Active' : 'Edit Mode'}
+                                    onError={handleImageError}
+                                    style={{
+                                        height: iconSize,
+                                        objectFit: 'contain',
+                                        display: 'block',
+                                        cursor: 'pointer',
+                                        opacity: isEditMode ? 1 : 0.7
+                                    }}
+                                />
                             </ActionIcon>
                         </Tooltip>
                     )}
