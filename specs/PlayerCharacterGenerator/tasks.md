@@ -1,10 +1,28 @@
 # Tasks: PlayerCharacterGenerator
 
 **Generated**: November 30, 2025  
-**Updated**: December 11, 2025 (Save/Load CRUD Complete)  
+**Updated**: December 14, 2025 (V1 Feature Complete — Ready for Deploy)  
 **Source**: spec.md + plan.md  
-**Total Tasks**: 145+ (expanded with edit mode, equipment/spell modals)  
-**Estimated Hours**: 140-190h
+**Status**: 🚀 Phase 8 (Deploy & Verify) is next
+
+---
+
+## 🎉 Project Summary
+
+The Player Character Generator V1 is **feature complete**. All core functionality is implemented:
+
+- ✅ 8-step character creation wizard
+- ✅ PHB-style 4-page character sheet (Main, Background, Inventory, Spells)
+- ✅ Edit mode (inline + drawer)
+- ✅ LocalStorage + Firestore persistence
+- ✅ AI-assisted character generation
+- ✅ Portrait generation + upload
+- ✅ Mobile responsiveness
+- ✅ PDF export (Print → Save as PDF)
+
+**Next Steps:**
+1. **Phase 8**: Deploy to production and verify
+2. **Phase 9**: Reflection and learnings capture
 
 ---
 
@@ -244,42 +262,91 @@
 
 ## 📋 Task Summary
 
-| Phase | Description | Tasks | Est. Hours | Status |
-|-------|-------------|-------|------------|--------|
-| **Phase 1** | Setup | 3 | 1h | ✅ Complete |
-| **Phase 2** | Foundational (Rule Engine) | 10 | 4-6h | ✅ Complete |
-| **Phase 3** | US1 - Manual Character Creation | 62 | 84-114h | ✅ Complete (Canvas, Pagination, Sheet Pages) |
-| **Phase 3.5b** | Wizard Polish & Integration | 9 | 14-16h | ✅ Complete |
-| **Phase 3.6** | Edit Mode Expansion | 12 | 8-12h | ✅ Phase 1 Complete (8/12 tasks) |
-| **Phase 3.7** | Edit Mode (Core) | 10 | 12-16h | ✅ Mostly Complete (8/10 tasks) |
-| **Phase 3.8** | Edit Mode (Inventory) | 5 | 6-8h | ✅ Mostly Complete (4/5 tasks) |
-| **Phase 3.8b** | Editable Spell Modal | 6 | 6-8h | ⬜ Not Started |
-| **Phase 3.8c** | Unified Equipment Model | 5 | 4-5h | ⬜ Not Started |
-| **Phase 3.9** | Homebrew Mode | 5 | 8-12h | ⏳ Pending |
-| **Phase 4** | US4 - Save and Load (Character Roster) | 22 | 8h | ✅ Complete |
-| **Phase 5.0** | AI Prompt Evaluation (RESEARCH) | 6 | 4-6h | 🔜 Next |
-| **Phase 5.1-5.2** | US2 - AI Generation | 8 | 10-14h | ⏳ After 5.0 |
-| **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
-| **Phase 7** | US5 - Character Leveling | 4 | 8-10h | ⏳ Pending |
-| **Phase 8** | US6 - Export | 3 | 4-6h | ⏳ Pending |
-| **Phase 9** | Polish | 3 | 2-4h | ⏳ Pending |
+### ✅ Completed Phases (V1 Launch Scope)
 
-**December 2025 Progress:**
-- Edit Mode Phase 1 complete (currency, personality, spell slots, attacks/equipment)
-- Editable Equipment Modal complete (add/edit/delete items)
-- Mobile responsiveness complete (viewport switch, CSS fixes)
-- Pagination Phase 0-2 complete (scaling, features overflow)
-- LocalStorage persistence Phase 1 complete (save/restore)
-- **Save/Load Phase 4a-4c complete** (CRUD, Character Roster UI, Firestore sync)
-- Fixed "New Character" overwrite bug with explicit project management
+| Phase | Description | Status |
+|-------|-------------|--------|
+| **Phase 1** | Setup | ✅ Complete |
+| **Phase 2** | Foundational (Rule Engine) | ✅ Complete |
+| **Phase 3** | US1 - Manual Character Creation | ✅ Complete |
+| **Phase 3.5b** | Wizard Polish & Integration | ✅ Complete |
+| **Phase 3.6** | Edit Mode Expansion | ✅ Complete |
+| **Phase 3.7** | Edit Mode (Core) | ✅ Complete |
+| **Phase 3.8** | Edit Mode (Inventory) | ✅ Complete |
+| **Phase 4** | US4 - Save and Load (Character Roster) | ✅ Complete |
+| **Phase 5.0** | AI Prompt Evaluation (RESEARCH) | ✅ Complete |
+| **Phase 5.1** | US2 - AI Generation Infrastructure | ✅ Complete |
+| **Phase 5.2** | US2 - AI Generation UI | ✅ Complete |
+| **Phase 6** | US3 - Portrait Generation | ✅ Complete |
+| **Phase 7** | US6 - PDF Export | ✅ Complete |
 
-**Remaining Critical Path:**
-1. ~~**Wizard Polish (3.5b)**~~ - ✅ Complete
-2. ~~**Save/Load (Phase 4)**~~ - ✅ Complete
-3. **AI Prompt Evaluation (5.0)** - Empirically test prompt designs before building (RESEARCH)
-4. **AI Generation (5.1-5.2)** - Generate character from text prompt (after 5.0)
-5. **Editable Spell Modal (3.8b)** - Add/edit/remove spells (can parallelize)
-6. **Unified Equipment Model (3.8c)** - Single source of truth for equipment
+### 🚀 Final V1 Phases
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| **Phase 7** | US6 - PDF Export | ✅ Complete |
+| **Phase 8** | Deploy & Verify | 🔜 Next |
+| **Phase 9** | Reflection & Learnings | ⏳ After Deploy |
+
+### 📦 Backlog (Post-V1)
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| **Phase 3.8b** | Editable Spell Modal | ⬜ Backlog |
+| **Phase 3.8c** | Unified Equipment Model | ⬜ Backlog |
+| **Phase 3.9** | Homebrew Mode | ⬜ Backlog |
+| **US5** | Character Leveling | ⬜ Backlog |
+| **US6** | JSON Export (PDF complete) | ⬜ Backlog |
+| **Polish** | Final polish pass | ⬜ Backlog |
+
+---
+
+## 📦 Backlog: Standardized “Print Contract” (Recurring Pattern)
+
+**Problem:** Print/PDF bugs recur across generators (blank first page in Firefox, blank pages between pages due to flex+gap, viewport-derived heights/padding leaking into print, selector specificity battles with `!important` rules).
+
+**Goal:** A reusable, standardized print contract so future features can be one-shot:
+- One “print surface” wrapper/class to opt in
+- Shared print CSS contract (not per-feature print CSS spelunking)
+- Evidence-first debugging via snapshot capture
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T130** | Standardize a reusable “print surface” wrapper for non-Canvas DOM pages (PCG-style pages) that mirrors Canvas structure/expectations | ⬜ Backlog |
+| **T131** | Consolidate PCG print rules into shared print contract CSS (minimize per-feature print CSS) | ⬜ Backlog |
+| **T132** | Generalize “Capture Print Snapshot (HTML)” into a shared dev tool usable by any generator surface | ⬜ Backlog |
+| **T133** | Add a “Print Contract Checklist” to project quick reference (symptoms → root causes → fixes) | ⬜ Backlog |
+
+**Success Criteria:**
+- Firefox prints **no blank first page** and **no blank pages between pages** for any compliant surface.
+- Print layout cannot be broken by screen-only layout styles (flex/gap/min-height/height/padding).
+- Debugging is snapshot-driven: capture → diff → one surgical change.
+
+---
+
+## 🎉 December 2025 Progress
+
+**Major Milestones Completed:**
+- ✅ Full character creation wizard (8 steps)
+- ✅ PHB-style character sheet (4 pages: Main, Background, Inventory, Spells)
+- ✅ Mobile responsiveness (viewport switch at 800px)
+- ✅ Edit mode (inline quick edits + drawer for complex fields)
+- ✅ Editable Equipment Modal (add/edit/delete items)
+- ✅ LocalStorage auto-save with cloud sync for logged-in users
+- ✅ Character Roster UI (list, load, delete projects)
+- ✅ AI-assisted character generation (concept → full character)
+- ✅ Portrait generation + upload (4x gallery, recipe panel)
+- ✅ Portrait layering fix (z-index override for PHB stylesheet)
+- ✅ PDF export (Print → Save as PDF with Firefox recommendation)
+
+**Critical Path to V1 Launch:**
+1. ✅ ~~Wizard Polish (3.5b)~~ — Complete
+2. ✅ ~~Save/Load (Phase 4)~~ — Complete
+3. ✅ ~~AI Generation (5.0-5.2)~~ — Complete
+4. ✅ ~~Portrait Generation (Phase 6)~~ — Complete
+5. ✅ ~~PDF Export (Phase 7)~~ — Complete
+6. 🔜 **Deploy & Verify (Phase 8)** — Next
+7. ⏳ **Reflection & Learnings (Phase 9)** — After deploy
 
 ---
 
@@ -702,28 +769,92 @@ Each component renders a section of the character sheet. Display-only first, edi
 
 ---
 
-### Phase 5.1: Generation Infrastructure (After Evaluation)
+### Phase 5.1: Generation Infrastructure (After Evaluation) 🔜 ACTIVE
+
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Phase51-Generation-Infrastructure.md`
+
+**Goal:** Create unified `/generate` endpoint that returns complete character from concept.
+
+#### T076: Port Translator to Backend (4h)
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T076** | Create `character_generator.py` service | ⬜ |
-| **T077** | Implement prompt construction from RuleEngine data | ⬜ |
-| **T078** | Add rate limiting (5 anon, unlimited logged-in) | ⬜ |
-| **T079** | Backend endpoint: `POST /api/playercharactergenerator/generate` | ⬜ |
+| **T076a** | Create `translator.py` with main function signature | ✅ Complete |
+| **T076b** | Port `translateAbilityPriorities()` | ✅ Complete |
+| **T076c** | Port `translateSkillThemes()` | ✅ Complete |
+| **T076d** | Port `translateEquipmentStyle()` | ✅ Complete |
+| **T076e** | Port `translateFeatureChoices()` | ✅ Complete |
+| **T076f** | Port `translateSpellThemes()` | ✅ Complete |
+| **T076g** | Add unit tests for translator | ✅ Complete (`DungeonMindServer/playercharactergenerator/tests/test_translator.py`) |
 
-**Next critical backend steps (Rule Engine):**
-- **E5**: spell slot/resource math beyond pact metadata (full slots/prepared bookkeeping)
-- Catalog coverage sanity checks (detect “not enough available spells to satisfy counts”)
-- Improve JSON reliability: reduce parse failures via retries/repair / stricter schema
-
-### Phase 5.2: Generation UI
+#### T077: Create Character Builder (2h)
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T080** | Create `AIGenerationTab.tsx` (drawer tab, not wizard step) | ⬜ |
-| **T081** | Generation form: Class, Level, Race (opt), Background (opt), Concept | ⬜ |
-| **T082** | Wire generated character into Provider → opens Editor | ⬜ |
-| **T083** | Loading state + error handling | ⬜ |
+| **T077a** | Create `character_builder.py` with main function | ✅ Complete |
+| **T077b** | Implement `build_features_list()` | ✅ Complete (minimal v0: fighting style promoted into class features; full SRD features deferred) |
+| **T077c** | Implement `build_equipment_list()` | ✅ Complete (minimal v0: infers armor/shield from equipment package item IDs) |
+| **T077d** | Implement `build_spells_list()` | ✅ Complete (maps selected IDs to spell dicts using constraint-provided spell entries) |
+
+#### T079: Unified Generate Endpoint (2h)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T079a** | Add Pydantic models for request/response | ✅ Complete (request reuses `GenerationInput`; response is JSON dict payload) |
+| **T079b** | Implement `/generate` endpoint | ✅ Complete (`DungeonMindServer/routers/playercharactergenerator_router.py`) |
+| **T079c** | Wire into existing infrastructure | ✅ Complete (constraints → generate-preferences → translate → validate → compute → build character) |
+| **T079d** | End-to-end test via CLI | ⏳ Pending (requires a running server; unit tests cover translator + validate + compute) |
+
+#### T078: Rate Limiting (Deferred to Phase 5.3)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T078** | Add rate limiting (5 anon, unlimited logged-in) | ⏳ Deferred |
+
+**Estimated Time:** 8 hours total
+
+### Phase 5.2: Generation UI ✅ Complete (2025-12-14)
+
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-Phase52-Generation-UI.md`
+
+**Goal:** Create "Generate" tab for AI-powered character creation from concept.
+
+#### T080: Create AIGenerationTab.tsx (3h)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T080a** | Create component skeleton with form layout | ✅ Complete (`creationDrawerComponents/AIGenerationTab.tsx`) |
+| **T080b** | Add concept textarea with validation (min 10 chars) | ✅ Complete |
+| **T080c** | Add Class/Level selects (required, with asterisk) | ✅ Complete |
+| **T080d** | Add Race/Background selects (optional, "Random" default) | ✅ Complete (filtered to backend PCG v0 IDs) |
+| **T080e** | Style required vs optional sections with dividers | ✅ Complete |
+| **T080f** | Add loading state with progress simulation | ✅ Complete |
+| **T080g** | Add error handling and display | ✅ Complete |
+
+#### T081: Wire Form to API (1h)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T081a** | Implement `handleGenerate()` with fetch to `/generate` | ✅ Complete |
+| **T081b** | Handle random race/background when not selected | ✅ Complete |
+| **T081c** | End-to-end test with live API | ⏳ Pending (requires running frontend + backend) |
+
+#### T082: Integrate with Provider (1h)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T082a** | Add `setCharacter()` to Provider for hydration | ✅ N/A (already present in Provider) |
+| **T082b** | Auto-switch to Build tab (step 7: Review) after generation | ✅ Complete (`PlayerCharacterCreationDrawer.tsx`) |
+| **T082c** | Add success toast notification | ✅ Complete (local drawer toast) |
+
+#### T083: Add Generate Tab to Drawer (30m)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T083a** | Add third tab to PlayerCharacterCreationDrawer | ✅ Complete |
+| **T083b** | Reorder tabs: Generate → Build → Portrait | ✅ Complete |
+
+**Estimated Time:** 5-6 hours total
 
 ### Already Complete
 - [x] T074 Router created for save/load (reuse for generate endpoint) ✅ (2025-12-11)
@@ -734,14 +865,191 @@ Each component renders a section of the character sheet. Display-only first, edi
 
 **Goal**: Generate character portrait using Stable Diffusion  
 **Independent Test**: Generate portrait → see it on character sheet  
-**Depends On**: Phase 5 complete (uses same AI infrastructure)
+**Depends On**: Phase 5 complete (uses same AI infrastructure)  
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-US3-Portrait-Generation-OptionB.md`
 
-- [ ] T080 [US3] Copy and adapt `ImageGenerationTab.tsx` from StatblockGenerator to `creationDrawerComponents/PortraitGenerationStep.tsx`
-- [ ] T081 [US3] Wire portrait into `CharacterHeader.tsx` canvas component
+### Phase 1 — Render Plumbing
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **US3-01a** | Wire `portraitUrl={character.portrait}` in `CharacterCanvas.tsx` | ✅ |
+| **US3-01b** | Wire `portraitUrl={character.portrait}` in `MobileCharacterCanvas.tsx` | ✅ |
+
+### Phase 2 — Data Schema
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **US3-02a** | Extend `Character` type with gallery fields | ✅ |
+| **US3-02b** | Verify `createEmptyCharacter()` tests pass | ✅ |
+
+### Phase 3 — Portrait Tab
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **US3-03a** | Create `PortraitGenerationTab.tsx` | ✅ |
+| **US3-03b** | Replace placeholder in drawer | ✅ |
+| **US3-03c** | Wire to provider | ✅ |
+
+### Phase 4 — Generation Flow
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **US3-04a** | Copy generate flow from `ImageGenerationTab.tsx` | ✅ |
+| **US3-04b** | Store results in `portraitGallery` | ✅ |
+| **US3-04c** | Set active portrait on selection | ✅ |
+
+### Phase 5 — Delightful Extras
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **US3-05a** | Locks UI (soft locks in prompt) | ✅ |
+| **US3-05b** | Recipe panel + copy prompt | ✅ |
+
+### Phase 6 — Upload + Save Trigger + Layer Fix (Discovered During Implementation)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **US3-06a** | Add drag/drop + browse upload (local-first) and store into `portrait` + `portraitGallery` | ✅ |
+| **US3-06b** | Ensure cloud autosave triggers on portrait changes when signed in (hash includes portrait fingerprints/counts) | ✅ |
+| **US3-06c** | Fix portrait invisibility by overriding global `.page img { z-index: -1; }` for portrait images | ✅ |
+
+### Non-critical polish (optional)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **US3-P1** | Increase rendered portrait size on the character sheet header (desktop + mobile) while preserving layout | ⬜ |
 
 ---
 
-## Phase 7: US5 - Character Leveling (P3)
+## Phase 7: US6 - PDF Export ✅ COMPLETE
+
+**Goal**: Export character sheet as PDF  
+**Independent Test**: Export completed character → verify PDF renders all 4 pages  
+**Depends On**: Phase 3 complete (Canvas must work)  
+**Pattern Source**: StatblockGenerator PDF export  
+**Handoff:** `specs/PlayerCharacterGenerator/HANDOFF-US6-PDF-Export.md`  
+**Status:** ✅ **COMPLETE** (December 14, 2025)
+
+### Current Approach (Native Browser Print → Save as PDF)
+
+We export via the browser print dialog (`window.print()`), not a jsPDF pipeline.
+
+**Why**: The PCG sheet is already “real DOM pages” (`.page.phb.character-sheet`). Native print preserves
+fonts/backgrounds best and avoids re-rendering a complex layout into canvas images.
+
+### Print Debug Playbook (One-shot next time)
+
+When print output is wrong (blank pages, shifted layout, missing backgrounds), do **evidence-first**:
+
+1. **Capture snapshot**: Use **Dev Tools → Capture Print Snapshot (HTML)** to download a snapshot of the exact DOM/CSS state.
+2. **Verify page nodes**: Confirm the snapshot contains:
+   - `.character-sheet-container`
+   - children like `.page.phb.character-sheet` (one per printed page)
+3. **Kill viewport sizing**: If you see `min-height: calc(... 100vh ...)`, large fixed `height`, or `padding: 24px`
+   on `.generator-canvas-container` / intermediate wrappers, neutralize those in `@media print`.
+4. **Avoid flex pagination quirks**: If `.character-sheet-container` is `display: flex` with `gap`, set it to
+   `display: block` for print to prevent phantom pages.
+   - **Important**: If there are existing screen rules using `!important` with *more specific selectors*
+     (e.g. `.character-canvas-renderer .character-sheet-container { gap: 32px !important; }`), your print override
+     must be **at least as specific** (or more specific) to win in Firefox.
+5. **Eliminate leading blank pages**: If Firefox prints a blank first page, it’s often because the app uses a
+   visibility contract (`visibility: hidden`) that leaves hidden UI in-flow. In PCG, fix by forcing:
+   - `.generator-layout > * { display: none }` and then re-enabling
+   - `.generator-layout > .generator-canvas-container { display: block }`
+5. **Break rules**: Prefer `break-before: page` on non-first pages over `page-break-after` on all-but-last; avoid
+   adding pseudo-element “demarkers” unless proven necessary (they have caused blank pages in the past).
+
+### Known Pitfalls (Root Causes we’ve hit)
+
+- **Viewport-dependent container sizing**: `min-height: calc(... + 100vh)` and large computed heights can create extra blank pages in print.
+- **Flex + gap in print**: `display:flex` + `gap` can paginate unpredictably across browsers.
+- **Over-aggressive print overrides**: forcing `position:absolute`, hard `width: 8in`, or hiding everything via `visibility` can break the PHB layout (headers not stretching, left-shifts).
+
+### Pattern Reuse from StatblockGenerator
+
+The StatblockGenerator already has working PDF export. Key files to reference:
+
+| Pattern | Source File | Notes |
+|---------|-------------|-------|
+| PDF generation | `StatBlockGenerator/utils/pdfExport.ts` | Uses html2canvas + jsPDF |
+| Export button | `StatBlockGenerator/components/ExportButton.tsx` | UI pattern |
+| Multi-page handling | `StatBlockGenerator/utils/pdfExport.ts` | Iterates through pages |
+
+### Tasks
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T110** | Review StatblockGenerator print contract (`canvas-print.css`) | ✅ |
+| **T111** | Add "Print / Save PDF" action (native browser print) | ✅ |
+| **T112** | Add Dev Tool: "Capture Print Snapshot (HTML)" for evidence-driven debugging | ✅ |
+| **T113** | Print CSS: neutralize viewport sizing + avoid flex pagination quirks | ✅ |
+| **T114** | Test: Print → verify exactly 4 pages (no blanks, correct alignment, backgrounds) | ✅ |
+
+---
+
+## Phase 8: Deploy & Verify
+
+**Goal**: Deploy PCG to production and verify it works end-to-end  
+**Independent Test**: Create character on deployed site → save → reload → verify persistence  
+**Depends On**: Phase 7 (PDF Export) complete
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T115** | Merge all PCG changes to main branch | ⬜ |
+| **T116** | Deploy to production environment | ⬜ |
+| **T117** | Smoke test: Create character via wizard → verify sheet renders | ⬜ |
+| **T118** | Smoke test: AI generation → verify character hydrates | ⬜ |
+| **T119** | Smoke test: Portrait generation/upload → verify on sheet | ⬜ |
+| **T120** | Smoke test: Save/Load (logged in) → verify persistence | ⬜ |
+| **T121** | Smoke test: PDF export → verify all 4 pages | ⬜ |
+| **T122** | Smoke test: Mobile viewport → verify responsive layout | ⬜ |
+| **T123** | Fix any deploy-specific issues discovered | ⬜ |
+
+---
+
+## Phase 9: Reflection & Learnings
+
+**Goal**: Capture what worked, what patterns emerged, and how to improve future projects  
+**Depends On**: Phase 8 complete (deploy verified)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T124** | Review all handoffs created during PCG development | ⬜ |
+| **T125** | Identify successful development patterns (handoff structure, phasing, etc.) | ⬜ |
+| **T126** | Identify new patterns discovered during implementation | ⬜ |
+| **T127** | Evaluate: What context in `.cursorrules` was essential vs noise? | ⬜ |
+| **T128** | Compile critical learnings into `Docs/Learnings/LEARNINGS-PCG-December-2025.md` | ⬜ |
+| **T129** | Propose updates to `development.mdc` and `engineering-principles.mdc` | ⬜ |
+| **T130** | Archive completed handoffs to `specs/PlayerCharacterGenerator/archive/` | ⬜ |
+
+### Reflection Questions
+
+**Development Workflow:**
+- Which handoff format was most effective? (treasure map vs task list vs research doc)
+- How well did the phased approach work? Were phases the right size?
+- What was the ratio of design time to implementation time?
+
+**Context Management:**
+- What rules were always helpful? What was rarely referenced?
+- How can we minimize context while maintaining quality?
+- Which patterns from StatblockGenerator transferred directly?
+
+**Technical Patterns:**
+- What React patterns emerged (useRef guards, portal z-index, etc.)?
+- What CSS patterns emerged (z-index layers, PHB overrides)?
+- What backend patterns emerged (constraints/validate/compute triad)?
+
+**Meta-Project Potential:**
+This reflection phase could seed a larger meta-project: "How to structure AI-assisted development for complex features." Consider capturing:
+- Prompt construction patterns for LLM-generated code
+- Handoff templates that maximize one-shot success
+- Rules file organization that scales
+
+---
+
+## 📦 Backlog: Post-V1 Features
+
+### US5 - Character Leveling
 
 **Goal**: Level characters from 1→2→3  
 **Independent Test**: Level 1 character → level up → verify HP, features, subclass  
@@ -752,66 +1060,70 @@ This phase handles:
 - Level 2 subclass: Wizard (School of Evocation)
 - Level 3 subclasses: Barbarian (Berserker), Bard (Lore), Druid (Land), Fighter (Champion), Monk (Open Hand), Paladin (Devotion), Ranger (Hunter), Rogue (Thief)
 
-- [ ] T082 [US5] Create `levelUp.ts` with HP calculation, feature lookup in `src/components/PlayerCharacterGenerator/engine/dnd5e/levelUp.ts`
-- [ ] T083 [US5] Add level 2-3 SRD subclasses to `subclasses.ts` (Wizard at 2, others at 3)
-- [ ] T084 [US5] Implement `calculateLevelUpHP()` in `DnD5eRuleEngine.ts`
-- [ ] T085 [US5] Create `LevelUpWizard.tsx` in `src/components/PlayerCharacterGenerator/creationDrawerComponents/LevelUpWizard.tsx`
+| Task | Description | Status |
+|------|-------------|--------|
+| **US5-01** | Create `levelUp.ts` with HP calculation, feature lookup | ⬜ Backlog |
+| **US5-02** | Add level 2-3 SRD subclasses to `subclasses.ts` | ⬜ Backlog |
+| **T084** | Implement `calculateLevelUpHP()` in `DnD5eRuleEngine.ts` | ⬜ Backlog |
+| **T085** | Create `LevelUpWizard.tsx` | ⬜ Backlog |
 
----
-
-## Phase 8: US6 - Export Character Sheet (P4)
-
-**Goal**: Export as PDF and JSON  
-**Independent Test**: Export completed character → verify output format  
-**Depends On**: Phase 3 complete (Canvas must work)
-
-- [ ] T086 [US6] Create `characterExport.ts` utility in `src/components/PlayerCharacterGenerator/utils/characterExport.ts`
-- [ ] T087 [US6] Implement PDF export using Canvas in `characterExport.ts`
-- [ ] T088 [US6] Implement JSON export in DungeonMindObject schema in `characterExport.ts`
-
----
-
-## Phase 9: Polish & Cross-Cutting Concerns
+### Polish & Cross-Cutting Concerns
 
 **Goal**: Final integration and cleanup
 
-- [ ] T089 Verify all success criteria (SC-001 through SC-010) pass
-- [ ] T090 Run full test suite and verify >80% coverage on engine/validation
-- [ ] T091 Performance audit: Canvas renders <500ms, auto-save <2s
-- [ ] T092 Refactor `DnD5eRuleEngine.ts` into smaller modules:
-  - Extract validators to `validators/` (validateAbilityScores, validateRace, etc.)
-  - Extract calculators to `calculators/` (calculateAC, calculateHP, calculateDerivedStats)
-  - Extract data providers to `providers/` (getAvailableRaces, getAvailableClasses, etc.)
-  - Extract spellcasting logic to `spellcasting/` (getSpellcastingInfo, getAvailableSpells)
-  - Keep core RuleEngine as thin orchestrator (~200-300 lines)
-  - **Prerequisite**: File is well-exercised through canvas + wizard integration
-  - **Current size**: ~1450 lines (target: <300 lines core + modules)
+| Task | Description | Status |
+|------|-------------|--------|
+| **T089** | Verify all success criteria (SC-001 through SC-010) pass | ⬜ Backlog |
+| **T090** | Run full test suite and verify >80% coverage on engine/validation | ⬜ Backlog |
+| **T091** | Performance audit: Canvas renders <500ms, auto-save <2s | ⬜ Backlog |
+| **T092** | Refactor `DnD5eRuleEngine.ts` into smaller modules | ⬜ Backlog |
+
+### Edit Mode Enhancements
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **Phase 3.8b** | Editable Spell Modal (add/edit/remove spells) | ⬜ Backlog |
+| **Phase 3.8c** | Unified Equipment Model (single source of truth) | ⬜ Backlog |
+| **Phase 3.9** | Homebrew Mode (bypass SRD restrictions) | ⬜ Backlog |
 
 ---
 
-## 📊 Dependencies
+## 📊 V1 Launch Dependency Chain
 
 ```
-Phase 2 (Foundational) ──────────────────────────────────────────┐
-         │                                                       │
-         ▼                                                       │
-Phase 3 (US1: Manual Creation + Canvas Display) ─────────────────┤
-         │                                                       │
-         ▼                                                       │
-Phase 3.7-3.9 (Edit Mode + Homebrew) ← CRITICAL PATH ────────────┤
-         │                                                       │
-         ├──────────────────┬───────────────┬───────────────────┤
-         ▼                  ▼               ▼                   │
-Phase 4 (Save/Load)    Phase 7 (Leveling) Phase 8 (Export)      │
-         │                                                      │
-         ▼                                                      │
-Phase 5 (AI Generation) ← Requires Edit Mode to work ───────────┤
-         │                                                      │
-         ▼                                                      │
-Phase 6 (Portrait) ─────────────────────────────────────────────┘
-                                                                │
-                                                                ▼
-                                                       Phase 9 (Polish)
+Phase 2 (Foundational) ───────────────────────────────┐
+         │                                            │
+         ▼                                            │
+Phase 3 (Manual Creation + Canvas) ───────────────────┤
+         │                                            │
+         ▼                                            │
+Phase 3.6-3.8 (Edit Mode + Equipment Modal) ──────────┤
+         │                                            │
+         ├────────────────────────────────────────────┤
+         ▼                                            │
+Phase 4 (Save/Load) ──────────────────────────────────┤
+         │                                            │
+         ▼                                            │
+Phase 5.0-5.2 (AI Generation) ────────────────────────┤
+         │                                            │
+         ▼                                            │
+Phase 6 (Portrait) ✅ ────────────────────────────────┘
+         │
+         ▼
+Phase 7 (PDF Export) ✅
+         │
+         ▼
+Phase 8 (Deploy & Verify) ← YOU ARE HERE 🔜
+         │
+         ▼
+Phase 9 (Reflection & Learnings)
+         │
+         ▼
+    ✅ V1 COMPLETE
+         │
+         │ (future)
+         ▼
+    📦 BACKLOG (US5 Leveling, JSON Export, Spell Modal, Homebrew, Polish)
 ```
 
 **Key Change:** Edit Mode (Phase 3.7-3.9) is now on the critical path before AI Generation. This ensures:
@@ -819,30 +1131,6 @@ Phase 6 (Portrait) ────────────────────�
 2. Generated characters can be immediately edited
 3. Homebrew content system is available for AI-generated characters
 
----
-
-## 🔀 Parallel Execution Opportunities
-
-### Phase 2 (Foundational)
-```
-T004, T005 can run in parallel (different files)
-```
-
-### Phase 3 (US1)
-```
-Race data tasks (T014-T022) can ALL run in parallel
-Class data tasks (T027-T030) can ALL run in parallel
-Canvas components (T059-T065) can ALL run in parallel
-```
-
-### Phase 4, 5, 7, 8 can run in parallel
-After Phase 3 completes, these phases are independent:
-```
-┌─ Phase 4 (US4: Save/Load)
-├─ Phase 5 (US2: AI Gen) → Phase 6 (US3: Portrait)
-├─ Phase 7 (US5: Leveling)
-└─ Phase 8 (US6: Export)
-```
 
 ---
 
