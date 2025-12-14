@@ -410,9 +410,9 @@ LandingPage/src/components/PlayerCharacterGenerator/
    - Catalog + spell list + constraints
    - Validator already supports known casters; added 2 focused unit tests (L2 + L3)
    - Next: run a focused live slice: `--classes ranger --levels 2,3 --count 12`
-2. **Warlock “real pact magic” validation (still small scope)**:
+2. **Warlock “real pact magic” validation (still small scope)** ✅:
    - Keep selection validation as-is
-   - Add a new `sections["spellSlots"]` in `/compute` with pact slots (count + slotLevel) for UX
+   - ✅ Added `sections["spellSlots"]` in `/compute` with pact slots (count + slotLevel) for UX
 3. **Expand spell catalogs (v0 → v1) driven by theme misses**:
    - Start by adding 10–20 spells per list that map cleanly to our theme tags (damage/control/utility/healing)
    - Run a 24–48 case caster-only sample and inspect theme mismatch rates
