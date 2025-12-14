@@ -413,6 +413,10 @@ LandingPage/src/components/PlayerCharacterGenerator/
 2. **Warlock “real pact magic” validation (still small scope)** ✅:
    - Keep selection validation as-is
    - ✅ Added `sections["spellSlots"]` in `/compute` with pact slots (count + slotLevel) for UX
-3. **Expand spell catalogs (v0 → v1) driven by theme misses**:
-   - Start by adding 10–20 spells per list that map cleanly to our theme tags (damage/control/utility/healing)
-   - Run a 24–48 case caster-only sample and inspect theme mismatch rates
+3. **Expand spell catalogs (v0 → v1) driven by theme misses** ✅:
+   - ✅ Added ~10–20 spells per list; updated descriptions to include theme keywords used by the translator (`damage`, `healing`, `control`, `utility`, `buff`, `protection`, `ritual`)
+   - ✅ Harness now reports spell mismatch metrics:
+     - `Spell Theme Mismatch Rate` (cases with 1+ unmatched spell themes, among spellcasters)
+     - `Avg Unmatched Spell Themes`
+   - Next: run a 24–48 case caster-only live sample and inspect mismatch rates:
+     `--classes wizard,cleric,bard,warlock,paladin,ranger --levels 2,3 --count 48`

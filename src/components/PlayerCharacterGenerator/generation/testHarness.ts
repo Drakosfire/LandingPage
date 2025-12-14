@@ -28,6 +28,9 @@ export const TEST_CLASSES = [
     'rogue',
     'cleric',
     'bard',
+    'warlock',
+    'paladin',
+    'ranger',
 ] as const;
 
 /**
@@ -363,6 +366,16 @@ export function aggregateResults(results: TestResult[]): TestSummary {
     const totalCost = results.reduce((sum, r) => sum + r.metrics.costUsd, 0);
     const latencies = results.map(r => r.metrics.latencyMs).filter(ms => Number.isFinite(ms));
 
+    // Spell theme mismatch diagnostics (only for cases where spell translation exists)
+    const spellcasterResults = results.filter(r => !!r.translation.translations.spells);
+    const spellThemeMismatchCount = spellcasterResults.filter(
+        r => (r.translation.translations.spells?.unmatchedThemes?.length ?? 0) > 0
+    ).length;
+    const totalUnmatchedSpellThemes = spellcasterResults.reduce(
+        (sum, r) => sum + (r.translation.translations.spells?.unmatchedThemes?.length ?? 0),
+        0
+    );
+
     return {
         totalCases: total,
         generatedAt: new Date().toISOString(),
@@ -389,6 +402,10 @@ export function aggregateResults(results: TestResult[]): TestSummary {
             p95LatencyMs: percentile(latencies, 95),
             totalCostUsd: totalCost,
             costPerSuccess: overallSuccessCount > 0 ? totalCost / overallSuccessCount : 0,
+            spellThemeMismatchRate:
+                spellcasterResults.length > 0 ? spellThemeMismatchCount / spellcasterResults.length : 0,
+            avgUnmatchedSpellThemes:
+                spellcasterResults.length > 0 ? totalUnmatchedSpellThemes / spellcasterResults.length : 0,
         },
     };
 }
@@ -553,6 +570,13 @@ export function formatSummaryReport(summary: TestSummary): string {
     lines.push(` p95 Latency:        ${summary.metrics.p95LatencyMs.toFixed(0)}ms`);
     lines.push(` Total Cost:         $${summary.metrics.totalCostUsd.toFixed(4)}`);
     lines.push(` Cost per Success:   $${summary.metrics.costPerSuccess.toFixed(4)}`);
+    lines.push('');
+
+    // Spell diagnostics
+    lines.push('SPELL THEME DIAGNOSTICS');
+    lines.push('─'.repeat(70));
+    lines.push(` Spell Theme Mismatch Rate: ${(summary.metrics.spellThemeMismatchRate * 100).toFixed(1)}%`);
+    lines.push(` Avg Unmatched Spell Themes: ${summary.metrics.avgUnmatchedSpellThemes.toFixed(2)}`);
     lines.push('');
 
     lines.push('═'.repeat(70));

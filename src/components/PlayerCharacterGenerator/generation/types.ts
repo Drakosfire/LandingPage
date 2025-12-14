@@ -575,6 +575,12 @@ export interface TestSummary {
         p95LatencyMs: number;
         totalCostUsd: number;
         costPerSuccess: number;
+        /**
+         * Spell theme mismatch diagnostics (translation stage).
+         * Helps decide when to expand spell catalogs and how.
+         */
+        spellThemeMismatchRate: number;   // fraction of cases with 1+ unmatched spell themes (among spellcasters)
+        avgUnmatchedSpellThemes: number;  // average unmatched themes count per spellcaster case
     };
 }
 
