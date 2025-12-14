@@ -257,7 +257,8 @@
 | **Phase 3.8c** | Unified Equipment Model | 5 | 4-5h | ⬜ Not Started |
 | **Phase 3.9** | Homebrew Mode | 5 | 8-12h | ⏳ Pending |
 | **Phase 4** | US4 - Save and Load (Character Roster) | 22 | 8h | ✅ Complete |
-| **Phase 5** | US2 - AI Generation | 6 | 12-16h | ⏳ Pending |
+| **Phase 5.0** | AI Prompt Evaluation (RESEARCH) | 6 | 4-6h | 🔜 Next |
+| **Phase 5.1-5.2** | US2 - AI Generation | 8 | 10-14h | ⏳ After 5.0 |
 | **Phase 6** | US3 - Portrait Generation | 2 | 4-6h | ⏳ Pending |
 | **Phase 7** | US5 - Character Leveling | 4 | 8-10h | ⏳ Pending |
 | **Phase 8** | US6 - Export | 3 | 4-6h | ⏳ Pending |
@@ -275,9 +276,10 @@
 **Remaining Critical Path:**
 1. ~~**Wizard Polish (3.5b)**~~ - ✅ Complete
 2. ~~**Save/Load (Phase 4)**~~ - ✅ Complete
-3. **Editable Spell Modal (3.8b)** - Add/edit/remove spells
-4. **Unified Equipment Model (3.8c)** - Single source of truth for equipment
-5. **AI Generation (Phase 5)** - Generate character from text prompt
+3. **AI Prompt Evaluation (5.0)** - Empirically test prompt designs before building (RESEARCH)
+4. **AI Generation (5.1-5.2)** - Generate character from text prompt (after 5.0)
+5. **Editable Spell Modal (3.8b)** - Add/edit/remove spells (can parallelize)
+6. **Unified Equipment Model (3.8c)** - Single source of truth for equipment
 
 ---
 
@@ -665,14 +667,60 @@ Each component renders a section of the character sheet. Display-only first, edi
 
 **Goal**: Generate complete character from text prompt  
 **Independent Test**: Enter concept → receive valid, editable character  
-**Depends On**: Phase 3.7-3.9 complete (Edit Mode must work before AI generates editable characters)
+**Depends On**: Phase 4 complete
 
-- [ ] T074 [US2] Create `playercharactergenerator_router.py` in `DungeonMindServer/routers/playercharactergenerator_router.py`
-- [ ] T075 [US2] Create `character_generator.py` service in `DungeonMindServer/services/character_generator.py`
-- [ ] T076 [US2] Implement character generation prompt engineering in `character_generator.py`
-- [ ] T077 [US2] Implement AI rate limiting (5 for anon, unlimited for logged-in) in `playercharactergenerator_router.py`
-- [ ] T078 [US2] Create `AIGenerationStep.tsx` in `src/components/PlayerCharacterGenerator/creationDrawerComponents/AIGenerationStep.tsx`
-- [ ] T079 [US2] Wire AI generation tab into `PlayerCharacterCreationDrawer.tsx`
+### Phase 5.0: Prompt Evaluation + Backend Rule Engine (RESEARCH - BLOCKING) ✅ COMPLETE (v1)
+
+**Goal:** Empirically validate the **preferences-not-mechanics** approach while hardening an **authoritative backend Rule Engine** for PCG.  
+**Handoff (canonical):** `specs/PlayerCharacterGenerator/HANDOFF-AI-Generation-Prompt-Evaluation.md`
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T075a** | Build AI preference harness (types, prompt builder, translator, CLI demo) | ✅ |
+| **T075b** | Backend endpoints: `/generate-preferences`, `/constraints`, `/validate` | ✅ |
+| **T075c** | Run live samples + capture cost/latency (avg + p50/p95) | ✅ |
+| **T075d** | Add concurrency + targeted reruns (`--classes/--levels/...`) + dev log saving + full failure dumps | ✅ |
+| **T075e** | Update handoff with evidence + next steps (E3/E4) | ✅ |
+| **T075f** | Decide near-term architecture constraints (stay on chat.completions; defer Responses API; defer spells to E4) | ✅ |
+
+**Notes:**
+- Spell constraints/validation intentionally deferred to E4 (backend constraints omit `spellcasting` for now).
+- Timing data is now available for UX loading bars (p50/p95).
+
+**Success Criteria:**
+- >90% JSON parse rate
+- >80% RuleEngine validation rate
+- Clear failure patterns documented
+
+**Estimated Time:** 4-6 hours
+
+---
+
+### Phase 5.1: Generation Infrastructure (After Evaluation)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T076** | Create `character_generator.py` service | ⬜ |
+| **T077** | Implement prompt construction from RuleEngine data | ⬜ |
+| **T078** | Add rate limiting (5 anon, unlimited logged-in) | ⬜ |
+| **T079** | Backend endpoint: `POST /api/playercharactergenerator/generate` | ⬜ |
+
+**Next critical backend steps (Rule Engine):**
+- **E3**: `/compute` endpoint + derived stats on backend (mods/prof/HP/AC/etc.)
+- **E4**: spell constraints + spell validation (first real complexity spike)
+- Improve JSON reliability: reduce parse failures via retries/repair / stricter schema
+
+### Phase 5.2: Generation UI
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **T080** | Create `AIGenerationTab.tsx` (drawer tab, not wizard step) | ⬜ |
+| **T081** | Generation form: Class, Level, Race (opt), Background (opt), Concept | ⬜ |
+| **T082** | Wire generated character into Provider → opens Editor | ⬜ |
+| **T083** | Loading state + error handling | ⬜ |
+
+### Already Complete
+- [x] T074 Router created for save/load (reuse for generate endpoint) ✅ (2025-12-11)
 
 ---
 

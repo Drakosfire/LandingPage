@@ -92,7 +92,8 @@ export interface SpellTranslationResult {
  */
 export function translatePreferences(
     preferences: AiPreferences,
-    constraints: GenerationConstraints
+    constraints: GenerationConstraints,
+    input: { level: number }
 ): TranslationResult {
     const issues: string[] = [];
 
@@ -138,7 +139,9 @@ export function translatePreferences(
         spellResult = translateSpellThemes(
             preferences.cantripThemes || [],
             preferences.spellThemes || [],
-            constraints.spellcasting
+            constraints.spellcasting,
+            input.level,
+            abilityResult.scores
         );
         if (spellResult && !spellResult.success && spellResult.issues) {
             issues.push(...spellResult.issues);
@@ -370,28 +373,18 @@ export function translateSkillThemes(
     const selected: string[] = [];
     const unmatchedThemes: string[] = [];
 
-    // Start with background-granted skills
+    // Background-granted skills are always included in final proficiencies.
     const grantedSkills = new Set(constraints.grantedByBackground);
 
     // Available choices (class options minus already granted, unless overlap allowed)
     const availableOptions = constraints.classOptions.filter(skill => {
-        if (constraints.overlapHandling === 'replace') {
-            return !grantedSkills.has(skill);
-        }
-        return true; // 'free-choice' allows picking anything
+        // 5e behavior: if you already have a skill (e.g., from background),
+        // you must pick a different one.
+        return !grantedSkills.has(skill);
     });
 
     // How many we need to pick
-    let remainingChoices = constraints.chooseCount;
-
-    // Handle overlap: if background grants a class skill, we get a free choice
-    if (constraints.overlapHandling === 'free-choice') {
-        for (const skill of constraints.grantedByBackground) {
-            if (constraints.classOptions.includes(skill)) {
-                remainingChoices++; // Get an extra pick due to overlap
-            }
-        }
-    }
+    const remainingChoices = constraints.chooseCount;
 
     // Map themes to candidate skills
     const candidateSkills: string[] = [];
@@ -418,7 +411,7 @@ export function translateSkillThemes(
         }
     }
 
-    // Select from candidates that are available
+    // Select from candidates that are available (class picks only)
     const selectedSet = new Set<string>();
     for (const candidate of candidateSkills) {
         if (selectedSet.size >= remainingChoices) break;
@@ -436,14 +429,19 @@ export function translateSkillThemes(
         }
     }
 
-    selected.push(...Array.from(selectedSet));
+    // Final proficiencies = background + class picks (deduped)
+    const finalSet = new Set<string>([...Array.from(grantedSkills), ...Array.from(selectedSet)]);
+    selected.push(...Array.from(finalSet));
 
     if (unmatchedThemes.length > 0) {
         issues.push(`Could not match themes: ${unmatchedThemes.join(', ')}`);
     }
 
+    const expectedTotal = Array.from(grantedSkills).length + remainingChoices;
+    const hasAllGranted = Array.from(grantedSkills).every(s => finalSet.has(s));
+
     return {
-        success: selected.length === remainingChoices,
+        success: hasAllGranted && selectedSet.size === remainingChoices && selected.length === expectedTotal,
         selected,
         unmatchedThemes: unmatchedThemes.length > 0 ? unmatchedThemes : undefined,
         issues: issues.length > 0 ? issues : undefined,
@@ -644,7 +642,9 @@ const SPELL_THEME_MAP: Record<string, { schools?: string[], tags?: string[] }> =
 export function translateSpellThemes(
     cantripThemes: string[],
     spellThemes: string[],
-    constraints: GenerationConstraints['spellcasting']
+    constraints: GenerationConstraints['spellcasting'],
+    level: number,
+    abilityScores?: DnD5eAbilityScores
 ): SpellTranslationResult {
     if (!constraints) {
         return {
@@ -666,7 +666,13 @@ export function translateSpellThemes(
     );
 
     // Select spells
-    const spellCount = constraints.spellsKnown || constraints.spellsPrepared || 0;
+    let spellCount = constraints.spellsKnown || constraints.spellsPrepared || 0;
+    if (constraints.casterType === 'prepared' && constraints.preparedFormula === 'abilityModPlusLevel') {
+        const abilityKey = constraints.ability;
+        const score = abilityScores?.[abilityKey] ?? 10;
+        const mod = Math.floor((score - 10) / 2);
+        spellCount = Math.max(1, mod + level);
+    }
     const selectedSpells = selectSpellsByThemes(
         spellThemes,
         constraints.availableSpells.filter(s => s.level <= constraints.maxSpellLevel),

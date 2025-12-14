@@ -163,6 +163,8 @@ export interface FeatureChoice {
  */
 export interface SpellcastingConstraints {
     ability: AbilityName;
+    casterType?: 'known' | 'prepared';
+    preparedFormula?: 'abilityModPlusLevel';
     cantripsKnown: number;
     spellsKnown?: number;        // For known casters (bard, sorcerer, ranger)
     spellsPrepared?: number;     // For prepared casters (cleric, druid, wizard)
@@ -447,6 +449,21 @@ export interface TestResult {
 
         /** All validation issues */
         allIssues: string[];
+
+        /** Backend validation result (optional) */
+        backend?: {
+            valid: boolean;
+            issues: string[];
+            sections?: Record<string, any>;
+        };
+
+        /** Backend derived-stats compute result (optional, E3) */
+        backendCompute?: {
+            success: boolean;
+            issues: string[];
+            derivedStats?: Record<string, any>;
+            sections?: Record<string, any>;
+        };
     };
 
     // ===== METRICS =====
@@ -466,6 +483,21 @@ export interface TestResult {
 
         /** Estimated cost in USD */
         costUsd: number;
+
+        /**
+         * Stage timings (ms) for driving UX (e.g., animated loading bars)
+         * and for performance analysis. Optional because older runs won't have it.
+         */
+        stageMs?: {
+            constraintsMs?: number;
+            promptBuildMs?: number;
+            aiCallMs?: number;
+            parseMs?: number;
+            translateMs?: number;
+            validateMs?: number;
+            backendValidateMs?: number;
+            backendComputeMs?: number;
+        };
     };
 }
 
@@ -530,6 +562,8 @@ export interface TestSummary {
         avgCompletionTokens: number;
         avgTotalTokens: number;
         avgLatencyMs: number;
+        p50LatencyMs: number;
+        p95LatencyMs: number;
         totalCostUsd: number;
         costPerSuccess: number;
     };

@@ -134,41 +134,40 @@ export function generatePilotTestCases(): TestCase[] {
  * - Different concepts for variety
  */
 export function generateRepresentativeSample(count: number = 15): TestCase[] {
-    const cases: TestCase[] = [];
+    // NOTE: `createTestCaseId()` intentionally ignores `concept`, so uniqueness is bounded by:
+    // classes × races × levels × backgrounds = 5 × 5 × 3 × 5 = 375 unique IDs.
+    // This generator must reliably return up to `count` unique cases (<= 375).
 
-    // Ensure we cover all classes (5 cases)
-    for (let i = 0; i < TEST_CLASSES.length; i++) {
-        const classId = TEST_CLASSES[i];
-        const raceId = TEST_RACES[i % TEST_RACES.length];
-        const level = TEST_LEVELS[i % TEST_LEVELS.length];
-        const backgroundId = TEST_BACKGROUNDS[i % TEST_BACKGROUNDS.length];
-        const concept = SAMPLE_CONCEPTS[i % SAMPLE_CONCEPTS.length];
+    const normalizedCount = Math.max(1, Math.floor(count));
 
-        cases.push(generateTestCase(classId, raceId, level, backgroundId, concept));
-    }
+    // Build all unique combinations deterministically (375 total).
+    const candidates: TestCase[] = [];
+    let conceptIndex = 0;
 
-    // Add more varied cases up to count
-    let caseIndex = TEST_CLASSES.length;
-    while (cases.length < count) {
-        const classId = TEST_CLASSES[caseIndex % TEST_CLASSES.length];
-        const raceId = TEST_RACES[(caseIndex * 2) % TEST_RACES.length];
-        const level = TEST_LEVELS[(caseIndex + 1) % TEST_LEVELS.length];
-        const backgroundId = TEST_BACKGROUNDS[(caseIndex + 2) % TEST_BACKGROUNDS.length];
-        const concept = SAMPLE_CONCEPTS[caseIndex % SAMPLE_CONCEPTS.length];
-
-        const newCase = generateTestCase(classId, raceId, level, backgroundId, concept);
-
-        // Avoid duplicates
-        if (!cases.find(c => c.id === newCase.id)) {
-            cases.push(newCase);
+    for (const level of TEST_LEVELS) {
+        for (const classId of TEST_CLASSES) {
+            for (const raceId of TEST_RACES) {
+                for (const backgroundId of TEST_BACKGROUNDS) {
+                    const concept = SAMPLE_CONCEPTS[conceptIndex % SAMPLE_CONCEPTS.length];
+                    candidates.push(generateTestCase(classId, raceId, level, backgroundId, concept));
+                    conceptIndex++;
+                }
+            }
         }
-        caseIndex++;
-
-        // Safety valve
-        if (caseIndex > 100) break;
     }
 
-    return cases;
+    if (normalizedCount >= candidates.length) {
+        return candidates;
+    }
+
+    // Select an evenly spaced subset so we cover the space without biasing toward early loops.
+    const stride = candidates.length / normalizedCount;
+    const selected: TestCase[] = [];
+    for (let i = 0; i < normalizedCount; i++) {
+        selected.push(candidates[Math.floor(i * stride)]);
+    }
+
+    return selected;
 }
 
 /**
@@ -192,6 +191,73 @@ export function generateFullMatrix(): TestCase[] {
     }
 
     return cases;
+}
+
+// ============================================================================
+// FILTERED GENERATION (for rerunning failure slices)
+// ============================================================================
+
+export interface TestCaseFilters {
+    classes?: string[];
+    races?: string[];
+    levels?: Array<1 | 2 | 3>;
+    backgrounds?: string[];
+}
+
+/**
+ * Generate a filtered matrix (all combinations matching filters).
+ *
+ * Used to quickly re-run only the slices that failed (e.g. classes+levels).
+ */
+export function generateFilteredMatrix(filters: TestCaseFilters): TestCase[] {
+    const classSet = filters.classes ? new Set(filters.classes) : null;
+    const raceSet = filters.races ? new Set(filters.races) : null;
+    const levelSet = filters.levels ? new Set(filters.levels) : null;
+    const bgSet = filters.backgrounds ? new Set(filters.backgrounds) : null;
+
+    const classes = TEST_CLASSES.filter(c => !classSet || classSet.has(c));
+    const races = TEST_RACES.filter(r => !raceSet || raceSet.has(r));
+    const levels = TEST_LEVELS.filter(l => !levelSet || levelSet.has(l));
+    const backgrounds = TEST_BACKGROUNDS.filter(b => !bgSet || bgSet.has(b));
+
+    const candidates: TestCase[] = [];
+    let conceptIndex = 0;
+
+    // Iterate in the same stable order as representative sample (level → class → race → background)
+    for (const level of levels) {
+        for (const classId of classes) {
+            for (const raceId of races) {
+                for (const backgroundId of backgrounds) {
+                    const concept = SAMPLE_CONCEPTS[conceptIndex % SAMPLE_CONCEPTS.length];
+                    candidates.push(generateTestCase(classId, raceId, level, backgroundId, concept));
+                    conceptIndex++;
+                }
+            }
+        }
+    }
+
+    return candidates;
+}
+
+/**
+ * Generate a filtered sample.
+ *
+ * If `count` is omitted, returns the full filtered matrix.
+ * If `count` is provided, returns an evenly spaced subset.
+ */
+export function generateFilteredSample(filters: TestCaseFilters, count?: number): TestCase[] {
+    const candidates = generateFilteredMatrix(filters);
+    if (count === undefined || !Number.isFinite(count) || count <= 0 || count >= candidates.length) {
+        return candidates;
+    }
+
+    const normalizedCount = Math.max(1, Math.floor(count));
+    const stride = candidates.length / normalizedCount;
+    const selected: TestCase[] = [];
+    for (let i = 0; i < normalizedCount; i++) {
+        selected.push(candidates[Math.floor(i * stride)]);
+    }
+    return selected;
 }
 
 // ============================================================================
@@ -228,8 +294,16 @@ export function createEmptyTestResult(testCase: TestCase): TestResult {
             totalTokens: 0,
             latencyMs: 0,
             costUsd: 0,
+            stageMs: {},
         },
     };
+}
+
+function percentile(values: number[], p: number): number {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const rank = Math.min(sorted.length - 1, Math.max(0, Math.floor((p / 100) * (sorted.length - 1))));
+    return sorted[rank];
 }
 
 /**
@@ -287,6 +361,7 @@ export function aggregateResults(results: TestResult[]): TestSummary {
     const totalTokens = results.reduce((sum, r) => sum + r.metrics.totalTokens, 0);
     const totalLatency = results.reduce((sum, r) => sum + r.metrics.latencyMs, 0);
     const totalCost = results.reduce((sum, r) => sum + r.metrics.costUsd, 0);
+    const latencies = results.map(r => r.metrics.latencyMs).filter(ms => Number.isFinite(ms));
 
     return {
         totalCases: total,
@@ -310,6 +385,8 @@ export function aggregateResults(results: TestResult[]): TestSummary {
                 : 0,
             avgTotalTokens: total > 0 ? totalTokens / total : 0,
             avgLatencyMs: total > 0 ? totalLatency / total : 0,
+            p50LatencyMs: percentile(latencies, 50),
+            p95LatencyMs: percentile(latencies, 95),
             totalCostUsd: totalCost,
             costPerSuccess: overallSuccessCount > 0 ? totalCost / overallSuccessCount : 0,
         },
@@ -472,6 +549,8 @@ export function formatSummaryReport(summary: TestSummary): string {
     lines.push('─'.repeat(70));
     lines.push(` Avg Tokens/Request: ${summary.metrics.avgTotalTokens.toFixed(0)}`);
     lines.push(` Avg Latency:        ${summary.metrics.avgLatencyMs.toFixed(0)}ms`);
+    lines.push(` p50 Latency:        ${summary.metrics.p50LatencyMs.toFixed(0)}ms`);
+    lines.push(` p95 Latency:        ${summary.metrics.p95LatencyMs.toFixed(0)}ms`);
     lines.push(` Total Cost:         $${summary.metrics.totalCostUsd.toFixed(4)}`);
     lines.push(` Cost per Success:   $${summary.metrics.costPerSuccess.toFixed(4)}`);
     lines.push('');

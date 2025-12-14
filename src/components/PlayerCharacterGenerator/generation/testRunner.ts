@@ -79,6 +79,27 @@ interface ApiGenerationResponse {
     generationTimeSeconds?: number;
 }
 
+interface ApiConstraintsResponse {
+    success: boolean;
+    data?: {
+        constraints: GenerationConstraints;
+    };
+    error?: string;
+}
+
+interface ApiValidateResponse {
+    success: boolean;
+    issues: string[];
+    sections?: Record<string, any>;
+}
+
+interface ApiComputeResponse {
+    success: boolean;
+    issues: string[];
+    derivedStats?: Record<string, any>;
+    sections?: Record<string, any>;
+}
+
 /**
  * Call the real backend API to generate preferences
  */
@@ -115,7 +136,178 @@ async function callGeneratePreferencesApi(
 
         return { success: true, data: result.data };
     } catch (error) {
-        return { success: false, error: `Network error: ${error}` };
+        const err = error as any;
+        const message = err?.message ? String(err.message) : String(error);
+        const cause =
+            err?.cause
+                ? (() => {
+                    try {
+                        return JSON.stringify(err.cause);
+                    } catch {
+                        return String(err.cause);
+                    }
+                })()
+                : undefined;
+
+        return {
+            success: false,
+            error: `Network error: ${message}${cause ? ` | cause=${cause}` : ''}`,
+        };
+    }
+}
+
+async function callConstraintsApi(
+    input: GenerationInput
+): Promise<{ success: boolean; constraints?: GenerationConstraints; error?: string }> {
+    try {
+        const response = await fetch(`${API_URL}/api/playercharactergenerator/constraints`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                classId: input.classId,
+                raceId: input.raceId,
+                level: input.level,
+                backgroundId: input.backgroundId,
+                concept: input.concept,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return { success: false, error: `API error: ${response.status} - ${errorText}` };
+        }
+
+        const result: ApiConstraintsResponse = await response.json();
+        if (!result.success || !result.data?.constraints) {
+            return { success: false, error: result.error || 'Failed to fetch constraints' };
+        }
+
+        return { success: true, constraints: result.data.constraints };
+    } catch (error) {
+        const err = error as any;
+        const message = err?.message ? String(err.message) : String(error);
+        return { success: false, error: `Network error: ${message}` };
+    }
+}
+
+async function callValidateApi(
+    input: GenerationInput,
+    constraints: GenerationConstraints,
+    translation: ReturnType<typeof translatePreferences>
+): Promise<{ success: boolean; issues: string[]; sections?: Record<string, any>; error?: string }> {
+    try {
+        const scores = translation.translations.abilityScores?.scores;
+        const skills = translation.translations.skills?.selected;
+        const packageId = translation.translations.equipment?.packageId;
+
+        if (!scores || !skills || !packageId) {
+            return {
+                success: false,
+                issues: ['Missing translated fields required for backend validation'],
+            };
+        }
+
+        const featureChoices = translation.translations.featureChoices?.choices || {};
+        const selectedCantrips = translation.translations.spells?.cantrips || [];
+        const selectedSpells = translation.translations.spells?.spells || [];
+
+        const response = await fetch(`${API_URL}/api/playercharactergenerator/validate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                input: {
+                    classId: input.classId,
+                    raceId: input.raceId,
+                    level: input.level,
+                    backgroundId: input.backgroundId,
+                    concept: input.concept,
+                },
+                choices: {
+                    abilityScores: scores,
+                    selectedSkills: skills,
+                    equipmentPackageId: packageId,
+                    featureChoices,
+                    selectedCantrips,
+                    selectedSpells,
+                },
+                constraints,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return { success: false, issues: [], error: `API error: ${response.status} - ${errorText}` };
+        }
+
+        const result: ApiValidateResponse = await response.json();
+        return { success: result.success, issues: result.issues || [], sections: result.sections };
+    } catch (error) {
+        const err = error as any;
+        const message = err?.message ? String(err.message) : String(error);
+        return { success: false, issues: [], error: `Network error: ${message}` };
+    }
+}
+
+async function callComputeApi(
+    input: GenerationInput,
+    constraints: GenerationConstraints,
+    translation: ReturnType<typeof translatePreferences>
+): Promise<{ success: boolean; issues: string[]; derivedStats?: Record<string, any>; sections?: Record<string, any>; error?: string }> {
+    try {
+        const scores = translation.translations.abilityScores?.scores;
+        const skills = translation.translations.skills?.selected;
+        const packageId = translation.translations.equipment?.packageId;
+
+        if (!scores || !skills || !packageId) {
+            return {
+                success: false,
+                issues: ['Missing translated fields required for backend compute'],
+            };
+        }
+
+        const featureChoices = translation.translations.featureChoices?.choices || {};
+        const selectedCantrips = translation.translations.spells?.cantrips || [];
+        const selectedSpells = translation.translations.spells?.spells || [];
+
+        const response = await fetch(`${API_URL}/api/playercharactergenerator/compute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                input: {
+                    classId: input.classId,
+                    raceId: input.raceId,
+                    level: input.level,
+                    backgroundId: input.backgroundId,
+                    concept: input.concept,
+                },
+                choices: {
+                    abilityScores: scores,
+                    selectedSkills: skills,
+                    equipmentPackageId: packageId,
+                    featureChoices,
+                    selectedCantrips,
+                    selectedSpells,
+                },
+                constraints,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return { success: false, issues: [], error: `API error: ${response.status} - ${errorText}` };
+        }
+
+        const result: ApiComputeResponse = await response.json();
+        return {
+            success: result.success,
+            issues: result.issues || [],
+            derivedStats: result.derivedStats,
+            sections: result.sections,
+        };
+    } catch (error) {
+        const err = error as any;
+        const message = err?.message ? String(err.message) : String(error);
+        return { success: false, issues: [], error: `Network error: ${message}` };
     }
 }
 
@@ -306,28 +498,47 @@ function getMockResponse(classId: string): string {
  */
 export async function runTestCase(
     testCase: TestCase,
-    useMockResponse: boolean = true
+    useMockResponse: boolean = true,
+    options?: { backendValidate?: boolean; backendCompute?: boolean; maxRetries?: number }
 ): Promise<TestResult> {
     const startTime = Date.now();
     const result = createEmptyTestResult(testCase);
+    const stageMs = (result.metrics.stageMs = result.metrics.stageMs || {});
 
     console.log(`\n🧪 Running test: ${testCase.id}`);
     console.log(`   Class: ${testCase.input.classId}, Race: ${testCase.input.raceId}, Level: ${testCase.input.level}`);
 
     try {
-        // 1. Get constraints (mock for now)
-        const constraints = getMockConstraints(testCase.input.classId);
+        // 1. Get constraints
+        let constraints: GenerationConstraints;
+        if (useMockResponse) {
+            const t0 = Date.now();
+            constraints = getMockConstraints(testCase.input.classId);
+            stageMs.constraintsMs = Date.now() - t0;
+        } else {
+            const t0 = Date.now();
+            const constraintsResult = await callConstraintsApi(testCase.input);
+            stageMs.constraintsMs = Date.now() - t0;
+            if (!constraintsResult.success || !constraintsResult.constraints) {
+                throw new Error(constraintsResult.error || 'Constraints API call failed');
+            }
+            constraints = constraintsResult.constraints;
+        }
 
         // 2. Build prompt
+        const tPrompt0 = Date.now();
         const prompt = buildPreferencePrompt(testCase.input, constraints);
+        stageMs.promptBuildMs = Date.now() - tPrompt0;
         console.log(`   📝 Built prompt (${prompt.length} chars)`);
 
         // 3. Get AI response
-        let rawResponse: string;
+        let rawResponse = '';
         let preferences: AiPreferences | null = null;
 
         if (useMockResponse) {
+            const t0 = Date.now();
             rawResponse = getMockResponse(testCase.input.classId);
+            stageMs.aiCallMs = Date.now() - t0;
             console.log(`   🤖 Using mock response`);
 
             // Simulate some latency
@@ -336,35 +547,61 @@ export async function runTestCase(
             result.metrics.totalTokens = result.metrics.promptTokens + result.metrics.completionTokens;
             result.metrics.costUsd = (result.metrics.totalTokens / 1000) * 0.01; // Rough estimate
         } else {
-            // Real API call
-            console.log(`   🌐 Calling real API at ${API_URL}...`);
-            const apiResult = await callGeneratePreferencesApi(testCase.input);
+            // Real API call (with retries)
+            const maxRetries = Math.max(0, Math.floor(options?.maxRetries ?? 0));
+            let lastErr: string | undefined;
 
-            if (!apiResult.success || !apiResult.data) {
-                throw new Error(apiResult.error || 'API call failed');
+            let accumulatedPromptTokens = 0;
+            let accumulatedCompletionTokens = 0;
+            let accumulatedTotalTokens = 0;
+            let accumulatedCostUsd = 0;
+
+            const t0 = Date.now();
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                const attemptNo = attempt + 1;
+                console.log(`   🌐 Calling real API at ${API_URL}... (attempt ${attemptNo}/${maxRetries + 1})`);
+
+                const apiResult = await callGeneratePreferencesApi(testCase.input);
+                if (!apiResult.success || !apiResult.data) {
+                    lastErr = apiResult.error || 'API call failed';
+                    console.log(`   ⚠️  API attempt failed: ${lastErr}`);
+                    continue;
+                }
+
+                rawResponse = apiResult.data.rawResponse;
+                preferences = apiResult.data.preferences as AiPreferences;
+
+                // Accumulate real metrics from API across retries
+                const genInfo = apiResult.data.generationInfo;
+                accumulatedPromptTokens += genInfo.promptTokens;
+                accumulatedCompletionTokens += genInfo.completionTokens;
+                accumulatedTotalTokens += genInfo.totalTokens;
+                accumulatedCostUsd +=
+                    (genInfo.promptTokens / 1000000) * 2.50 +
+                    (genInfo.completionTokens / 1000000) * 10.00;
+
+                console.log(`   🤖 Real API response received (${genInfo.totalTokens} tokens)`);
+                break;
+            }
+            stageMs.aiCallMs = Date.now() - t0;
+
+            if (!preferences) {
+                throw new Error(lastErr || 'API call failed (all retries exhausted)');
             }
 
-            rawResponse = apiResult.data.rawResponse;
-            preferences = apiResult.data.preferences as AiPreferences;
-
-            // Record real metrics from API
-            const genInfo = apiResult.data.generationInfo;
-            result.metrics.promptTokens = genInfo.promptTokens;
-            result.metrics.completionTokens = genInfo.completionTokens;
-            result.metrics.totalTokens = genInfo.totalTokens;
-            // GPT-4o pricing: $2.50/1M input, $10/1M output
-            result.metrics.costUsd =
-                (genInfo.promptTokens / 1000000) * 2.50 +
-                (genInfo.completionTokens / 1000000) * 10.00;
-
-            console.log(`   🤖 Real API response received (${genInfo.totalTokens} tokens)`);
+            result.metrics.promptTokens = accumulatedPromptTokens;
+            result.metrics.completionTokens = accumulatedCompletionTokens;
+            result.metrics.totalTokens = accumulatedTotalTokens;
+            result.metrics.costUsd = accumulatedCostUsd;
         }
 
         result.aiGeneration.rawResponse = rawResponse;
 
         // 4. Parse response (API already provides parsed preferences, mock needs parsing)
         if (!preferences) {
+            const t0 = Date.now();
             preferences = parseAiResponse(rawResponse);
+            stageMs.parseMs = Date.now() - t0;
         }
 
         if (preferences) {
@@ -379,7 +616,9 @@ export async function runTestCase(
             }
 
             // 5. Translate to mechanics
-            const translation = translatePreferences(preferences, constraints);
+            const tTranslate0 = Date.now();
+            const translation = translatePreferences(preferences, constraints, { level: testCase.input.level });
+            stageMs.translateMs = Date.now() - tTranslate0;
             result.translation = translation;
 
             if (translation.success) {
@@ -406,12 +645,54 @@ export async function runTestCase(
             }
 
             // 6. Validate translation results
+            const tValidate0 = Date.now();
             result.validation = validateTranslation(translation, constraints);
+            stageMs.validateMs = Date.now() - tValidate0;
 
             if (result.validation.isValid) {
                 console.log(`   ✅ Validation passed`);
             } else {
                 console.log(`   ❌ Validation failed: ${result.validation.allIssues.join(', ')}`);
+            }
+
+            // 7. Optional backend validation (E2)
+            const shouldBackendValidate = !useMockResponse && (options?.backendValidate ?? false);
+            if (shouldBackendValidate && translation.success) {
+                const t0 = Date.now();
+                const backendValidation = await callValidateApi(testCase.input, constraints, translation);
+                stageMs.backendValidateMs = Date.now() - t0;
+                result.validation.backend = {
+                    valid: backendValidation.success,
+                    issues: backendValidation.issues || (backendValidation.error ? [backendValidation.error] : []),
+                    sections: backendValidation.sections,
+                };
+
+                if (result.validation.backend.valid) {
+                    console.log('   ✅ Backend validation passed');
+                } else {
+                    console.log(`   ❌ Backend validation failed: ${result.validation.backend.issues.join(', ')}`);
+                }
+            }
+
+            // 8. Optional backend compute (E3)
+            const shouldBackendCompute = !useMockResponse && (options?.backendCompute ?? false);
+            if (shouldBackendCompute && translation.success) {
+                const t0 = Date.now();
+                const backendCompute = await callComputeApi(testCase.input, constraints, translation);
+                stageMs.backendComputeMs = Date.now() - t0;
+
+                result.validation.backendCompute = {
+                    success: backendCompute.success,
+                    issues: backendCompute.issues || (backendCompute.error ? [backendCompute.error] : []),
+                    derivedStats: backendCompute.derivedStats,
+                    sections: backendCompute.sections,
+                };
+
+                if (result.validation.backendCompute.success) {
+                    console.log('   ✅ Backend compute passed');
+                } else {
+                    console.log(`   ❌ Backend compute failed: ${result.validation.backendCompute.issues.join(', ')}`);
+                }
             }
 
         } else {

@@ -13,18 +13,18 @@ export type {
     GenerationConstraints,
     AiPreferences,
     TranslationResult,
-    
+
     // Constraint sub-types
     EquipmentPackage,
     FeatureChoice,
     SpellcastingConstraints,
     SpellOption,
-    
+
     // Test harness types
     TestCase,
     TestResult,
     TestSummary,
-    
+
     // Utility types
     AbilityName,
 } from './types';
@@ -66,17 +66,19 @@ export {
     TEST_LEVELS,
     TEST_BACKGROUNDS,
     SAMPLE_CONCEPTS,
-    
+
     // Test case generators
     generateTestCase,
     generatePilotTestCases,
     generateRepresentativeSample,
+    generateFilteredMatrix,
+    generateFilteredSample,
     generateFullMatrix,
-    
+
     // Result handling
     createEmptyTestResult,
     aggregateResults,
-    
+
     // Reporting
     formatSummaryReport,
     printTestCases,
@@ -86,20 +88,20 @@ export {
 export {
     // Constants
     SYSTEM_PROMPT,
-    
+
     // Main prompt builder
     buildPreferencePrompt,
-    
+
     // Section formatters
     formatSkillOptions,
     formatEquipmentOptions,
     formatFeatureChoices,
     formatSpellList,
-    
+
     // Response parsing
     parseAiResponse,
     validatePreferences,
-    
+
     // Mock constraints (for testing)
     createMockFighterConstraints,
     createMockWizardConstraints,

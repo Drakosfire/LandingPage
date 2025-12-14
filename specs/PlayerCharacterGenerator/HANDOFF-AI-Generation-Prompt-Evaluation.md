@@ -1,214 +1,181 @@
-# Handoff: AI Character Generation - Prompt Evaluation
-**Date:** 2025-12-12  
-**Type:** Research / Experiment  
-**Last Updated:** 2025-12-13  
-**Status:** 🟢 Pilot Complete — Ready for Real API Testing
+# Handoff: PCG Backend Rule Engine (Design) + AI Prompt Evaluation (Harness)
+**Date:** 2025-12-13  
+**Type:** Research / Experiment / Architecture  
+**Last Updated:** 2025-12-14  
 
 ---
 
 ## 🎯 Goal
 
-Design and validate an AI-assisted character generation system where:
-1. **User provides identity** (Class, Race, Level, Background) — hardest to validate, most personal
-2. **Generator computes math** (HP, modifiers, AC, saves) — deterministic, no AI needed
-3. **AI expresses preferences** (ability priorities, skill themes, flavor) — creative, translatable
-4. **Rule Engine validates** — guarantees legal output
+Design and implement a **backend Rule Engine for PCG** inside `DungeonMindServer/playercharactergenerator/` that can:
+
+1. **Compute constraints deterministically** from user identity choices (Class/Race/Level/Background)
+2. **Validate and compute** final character mechanics (derived stats, legality)
+3. Follow the long-term pattern of a **middle-layer JSON rules config** (future: `DungeonMindEngine` loads configs to support other systems)
+
+In parallel, keep the AI preference harness working to empirically measure success/cost while deterministic rules harden.
 
 **Scope:** Levels 1-3 only (most common starting levels, avoids ASI/Feat complexity)
 
 ---
 
-## 🎉 Pilot Test Results (2025-12-13)
+## 🚨 CURRENT STATE (Evidence-Based)
 
-```
-══════════════════════════════════════════════════════════════════════
- AI GENERATION EXPERIMENT RESULTS
-══════════════════════════════════════════════════════════════════════
+### What's Working ✅
+- **Live AI preference generation** works end-to-end against `https://dev.dungeonmind.net`.
+- **Stay on `chat.completions`** for PCG; Responses API migration is deferred to the external Component Generator effort.
+- **Backend health identifies deployment**: `/api/playercharactergenerator/health` includes `token_limit_param` + `module_path`.
+- **Backend Rule Engine exists (PCG-local)**:
+  - `POST /api/playercharactergenerator/constraints` (authoritative constraints for L1–3)
+  - `POST /api/playercharactergenerator/validate` (E2 validators for translated choices)
+- **Harness uses real constraints** in live mode (no more `getMockConstraints()` for live runs).
+- **Concurrency is supported** for live samples via `--concurrency N` (works well at 3–4 on this box).
+- **Latency/cost reporting improved**: report includes avg + p50 + p95 latency; per-stage timings collected (constraints/AI/translate/validate).
+- **Failure reporting improved**: demo prints a full JSON dump for each failed case (raw response + issues + timings).
+- **Dev run logs**: in dev env, CLI output is saved to `LandingPage/pcg_run_logs/*.txt` for review.
 
-OVERALL SUCCESS RATES (Mock Data)
-──────────────────────────────────────────────────────────────────────
- Parse Success:       100.0%
- Translation Success: 100.0%
- Validation Success:  100.0%
- Overall Success:     100.0%
+### Recent empirical results ✅
+- **Targeted rerun slice (100 cases)**: `--classes fighter,cleric --levels 1,3` achieved **100%** parse/translate/validate.
+  - **Latency**: avg ~51s, p50 ~48.5s, p95 ~77.1s
+  - **Cost**: ~$0.0099 per success
 
-BY CLASS
-──────────────────────────────────────────────────────────────────────
- Fighter: Kira Stonefist       (STR 16, DEX 14, CON 16) ✅
- Wizard:  Aldric Thornwood     (INT 16, CON 16, DEX 14) ✅
- Rogue:   Vex Shadowmere       (DEX 16, CON 16, CHA 14) ✅
- Cleric:  Brother Marcus       (WIS 16, CON 16, STR 14) ✅
- Bard:    Lyric Silversong     (CHA 16, DEX 16, CON 14) ✅
-
-TRANSLATION DETAILS
-──────────────────────────────────────────────────────────────────────
- Point Buy:    27/27 spent on all characters
- Skills:       Mapped from themes to valid options
- Equipment:    Package A selected for all (heavy/defensive style)
- Validation:   All rules passed
-```
-
-**Next:** Run with real OpenAI API calls to validate against actual LLM behavior.
+### What's Not Yet Real ❌
+- **Spell constraints + spell validation** are deferred (E4). Backend constraints intentionally omit `spellcasting` for now.
+- **Derived stats compute** not implemented on backend yet (E3).
+- Frontend still has legacy/mock validators in some UI areas; backend is becoming the source of truth.
 
 ---
+
+## Quick Pickup
+
+### Commands
+
+```bash
+cd /home/drakosfire/Projects/DungeonOverMind/LandingPage
+
+# Pilot (5 cases)
+NODE_TLS_REJECT_UNAUTHORIZED=0 DUNGEONMIND_API_URL=https://dev.dungeonmind.net \
+npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts pilot --live --backend-validate --backend-compute --max-retries 2
+
+# Representative sample (75 cases, concurrent, with backend validate)
+NODE_TLS_REJECT_UNAUTHORIZED=0 DUNGEONMIND_API_URL=https://dev.dungeonmind.net \
+npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts sample --count 75 --live --concurrency 4 --backend-validate --backend-compute --max-retries 2
+
+# Re-run only a failure slice (example: fighter+cleric, levels 1+3)
+NODE_TLS_REJECT_UNAUTHORIZED=0 DUNGEONMIND_API_URL=https://dev.dungeonmind.net \
+npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts sample \
+  --classes fighter,cleric --levels 1,3 \
+  --live --concurrency 4 --backend-validate --backend-compute --max-retries 2
+
+# Save CLI output to file automatically in dev env (unless --no-save-log)
+DUNGEONMIND_ENV=dev \
+npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts pilot
+```
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     USER INPUT                                   │
-│  Class: [select]   Race: [select]   Level: [1/2/3]              │
-│  Background: [select]   Concept: [free text]                    │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     USER INPUT                               │
+│  Class: [select]   Race: [select]   Level: [1/2/3]          │
+│  Background: [select]   Concept: [free text]                │
+└─────────────────────────────────────────────────────────────┘
                               │
                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               RULE ENGINE (Deterministic)                        │
-│  • Load class features for selected class @ level               │
-│  • Load racial traits and ability bonuses                       │
-│  • Compute valid skill options (handle overlaps)                │
-│  • Compute spell list (if caster, filtered by level)            │
-│  • Format equipment choices (packages, not items)               │
-│  • Inject point buy table                                       │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│               RULE ENGINE (Deterministic)                    │
+│  • Load class features for selected class @ level           │
+│  • Load racial traits and ability bonuses                   │
+│  • Compute valid skill options (handle overlaps)            │
+│  • Compute spell list (if caster, filtered by level)        │
+│  • Format equipment choices (packages, not items)           │
+│  • Inject point buy table                                   │
+└─────────────────────────────────────────────────────────────┘
                               │
                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    AI GENERATION                                 │
-│  Input:  Concept + Constrained Options (from Rule Engine)       │
-│  Output: Preferences (priorities, themes, flavor)               │
-│  NOT:    Exact scores, specific skill names, spell IDs          │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    AI GENERATION                             │
+│  Input:  Concept + Constrained Options (from Rule Engine)   │
+│  Output: Preferences (priorities, themes, flavor)           │
+│  NOT:    Exact scores, specific skill names, spell IDs      │
+└─────────────────────────────────────────────────────────────┘
                               │
                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               PREFERENCE TRANSLATOR                              │
-│  • Map ability priorities → optimal point buy (27 pts)          │
-│  • Map skill themes → valid skill selections                    │
-│  • Map equipment style → valid package                          │
-│  • Map spell themes → valid spell selections                    │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│               PREFERENCE TRANSLATOR                          │
+│  • Map ability priorities → optimal point buy               │
+│  • Map skill themes → valid skill selections                │
+│  • Map equipment style → valid package                      │
+│  • Map spell themes → valid spell selections                │
+└─────────────────────────────────────────────────────────────┘
                               │
                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               RULE ENGINE VALIDATION                             │
-│  • Point buy ≤ 27?                                              │
-│  • Skills ∈ valid set?                                          │
-│  • Equipment valid combo?                                       │
-│  • Spells valid for class/level?                                │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│               RULE ENGINE VALIDATION                         │
+│  • Point buy ≤ 27?                                          │
+│  • Skills ∈ valid set?                                      │
+│  • Equipment valid combo?                                   │
+│  • Spells valid for class/level?                            │
+└─────────────────────────────────────────────────────────────┘
                               │
                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               MATH COMPUTATION                                   │
-│  • Ability modifiers: (score - 10) / 2                          │
-│  • HP: Hit Die + CON mod (+ racial if applicable)               │
-│  • AC: Armor + DEX (capped by armor type)                       │
-│  • Proficiency bonus: +2 (levels 1-4)                           │
-│  • Save bonuses, attack bonuses, spell DC                       │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│               MATH COMPUTATION                               │
+│  • Ability modifiers: (score - 10) / 2                      │
+│  • HP: Hit Die + CON mod (+ racial if applicable)           │
+│  • AC: Armor + DEX (capped by armor type)                   │
+│  • Proficiency bonus: +2 (levels 1-4)                       │
+│  • Save bonuses, attack bonuses, spell DC                   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📋 Two Parallel Tracks
+## 🧠 Backend Rule Engine Design (PCG)
 
-### Track A: UI for User Decisions
-Design the interface that guides users through foundational choices (Class, Race, Level, Background) with enough information to choose confidently.
+### Intent
+Build a backend rule engine that is:
+- **Authoritative** (backend is source of truth for legality + derived stats)
+- **Config-driven** (catalogs/rules loaded from a middle-layer JSON format)
+- **A stepping stone** toward a future `DungeonMindEngine` that can load/validate other systems
 
-### Track B: Test Harness for AI + Rule Engine
-Build infrastructure to validate AI preference generation and Rule Engine correctness using synthetic test cases.
+### Current backend layout (implemented)
+```
+DungeonMindServer/playercharactergenerator/
+  rule_engine/
+    catalogs/
+      dnd5e_v0/
+        catalog.py               # "middle layer" catalog (python data; JSON later)
+    catalog_loader.py
+    pcg_rule_engine.py           # GenerationInput -> GenerationConstraints (L1–3)
+    validators.py                # E2: point buy + skills + equipment pkg + feature choices
+```
+
+**Note:** `DungeonMindServer/.cursorignore` blocks `*.json`, so catalogs are python data for now. Long-term goal remains JSON-driven configs.
+
+### Target endpoints (authoritative)
+- **`POST /api/playercharactergenerator/constraints`**
+  - Input: `GenerationInput`
+  - Output: `GenerationConstraints` (same shape as frontend `generation/types.ts`)
+- **`POST /api/playercharactergenerator/validate`**
+  - Input: mechanics payload (abilityScores + selected skills + equipment package + spells + feature choices)
+  - Output: structured validation result (errors/warnings)
+- **`POST /api/playercharactergenerator/compute`**
+  - Input: mechanics payload
+  - Output: derived stats (mods/prof/HP/AC/etc.) + debug sections (E3 baseline)
+
+### Phased delivery (recommended)
+| Phase | Deliverable | Why |
+|------:|-------------|-----|
+| E0 | Backend catalogs + loader utilities | Enables constraints to be real |
+| E1 | `/constraints` for level 1–3 | Grounds AI prompts; enables real harness |
+| E2 | `/validate` (point buy, skills, equipment pkgs, feature choices) | Makes success rates meaningful |
+| E3 | Derived stats compute: prof bonus/mods/hp/ac | Deterministic “mathy bits” |
+| E4 | Spell constraints + spell validation | First real complexity spike |
 
 ---
 
-## ✅ Task List
-
-### Phase 1: Foundation ✅ COMPLETE
-- [x] **T1.1** Define `AiPreferences` TypeScript interface
-- [x] **T1.2** Define `TranslationResult` interface  
-- [x] **T1.3** Create `translatePreferences()` function stub
-- [x] **T1.4** Create test case generator (5-case pilot)
-
-### Phase 2: Prompt Design ✅ COMPLETE
-- [x] **T2.1** Write preference prompt template (concept → preferences)
-- [x] **T2.2** Create constraint injection formatters (skills, spells, equipment as lists)
-- [x] **T2.3** Create test runner with mock responses
-
-### Phase 3: Translation Layer ✅ COMPLETE
-- [x] **T3.1** Implement ability priority → point buy translator
-- [x] **T3.2** Implement skill themes → skill selection translator
-- [x] **T3.3** Implement equipment style → package selector
-- [x] **T3.4** Implement spell themes → spell selection (for casters)
-- [x] **T3.5** Build test runner (TestCase → TestResult)
-- [x] **T3.6** Build results aggregator (TestResult[] → Summary)
-
-### Phase 4: Real API Testing 🔜 NEXT
-- [ ] **T4.1** Add backend endpoint for AI generation (DungeonMindServer)
-- [ ] **T4.2** Wire frontend test runner to call real API
-- [ ] **T4.3** Run pilot (5 cases) with real AI and review results
-- [ ] **T4.4** Identify failure patterns from real AI responses
-
-### Phase 5: Full Experiment
-- [ ] **T5.1** Run full matrix (375 cases) or representative sample (75 cases)
-- [ ] **T5.2** Aggregate results by class, race, level
-- [ ] **T5.3** Document failure patterns
-- [ ] **T5.4** Determine retry strategy (how many, which failures)
-- [ ] **T5.5** Calculate final success rate and cost
-
-### Phase 6: UI Components (Parallel Track)
-- [ ] **T6.1** Design ClassSelector card layout
-- [ ] **T6.2** Implement ClassSelector component
-- [ ] **T6.3** Design RaceSelector with synergy hints
-- [ ] **T6.4** Implement RaceSelector component
-- [ ] **T6.5** Implement LevelSelector (simple)
-- [ ] **T6.6** Implement BackgroundSelector
-- [ ] **T6.7** Implement ConceptInput with suggestions
-- [ ] **T6.8** Wire flow: Level → Class → Race → Background → Concept
-
----
-
-## 📁 Files Created
-
-### Generation Pipeline (All Complete)
-```
-LandingPage/src/components/PlayerCharacterGenerator/generation/
-├── types.ts                 ✅ AiPreferences, GenerationConstraints, TranslationResult
-├── preferenceTranslator.ts  ✅ Preferences → mechanics (point buy, skills, equipment, spells)
-├── promptBuilder.ts         ✅ Prompt construction with constraint injection
-├── testHarness.ts           ✅ Test case generation and result aggregation
-├── testRunner.ts            ✅ Full pipeline runner with mock responses
-├── demo.ts                  ✅ CLI demo script
-└── index.ts                 ✅ Clean exports
-```
-
-### Run Commands
-```bash
-# Run full pilot test (5 classes)
-npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts pilot
-
-# Show prompt for a specific class
-npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts prompt wizard
-
-# Run single pipeline demo
-npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts pipeline fighter
-```
-
-### Rule Engine (Existing)
-```
-LandingPage/src/components/PlayerCharacterGenerator/
-├── rules/dnd5e/DnD5eRuleEngine.ts     # All class/race/spell data access
-├── rules/dnd5e/pointBuy.ts            # Point buy costs and validation
-├── types/dnd5e/character.types.ts     # DnD5eCharacter interface
-└── data/dnd5e/                        # Raw data files
-    ├── classes.json
-    ├── races.json
-    ├── backgrounds.json
-    └── spells.json
-```
-
----
-
-## 🧪 Experiment Design
+## 🧪 Track B: Experiment Design
 
 ### What We're Testing
 
@@ -225,26 +192,25 @@ LandingPage/src/components/PlayerCharacterGenerator/
 
 ```json
 {
-  "abilityPriorities": ["strength", "constitution", "dexterity", "wisdom", "charisma", "intelligence"],
+  "abilityPriorities": ["constitution", "strength", "wisdom"],
   "abilityReasoning": "Tough survivor who has seen too much",
   
   "combatApproach": "Defensive, protects allies, endures punishment",
   "skillThemes": ["physical prowess", "intimidation", "awareness"],
   
   "equipmentStyle": "Heavy armor, shield, reliable weapon",
-  "fightingStylePreference": { "id": "defense", "reasoning": "Survival is paramount" },
+  "subclassPreference": "Champion - simple, reliable, survivor mentality",
+  "fightingStylePreference": "Defense or Protection",
   
   "character": {
-    "name": "Kira Stonefist",
+    "name": "Durgan Ironforge",
     "personality": {
       "traits": ["I face problems head-on", "I sleep with my back to a wall"],
       "ideals": ["Protection - The strong must shield the weak"],
-      "bonds": ["I carry the insignia of my fallen unit"],
-      "flaws": ["I blame myself for every death I witness"]
+      "bonds": ["I failed to protect my unit; never again"],
+      "flaws": ["I have trouble trusting others with important tasks"]
     },
-    "backstory": "A veteran of the Goblin Wars who lost her entire unit...",
-    "appearance": "A weathered woman with grey-streaked hair and a jagged scar",
-    "age": 38
+    "backstory": "A veteran of the Goblin Wars who lost her entire unit..."
   }
 }
 ```
@@ -265,14 +231,109 @@ LandingPage/src/components/PlayerCharacterGenerator/
 
 ### Metrics to Collect
 
-| Metric | Target | Pilot Result |
-|--------|--------|--------------|
-| Parse Success | >98% | 100% (mock) |
-| Translation Success | >95% | 100% (mock) |
-| Validation Success | >90% | 100% (mock) |
-| Avg Tokens | <1500 | ~1371 (mock) |
-| Avg Latency | <3s | 3ms (mock) |
-| Cost per Character | <$0.02 | ~$0.014 (mock) |
+| Metric | Target | Why |
+|--------|--------|-----|
+| Parse Success | >98% | AI returns valid JSON |
+| Translation Success | >95% | Preferences map to valid options |
+| Validation Success | >90% | Generated character passes all rules |
+| Avg Tokens | <1500 | Cost control |
+| Avg Latency | <3s | User experience |
+| Cost per Character | <$0.02 | Economics |
+
+---
+
+## 🎨 Track A: UI Design Tasks
+
+### Decision Flow
+
+```
+Level → Class → Race → Background → Concept → [Generate]
+```
+
+### UI Components Needed
+
+| Component | Purpose | Information to Display |
+|-----------|---------|----------------------|
+| **LevelSelector** | Pick 1-3 | Simple cards, tooltip for what each unlocks |
+| **ClassSelector** | Pick class | Hit die, armor, weapons, key features, complexity rating |
+| **ClassDetailPanel** | Expand on class | Full feature list, skill options, subclasses (if L3) |
+| **RaceSelector** | Pick race | Ability bonuses, traits, synergy hints based on class |
+| **BackgroundSelector** | Pick background | Skills granted, feature, equipment preview |
+| **ConceptInput** | Free text + suggestions | Text area, concept starters, generate button |
+
+### Key UX Principles
+
+1. **Progressive disclosure** — Show essentials on card, details on expand
+2. **Synergy hints** — "Good for Fighter" badges based on class selection
+3. **Overlap handling** — Show when background skill duplicates class option
+4. **Complexity ratings** — [Beginner], [Intermediate], [Advanced] badges
+
+---
+
+## ✅ Task List
+
+### Completed (AI Harness)
+- [x] `AiPreferences` + `TranslationResult` types
+- [x] `translatePreferences()` (initial)
+- [x] Prompt builder + parser + preference validation
+- [x] Test runner (mock + live API)
+- [x] Live pilot run (5 cases)
+- [x] Representative sample generator fixed (reliably produces N unique cases)
+- [x] Concurrency support for live sample (`--concurrency`)
+- [x] Timing metrics (avg + p50 + p95; per-stage breakdown stored in results)
+- [x] Full failure dumps (raw response + issues + timings)
+- [x] Dev env run logs saved to `LandingPage/pcg_run_logs/*.txt`
+- [x] Filtered reruns: `--classes`, `--levels`, `--races`, `--backgrounds`
+
+### Next (Backend Rule Engine)
+- [x] **E0** Backend catalogs (v0) + loader utilities
+- [x] **E1** `/constraints` endpoint (L1–3)
+- [x] **E2** `/validate` endpoint + validators: point buy + skills + equipment packages + feature choices
+- [x] **E3** Derived-stats compute (mods/prof/HP/AC/etc.) + `/compute` endpoint
+- [ ] **E4** Spell constraints + spell validation (first real complexity spike)
+- [x] Harden parse reliability (retry strategy in CLI via `--max-retries`)
+
+---
+
+## 📁 Key Files
+
+### Backend Rule Engine (Authoritative)
+```
+DungeonMindServer/playercharactergenerator/
+├── pcg_generator.py                               # AI generation; now computes constraints when missing
+├── rule_engine/pcg_rule_engine.py                 # GenerationInput -> GenerationConstraints
+├── rule_engine/validators.py                      # E2 validation for translated choices
+└── routers/playercharactergenerator_router.py      # /constraints + /validate + /generate-preferences
+```
+
+### Frontend Harness (Experiment + Debug)
+```
+LandingPage/src/components/PlayerCharacterGenerator/
+├── engine/dnd5e/DnD5eRuleEngine.ts                # Client reference engine (not authoritative)
+├── rules/dnd5e/pointBuy.ts                        # Client point buy rules (reference)
+└── generation/
+    ├── demo.ts                                    # CLI runner (concurrency, filters, logs, failure dumps)
+    ├── testRunner.ts                              # Calls /constraints, /generate-preferences, /validate
+    ├── testHarness.ts                             # Matrix + sample generation + summary aggregation
+    ├── preferenceTranslator.ts                    # Preferences -> mechanical choices
+    └── promptBuilder.ts                           # Prompt construction
+```
+
+### To Create
+```
+LandingPage/src/components/PlayerCharacterGenerator/
+├── generation/
+│   ├── types.ts                       # AiPreferences, TranslationResult
+│   ├── promptBuilder.ts               # Build prompts with constraints
+│   ├── preferenceTranslator.ts        # Preferences → valid mechanics
+│   └── testHarness.ts                 # Test runner and aggregator
+└── components/
+    ├── ClassSelector/
+    ├── RaceSelector/
+    ├── LevelSelector/
+    ├── BackgroundSelector/
+    └── ConceptInput/
+```
 
 ---
 
@@ -310,32 +371,15 @@ LandingPage/src/components/PlayerCharacterGenerator/
 
 ---
 
-## 🚀 Immediate Next Step
-
-**T4.1: Add backend endpoint for AI generation**
-
-Create a new endpoint in `DungeonMindServer/routers/playercharactergenerator_router.py`:
-
-```python
-@router.post("/generate-preferences")
-async def generate_preferences(request: GeneratePreferencesRequest):
-    """
-    Generate AI preferences for character creation
-    
-    Input: GenerationInput (classId, raceId, level, backgroundId, concept)
-    Output: AiPreferences (ability priorities, skill themes, character flavor)
-    """
-    # Build prompt with constraints
-    # Call OpenAI
-    # Return parsed preferences
-```
-
-This will allow the frontend test runner to call real AI and collect actual success metrics.
-
----
-
 ## 📚 References
 
 - **Tasks:** `specs/PlayerCharacterGenerator/tasks.md` → Phase 5.0
-- **Rule Engine:** `LandingPage/src/components/PlayerCharacterGenerator/rules/dnd5e/DnD5eRuleEngine.ts`
+- **Client Rule Engine:** `LandingPage/src/components/PlayerCharacterGenerator/engine/dnd5e/DnD5eRuleEngine.ts`
 - **Point Buy:** `LandingPage/src/components/PlayerCharacterGenerator/rules/dnd5e/pointBuy.ts`
+- **Responses API migration reference (do NOT apply to PCG yet):** `Docs/ProjectDiary/2025/RulesLawyer-Revival/handoffs/phase1/02_phase1_h2-openai-responses-api-migration-COMPLETE.md`
+
+---
+
+## 🚀 Immediate Next Step
+
+**Implement E4:** spell constraints + spell validation (then the backend can validate caster builds end-to-end).
