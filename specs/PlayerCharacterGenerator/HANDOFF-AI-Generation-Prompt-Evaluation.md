@@ -28,20 +28,34 @@ In parallel, keep the AI preference harness working to empirically measure succe
 - **Backend Rule Engine exists (PCG-local)**:
   - `POST /api/playercharactergenerator/constraints` (authoritative constraints for L1–3)
   - `POST /api/playercharactergenerator/validate` (E2 validators for translated choices)
+-  - `POST /api/playercharactergenerator/compute` (E3 derived stats compute)
 - **Harness uses real constraints** in live mode (no more `getMockConstraints()` for live runs).
 - **Concurrency is supported** for live samples via `--concurrency N` (works well at 3–4 on this box).
 - **Latency/cost reporting improved**: report includes avg + p50 + p95 latency; per-stage timings collected (constraints/AI/translate/validate).
 - **Failure reporting improved**: demo prints a full JSON dump for each failed case (raw response + issues + timings).
 - **Dev run logs**: in dev env, CLI output is saved to `LandingPage/pcg_run_logs/*.txt` for review.
+- **Spells (E4) implemented (Standard path)**:
+  - Rule engine owns the spell catalog + per-class spell constraints
+  - AI returns themes
+  - Translator selects deterministic spell IDs
+  - Backend validates counts + membership + max spell level + prepared formulas
+- **Hard-caster spike started**:
+  - **Warlock** (pact magic metadata surfaced: `pactSlots`, `pactSlotLevel`)
+  - **Paladin** (half-caster prepared formula: `abilityModPlusHalfLevel`)
+  - **Ranger** (half-caster known spells at L2–3; no cantrips)
 
 ### Recent empirical results ✅
-- **Targeted rerun slice (100 cases)**: `--classes fighter,cleric --levels 1,3` achieved **100%** parse/translate/validate.
-  - **Latency**: avg ~51s, p50 ~48.5s, p95 ~77.1s
-  - **Cost**: ~$0.0099 per success
+- **Representative sample (75 cases, live, concurrent=4)**: achieved **100%** parse/translate/validate.
+  - **Latency**: avg ~45.3s, p50 ~46.0s, p95 ~58.4s
+  - **Cost**: ~$0.0096 per success
+- **Spell-focused sample (9 cases, live)**: wizard/cleric/bard across L1–3 achieved **100%** parse/translate/validate.
+  - **Latency**: avg ~35.5s, p50 ~34.9s, p95 ~37.3s
 
 ### What's Not Yet Real ❌
-- **Spell constraints + spell validation** are deferred (E4). Backend constraints intentionally omit `spellcasting` for now.
-- **Derived stats compute** not implemented on backend yet (E3).
+- **Spell slots / spell resources are not computed** (we validate spell *selection*; we don't model slots yet).
+- **Warlock pact-magic enforcement is minimal** (we surface pact metadata; we don't validate “all slots are slotLevel” usage, or short-rest refresh semantics).
+- **Ranger not implemented yet** (next half-caster; known-caster behavior differs from paladin).
+- **Spell catalogs are tiny** (v0 lists are intentionally small; expand once we start seeing real theme misses).
 - Frontend still has legacy/mock validators in some UI areas; backend is becoming the source of truth.
 
 ---
@@ -60,6 +74,12 @@ npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts pilot --live 
 # Representative sample (75 cases, concurrent, with backend validate)
 NODE_TLS_REJECT_UNAUTHORIZED=0 DUNGEONMIND_API_URL=https://dev.dungeonmind.net \
 npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts sample --count 75 --live --concurrency 4 --backend-validate --backend-compute --max-retries 2
+
+# Spell-focused sample (casters only, level slice)
+NODE_TLS_REJECT_UNAUTHORIZED=0 DUNGEONMIND_API_URL=https://dev.dungeonmind.net \
+npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts sample \
+  --classes wizard,cleric,bard,warlock,paladin,ranger --levels 2,3 \
+  --count 24 --live --concurrency 4 --backend-validate --backend-compute --max-retries 2
 
 # Re-run only a failure slice (example: fighter+cleric, levels 1+3)
 NODE_TLS_REJECT_UNAUTHORIZED=0 DUNGEONMIND_API_URL=https://dev.dungeonmind.net \
@@ -237,7 +257,7 @@ DungeonMindServer/playercharactergenerator/
 | Translation Success | >95% | Preferences map to valid options |
 | Validation Success | >90% | Generated character passes all rules |
 | Avg Tokens | <1500 | Cost control |
-| Avg Latency | <3s | User experience |
+| Avg Latency | <60s (live) | User experience + loading bar design |
 | Cost per Character | <$0.02 | Economics |
 
 ---
@@ -290,7 +310,8 @@ Level → Class → Race → Background → Concept → [Generate]
 - [x] **E1** `/constraints` endpoint (L1–3)
 - [x] **E2** `/validate` endpoint + validators: point buy + skills + equipment packages + feature choices
 - [x] **E3** Derived-stats compute (mods/prof/HP/AC/etc.) + `/compute` endpoint
-- [ ] **E4** Spell constraints + spell validation (first real complexity spike)
+- [x] **E4** Spell constraints + spell validation (standard path)
+- [x] **E4.1** Hard casters: warlock (pact metadata) + paladin (half-caster prepared formula)
 - [x] Harden parse reliability (retry strategy in CLI via `--max-retries`)
 
 ---
@@ -382,4 +403,16 @@ LandingPage/src/components/PlayerCharacterGenerator/
 
 ## 🚀 Immediate Next Step
 
-**Implement E4:** spell constraints + spell validation (then the backend can validate caster builds end-to-end).
+**Next complexity spike:** add **Ranger** (half-caster, known spells) and begin modeling **spell slots/resources** (including warlock pact slots) so `/compute` can return caster “usable loadout” sections, not just selections.
+
+### Proposed next steps (pick 1)
+1. **Ranger (half-caster, known spells)** ✅ (implemented):
+   - Catalog + spell list + constraints
+   - Validator already supports known casters; added 2 focused unit tests (L2 + L3)
+   - Next: run a focused live slice: `--classes ranger --levels 2,3 --count 12`
+2. **Warlock “real pact magic” validation (still small scope)**:
+   - Keep selection validation as-is
+   - Add a new `sections["spellSlots"]` in `/compute` with pact slots (count + slotLevel) for UX
+3. **Expand spell catalogs (v0 → v1) driven by theme misses**:
+   - Start by adding 10–20 spells per list that map cleanly to our theme tags (damage/control/utility/healing)
+   - Run a 24–48 case caster-only sample and inspect theme mismatch rates
