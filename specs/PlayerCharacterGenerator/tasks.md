@@ -681,11 +681,17 @@ Each component renders a section of the character sheet. Display-only first, edi
 | **T075c** | Run live samples + capture cost/latency (avg + p50/p95) | ✅ |
 | **T075d** | Add concurrency + targeted reruns (`--classes/--levels/...`) + dev log saving + full failure dumps | ✅ |
 | **T075e** | Update handoff with evidence + next steps (E3/E4) | ✅ |
-| **T075f** | Decide near-term architecture constraints (stay on chat.completions; defer Responses API; defer spells to E4) | ✅ |
+| **T075f** | Decide near-term architecture constraints (stay on chat.completions; defer Responses API) | ✅ |
+| **T075g** | E3: `/compute` endpoint + derived stats compute | ✅ |
+| **T075h** | E4: spell constraints + spell validation (standard path) | ✅ |
+| **T075i** | Hard casters: warlock (pact metadata + `/compute` spellSlots section), paladin/ranger (half-caster rules) | ✅ |
+| **T075j** | Expand spell catalogs v0→v1 + add harness spell theme mismatch metrics | ✅ |
+| **T075k** | Add explicit concurrency logging (worker START/END, `inFlight=X/N`, `maxInFlightObserved`) | ✅ |
 
 **Notes:**
-- Spell constraints/validation intentionally deferred to E4 (backend constraints omit `spellcasting` for now).
-- Timing data is now available for UX loading bars (p50/p95).
+- Spell constraints/validation are now implemented (E4), including warlock/paladin/ranger.
+- Timing data is available for UX loading bars (p50/p95) and per-stage breakdown.
+- **Deployment gotcha**: a stale backend can serve old spell catalogs. Always confirm via `POST /constraints` before spending tokens on large runs.
 
 **Success Criteria:**
 - >90% JSON parse rate
@@ -706,8 +712,8 @@ Each component renders a section of the character sheet. Display-only first, edi
 | **T079** | Backend endpoint: `POST /api/playercharactergenerator/generate` | ⬜ |
 
 **Next critical backend steps (Rule Engine):**
-- **E3**: `/compute` endpoint + derived stats on backend (mods/prof/HP/AC/etc.)
-- **E4**: spell constraints + spell validation (first real complexity spike)
+- **E5**: spell slot/resource math beyond pact metadata (full slots/prepared bookkeeping)
+- Catalog coverage sanity checks (detect “not enough available spells to satisfy counts”)
 - Improve JSON reliability: reduce parse failures via retries/repair / stricter schema
 
 ### Phase 5.2: Generation UI

@@ -31,6 +31,7 @@ In parallel, keep the AI preference harness working to empirically measure succe
 -  - `POST /api/playercharactergenerator/compute` (E3 derived stats compute)
 - **Harness uses real constraints** in live mode (no more `getMockConstraints()` for live runs).
 - **Concurrency is supported** for live samples via `--concurrency N` (works well at 3–4 on this box).
+- **Concurrency logging is explicit**: the CLI logs worker START/END with `inFlight=X/N` and prints `maxInFlightObserved`.
 - **Latency/cost reporting improved**: report includes avg + p50 + p95 latency; per-stage timings collected (constraints/AI/translate/validate).
 - **Failure reporting improved**: demo prints a full JSON dump for each failed case (raw response + issues + timings).
 - **Dev run logs**: in dev env, CLI output is saved to `LandingPage/pcg_run_logs/*.txt` for review.
@@ -50,6 +51,24 @@ In parallel, keep the AI preference harness working to empirically measure succe
   - **Cost**: ~$0.0096 per success
 - **Spell-focused sample (9 cases, live)**: wizard/cleric/bard across L1–3 achieved **100%** parse/translate/validate.
   - **Latency**: avg ~35.5s, p50 ~34.9s, p95 ~37.3s
+
+### Known gotcha (and how we debug it) ⚠️
+- If you change spell catalogs locally, the deployed server may still be serving the **old catalog** until it’s restarted/redeployed.
+- Symptom: translation failures like **`Only matched 3/4 spells`** with **0% spell theme mismatch**, which indicates a *catalog coverage shortage*, not theme mismatch.
+- Fast confirmation (wizard L2 coverage check):
+
+```bash
+curl -sk -X POST "https://dev.dungeonmind.net/api/playercharactergenerator/constraints" \
+  -H "Content-Type: application/json" \
+  -d '{"classId":"wizard","raceId":"human","level":2,"backgroundId":"soldier","concept":"Check catalog coverage for wizard L2."}' \
+  | python -c 'import sys,json; o=json.load(sys.stdin); sc=o["data"]["constraints"]["spellcasting"]; print(len(sc.get("availableSpells") or []), [s.get("id") for s in (sc.get("availableSpells") or [])])'
+```
+
+- Evidence:
+  - Before restart: wizard L2 `availableSpells.length == 3` (guaranteed failures for prepared L2 wizards that need 4+ spells)
+  - After restart: wizard L2 `availableSpells.length == 11`
+  - Focused live rerun (previously failing slice) passed **4/4**:
+    `--classes wizard --levels 2 --races human,dwarf --backgrounds soldier,sage`
 
 ### What's Not Yet Real ❌
 - **Spell slots / spell resources are not computed** (we validate spell *selection*; we don't model slots yet).
@@ -85,6 +104,12 @@ npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts sample \
 NODE_TLS_REJECT_UNAUTHORIZED=0 DUNGEONMIND_API_URL=https://dev.dungeonmind.net \
 npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts sample \
   --classes fighter,cleric --levels 1,3 \
+  --live --concurrency 4 --backend-validate --backend-compute --max-retries 2
+
+# Re-run the previously failing wizard-L2 slice (coverage check after spell catalog updates)
+NODE_TLS_REJECT_UNAUTHORIZED=0 DUNGEONMIND_API_URL=https://dev.dungeonmind.net \
+npx tsx src/components/PlayerCharacterGenerator/generation/demo.ts sample \
+  --classes wizard --levels 2 --races human,dwarf --backgrounds soldier,sage \
   --live --concurrency 4 --backend-validate --backend-compute --max-retries 2
 
 # Save CLI output to file automatically in dev env (unless --no-save-log)
