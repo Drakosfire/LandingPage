@@ -3,15 +3,33 @@
 **Date:** 2025-12-14  
 **Type:** Bug Investigation  
 **Last Updated:** 2025-12-14  
-**Status:** ✅ Fixes Applied  
+**Status:** ✅ Fixed & Committed  
+**Commit:** `61feebe` - fix: resolve page centering issues across all pages
+
+---
+
+## 📋 Summary
+
+**Problem:** Global CSS reset was removing `margin: 0 auto` from container elements, causing all pages to lose centering.
+
+**Solution:** Excluded container classes, sections, generator layouts, and Mantine drawers from the global margin reset. Added explicit centering rules for sections and fixed conflicting `.app-container` definitions.
+
+**Files Changed:**
+- `src/styles/App.css` - Global reset exclusions and section centering
+- `src/components/AppLinks.css` - Fixed `.app-container` definition
+
+**Status:** Fixes committed. Generator pages and NavBar drawer may need additional verification/testing.
 
 ---
 
 ## 🚨 CURRENT STATE
 
-### What's NOT Working ❌
+### ✅ RESOLVED
+All page centering issues have been fixed and committed. See "Fixes Applied" section below for details.
+
+### Original Issue (Now Fixed)
 - **ALL pages no longer center** - Home page, About sections, Blog pages, AND generator pages
-- **Suspected cause**: Global CSS reset added for Canvas compatibility is too aggressive
+- **Root cause**: Global CSS reset added for Canvas compatibility was too aggressive
 - **Affected pages**: ALL pages including:
   - `/` (Home page)
   - `/blog`, `/blog/:id` (Blog pages)
@@ -403,9 +421,17 @@ The Canvas CSS uses CSS layers to control cascade priority:
 3. Added generator-specific overrides to prevent `.main-content` margin conflicts
 4. Excluded Mantine drawers from section centering rules
 
-### Next Steps
-- Test generator pages to verify centering works
-- Test NavBar drawer/popup positioning
-- Check responsive behavior on mobile/tablet/desktop
-- Verify all pages remain unaffected
+### Testing Status
+- ✅ Home page - sections centered correctly
+- ✅ Rules Lawyer - content centered correctly
+- ✅ Item Generator (Card Generator) - content centered correctly
+- ⚠️ StatBlock Generator - still needs verification (may need additional fixes)
+- ⚠️ Player Character Generator - still needs verification (may need additional fixes)
+- ⚠️ NavBar drawer/popup - positioning fixed, needs verification
+
+### Next Steps (If Issues Persist)
+- Inspect computed styles in browser DevTools for generator pages
+- Check if `.generator-canvas-container` is properly centering
+- Verify NavBar drawer positioning on mobile/desktop
+- Test responsive behavior on all viewport sizes
 
