@@ -41,24 +41,11 @@ const AppLinks: React.FC = () => {
                 />
             </Link>
             <Link to="/charactergenerator" className="app-card">
-                <div
-                    className="app-logo placeholder-logo"
-                    style={{
-                        width: '100%',
-                        aspectRatio: '1',
-                        backgroundColor: '#2b1d0f',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#EEE5CE',
-                        fontSize: '3rem',
-                        fontFamily: 'serif'
-                    }}
-                    title="Character Generator (Coming Soon)"
-                >
-                    🧙
-                </div>
+                <img
+                    src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/102ae220-107f-44e6-f261-8208dd245900/public"
+                    alt="Character Generator"
+                    className="app-logo"
+                />
             </Link>
         </div>
     );
