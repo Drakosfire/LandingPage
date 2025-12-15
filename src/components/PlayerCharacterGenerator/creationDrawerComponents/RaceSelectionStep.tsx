@@ -151,38 +151,38 @@ const RaceSelectionStep: React.FC = () => {
             )}
 
             {/* Race List - parent drawer handles scrolling */}
-            <Stack gap="xs">
-                {baseRaceOptions.map((baseRaceOption) => {
-                    // Get full race data for display
-                    const fullRaceData = getFullRaceData(baseRaceOption);
-                    if (!fullRaceData) return null;
+                <Stack gap="xs">
+                    {baseRaceOptions.map((baseRaceOption) => {
+                        // Get full race data for display
+                        const fullRaceData = getFullRaceData(baseRaceOption);
+                        if (!fullRaceData) return null;
 
-                    // Get subraces for this base race
-                    const subraces = ruleEngine.getSubraces(baseRaceOption.id);
-                    const hasSubraces = subraces.length > 0;
+                        // Get subraces for this base race
+                        const subraces = ruleEngine.getSubraces(baseRaceOption.id);
+                        const hasSubraces = subraces.length > 0;
 
-                    // Check if this race or one of its subraces is selected
-                    const isSelected = selectedBaseRace === baseRaceOption.id ||
-                        subraces.some(sr => sr.id === selectedRaceId);
+                        // Check if this race or one of its subraces is selected
+                        const isSelected = selectedBaseRace === baseRaceOption.id ||
+                            subraces.some(sr => sr.id === selectedRaceId);
 
-                    return (
-                        <RaceCard
-                            key={baseRaceOption.id}
-                            race={fullRaceData}
-                            isSelected={isSelected}
-                            onSelect={hasSubraces ? undefined : handleRaceSelect}
-                            subraces={hasSubraces ? subraces : undefined}
-                            selectedSubraceId={selectedRaceId}
-                            onSubraceSelect={handleSubraceSelect}
-                            bonusesDisplay={formatAbilityBonuses(fullRaceData)}
-                            hasFlexibleBonuses={hasFlexibleBonuses && isSelected}
-                            flexibleBonusOptions={flexibleBonusOptions}
-                            currentFlexibleChoices={character?.dnd5eData?.flexibleAbilityBonusChoices}
-                            onFlexibleBonusChange={handleFlexibleBonusChange}
-                        />
-                    );
-                })}
-            </Stack>
+                        return (
+                            <RaceCard
+                                key={baseRaceOption.id}
+                                race={fullRaceData}
+                                isSelected={isSelected}
+                                onSelect={hasSubraces ? undefined : handleRaceSelect}
+                                subraces={hasSubraces ? subraces : undefined}
+                                selectedSubraceId={selectedRaceId}
+                                onSubraceSelect={handleSubraceSelect}
+                                bonusesDisplay={formatAbilityBonuses(fullRaceData)}
+                                hasFlexibleBonuses={hasFlexibleBonuses && isSelected}
+                                flexibleBonusOptions={flexibleBonusOptions}
+                                currentFlexibleChoices={character?.dnd5eData?.flexibleAbilityBonusChoices}
+                                onFlexibleBonusChange={handleFlexibleBonusChange}
+                            />
+                        );
+                    })}
+                </Stack>
 
             {/* Selection Summary */}
             {selectedRaceId && character?.dnd5eData?.race && (

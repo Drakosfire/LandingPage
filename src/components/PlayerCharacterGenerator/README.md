@@ -14,7 +14,6 @@ D&D 5e character creation tool with AI generation and manual workflows.
 - ✅ Zero linter errors
 
 **Phase 1: Ability Scores** 🚧 NEXT
-- See: `Docs/ProjectDiary/2025/CharacterGenerator/2025-11-03-phase1-ability-scores-HANDOFF.md` (to be created)
 
 ## Architecture
 

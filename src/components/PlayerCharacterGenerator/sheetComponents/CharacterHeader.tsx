@@ -102,9 +102,9 @@ const LabeledBox: React.FC<LabeledBoxProps> = ({
                     value
                 )}
             </div>
-            <div className="label">{label}</div>
-        </div>
-    );
+        <div className="label">{label}</div>
+    </div>
+);
 };
 
 /**

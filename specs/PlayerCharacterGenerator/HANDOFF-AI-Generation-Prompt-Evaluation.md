@@ -422,7 +422,6 @@ LandingPage/src/components/PlayerCharacterGenerator/
 - **Tasks:** `specs/PlayerCharacterGenerator/tasks.md` → Phase 5.0
 - **Client Rule Engine:** `LandingPage/src/components/PlayerCharacterGenerator/engine/dnd5e/DnD5eRuleEngine.ts`
 - **Point Buy:** `LandingPage/src/components/PlayerCharacterGenerator/rules/dnd5e/pointBuy.ts`
-- **Responses API migration reference (do NOT apply to PCG yet):** `Docs/ProjectDiary/2025/RulesLawyer-Revival/handoffs/phase1/02_phase1_h2-openai-responses-api-migration-COMPLETE.md`
 
 ---
 

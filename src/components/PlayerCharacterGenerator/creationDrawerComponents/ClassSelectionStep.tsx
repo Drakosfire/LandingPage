@@ -182,17 +182,17 @@ const ClassSelectionStep: React.FC = () => {
             )}
 
             {/* Class List - parent drawer handles scrolling */}
-            <Stack gap="xs">
-                {availableClasses.map(classData => (
-                    <ClassCard
-                        key={classData.id}
-                        classData={classData}
-                        isSelected={selectedClass?.id === classData.id}
-                        onSelect={handleClassSelect}
-                        requiresL1Subclass={ruleEngine.requiresLevel1Subclass(classData.id)}
-                    />
-                ))}
-            </Stack>
+                <Stack gap="xs">
+                    {availableClasses.map(classData => (
+                        <ClassCard
+                            key={classData.id}
+                            classData={classData}
+                            isSelected={selectedClass?.id === classData.id}
+                            onSelect={handleClassSelect}
+                            requiresL1Subclass={ruleEngine.requiresLevel1Subclass(classData.id)}
+                        />
+                    ))}
+                </Stack>
 
             {/* Subsections (only shown when a class is selected) */}
             {selectedClass && (

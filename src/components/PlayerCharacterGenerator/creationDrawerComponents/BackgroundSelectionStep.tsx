@@ -150,20 +150,20 @@ const BackgroundSelectionStep: React.FC = () => {
             )}
 
             {/* Background List - parent drawer handles scrolling */}
-            <Stack gap="xs">
-                {availableBackgrounds.map(background => (
-                    <BackgroundCard
-                        key={background.id}
-                        background={background}
-                        isSelected={selectedBackground?.id === background.id}
-                        onSelect={handleBackgroundSelect}
-                        hasSkillOverlap={
-                            selectedBackground?.id === background.id &&
-                            skillOverlaps.length > 0
-                        }
-                    />
-                ))}
-            </Stack>
+                <Stack gap="xs">
+                    {availableBackgrounds.map(background => (
+                        <BackgroundCard
+                            key={background.id}
+                            background={background}
+                            isSelected={selectedBackground?.id === background.id}
+                            onSelect={handleBackgroundSelect}
+                            hasSkillOverlap={
+                                selectedBackground?.id === background.id &&
+                                skillOverlaps.length > 0
+                            }
+                        />
+                    ))}
+                </Stack>
 
             {/* Skill Overlap Warning */}
             {selectedBackground && skillOverlaps.length > 0 && (
@@ -183,7 +183,7 @@ const BackgroundSelectionStep: React.FC = () => {
                             const selectedReplacement = replacementSkills[overlappingSkill];
                             
                             return (
-                                <Box key={overlappingSkill}>
+                            <Box key={overlappingSkill}>
                                     {selectedReplacement ? (
                                         // Show confirmation box when selected
                                         <Box
@@ -215,27 +215,27 @@ const BackgroundSelectionStep: React.FC = () => {
                                     ) : (
                                         // Show radio options when not yet selected
                                         <>
-                                            <Text size="sm" mb="xs">
-                                                Replace <strong>{formatSkillName(overlappingSkill)}</strong> with:
-                                            </Text>
-                                            <Radio.Group
+                                <Text size="sm" mb="xs">
+                                    Replace <strong>{formatSkillName(overlappingSkill)}</strong> with:
+                                </Text>
+                                <Radio.Group
                                                 value=""
-                                                onChange={(value) => handleReplacementSelect(overlappingSkill, value)}
-                                            >
-                                                <Group gap="md">
-                                                    {availableReplacements.slice(0, 6).map(skill => (
-                                                        <Radio
-                                                            key={skill}
-                                                            value={skill}
-                                                            label={formatSkillName(skill)}
-                                                            size="sm"
-                                                        />
-                                                    ))}
-                                                </Group>
-                                            </Radio.Group>
+                                    onChange={(value) => handleReplacementSelect(overlappingSkill, value)}
+                                >
+                                    <Group gap="md">
+                                        {availableReplacements.slice(0, 6).map(skill => (
+                                            <Radio
+                                                key={skill}
+                                                value={skill}
+                                                label={formatSkillName(skill)}
+                                                size="sm"
+                                            />
+                                        ))}
+                                    </Group>
+                                </Radio.Group>
                                         </>
                                     )}
-                                </Box>
+                            </Box>
                             );
                         })}
                     </Stack>

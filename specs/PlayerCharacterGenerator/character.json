@@ -1,0 +1,800 @@
+{
+    "success": true,
+    "data": {
+        "character": {
+            "id": "32c279b9-dfb3-40c7-9ce2-c2c22cc02780",
+            "name": "Rook Valentine",
+            "level": 3,
+            "system": "dnd5e",
+            "dnd5eData": {
+                "abilityScores": {
+                    "strength": 8,
+                    "dexterity": 15,
+                    "constitution": 13,
+                    "intelligence": 12,
+                    "wisdom": 8,
+                    "charisma": 15
+                },
+                "race": {
+                    "id": "human",
+                    "name": "Human",
+                    "baseRace": null,
+                    "size": "medium",
+                    "speed": {
+                        "walk": 30
+                    },
+                    "abilityBonuses": [],
+                    "traits": [],
+                    "languages": [
+                        "Common"
+                    ],
+                    "description": "",
+                    "source": "PCG-v0"
+                },
+                "classes": [
+                    {
+                        "name": "Bard",
+                        "level": 3,
+                        "subclass": "lore",
+                        "hitDie": 8,
+                        "features": [],
+                        "id": "e4e10d65-8bf0-4843-8347-3300c1b59e02"
+                    }
+                ],
+                "background": {
+                    "id": "sage",
+                    "name": "Sage",
+                    "skillProficiencies": [
+                        "Arcana",
+                        "History"
+                    ],
+                    "toolProficiencies": [],
+                    "languages": [],
+                    "equipment": [],
+                    "feature": null,
+                    "description": "",
+                    "source": "PCG-v0"
+                },
+                "derivedStats": {
+                    "armorClass": 12,
+                    "initiative": 2,
+                    "proficiencyBonus": 2,
+                    "speed": {
+                        "walk": 30
+                    },
+                    "maxHp": 21,
+                    "currentHp": 21,
+                    "hitDice": {
+                        "total": 3,
+                        "current": 3,
+                        "size": 8
+                    },
+                    "deathSaves": {
+                        "successes": 0,
+                        "failures": 0
+                    },
+                    "hasInspiration": false,
+                    "passivePerception": 9,
+                    "passiveInvestigation": 11,
+                    "passiveInsight": 9
+                },
+                "proficiencies": {
+                    "skills": [
+                        "Deception",
+                        "History",
+                        "Persuasion",
+                        "Arcana",
+                        "Intimidation"
+                    ],
+                    "savingThrows": [],
+                    "armor": [],
+                    "weapons": [],
+                    "tools": [],
+                    "languages": [
+                        "Common"
+                    ]
+                },
+                "equipment": [
+                    {
+                        "id": "lute",
+                        "name": "Lute",
+                        "type": "musical instrument",
+                        "quantity": 1
+                    },
+                    {
+                        "id": "entertainers-pack",
+                        "name": "Entertainer's Pack",
+                        "type": "adventuring gear",
+                        "quantity": 1
+                    }
+                ],
+                "weapons": [
+                    {
+                        "id": "rapier",
+                        "name": "Rapier",
+                        "type": "weapon",
+                        "weaponCategory": "martial",
+                        "weaponType": "melee",
+                        "damage": "1d8",
+                        "damageType": "piercing",
+                        "properties": [
+                            "finesse"
+                        ],
+                        "quantity": 1
+                    }
+                ],
+                "armor": null,
+                "shield": false,
+                "features": [
+                    {
+                        "id": "bard-subclass:lore",
+                        "name": "College of Lore",
+                        "description": "Knowledge, magic, and cutting words.",
+                        "source": "class",
+                        "sourceDetails": "Bard Level 3"
+                    },
+                    {
+                        "id": "bard:spellcasting",
+                        "name": "Spellcasting",
+                        "description": "You have learned to untangle and reshape the fabric of reality in harmony with your wishes and music.",
+                        "source": "class",
+                        "sourceDetails": "Bard Level 1"
+                    },
+                    {
+                        "id": "bard:bardic-inspiration",
+                        "name": "Bardic Inspiration",
+                        "description": "You can inspire others through stirring words or music. A creature can add the inspiration die to one ability check, attack roll, or saving throw.",
+                        "source": "class",
+                        "sourceDetails": "Bard Level 1",
+                        "limitedUse": {
+                            "maxUses": 3,
+                            "currentUses": 3,
+                            "resetOn": "long"
+                        }
+                    },
+                    {
+                        "id": "bard:jack-of-all-trades",
+                        "name": "Jack of All Trades",
+                        "description": "You can add half your proficiency bonus, rounded down, to any ability check you make that doesn't already include your proficiency bonus.",
+                        "source": "class",
+                        "sourceDetails": "Bard Level 2"
+                    }
+                ],
+                "spellcasting": {
+                    "class": "Bard",
+                    "ability": "charisma",
+                    "spellSaveDC": 12,
+                    "spellAttackBonus": 4,
+                    "cantrips": [
+                        {
+                            "id": "vicious-mockery",
+                            "name": "Vicious Mockery",
+                            "level": 0,
+                            "school": "enchantment",
+                            "description": "Psychic damage; control via disadvantage on next attack (damage, control)."
+                        },
+                        {
+                            "id": "friends",
+                            "name": "Friends",
+                            "level": 0,
+                            "school": "enchantment",
+                            "description": "Utility/control: advantage on Charisma checks vs one creature (utility, control)."
+                        }
+                    ],
+                    "spellsKnown": [
+                        {
+                            "id": "healing-word",
+                            "name": "Healing Word",
+                            "level": 1,
+                            "school": "evocation",
+                            "description": "Healing at range as a bonus action (healing)."
+                        },
+                        {
+                            "id": "cure-wounds",
+                            "name": "Cure Wounds",
+                            "level": 1,
+                            "school": "evocation",
+                            "description": "Healing via touch (healing)."
+                        },
+                        {
+                            "id": "dissonant-whispers",
+                            "name": "Dissonant Whispers",
+                            "level": 1,
+                            "school": "enchantment",
+                            "description": "Psychic damage; control via forced movement (damage, control)."
+                        },
+                        {
+                            "id": "thunderwave",
+                            "name": "Thunderwave",
+                            "level": 1,
+                            "school": "evocation",
+                            "description": "Thunder damage; control via push (damage, control)."
+                        },
+                        {
+                            "id": "charm-person",
+                            "name": "Charm Person",
+                            "level": 1,
+                            "school": "enchantment",
+                            "description": "Control: charm a humanoid (control)."
+                        },
+                        {
+                            "id": "disguise-self",
+                            "name": "Disguise Self",
+                            "level": 1,
+                            "school": "illusion",
+                            "description": "Utility: magical disguise (utility, illusion)."
+                        }
+                    ],
+                    "spellSlots": {
+                        "1": {
+                            "total": 0,
+                            "used": 0
+                        }
+                    }
+                },
+                "personality": {
+                    "traits": [
+                        "Speaks in dramatic, poetic turns of phrase—especially when nervous.",
+                        "Treats every new acquaintance like a potential chapter in an epic romance."
+                    ],
+                    "ideals": [
+                        "Love is a power worth studying: it can civilize monsters, topple tyrants, and redeem the lost."
+                    ],
+                    "bonds": [
+                        "A battered field-journal of monster courtship legends and half-translated bestiaries, started by a mentor who vanished while chasing a 'winged lover' myth."
+                    ],
+                    "flaws": [
+                        "Confuses intensity for intimacy and pushes too hard when affection isn’t immediately returned."
+                    ]
+                },
+                "appearance": "A lean, expressive human with wind-tousled dark hair and sharp, attentive eyes that seem to measure both posture and mood. Their style is tasteful but dramatic—clean lines, a hint of flourish, and small feather-like accents in pins or stitching that suggest an ongoing fascination with great birds. Their hands are ink-stained more often than not, and they carry themself like someone perpetually stepping onto an unseen stage.",
+                "age": 25,
+                "backstoryConcept": "half-roc bard romantic",
+                "currency": {
+                    "cp": 0,
+                    "sp": 0,
+                    "ep": 0,
+                    "gp": 0,
+                    "pp": 0
+                }
+            },
+            "description": "half-roc bard romantic",
+            "backstory": "Rook was born fully human, but raised on the edge of a storm-battered coast where sailors swore the wind itself had talons. Their mother kept a small, respectable bookshop; their father—absent more often than present—left behind only a name, a few coins, and rumors that he’d once served aboard a privateer that hunted sea-raiders and worse. Rook grew up devouring romances and travelogues alike, learning early that stories could make hunger feel smaller and loneliness feel temporary.\n\nAt the academy, Rook distinguished themself not through grim discipline but through obsession: marginalia filled with notes about “roc-songs,” flirtation rituals in old epics, and the recurring motif of a colossal bird carrying away a beloved. Professors called it fanciful; Rook called it a pattern. They became a sage by day and a performer by night, paying tuition with witty recitations and earnest serenades, collecting gossip from scholars and admirers with equal ease.\n\nThe turning point came when Rook uncovered a fragmentary account of a courtship between a sky-hunter and a mortal—half myth, half field report—written in the same hand as their mentor’s journal. The last line was a promise: a rendezvous at a cliffside ruin when the moon “wears a silver beak.” Rook left the academy with ink-stained fingers, a traveling tune on their lips, and the conviction that the world’s greatest romances are also its most dangerous mysteries.\n\nNow they wander from library to ballroom to wilderness outpost, following sightings of great wings and greater legends. Rook courts danger the way others court lovers: with a smile, a vow, and the stubborn belief that even a monster might be moved by the right words at the right moment.",
+            "playerName": "",
+            "xp": 0,
+            "createdAt": "2025-12-13T22:32:39.038203",
+            "updatedAt": "2025-12-13T22:32:39.038203",
+            "version": 1
+        },
+        "preferences": {
+            "abilityPriorities": [
+                "charisma",
+                "dexterity",
+                "constitution",
+                "intelligence",
+                "wisdom",
+                "strength"
+            ],
+            "abilityReasoning": "A romantic bard lives and dies by presence, wit, and the ability to sway hearts, making charisma paramount. Dexterity supports a quick, graceful duelist-performer style, while constitution keeps them standing when bravado draws danger. As a sage, intelligence remains important for scholarship and lore, with wisdom for reading a room and noticing trouble. Strength is least central, since their flair and finesse matter more than brute force.",
+            "combatApproach": "Mobile support and control: stays near the edge of the fray, bolstering allies with inspiring words, disrupting key foes with cutting remarks and tricky magic, and stepping in with elegant, opportunistic strikes when an opening appears.",
+            "skillThemes": [
+                "charming social finesse and romantic persuasion",
+                "scholarly lore, research, and decoding ancient knowledge",
+                "quick-footed performance and misdirection under pressure"
+            ],
+            "equipmentStyle": "Refined and theatrical: a sleek duelist aesthetic paired with a beloved instrument, favoring light, presentable travel gear suitable for salons, libraries, and impromptu moonlit serenades.",
+            "subclassPreference": null,
+            "fightingStylePreference": null,
+            "cantripThemes": [
+                "biting wit and distracting flourishes",
+                "minor glamours and stagecraft for romance and misdirection"
+            ],
+            "spellThemes": [
+                "enchantment and charm that turns conflict into conversation",
+                "illusions and emotional manipulation to control the pace of a scene",
+                "supportive magic that elevates allies and keeps the story going"
+            ],
+            "character": {
+                "name": "Rook Valentine",
+                "personality": {
+                    "traits": [
+                        "Speaks in dramatic, poetic turns of phrase—especially when nervous.",
+                        "Treats every new acquaintance like a potential chapter in an epic romance."
+                    ],
+                    "ideals": [
+                        "Love is a power worth studying: it can civilize monsters, topple tyrants, and redeem the lost."
+                    ],
+                    "bonds": [
+                        "A battered field-journal of monster courtship legends and half-translated bestiaries, started by a mentor who vanished while chasing a 'winged lover' myth."
+                    ],
+                    "flaws": [
+                        "Confuses intensity for intimacy and pushes too hard when affection isn’t immediately returned."
+                    ]
+                },
+                "backstory": "Rook was born fully human, but raised on the edge of a storm-battered coast where sailors swore the wind itself had talons. Their mother kept a small, respectable bookshop; their father—absent more often than present—left behind only a name, a few coins, and rumors that he’d once served aboard a privateer that hunted sea-raiders and worse. Rook grew up devouring romances and travelogues alike, learning early that stories could make hunger feel smaller and loneliness feel temporary.\n\nAt the academy, Rook distinguished themself not through grim discipline but through obsession: marginalia filled with notes about “roc-songs,” flirtation rituals in old epics, and the recurring motif of a colossal bird carrying away a beloved. Professors called it fanciful; Rook called it a pattern. They became a sage by day and a performer by night, paying tuition with witty recitations and earnest serenades, collecting gossip from scholars and admirers with equal ease.\n\nThe turning point came when Rook uncovered a fragmentary account of a courtship between a sky-hunter and a mortal—half myth, half field report—written in the same hand as their mentor’s journal. The last line was a promise: a rendezvous at a cliffside ruin when the moon “wears a silver beak.” Rook left the academy with ink-stained fingers, a traveling tune on their lips, and the conviction that the world’s greatest romances are also its most dangerous mysteries.\n\nNow they wander from library to ballroom to wilderness outpost, following sightings of great wings and greater legends. Rook courts danger the way others court lovers: with a smile, a vow, and the stubborn belief that even a monster might be moved by the right words at the right moment.",
+                "appearance": "A lean, expressive human with wind-tousled dark hair and sharp, attentive eyes that seem to measure both posture and mood. Their style is tasteful but dramatic—clean lines, a hint of flourish, and small feather-like accents in pins or stitching that suggest an ongoing fascination with great birds. Their hands are ink-stained more often than not, and they carry themself like someone perpetually stepping onto an unseen stage.",
+                "age": 25
+            }
+        },
+        "choices": {
+            "abilityScores": {
+                "strength": 8,
+                "dexterity": 15,
+                "constitution": 13,
+                "intelligence": 12,
+                "wisdom": 8,
+                "charisma": 15
+            },
+            "selectedSkills": [
+                "Deception",
+                "History",
+                "Persuasion",
+                "Arcana",
+                "Intimidation"
+            ],
+            "equipmentPackageId": "A",
+            "featureChoices": {
+                "bard-subclass": "lore"
+            },
+            "selectedCantrips": [
+                "vicious-mockery",
+                "friends"
+            ],
+            "selectedSpells": [
+                "healing-word",
+                "cure-wounds",
+                "dissonant-whispers",
+                "thunderwave",
+                "charm-person",
+                "disguise-self"
+            ]
+        },
+        "derivedStats": {
+            "abilityModifiers": {
+                "strength": -1,
+                "dexterity": 2,
+                "constitution": 1,
+                "intelligence": 1,
+                "wisdom": -1,
+                "charisma": 2
+            },
+            "proficiencyBonus": 2,
+            "hitPointsMax": 21,
+            "armorClass": 12,
+            "initiative": 2,
+            "savingThrows": {
+                "strength": -1,
+                "dexterity": 4,
+                "constitution": 1,
+                "intelligence": 1,
+                "wisdom": -1,
+                "charisma": 4
+            },
+            "skillModifiers": {
+                "Acrobatics": 2,
+                "Animal Handling": -1,
+                "Arcana": 3,
+                "Athletics": -1,
+                "Deception": 4,
+                "History": 3,
+                "Insight": -1,
+                "Intimidation": 4,
+                "Investigation": 1,
+                "Medicine": -1,
+                "Nature": 1,
+                "Perception": -1,
+                "Performance": 2,
+                "Persuasion": 4,
+                "Religion": 1,
+                "Sleight of Hand": 2,
+                "Stealth": 2,
+                "Survival": -1
+            },
+            "passivePerception": 9
+        },
+        "constraints": {
+            "class": {
+                "id": "bard",
+                "name": "Bard",
+                "hitDie": 8,
+                "primaryAbilities": [
+                    "charisma"
+                ]
+            },
+            "race": {
+                "id": "human",
+                "name": "Human",
+                "abilityBonuses": {}
+            },
+            "background": {
+                "id": "sage",
+                "name": "Sage",
+                "grantedSkills": [
+                    "Arcana",
+                    "History"
+                ]
+            },
+            "skills": {
+                "grantedByBackground": [
+                    "Arcana",
+                    "History"
+                ],
+                "classOptions": [
+                    "Acrobatics",
+                    "Animal Handling",
+                    "Arcana",
+                    "Athletics",
+                    "Deception",
+                    "History",
+                    "Insight",
+                    "Intimidation",
+                    "Investigation",
+                    "Medicine",
+                    "Nature",
+                    "Perception",
+                    "Performance",
+                    "Persuasion",
+                    "Religion",
+                    "Sleight of Hand",
+                    "Stealth",
+                    "Survival"
+                ],
+                "chooseCount": 3,
+                "overlapHandling": "replace"
+            },
+            "equipment": {
+                "packages": [
+                    {
+                        "id": "A",
+                        "description": "Rapier + lute + entertainer's pack",
+                        "items": [
+                            "rapier",
+                            "lute",
+                            "entertainers-pack"
+                        ]
+                    },
+                    {
+                        "id": "B",
+                        "description": "Longsword + flute + diplomat's pack",
+                        "items": [
+                            "longsword",
+                            "flute",
+                            "diplomats-pack"
+                        ]
+                    }
+                ]
+            },
+            "featureChoices": [
+                {
+                    "featureId": "bard-subclass",
+                    "featureName": "Bard College",
+                    "options": [
+                        {
+                            "id": "lore",
+                            "name": "College of Lore",
+                            "description": "Knowledge, magic, and cutting words."
+                        },
+                        {
+                            "id": "valor",
+                            "name": "College of Valor",
+                            "description": "Martial inspiration and battlefield presence."
+                        }
+                    ]
+                }
+            ],
+            "spellcasting": {
+                "ability": "charisma",
+                "cantripsKnown": 2,
+                "spellsKnown": 6,
+                "casterType": "known",
+                "preparedFormula": null,
+                "maxSpellLevel": 2,
+                "spellListId": "bard-srd-l1-3",
+                "pactSlots": null,
+                "pactSlotLevel": null,
+                "availableCantrips": [
+                    {
+                        "id": "vicious-mockery",
+                        "name": "Vicious Mockery",
+                        "level": 0,
+                        "school": "enchantment",
+                        "description": "Psychic damage; control via disadvantage on next attack (damage, control)."
+                    },
+                    {
+                        "id": "friends",
+                        "name": "Friends",
+                        "level": 0,
+                        "school": "enchantment",
+                        "description": "Utility/control: advantage on Charisma checks vs one creature (utility, control)."
+                    },
+                    {
+                        "id": "minor-illusion",
+                        "name": "Minor Illusion",
+                        "level": 0,
+                        "school": "illusion",
+                        "description": "Utility: create a sound or image (utility, illusion)."
+                    },
+                    {
+                        "id": "light",
+                        "name": "Light",
+                        "level": 0,
+                        "school": "evocation",
+                        "description": "Utility: object sheds bright light (utility)."
+                    },
+                    {
+                        "id": "prestidigitation",
+                        "name": "Prestidigitation",
+                        "level": 0,
+                        "school": "transmutation",
+                        "description": "Utility: minor magical tricks and effects (utility)."
+                    }
+                ],
+                "availableSpells": [
+                    {
+                        "id": "healing-word",
+                        "name": "Healing Word",
+                        "level": 1,
+                        "school": "evocation",
+                        "description": "Healing at range as a bonus action (healing)."
+                    },
+                    {
+                        "id": "cure-wounds",
+                        "name": "Cure Wounds",
+                        "level": 1,
+                        "school": "evocation",
+                        "description": "Healing via touch (healing)."
+                    },
+                    {
+                        "id": "dissonant-whispers",
+                        "name": "Dissonant Whispers",
+                        "level": 1,
+                        "school": "enchantment",
+                        "description": "Psychic damage; control via forced movement (damage, control)."
+                    },
+                    {
+                        "id": "thunderwave",
+                        "name": "Thunderwave",
+                        "level": 1,
+                        "school": "evocation",
+                        "description": "Thunder damage; control via push (damage, control)."
+                    },
+                    {
+                        "id": "charm-person",
+                        "name": "Charm Person",
+                        "level": 1,
+                        "school": "enchantment",
+                        "description": "Control: charm a humanoid (control)."
+                    },
+                    {
+                        "id": "disguise-self",
+                        "name": "Disguise Self",
+                        "level": 1,
+                        "school": "illusion",
+                        "description": "Utility: magical disguise (utility, illusion)."
+                    },
+                    {
+                        "id": "faerie-fire",
+                        "name": "Faerie Fire",
+                        "level": 1,
+                        "school": "evocation",
+                        "description": "Control: outline targets; attacks have advantage (control, buff)."
+                    },
+                    {
+                        "id": "sleep",
+                        "name": "Sleep",
+                        "level": 1,
+                        "school": "enchantment",
+                        "description": "Control: put creatures to sleep (control)."
+                    },
+                    {
+                        "id": "tashas-hideous-laughter",
+                        "name": "Tasha's Hideous Laughter",
+                        "level": 1,
+                        "school": "enchantment",
+                        "description": "Control: incapacitate a creature with laughter (control)."
+                    },
+                    {
+                        "id": "shatter",
+                        "name": "Shatter",
+                        "level": 2,
+                        "school": "evocation",
+                        "description": "Thunder damage in an area (damage)."
+                    },
+                    {
+                        "id": "suggestion",
+                        "name": "Suggestion",
+                        "level": 2,
+                        "school": "enchantment",
+                        "description": "Control: influence a creature's actions (control)."
+                    },
+                    {
+                        "id": "invisibility",
+                        "name": "Invisibility",
+                        "level": 2,
+                        "school": "illusion",
+                        "description": "Utility: become invisible (utility)."
+                    },
+                    {
+                        "id": "calm-emotions",
+                        "name": "Calm Emotions",
+                        "level": 2,
+                        "school": "enchantment",
+                        "description": "Control: suppress strong emotions; end charm/fear (control)."
+                    },
+                    {
+                        "id": "enhance-ability",
+                        "name": "Enhance Ability",
+                        "level": 2,
+                        "school": "transmutation",
+                        "description": "Buff: grant advantage on ability checks (buff, utility)."
+                    }
+                ]
+            }
+        },
+        "issues": [
+            "No preference for Bard College, defaulting to first option"
+        ],
+        "sections": {
+            "validation": {
+                "pointBuy": {
+                    "success": true,
+                    "issues": [],
+                    "details": {
+                        "baseScores": {
+                            "strength": 8,
+                            "dexterity": 15,
+                            "constitution": 13,
+                            "intelligence": 12,
+                            "wisdom": 8,
+                            "charisma": 15
+                        },
+                        "pointsSpent": 27,
+                        "pointsTotal": 27
+                    }
+                },
+                "skills": {
+                    "success": true,
+                    "issues": [],
+                    "details": {
+                        "grantedByBackground": [
+                            "Arcana",
+                            "History"
+                        ],
+                        "classOptions": [
+                            "Acrobatics",
+                            "Animal Handling",
+                            "Arcana",
+                            "Athletics",
+                            "Deception",
+                            "History",
+                            "Insight",
+                            "Intimidation",
+                            "Investigation",
+                            "Medicine",
+                            "Nature",
+                            "Perception",
+                            "Performance",
+                            "Persuasion",
+                            "Religion",
+                            "Sleight of Hand",
+                            "Stealth",
+                            "Survival"
+                        ],
+                        "chooseCount": 3
+                    }
+                },
+                "equipment": {
+                    "success": true,
+                    "issues": [],
+                    "details": {
+                        "allowedPackageIds": [
+                            "A",
+                            "B"
+                        ]
+                    }
+                },
+                "featureChoices": {
+                    "success": true,
+                    "issues": [],
+                    "details": {
+                        "requiredFeatureIds": [
+                            "bard-subclass"
+                        ],
+                        "extraFeatureIds": []
+                    }
+                },
+                "spells": {
+                    "success": true,
+                    "issues": [],
+                    "details": {
+                        "casterType": "known",
+                        "preparedFormula": null,
+                        "expectedCantrips": 2,
+                        "expectedSpells": 6,
+                        "maxSpellLevel": 2,
+                        "allowedCantripIds": [
+                            "friends",
+                            "light",
+                            "minor-illusion",
+                            "prestidigitation",
+                            "vicious-mockery"
+                        ],
+                        "allowedSpellIds": [
+                            "calm-emotions",
+                            "charm-person",
+                            "cure-wounds",
+                            "disguise-self",
+                            "dissonant-whispers",
+                            "enhance-ability",
+                            "faerie-fire",
+                            "healing-word",
+                            "invisibility",
+                            "shatter",
+                            "sleep",
+                            "suggestion",
+                            "tashas-hideous-laughter",
+                            "thunderwave"
+                        ],
+                        "selectedCantrips": [
+                            "vicious-mockery",
+                            "friends"
+                        ],
+                        "selectedSpells": [
+                            "healing-word",
+                            "cure-wounds",
+                            "dissonant-whispers",
+                            "thunderwave",
+                            "charm-person",
+                            "disguise-self"
+                        ]
+                    }
+                }
+            },
+            "compute": {
+                "compute": {
+                    "success": true,
+                    "issues": [],
+                    "details": {
+                        "level": 3,
+                        "hitDie": 8,
+                        "equipmentItems": [
+                            "rapier",
+                            "lute",
+                            "entertainers-pack"
+                        ],
+                        "acDetails": {
+                            "armorItemId": null,
+                            "armorKind": "unarmored",
+                            "baseAc": 10,
+                            "dexModApplied": 2,
+                            "shieldBonus": 0,
+                            "fightingStyleDefenseBonus": 0
+                        },
+                        "saveProficiencies": [
+                            "dexterity",
+                            "charisma"
+                        ]
+                    }
+                },
+                "spellSlots": {
+                    "success": true,
+                    "issues": [],
+                    "details": {
+                        "kind": "standard",
+                        "note": "Spell slot math not implemented yet (E5 backlog)."
+                    }
+                }
+            }
+        },
+        "generationInfo": {
+            "promptVersion": "1.0.0",
+            "model": "gpt-5.2",
+            "timestamp": "2025-12-13T22:32:39.037245",
+            "promptTokens": 815,
+            "completionTokens": 956,
+            "totalTokens": 1771,
+            "generationTimeSeconds": 13.75
+        }
+    },
+    "timestamp": "2025-12-13T22:32:39.039260"
+}

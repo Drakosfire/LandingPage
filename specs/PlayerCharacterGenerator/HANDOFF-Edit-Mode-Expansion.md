@@ -363,6 +363,6 @@ This handoff continues the Edit Mode work started in the Wizard Polish phase. Th
 - **Pattern Source:** `sheetComponents/CharacterHeader.tsx`, `AbilityScoresRow.tsx`
 - **CSS Reference:** `CharacterSheet.css` lines 2230-2390
 - **Context:** `PlayerCharacterGeneratorProvider.tsx`
-- **Learnings:** `Docs/ProjectDiary/Learnings/LEARNINGS-React-State-Architecture-2025.md`
+- **Learnings:** `Docs/Learnings/LEARNINGS-React-State-Architecture-2025.md`
 - **Related Handoff:** `HANDOFF-Wizard-Polish.md`, `HANDOFF-LocalStorage-Persistence.md`
 

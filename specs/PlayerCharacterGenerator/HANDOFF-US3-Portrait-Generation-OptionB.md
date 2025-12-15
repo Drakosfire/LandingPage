@@ -1,7 +1,7 @@
 # Handoff: US3 - Character Portrait Generation (Option B: “Locks + Gallery + Recipe”)
 **Date:** 2025-12-14  
 **Type:** Feature  
-**Last Updated:** 2025-12-14  (updated for fade/washed-out portrait investigation)  
+**Last Updated:** 2025-12-14  (updated for completion + portrait layering fix)  
 
 ---
 
@@ -25,46 +25,24 @@
 - **Portrait upload is implemented (frontend-only, local-first)**:
   - Drag/drop or click-to-browse on `PortraitGenerationTab.tsx` stores the image as a data URL in `character.portrait` + `portraitGallery[]`
 
-### What’s NOT Working ❌
-- **Portrait appears “faded / washed out” in the sheet UI** (user report) even after attempted CSS changes.
+### What Was Broken ❌ (Now Fixed ✅)
+- **Portrait looked faded and/or disappeared** in the PCG sheet header.
 
-### What We Tried (and why it may not have worked)
-1. **Changed `.character-sheet .portrait-box img` blend mode** in `CharacterSheet.css` (desktop sheet styles).
-2. **Swapped portrait box background** between `--bg-light` (semi-transparent white) and `--bg-page` (opaque parchment).
-3. Outcome: **User reports it still looks faded**, and one attempted change made the image stop rendering (likely due to working on the wrong renderer / CSS not actually applied to the rendered component).
+### Root Cause ✅
+- The global PHB stylesheet applies:
+  - `.page img { z-index: -1; }`
+  - File: `LandingPage/public/dnd-static/style.css`
+- Our portrait is a normal `<img>` inside `.page.phb.character-sheet`, so it was being pushed behind the portrait slot background/other layers.
+  - When the portrait slot background was translucent it looked “washed out”.
+  - When the portrait slot background was made opaque, the image effectively became invisible.
 
-### Suspected Causes (Most Likely)
-1. **Wrong portrait renderer being targeted**:
-   - There are *two* portrait systems:
-     - **SheetComponents header** uses `.portrait-box` styles from:
-       - `LandingPage/src/components/PlayerCharacterGenerator/sheetComponents/CharacterSheet.css` (portrait styles around ~L245-L280)
-     - **Canvas theme header** uses `.dm-portrait-panel` / `.dm-portrait-image` styles from:
-       - `LandingPage/src/styles/canvas/canvas-dnd-theme.css` (portrait styles ~L337-L355)
-2. **Canvas theme still applies “wash-out” by design**:
-   - `canvas-dnd-theme.css` contains:
-     - `.dm-portrait-panel { background: rgba(255, 255, 255, 0.55); }`  ← adds a permanent white wash
-     - `.dm-portrait-image { mix-blend-mode: multiply; }`                ← reduces contrast/saturation on parchment
-3. **CSS specificity / multiple headers**:
-   - There is also a second header component under `canvasComponents/` which may be the one actually rendering the portrait.
+### Fix ✅
+- Override that global z-index for the portrait image only (desktop + mobile):
+  - `LandingPage/src/components/PlayerCharacterGenerator/sheetComponents/CharacterSheet.css`
+  - `LandingPage/src/components/PlayerCharacterGenerator/shared/MobileCharacterCanvas.css`
 
-### Debug Steps for Next Session (Concrete Checklist)
-1. **Confirm which portrait renderer is on-screen**
-   - In DevTools, inspect the portrait `<img>` element:
-     - If classes include `.portrait-box img` → sheet CSS is relevant.
-     - If classes include `.dm-portrait-image` or parent `.dm-portrait-panel` → canvas theme CSS is relevant.
-2. **Check computed styles on the `<img>` and parent container**
-   - Look for:
-     - `mix-blend-mode`
-     - `opacity`
-     - `filter`
-     - `background` on the containing element (semi-transparent rgba backgrounds)
-3. **If it’s the canvas renderer, patch here first**
-   - `LandingPage/src/styles/canvas/canvas-dnd-theme.css`:
-     - `.dm-portrait-image` (currently `mix-blend-mode: multiply;`)
-     - `.dm-portrait-panel` (currently `background: rgba(255, 255, 255, 0.55);`)
-4. **If it’s the sheet renderer, validate variable values**
-   - `--bg-light` is currently semi-transparent: `rgba(255, 255, 255, 0.5)` (this will wash out anything behind it).
-   - Prefer an opaque backing for the portrait slot if the goal is full-contrast portraits.
+### Commit (LandingPage repo) ✅
+- `83acf75` — `feat(pcg): portrait generation + upload (US3)`
 
 ---
 
@@ -154,38 +132,46 @@ Then apply style suffix using:
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **US3-01a** | In `CharacterCanvas.tsx`, pass `portraitUrl={character.portrait}` instead of `undefined` (L1151-L1161) | ⬜ |
-| **US3-01b** | In `MobileCharacterCanvas.tsx`, pass `portraitUrl={character.portrait}` instead of `undefined` (L211-L220) | ⬜ |
+| **US3-01a** | In `CharacterCanvas.tsx`, pass `portraitUrl={character.portrait}` instead of `undefined` | ✅ |
+| **US3-01b** | In `MobileCharacterCanvas.tsx`, pass `portraitUrl={character.portrait}` instead of `undefined` | ✅ |
 
 ### Phase 2 — Data schema + persistence safety
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **US3-02a** | Extend `Character` type with Option B fields (`portraitCaption`, `portraitAlt`, `portraitMeta`, `portraitGallery`) | ⬜ |
-| **US3-02b** | Verify `createEmptyCharacter()` tests still pass | ⬜ |
+| **US3-02a** | Extend `Character` type with Option B fields (`portraitCaption`, `portraitAlt`, `portraitMeta`, `portraitGallery`) | ✅ |
+| **US3-02b** | Verify `createEmptyCharacter()` still works (no required initialization) | ✅ |
 
 ### Phase 3 — Replace Portrait placeholder with real tab
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **US3-03a** | Create `PortraitGenerationTab.tsx` in `creationDrawerComponents/` | ⬜ |
-| **US3-03b** | Replace placeholder panel in `PlayerCharacterCreationDrawer.tsx` (L233-L241) | ⬜ |
-| **US3-03c** | Wire tab to provider (`character`, `setCharacter`) | ⬜ |
+| **US3-03a** | Create `PortraitGenerationTab.tsx` in `creationDrawerComponents/` | ✅ |
+| **US3-03b** | Wire tab in `PlayerCharacterCreationDrawer.tsx` | ✅ |
+| **US3-03c** | Use provider (`character`, `updateCharacter`) for persistence | ✅ |
 
 ### Phase 4 — Generation flow (reuse Statblock patterns)
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **US3-04a** | Copy generate flow from `ImageGenerationTab.tsx` (request body + abort + error handling + `num_images: 4`) | ⬜ |
-| **US3-04b** | Store results in `character.portraitGallery` | ⬜ |
-| **US3-04c** | Set active `portrait` on selection + store `portraitPrompt` | ⬜ |
+| **US3-04a** | Reuse generate flow (abort + errors + `num_images: 4`) calling `POST /api/statblockgenerator/generate-image` | ✅ |
+| **US3-04b** | Store results in `character.portraitGallery` | ✅ |
+| **US3-04c** | Select image → set `character.portrait` + `portraitPrompt` + `portraitMeta` | ✅ |
 
 ### Phase 5 — Delightful extras (still v1)
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **US3-05a** | Locks UI (soft locks in prompt builder) | ⬜ |
-| **US3-05b** | Recipe panel: "Copy prompt" + show model/style/negative prompt | ⬜ |
+| **US3-05a** | Locks UI (soft locks in prompt composition) | ✅ |
+| **US3-05b** | Recipe panel + copy (preserve newlines) | ✅ |
+
+### Phase 6 — Upload + Cloud Save Trigger + Layer Fix (follow-ups discovered during implementation)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| **US3-06a** | Upload: drag/drop + browse, compress to JPG data URL (local-first) | ✅ |
+| **US3-06b** | Ensure cloud autosave triggers on portrait changes when signed in (hash includes portrait fingerprints/counts) | ✅ |
+| **US3-06c** | Fix portrait invisibility by overriding global `.page img { z-index: -1; }` for portrait images | ✅ |
 
 ---
 
@@ -221,16 +207,25 @@ Inputs to consider:
 ### Key Files (current)
 ```
 LandingPage/src/components/PlayerCharacterGenerator/PlayerCharacterCreationDrawer.tsx
-  - Portrait tab placeholder (L233-L241)
+  - Portrait tab wired to `PortraitGenerationTab`
 
 LandingPage/src/components/PlayerCharacterGenerator/shared/CharacterCanvas.tsx
-  - portraitUrl currently hardcoded undefined (L1151-L1161)
+  - Passes `portraitUrl={character.portrait}` into `CharacterSheet`
 
 LandingPage/src/components/PlayerCharacterGenerator/shared/MobileCharacterCanvas.tsx
-  - portraitUrl currently hardcoded undefined (L211-L220)
+  - Passes `portraitUrl={character.portrait}` into `CharacterSheet` (mobile)
 
 LandingPage/src/components/PlayerCharacterGenerator/types/character.types.ts
-  - Character has portrait + portraitPrompt (L54-L57)
+  - Character includes `portraitCaption`, `portraitAlt`, `portraitMeta`, `portraitGallery`
+
+LandingPage/src/components/PlayerCharacterGenerator/creationDrawerComponents/PortraitGenerationTab.tsx
+  - Portrait upload + generation + gallery + recipe + locks
+
+LandingPage/src/components/PlayerCharacterGenerator/sheetComponents/CharacterSheet.css
+  - Portrait slot styling + z-index override for portrait `<img>`
+
+LandingPage/src/components/PlayerCharacterGenerator/shared/MobileCharacterCanvas.css
+  - Portrait z-index override for mobile
 
 LandingPage/src/components/StatBlockGenerator/generationDrawerComponents/ImageGenerationTab.tsx
   - Proven image generation flow + request body (L139-L152)

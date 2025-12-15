@@ -104,7 +104,7 @@ StatblockPage.tsx (orchestrator)
 - `StatBlockGenerator/StatblockPage.tsx` - Full pagination implementation
 - `Canvas/src/hooks/useCanvasLayout.ts` - Core pagination hook
 - `Canvas/src/layout/paginate.ts` - Pagination algorithm
-- `Docs/ProjectDiary/2025/Canvas/CanvasLayout_DeepDive.md` - Architecture doc
+- `Docs/architecture/Canvas_Architecture.md` - Architecture doc
 
 ---
 
@@ -422,7 +422,7 @@ Canvas expects certain CSS variables. We should set these in CharacterCanvas:
 ### Implementation References
 - `StatBlockGenerator/StatblockPage.tsx` - Full pagination example
 - `Canvas/src/hooks/useCanvasLayout.ts` - Core pagination hook
-- `Docs/ProjectDiary/2025/Canvas/CanvasLayout_DeepDive.md` - Architecture doc
+- `Docs/architecture/Canvas_Architecture.md` - Architecture doc
 
 ### Current Character Sheet Components
 - `sheetComponents/CharacterSheet.tsx` - Main sheet

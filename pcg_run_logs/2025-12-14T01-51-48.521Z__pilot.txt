@@ -1,0 +1,132 @@
+# PCG run log
+timestamp: 2025-12-14T01:51:48.520Z
+cwd: /home/drakosfire/Projects/DungeonOverMind/LandingPage
+args: ["pilot","--live","--backend-validate","--backend-compute","--max-retries","2"]
+DUNGEONMIND_ENV: 
+DUNGEONMIND_API_URL: https://dev.dungeonmind.net
+NODE_ENV: 
+
+---
+
+
+🎲 D&D 5e AI Character Generation Demo
+
+🌐 Mode: LIVE API (real OpenAI calls)
+
+══════════════════════════════════════════════════════════════════════
+ AI CHARACTER GENERATION PILOT TEST (LIVE API)
+══════════════════════════════════════════════════════════════════════
+
+📋 Generated 5 test cases
+
+⚠️  Using REAL OpenAI API - this will incur costs!
+
+
+🧪 Running test: fighter-human-L1-soldier
+   Class: fighter, Race: human, Level: 1
+(node:606553) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+   📝 Built prompt (2992 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/1)
+   🤖 Real API response received (1482 tokens)
+   ✅ Parsed preferences for: Garran Holt
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 13, CON 15, INT 8, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Acrobatics, Perception
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+🧪 Running test: wizard-human-L1-soldier
+   Class: wizard, Race: human, Level: 1
+   📝 Built prompt (2589 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/1)
+   🤖 Real API response received (1470 tokens)
+   ✅ Parsed preferences for: Garran Holt
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 15, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Arcana, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+
+🧪 Running test: rogue-human-L1-soldier
+   Class: rogue, Race: human, Level: 1
+   📝 Built prompt (2639 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/1)
+   🤖 Real API response received (1552 tokens)
+   ✅ Parsed preferences for: Garran Voss
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 15, INT 8, WIS 13, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Stealth, Perception, Insight, Acrobatics
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+🧪 Running test: cleric-human-L1-soldier
+   Class: cleric, Race: human, Level: 1
+   📝 Built prompt (2843 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/1)
+   🤖 Real API response received (1407 tokens)
+   ✅ Parsed preferences for: Garran Hale
+   ✅ Translation successful
+   📊 Ability Scores: STR 13, DEX 8, CON 15, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, History, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+🧪 Running test: bard-human-L1-soldier
+   Class: bard, Race: human, Level: 1
+   📝 Built prompt (2708 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/1)
+   🤖 Real API response received (1512 tokens)
+   ✅ Parsed preferences for: Garrick Vale
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Persuasion, Perception, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+══════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════
+ AI GENERATION EXPERIMENT RESULTS
+ Generated: 2025-12-14T01:51:48.520Z
+ Test Cases: 5
+══════════════════════════════════════════════════════════════════════
+
+OVERALL SUCCESS RATES
+──────────────────────────────────────────────────────────────────────
+ Parse Success:       100.0%
+ Translation Success: 100.0%
+ Validation Success:  100.0%
+ Overall Success:     100.0%
+
+BY CLASS
+──────────────────────────────────────────────────────────────────────
+ fighter      100.0% (1/1)
+ wizard       100.0% (1/1)
+ rogue        100.0% (1/1)
+ cleric       100.0% (1/1)
+ bard         100.0% (1/1)
+
+BY LEVEL
+──────────────────────────────────────────────────────────────────────
+ Level 1:  100.0% (5/5)
+
+COST ANALYSIS
+──────────────────────────────────────────────────────────────────────
+ Avg Tokens/Request: 1485
+ Avg Latency:        11545ms
+ p50 Latency:        11253ms
+ p95 Latency:        11551ms
+ Total Cost:         $0.0475
+ Cost per Success:   $0.0095
+
+══════════════════════════════════════════════════════════════════════
+
+💰 COST BREAKDOWN
+──────────────────────────────────────────────────────────────────────
+   Total Cost: $0.0475
+   Avg Cost/Character: $0.0095

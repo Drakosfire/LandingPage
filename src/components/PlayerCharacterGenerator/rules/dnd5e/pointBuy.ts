@@ -190,7 +190,7 @@ export function getIncreaseCost(currentScore: number): number {
     if (currentScore < POINT_BUY_MIN_SCORE) {
         return currentScore + 1 <= POINT_BUY_MAX_SCORE 
             ? getPointBuyCost(Math.max(currentScore + 1, POINT_BUY_MIN_SCORE))
-            : 0;
+        : 0;
     }
     
     const currentCost = getPointBuyCost(currentScore);

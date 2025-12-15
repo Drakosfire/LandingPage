@@ -287,7 +287,5 @@ A player wants to export their character as a PDF for printing or as JSON for ba
 
 ## Related Documents
 
-- [CHARACTER_GENERATOR_DESIGN.md](/Docs/ProjectDiary/2025/CharacterGenerator/CHARACTER_GENERATOR_DESIGN.md) - Detailed architecture and implementation plan
-- [CHARACTER_CREATION_ALGORITHM.md](/Docs/ProjectDiary/2025/CharacterGenerator/CHARACTER_CREATION_ALGORITHM.md) - Step-by-step character creation algorithm
 - StatblockGenerator source code - Reference implementation for Canvas patterns
 

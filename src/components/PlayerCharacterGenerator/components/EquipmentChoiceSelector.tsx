@@ -242,32 +242,32 @@ const EquipmentChoiceSelector: React.FC<EquipmentChoiceSelectorProps> = ({
 
                                     return (
                                         <Group key={option.id} gap="xs" wrap="nowrap" align="center">
-                                            <Radio
-                                                value={optionIndex.toString()}
-                                                label={
-                                                    <Group gap="xs" wrap="nowrap">
-                                                        <Badge
-                                                            size="xs"
-                                                            color={getItemColor(primaryType)}
-                                                            variant="light"
-                                                            leftSection={getItemIcon(primaryType)}
-                                                        >
-                                                            {primaryType}
-                                                        </Badge>
-                                                        <Text size="sm">
-                                                            {option.description || formatItems(option.items)}
-                                                        </Text>
-                                                    </Group>
+                                        <Radio
+                                            value={optionIndex.toString()}
+                                            label={
+                                                <Group gap="xs" wrap="nowrap">
+                                                    <Badge
+                                                        size="xs"
+                                                        color={getItemColor(primaryType)}
+                                                        variant="light"
+                                                        leftSection={getItemIcon(primaryType)}
+                                                    >
+                                                        {primaryType}
+                                                    </Badge>
+                                                    <Text size="sm">
+                                                        {option.description || formatItems(option.items)}
+                                                    </Text>
+                                                </Group>
+                                            }
+                                            styles={{
+                                                radio: {
+                                                    cursor: 'pointer'
+                                                },
+                                                label: {
+                                                    cursor: 'pointer'
                                                 }
-                                                styles={{
-                                                    radio: {
-                                                        cursor: 'pointer'
-                                                    },
-                                                    label: {
-                                                        cursor: 'pointer'
-                                                    }
-                                                }}
-                                            />
+                                            }}
+                                        />
                                             {hasInfo && (
                                                 <Popover 
                                                     position="right" 
@@ -346,8 +346,8 @@ const EquipmentChoiceSelector: React.FC<EquipmentChoiceSelectorProps> = ({
                             const selectedWeapon = weaponSubSelections[group.id];
                             
                             return (
-                                <>
-                                    <Divider my="xs" />
+                            <>
+                                <Divider my="xs" />
                                     {weaponOptions.length > 0 ? (
                                         // Show weapon sub-selector
                                         <Box>
@@ -393,11 +393,11 @@ const EquipmentChoiceSelector: React.FC<EquipmentChoiceSelectorProps> = ({
                                         </Box>
                                     ) : (
                                         // Regular items display
-                                        <Text size="xs" c="dimmed">
+                                <Text size="xs" c="dimmed">
                                             Receiving: {formatItems(selectedOption.items)}
-                                        </Text>
+                                </Text>
                                     )}
-                                </>
+                            </>
                             );
                         })()}
                     </Paper>
