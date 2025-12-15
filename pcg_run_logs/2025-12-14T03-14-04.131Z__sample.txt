@@ -1,0 +1,2112 @@
+# PCG run log
+timestamp: 2025-12-14T03:14:04.130Z
+cwd: /home/drakosfire/Projects/DungeonOverMind/LandingPage
+args: ["sample","--classes","wizard,cleric,bard,warlock,paladin,ranger","--levels","2,3","--count","48","--live","--concurrency","4","--backend-validate","--backend-compute","--max-retries","2"]
+DUNGEONMIND_ENV: 
+DUNGEONMIND_API_URL: https://dev.dungeonmind.net
+NODE_ENV: 
+
+---
+
+
+🎲 D&D 5e AI Character Generation Demo
+
+🌐 Mode: LIVE API (real OpenAI calls)
+
+══════════════════════════════════════════════════════════════════════
+ AI CHARACTER GENERATION REPRESENTATIVE SAMPLE (48 cases) (LIVE API) (concurrency=4)
+══════════════════════════════════════════════════════════════════════
+
+📋 Generated 48 test cases
+
+⚠️  Using REAL OpenAI API - this will incur costs!
+
+
+🧪 Running test: wizard-human-L2-soldier
+   Class: wizard, Race: human, Level: 2
+
+🧪 Running test: wizard-dwarf-L2-sage
+   Class: wizard, Race: dwarf, Level: 2
+
+🧪 Running test: wizard-elf-L2-criminal
+   Class: wizard, Race: elf, Level: 2
+
+🧪 Running test: wizard-halfling-L2-acolyte
+   Class: wizard, Race: halfling, Level: 2
+(node:621385) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+   📝 Built prompt (3576 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3558 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3567 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3570 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1712 tokens)
+   ✅ Parsed preferences for: Garrick Vane
+   ❌ Translation failed: Only matched 3/4 spells
+   ✅ Validation passed
+   ⏱️  Progress: 1/48 (ETA ~666s)
+
+🧪 Running test: cleric-human-L2-soldier
+   Class: cleric, Race: human, Level: 2
+   🤖 Real API response received (1577 tokens)
+   ✅ Parsed preferences for: Vaelis Thornveil
+   ❌ Translation failed: Only matched 3/4 spells
+   ✅ Validation passed
+   ⏱️  Progress: 2/48 (ETA ~577s)
+
+🧪 Running test: cleric-dwarf-L2-sage
+   Class: cleric, Race: dwarf, Level: 2
+   🤖 Real API response received (1741 tokens)
+   ✅ Parsed preferences for: Brynna Deepquill
+   ❌ Translation failed: Only matched 3/4 spells
+   ✅ Validation passed
+   ⏱️  Progress: 3/48 (ETA ~742s)
+
+🧪 Running test: cleric-elf-L2-criminal
+   Class: cleric, Race: elf, Level: 2
+   ⚠️  API attempt failed: API error: 504 - <html>
+<head><title>504 Gateway Time-out</title></head>
+<body>
+<center><h1>504 Gateway Time-out</h1></center>
+<hr><center>nginx/1.24.0 (Ubuntu)</center>
+</body>
+</html>
+
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 2/3)
+   📝 Built prompt (3500 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3525 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3526 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1607 tokens)
+   ✅ Parsed preferences for: Bram Underbough
+   ❌ Translation failed: Only matched 3/4 spells
+   ✅ Validation passed
+   ⏱️  Progress: 4/48 (ETA ~813s)
+
+🧪 Running test: cleric-halfling-L2-acolyte
+   Class: cleric, Race: halfling, Level: 2
+   🤖 Real API response received (1629 tokens)
+   ✅ Parsed preferences for: Brynna Deepquill
+   ✅ Translation successful
+   📊 Ability Scores: STR 12, DEX 8, CON 17, INT 13, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Insight, Medicine
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1602 tokens)
+   ✅ Parsed preferences for: Garran Holt
+   ✅ Translation successful
+   📊 Ability Scores: STR 13, DEX 8, CON 15, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Insight, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1655 tokens)
+   ✅ Parsed preferences for: Saelith Veyrun
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, History, Religion
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (3531 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 5/48 (ETA ~1052s)
+
+🧪 Running test: bard-human-L2-soldier
+   Class: bard, Race: human, Level: 2
+   ✅ Backend validation passed
+   🤖 Real API response received (1619 tokens)
+   ✅ Parsed preferences for: Branna Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, History, Persuasion
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 6/48 (ETA ~944s)
+
+🧪 Running test: bard-dwarf-L2-sage
+   Class: bard, Race: dwarf, Level: 2
+   📝 Built prompt (3347 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 7/48 (ETA ~790s)
+
+🧪 Running test: bard-elf-L2-criminal
+   Class: bard, Race: elf, Level: 2
+   📝 Built prompt (3356 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1572 tokens)
+   ✅ Parsed preferences for: Corin Vale
+   ❌ Translation failed: Only matched 3/5 spells
+   ✅ Validation passed
+   ⏱️  Progress: 8/48 (ETA ~734s)
+
+🧪 Running test: bard-halfling-L2-acolyte
+   Class: bard, Race: halfling, Level: 2
+   📝 Built prompt (3365 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1695 tokens)
+   ✅ Parsed preferences for: Bromli Runequill
+   ❌ Translation failed: Only matched 3/5 spells
+   ✅ Validation passed
+   ⏱️  Progress: 9/48 (ETA ~695s)
+
+🧪 Running test: warlock-human-L2-soldier
+   Class: warlock, Race: human, Level: 2
+   🤖 Real API response received (1659 tokens)
+   ✅ Parsed preferences for: Vaelis Thorne
+   ❌ Translation failed: Only matched 3/5 spells
+   ✅ Validation passed
+   ⏱️  Progress: 10/48 (ETA ~653s)
+
+🧪 Running test: warlock-dwarf-L2-sage
+   Class: warlock, Race: dwarf, Level: 2
+   ✅ Backend compute passed
+   ⏱️  Progress: 11/48 (ETA ~578s)
+
+🧪 Running test: warlock-elf-L2-criminal
+   Class: warlock, Race: elf, Level: 2
+   📝 Built prompt (3359 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3769 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3795 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1598 tokens)
+   ✅ Parsed preferences for: Garran Voss
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Arcana, Deception
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1615 tokens)
+   ✅ Parsed preferences for: Vaelis Duskledger
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Intimidation, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (3794 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1582 tokens)
+   ✅ Parsed preferences for: Brin Underbough
+   ❌ Translation failed: Only matched 3/5 spells
+   ✅ Validation passed
+   ⏱️  Progress: 12/48 (ETA ~616s)
+
+🧪 Running test: warlock-halfling-L2-acolyte
+   Class: warlock, Race: halfling, Level: 2
+   ✅ Backend validation passed
+   🤖 Real API response received (1668 tokens)
+   ✅ Parsed preferences for: Brynna Emberquill
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 13, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Investigation, Deception
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (3800 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 13/48 (ETA ~588s)
+
+🧪 Running test: paladin-human-L2-soldier
+   Class: paladin, Race: human, Level: 2
+   ✅ Backend compute passed
+   ⏱️  Progress: 14/48 (ETA ~530s)
+
+🧪 Running test: paladin-dwarf-L2-sage
+   Class: paladin, Race: dwarf, Level: 2
+   📝 Built prompt (3464 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1691 tokens)
+   ✅ Parsed preferences for: Branna Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 12, INT 8, WIS 13, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Intimidation, Arcana
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (3455 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1728 tokens)
+   ✅ Parsed preferences for: Bromli Runevein
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 8, CON 15, INT 12, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Athletics
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 15/48 (ETA ~540s)
+
+🧪 Running test: paladin-elf-L2-criminal
+   Class: paladin, Race: elf, Level: 2
+   ✅ Backend validation passed
+   🤖 Real API response received (1645 tokens)
+   ✅ Parsed preferences for: Garrick Vale
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 8, CON 13, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Insight, Medicine
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (3473 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 16/48 (ETA ~518s)
+
+🧪 Running test: paladin-halfling-L2-acolyte
+   Class: paladin, Race: halfling, Level: 2
+   ✅ Backend compute passed
+   ⏱️  Progress: 17/48 (ETA ~472s)
+
+🧪 Running test: ranger-human-L2-soldier
+   Class: ranger, Race: human, Level: 2
+   📝 Built prompt (3634 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1627 tokens)
+   ✅ Parsed preferences for: Vaelis Duskwhisper
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 14, CON 13, INT 8, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, Intimidation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (3467 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1582 tokens)
+   ✅ Parsed preferences for: Garran Holt
+   ✅ Translation successful
+   📊 Ability Scores: STR 12, DEX 15, CON 13, INT 8, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Survival, Nature, Animal Handling
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 18/48 (ETA ~468s)
+
+🧪 Running test: ranger-dwarf-L2-sage
+   Class: ranger, Race: dwarf, Level: 2
+   🤖 Real API response received (1647 tokens)
+   ✅ Parsed preferences for: Bram Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 14, CON 13, INT 8, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Athletics, Intimidation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (3659 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 19/48 (ETA ~446s)
+
+🧪 Running test: ranger-elf-L2-criminal
+   Class: ranger, Race: elf, Level: 2
+   📝 Built prompt (3660 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1699 tokens)
+   ✅ Parsed preferences for: Brynna Runeleaf
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 15, INT 12, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Survival, Nature, Animal Handling
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 20/48 (ETA ~426s)
+
+🧪 Running test: ranger-halfling-L2-acolyte
+   Class: ranger, Race: halfling, Level: 2
+   🤖 Real API response received (1665 tokens)
+   ✅ Parsed preferences for: Caelith Varyn
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Survival, Nature, Animal Handling
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 21/48 (ETA ~408s)
+
+🧪 Running test: wizard-human-L3-soldier
+   Class: wizard, Race: human, Level: 3
+   ✅ Backend validation passed
+   📝 Built prompt (3665 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3835 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1613 tokens)
+   ✅ Parsed preferences for: Garrick Halden
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Arcana, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 22/48 (ETA ~388s)
+
+🧪 Running test: wizard-dwarf-L3-sage
+   Class: wizard, Race: dwarf, Level: 3
+   🤖 Real API response received (1768 tokens)
+   ✅ Parsed preferences for: Perrin Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Survival, Nature, Animal Handling
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 23/48 (ETA ~371s)
+
+🧪 Running test: wizard-elf-L3-criminal
+   Class: wizard, Race: elf, Level: 3
+   ✅ Backend validation passed
+   📝 Built prompt (3844 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 24/48 (ETA ~341s)
+
+🧪 Running test: wizard-halfling-L3-acolyte
+   Class: wizard, Race: halfling, Level: 3
+   📝 Built prompt (3847 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (3853 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1651 tokens)
+   ✅ Parsed preferences for: Bromli Dunebinder
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Investigation, Insight
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1739 tokens)
+   ✅ Parsed preferences for: Bramble Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Arcana, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 25/48 (ETA ~338s)
+
+🧪 Running test: cleric-human-L3-soldier
+   Class: cleric, Race: human, Level: 3
+   🤖 Real API response received (1675 tokens)
+   ✅ Parsed preferences for: Vaelis Thorne
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Arcana, Investigation
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (3667 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 26/48 (ETA ~321s)
+
+🧪 Running test: cleric-dwarf-L3-sage
+   Class: cleric, Race: dwarf, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 27/48 (ETA ~295s)
+
+🧪 Running test: cleric-elf-L3-criminal
+   Class: cleric, Race: elf, Level: 3
+   📝 Built prompt (3692 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (3693 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1606 tokens)
+   ✅ Parsed preferences for: Hale Warder
+   ✅ Translation successful
+   📊 Ability Scores: STR 13, DEX 12, CON 15, INT 8, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Insight, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1605 tokens)
+   ✅ Parsed preferences for: Brynna Amberquill
+   ✅ Translation successful
+   📊 Ability Scores: STR 12, DEX 8, CON 17, INT 13, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Medicine
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 28/48 (ETA ~294s)
+
+🧪 Running test: cleric-halfling-L3-acolyte
+   Class: cleric, Race: halfling, Level: 3
+   🤖 Real API response received (1670 tokens)
+   ✅ Parsed preferences for: Saelith Varyn
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (3698 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 29/48 (ETA ~277s)
+
+🧪 Running test: bard-human-L3-soldier
+   Class: bard, Race: human, Level: 3
+   📝 Built prompt (3903 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1689 tokens)
+   ✅ Parsed preferences for: Branna Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 15, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, History, Medicine
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 30/48 (ETA ~261s)
+
+🧪 Running test: bard-dwarf-L3-sage
+   Class: bard, Race: dwarf, Level: 3
+   🤖 Real API response received (1630 tokens)
+   ✅ Parsed preferences for: Corin Hale
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Persuasion, Perception, Acrobatics
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 31/48 (ETA ~245s)
+
+🧪 Running test: bard-elf-L3-criminal
+   Class: bard, Race: elf, Level: 3
+   ✅ Backend validation passed
+   📝 Built prompt (3912 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3921 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1718 tokens)
+   ✅ Parsed preferences for: Vaelis Nightrain
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, Intimidation, Investigation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 32/48 (ETA ~230s)
+
+🧪 Running test: bard-halfling-L3-acolyte
+   Class: bard, Race: halfling, Level: 3
+   🤖 Real API response received (1751 tokens)
+   ✅ Parsed preferences for: Brynna Runequill
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 8, CON 15, INT 15, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Investigation, Acrobatics, Animal Handling
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 33/48 (ETA ~220s)
+
+🧪 Running test: warlock-human-L3-soldier
+   Class: warlock, Race: human, Level: 3
+   ✅ Backend validation passed
+   📝 Built prompt (3915 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1752 tokens)
+   ✅ Parsed preferences for: Brindle Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 12, INT 8, WIS 13, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Survival, Nature, Animal Handling
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (4182 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 34/48 (ETA ~205s)
+
+🧪 Running test: warlock-dwarf-L3-sage
+   Class: warlock, Race: dwarf, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 35/48 (ETA ~185s)
+
+🧪 Running test: warlock-elf-L3-criminal
+   Class: warlock, Race: elf, Level: 3
+   📝 Built prompt (4207 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (4208 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1669 tokens)
+   ✅ Parsed preferences for: Garran Holt
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Arcana, Deception
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1770 tokens)
+   ✅ Parsed preferences for: Brynna Runeveil
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 13, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Investigation, Deception
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1766 tokens)
+   ✅ Parsed preferences for: Sylaen Veyrun
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Intimidation, Arcana
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 36/48 (ETA ~178s)
+
+🧪 Running test: warlock-halfling-L3-acolyte
+   Class: warlock, Race: halfling, Level: 3
+   ✅ Backend validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (4213 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 37/48 (ETA ~159s)
+
+🧪 Running test: paladin-human-L3-soldier
+   Class: paladin, Race: human, Level: 3
+   🤖 Real API response received (1722 tokens)
+   ✅ Parsed preferences for: Mira Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 12, INT 8, WIS 15, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Deception, Intimidation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (3590 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 38/48 (ETA ~144s)
+
+🧪 Running test: paladin-dwarf-L3-sage
+   Class: paladin, Race: dwarf, Level: 3
+   🤖 Real API response received (1612 tokens)
+   ✅ Parsed preferences for: Garrick Halden
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 8, CON 13, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Insight, Medicine
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (3599 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 39/48 (ETA ~129s)
+
+🧪 Running test: paladin-elf-L3-criminal
+   Class: paladin, Race: elf, Level: 3
+   🤖 Real API response received (1963 tokens)
+   ✅ Parsed preferences for: Bromli Runevein
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 8, CON 15, INT 12, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Persuasion
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 40/48 (ETA ~119s)
+
+🧪 Running test: paladin-halfling-L3-acolyte
+   Class: paladin, Race: halfling, Level: 3
+   📝 Built prompt (3608 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 41/48 (ETA ~101s)
+
+🧪 Running test: ranger-human-L3-soldier
+   Class: ranger, Race: human, Level: 3
+   🤖 Real API response received (1820 tokens)
+   ✅ Parsed preferences for: Vaelis Duskmark
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 14, CON 13, INT 8, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, Intimidation
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (3602 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3797 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 42/48 (ETA ~87s)
+
+🧪 Running test: ranger-dwarf-L3-sage
+   Class: ranger, Race: dwarf, Level: 3
+   🤖 Real API response received (1660 tokens)
+   ✅ Parsed preferences for: Bram Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 15, DEX 14, CON 13, INT 8, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Athletics, Intimidation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (3822 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1588 tokens)
+   ✅ Parsed preferences for: Garran Hale
+   ✅ Translation successful
+   📊 Ability Scores: STR 12, DEX 15, CON 13, INT 8, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Perception, Insight, Survival
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1754 tokens)
+   ✅ Parsed preferences for: Brynna Runeleaf
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 15, INT 12, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Survival, Nature, Animal Handling
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 43/48 (ETA ~76s)
+
+🧪 Running test: ranger-elf-L3-criminal
+   Class: ranger, Race: elf, Level: 3
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 44/48 (ETA ~59s)
+
+🧪 Running test: ranger-halfling-L3-acolyte
+   Class: ranger, Race: halfling, Level: 3
+   📝 Built prompt (3828 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 45/48 (ETA ~44s)
+   📝 Built prompt (3823 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1880 tokens)
+   ✅ Parsed preferences for: Perrin Underbough
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Survival, Nature, Animal Handling
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 46/48 (ETA ~29s)
+   🤖 Real API response received (1750 tokens)
+   ✅ Parsed preferences for: Caelith Varyn
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Insight, Survival, Nature
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 47/48 (ETA ~15s)
+   ✅ Backend compute passed
+   ⏱️  Progress: 48/48 (ETA ~0s)
+
+══════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════
+ AI GENERATION EXPERIMENT RESULTS
+ Generated: 2025-12-14T03:14:04.114Z
+ Test Cases: 48
+══════════════════════════════════════════════════════════════════════
+
+OVERALL SUCCESS RATES
+──────────────────────────────────────────────────────────────────────
+ Parse Success:       100.0%
+ Translation Success: 83.3%
+ Validation Success:  100.0%
+ Overall Success:     83.3%
+
+BY CLASS
+──────────────────────────────────────────────────────────────────────
+ wizard       100.0% (8/8)
+ cleric       100.0% (8/8)
+ bard         100.0% (8/8)
+ warlock      100.0% (8/8)
+ paladin      100.0% (8/8)
+ ranger       100.0% (8/8)
+
+BY LEVEL
+──────────────────────────────────────────────────────────────────────
+ Level 2:  100.0% (24/24)
+ Level 3:  100.0% (24/24)
+
+FAILURE PATTERNS
+──────────────────────────────────────────────────────────────────────
+ Spell Selection Issue: 8 (16.7%)
+   → wizard-human-L2-soldier: Only matched 3/4 spells
+   → wizard-dwarf-L2-sage: Only matched 3/4 spells
+
+COST ANALYSIS
+──────────────────────────────────────────────────────────────────────
+ Avg Tokens/Request: 1680
+ Avg Latency:        56460ms
+ p50 Latency:        57867ms
+ p95 Latency:        95133ms
+ Total Cost:         $0.5152
+ Cost per Success:   $0.0129
+
+SPELL THEME DIAGNOSTICS
+──────────────────────────────────────────────────────────────────────
+ Spell Theme Mismatch Rate: 0.0%
+ Avg Unmatched Spell Themes: 0.00
+
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+ FAILURE DETAILS (FULL)
+ Failed Cases: 8/48
+══════════════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────────────
+wizard-human-L2-soldier | TRANSLATE_FAIL
+──────────────────────────────────────────────────────────────────────
+{
+  "testCase": {
+    "id": "wizard-human-L2-soldier",
+    "input": {
+      "classId": "wizard",
+      "raceId": "human",
+      "level": 2,
+      "backgroundId": "soldier",
+      "concept": "A battle-hardened veteran seeking redemption after a war gone wrong"
+    },
+    "createdAt": "2025-12-14T03:02:30.138Z"
+  },
+  "aiGeneration": {
+    "parseSuccess": true,
+    "rawResponse": "{\n  \"abilityPriorities\": [\"intelligence\", \"constitution\", \"dexterity\", \"wisdom\", \"charisma\", \"strength\"],\n  \"abilityReasoning\": \"A redemption-seeking wizard relies on sharp intellect to master disciplined battlefield magic, while a hardened veteran needs toughness to survive and focus under fire. Dexterity supports staying alive in light gear and reacting quickly, wisdom reflects hard-earned caution and situational awareness, charisma helps when trying to atone and negotiate uneasy truces, and strength is least central for a soldier-turned-arcane combatant who wins with spells rather than brawn.\",\n  \"combatApproach\": \"Midline battlefield controller who uses practiced, soldierly positioning to shape the fight—opening with decisive magical pressure, then protecting allies with smart placement, denial, and careful target selection rather than reckless heroics.\",\n  \"skillThemes\": [\"arcane doctrine and military theory\", \"keen observation and tactical analysis\", \"battlefield grit and intimidation\"],\n  \"equipmentStyle\": \"Practical campaign gear with a soldier’s austerity—portable, field-ready arcane tools and supplies, favoring mobility and preparedness over showy finery.\",\n  \"cantripThemes\": [\"reliable battlefield utility and soldier’s tricks\", \"controlled elemental force used with restraint\"],\n  \"spellThemes\": [\"protective and stabilizing magic that keeps comrades alive\", \"tactical control and repositioning to minimize casualties\", \"measured destructive power used as a last resort\"],\n  \"character\": {\n    \"name\": \"Garrick Vane\",\n    \"personality\": {\n      \"traits\": [\"Speaks like a drill-sergeant even when trying to be kind—clear, clipped, and direct.\", \"Keeps meticulous notes on every spell and every mistake, as if documentation could prevent the past from repeating.\"],\n      \"ideals\": [\"Redemption through service: the only atonement that matters is preventing the next tragedy.\"],\n      \"bonds\": [\"A dog-eared roster of his old unit, marked with names he refuses to forget.\", \"A surviving comrade who still believes Garrick can make things right—if he doesn’t break first.\"],\n      \"flaws\": [\"He overcorrects—hesitating at crucial moments because he fears his power will harm the innocent again.\", \"He carries guilt like armor, refusing comfort and pushing himself past safe limits.\"]\n    },\n    \"backstory\": \"Garrick Vane enlisted young and learned war the hard way: mud, hunger, and orders that never quite matched the world’s messy realities. He was competent, relentless, and frightening when he had to be—exactly the sort of soldier commanders leaned on when a line needed holding. When the army began recruiting “battle-scholars” to counter enemy mages, Garrick volunteered, telling himself it was to protect his squad. In truth, he wanted control—over the chaos, over the fear, over the way war made monsters out of ordinary people.\\n\\nThat control slipped on a night that still visits him in half-sleep. A retreat turned into a rout. Garrick, newly trained and desperate to stop the pursuit, unleashed power meant to break an enemy push—only for the battlefield to blur with civilians fleeing through smoke and broken streets. The spell worked. The enemy line shattered. So did everything else. The official report called it a necessary action in an impossible situation; the faces in Garrick’s memory disagree.\\n\\nHe deserted not out of cowardice, but out of refusal—refusal to be used, refusal to be praised for horror, refusal to let his magic become a commander’s convenient solution. Now he travels from skirmish to skirmish, offering his spells where they can save lives and refusing coin that feels like blood money. He searches for a way to turn battlefield sorcery into something cleaner: protection, evacuation, restraint. Redemption, he’s learned, isn’t a pardon. It’s a duty he has to choose again every day.\",\n    \"appearance\": \"A lean human with weathered skin and close-cropped hair, carrying himself with the rigid posture of someone who still hears the cadence of marching orders. His hands are ink-stained from constant notation, with old calluses beneath—proof of a life that swung steel before shaping sigils. His eyes are steady but tired, and his clothing is plain, patched, and functional, marked by small, careful repairs rather than decoration.\",\n    \"age\": 25\n  }\n}",
+    "preferences": {
+      "abilityPriorities": [
+        "intelligence",
+        "constitution",
+        "dexterity",
+        "wisdom",
+        "charisma",
+        "strength"
+      ],
+      "abilityReasoning": "A redemption-seeking wizard relies on sharp intellect to master disciplined battlefield magic, while a hardened veteran needs toughness to survive and focus under fire. Dexterity supports staying alive in light gear and reacting quickly, wisdom reflects hard-earned caution and situational awareness, charisma helps when trying to atone and negotiate uneasy truces, and strength is least central for a soldier-turned-arcane combatant who wins with spells rather than brawn.",
+      "combatApproach": "Midline battlefield controller who uses practiced, soldierly positioning to shape the fight—opening with decisive magical pressure, then protecting allies with smart placement, denial, and careful target selection rather than reckless heroics.",
+      "skillThemes": [
+        "arcane doctrine and military theory",
+        "keen observation and tactical analysis",
+        "battlefield grit and intimidation"
+      ],
+      "equipmentStyle": "Practical campaign gear with a soldier’s austerity—portable, field-ready arcane tools and supplies, favoring mobility and preparedness over showy finery.",
+      "subclassPreference": null,
+      "fightingStylePreference": null,
+      "cantripThemes": [
+        "reliable battlefield utility and soldier’s tricks",
+        "controlled elemental force used with restraint"
+      ],
+      "spellThemes": [
+        "protective and stabilizing magic that keeps comrades alive",
+        "tactical control and repositioning to minimize casualties",
+        "measured destructive power used as a last resort"
+      ],
+      "character": {
+        "name": "Garrick Vane",
+        "personality": {
+          "traits": [
+            "Speaks like a drill-sergeant even when trying to be kind—clear, clipped, and direct.",
+            "Keeps meticulous notes on every spell and every mistake, as if documentation could prevent the past from repeating."
+          ],
+          "ideals": [
+            "Redemption through service: the only atonement that matters is preventing the next tragedy."
+          ],
+          "bonds": [
+            "A dog-eared roster of his old unit, marked with names he refuses to forget.",
+            "A surviving comrade who still believes Garrick can make things right—if he doesn’t break first."
+          ],
+          "flaws": [
+            "He overcorrects—hesitating at crucial moments because he fears his power will harm the innocent again.",
+            "He carries guilt like armor, refusing comfort and pushing himself past safe limits."
+          ]
+        },
+        "backstory": "Garrick Vane enlisted young and learned war the hard way: mud, hunger, and orders that never quite matched the world’s messy realities. He was competent, relentless, and frightening when he had to be—exactly the sort of soldier commanders leaned on when a line needed holding. When the army began recruiting “battle-scholars” to counter enemy mages, Garrick volunteered, telling himself it was to protect his squad. In truth, he wanted control—over the chaos, over the fear, over the way war made monsters out of ordinary people.\n\nThat control slipped on a night that still visits him in half-sleep. A retreat turned into a rout. Garrick, newly trained and desperate to stop the pursuit, unleashed power meant to break an enemy push—only for the battlefield to blur with civilians fleeing through smoke and broken streets. The spell worked. The enemy line shattered. So did everything else. The official report called it a necessary action in an impossible situation; the faces in Garrick’s memory disagree.\n\nHe deserted not out of cowardice, but out of refusal—refusal to be used, refusal to be praised for horror, refusal to let his magic become a commander’s convenient solution. Now he travels from skirmish to skirmish, offering his spells where they can save lives and refusing coin that feels like blood money. He searches for a way to turn battlefield sorcery into something cleaner: protection, evacuation, restraint. Redemption, he’s learned, isn’t a pardon. It’s a duty he has to choose again every day.",
+        "appearance": "A lean human with weathered skin and close-cropped hair, carrying himself with the rigid posture of someone who still hears the cadence of marching orders. His hands are ink-stained from constant notation, with old calluses beneath—proof of a life that swung steel before shaping sigils. His eyes are steady but tired, and his clothing is plain, patched, and functional, marked by small, careful repairs rather than decoration.",
+        "age": 25
+      }
+    }
+  },
+  "translation": {
+    "success": false,
+    "translations": {
+      "abilityScores": {
+        "success": true,
+        "scores": {
+          "strength": 8,
+          "dexterity": 13,
+          "constitution": 15,
+          "intelligence": 15,
+          "wisdom": 12,
+          "charisma": 8
+        },
+        "pointsSpent": 27
+      },
+      "skills": {
+        "success": true,
+        "selected": [
+          "Athletics",
+          "Intimidation",
+          "Arcana",
+          "History"
+        ],
+        "unmatchedThemes": [
+          "keen observation and tactical analysis"
+        ],
+        "issues": [
+          "Auto-selected History to fill remaining slot",
+          "Could not match themes: keen observation and tactical analysis"
+        ]
+      },
+      "equipment": {
+        "success": true,
+        "packageId": "B"
+      },
+      "featureChoices": {
+        "success": true,
+        "choices": {
+          "wizard-subclass": "evocation"
+        },
+        "issues": [
+          "No preference for Arcane Tradition, defaulting to School of Evocation"
+        ]
+      },
+      "spells": {
+        "success": false,
+        "cantrips": [
+          "fire-bolt",
+          "mage-hand",
+          "prestidigitation"
+        ],
+        "spells": [
+          "magic-missile",
+          "shield",
+          "burning-hands"
+        ],
+        "issues": [
+          "Only matched 3/4 spells"
+        ]
+      }
+    },
+    "issues": [
+      "Only matched 3/4 spells"
+    ]
+  },
+  "validation": {
+    "isValid": true,
+    "pointBuy": {
+      "valid": true,
+      "pointsSpent": 27,
+      "issues": []
+    },
+    "skills": {
+      "valid": true,
+      "invalidSkills": []
+    },
+    "equipment": {
+      "valid": true,
+      "issues": []
+    },
+    "allIssues": []
+  },
+  "metrics": {
+    "promptTokens": 792,
+    "completionTokens": 920,
+    "totalTokens": 1712,
+    "latencyMs": 14169,
+    "costUsd": 0.011179999999999999,
+    "stageMs": {
+      "constraintsMs": 173,
+      "promptBuildMs": 0,
+      "aiCallMs": 13985,
+      "translateMs": 8,
+      "validateMs": 1
+    }
+  }
+}
+
+──────────────────────────────────────────────────────────────────────
+wizard-dwarf-L2-sage | TRANSLATE_FAIL
+──────────────────────────────────────────────────────────────────────
+{
+  "testCase": {
+    "id": "wizard-dwarf-L2-sage",
+    "input": {
+      "classId": "wizard",
+      "raceId": "dwarf",
+      "level": 2,
+      "backgroundId": "sage",
+      "concept": "A curious scholar obsessed with forbidden knowledge"
+    },
+    "createdAt": "2025-12-14T03:02:30.138Z"
+  },
+  "aiGeneration": {
+    "parseSuccess": true,
+    "rawResponse": "{\n  \"abilityPriorities\": [\n    \"intelligence\",\n    \"constitution\",\n    \"wisdom\",\n    \"dexterity\",\n    \"charisma\",\n    \"strength\"\n  ],\n  \"abilityReasoning\": \"A forbidden-lore wizard lives and dies by intellect for deciphering dangerous texts and shaping spells. Dwarven hardiness and a risky curiosity make durability a close second. Wisdom supports caution, perception, and resisting the mental toll of eldritch truths, while dexterity helps avoid harm when defenses fail. Charisma and strength are least central for a bookish, inward-focused scholar.\",\n  \"combatApproach\": \"A cautious battlefield controller who uses misdirection and carefully placed magic to stay safe, isolate threats, and end fights on their terms rather than trading blows directly.\",\n  \"skillThemes\": [\n    \"arcane scholarship and ancient languages\",\n    \"keen observation and deductive reasoning\",\n    \"esoteric theology and forbidden rites\"\n  ],\n  \"equipmentStyle\": \"Practical scholar’s travel gear with well-worn tools for study, favoring a simple walking implement and neatly organized reagents over flashy ornamentation; everything looks chosen for research in hostile ruins.\",\n  \"cantripThemes\": [\n    \"subtle utility magic for study, light, and small manipulations\",\n    \"minor deceptive or distracting effects to avoid direct confrontation\"\n  ],\n  \"spellThemes\": [\n    \"illusions and misdirection to control attention and positioning\",\n    \"protective wards and contingency-minded defenses\",\n    \"knowledge-seeking and problem-solving magic for ruins, locks, and mysteries\"\n  ],\n  \"character\": {\n    \"name\": \"Brynna Deepquill\",\n    \"personality\": {\n      \"traits\": [\n        \"Speaks in precise, footnote-like asides, as if every conversation is a lecture waiting to happen.\",\n        \"Cannot leave a mystery alone—if a door is sealed, she assumes it was sealed for her to open.\"\n      ],\n      \"ideals\": [\n        \"Truth is worth the risk; ignorance is the only unforgivable sin.\"\n      ],\n      \"bonds\": [\n        \"A fragmentary dwarven codex of banned rites, inherited from a mentor who vanished, is both her map and her obsession.\"\n      ],\n      \"flaws\": [\n        \"She rationalizes dangerous choices as “necessary research,” even when the warnings are clear.\"\n      ]\n    },\n    \"backstory\": \"Brynna Deepquill was raised among stone and scripture, a dwarf with ink-stained fingers who preferred the hush of archives to the clang of forges. As a junior scribe attached to a respectable hall of learning, she cataloged genealogies, mining rights, and the polite histories clans tell each other—until she noticed what was missing. Names scraped away. Pages re-stitched. Entire decades summarized in a single evasive line. The gaps fascinated her more than any official record ever could.\\n\\nHer curiosity turned to fixation when she found a hidden folio sealed behind a false back in a cabinet marked for disposal: a partial codex describing “protective” rites that read more like bargains. The margins were crowded with a previous reader’s notes—her mentor, Master Hargun—who insisted the text was not evil, merely dangerous in the way deep shafts are dangerous: lethal to the careless, invaluable to the prepared. When Hargun disappeared after petitioning the elders for permission to continue his research, Brynna received a final bundle by courier: the codex fragment, a few terse instructions, and a warning not to trust the archivists who smile too quickly.\\n\\nNow Brynna travels as a scholar-for-hire, trading legitimate expertise for access to old vaults, crumbling temples, and private libraries. Each discovery brings her closer to the truth behind the erased names—and closer to whatever noticed the first time someone read those rites aloud. She tells herself she’s chasing answers for her mentor and her people, but in the quiet moments she admits the darker truth: she wants to know what the world has decided she isn’t allowed to know.\",\n    \"appearance\": \"A compact, broad-shouldered dwarf with a scholar’s stoop from too many late nights over a desk. Her dark hair is usually braided back to keep it out of ink and ash, and her beard is kept short and practical. She carries the faint scent of parchment, lamp oil, and mineral dust; her hands are callused like a miner’s despite the ink stains, and her eyes have the bright, restless focus of someone always reading one more line.\",\n    \"age\": 25\n  }\n}",
+    "preferences": {
+      "abilityPriorities": [
+        "intelligence",
+        "constitution",
+        "wisdom",
+        "dexterity",
+        "charisma",
+        "strength"
+      ],
+      "abilityReasoning": "A forbidden-lore wizard lives and dies by intellect for deciphering dangerous texts and shaping spells. Dwarven hardiness and a risky curiosity make durability a close second. Wisdom supports caution, perception, and resisting the mental toll of eldritch truths, while dexterity helps avoid harm when defenses fail. Charisma and strength are least central for a bookish, inward-focused scholar.",
+      "combatApproach": "A cautious battlefield controller who uses misdirection and carefully placed magic to stay safe, isolate threats, and end fights on their terms rather than trading blows directly.",
+      "skillThemes": [
+        "arcane scholarship and ancient languages",
+        "keen observation and deductive reasoning",
+        "esoteric theology and forbidden rites"
+      ],
+      "equipmentStyle": "Practical scholar’s travel gear with well-worn tools for study, favoring a simple walking implement and neatly organized reagents over flashy ornamentation; everything looks chosen for research in hostile ruins.",
+      "subclassPreference": null,
+      "fightingStylePreference": null,
+      "cantripThemes": [
+        "subtle utility magic for study, light, and small manipulations",
+        "minor deceptive or distracting effects to avoid direct confrontation"
+      ],
+      "spellThemes": [
+        "illusions and misdirection to control attention and positioning",
+        "protective wards and contingency-minded defenses",
+        "knowledge-seeking and problem-solving magic for ruins, locks, and mysteries"
+      ],
+      "character": {
+        "name": "Brynna Deepquill",
+        "personality": {
+          "traits": [
+            "Speaks in precise, footnote-like asides, as if every conversation is a lecture waiting to happen.",
+            "Cannot leave a mystery alone—if a door is sealed, she assumes it was sealed for her to open."
+          ],
+          "ideals": [
+            "Truth is worth the risk; ignorance is the only unforgivable sin."
+          ],
+          "bonds": [
+            "A fragmentary dwarven codex of banned rites, inherited from a mentor who vanished, is both her map and her obsession."
+          ],
+          "flaws": [
+            "She rationalizes dangerous choices as “necessary research,” even when the warnings are clear."
+          ]
+        },
+        "backstory": "Brynna Deepquill was raised among stone and scripture, a dwarf with ink-stained fingers who preferred the hush of archives to the clang of forges. As a junior scribe attached to a respectable hall of learning, she cataloged genealogies, mining rights, and the polite histories clans tell each other—until she noticed what was missing. Names scraped away. Pages re-stitched. Entire decades summarized in a single evasive line. The gaps fascinated her more than any official record ever could.\n\nHer curiosity turned to fixation when she found a hidden folio sealed behind a false back in a cabinet marked for disposal: a partial codex describing “protective” rites that read more like bargains. The margins were crowded with a previous reader’s notes—her mentor, Master Hargun—who insisted the text was not evil, merely dangerous in the way deep shafts are dangerous: lethal to the careless, invaluable to the prepared. When Hargun disappeared after petitioning the elders for permission to continue his research, Brynna received a final bundle by courier: the codex fragment, a few terse instructions, and a warning not to trust the archivists who smile too quickly.\n\nNow Brynna travels as a scholar-for-hire, trading legitimate expertise for access to old vaults, crumbling temples, and private libraries. Each discovery brings her closer to the truth behind the erased names—and closer to whatever noticed the first time someone read those rites aloud. She tells herself she’s chasing answers for her mentor and her people, but in the quiet moments she admits the darker truth: she wants to know what the world has decided she isn’t allowed to know.",
+        "appearance": "A compact, broad-shouldered dwarf with a scholar’s stoop from too many late nights over a desk. Her dark hair is usually braided back to keep it out of ink and ash, and her beard is kept short and practical. She carries the faint scent of parchment, lamp oil, and mineral dust; her hands are callused like a miner’s despite the ink stains, and her eyes have the bright, restless focus of someone always reading one more line.",
+        "age": 25
+      }
+    }
+  },
+  "translation": {
+    "success": false,
+    "translations": {
+      "abilityScores": {
+        "success": true,
+        "scores": {
+          "strength": 8,
+          "dexterity": 12,
+          "constitution": 17,
+          "intelligence": 15,
+          "wisdom": 13,
+          "charisma": 8
+        },
+        "pointsSpent": 27
+      },
+      "skills": {
+        "success": true,
+        "selected": [
+          "Arcana",
+          "History",
+          "Insight",
+          "Investigation"
+        ],
+        "unmatchedThemes": [
+          "keen observation and deductive reasoning",
+          "esoteric theology and forbidden rites"
+        ],
+        "issues": [
+          "Auto-selected Insight to fill remaining slot",
+          "Auto-selected Investigation to fill remaining slot",
+          "Could not match themes: keen observation and deductive reasoning, esoteric theology and forbidden rites"
+        ]
+      },
+      "equipment": {
+        "success": true,
+        "packageId": "A"
+      },
+      "featureChoices": {
+        "success": true,
+        "choices": {
+          "wizard-subclass": "evocation"
+        },
+        "issues": [
+          "No preference for Arcane Tradition, defaulting to School of Evocation"
+        ]
+      },
+      "spells": {
+        "success": false,
+        "cantrips": [
+          "fire-bolt",
+          "mage-hand",
+          "prestidigitation"
+        ],
+        "spells": [
+          "magic-missile",
+          "shield",
+          "burning-hands"
+        ],
+        "issues": [
+          "Only matched 3/4 spells"
+        ]
+      }
+    },
+    "issues": [
+      "Only matched 3/4 spells"
+    ]
+  },
+  "validation": {
+    "isValid": true,
+    "pointBuy": {
+      "valid": true,
+      "pointsSpent": 27,
+      "issues": []
+    },
+    "skills": {
+      "valid": true,
+      "invalidSkills": []
+    },
+    "equipment": {
+      "valid": true,
+      "issues": []
+    },
+    "allIssues": []
+  },
+  "metrics": {
+    "promptTokens": 788,
+    "completionTokens": 953,
+    "totalTokens": 1741,
+    "latencyMs": 49398,
+    "costUsd": 0.0115,
+    "stageMs": {
+      "constraintsMs": 124,
+      "promptBuildMs": 0,
+      "aiCallMs": 49273,
+      "translateMs": 1,
+      "validateMs": 0
+    }
+  }
+}
+
+──────────────────────────────────────────────────────────────────────
+wizard-elf-L2-criminal | TRANSLATE_FAIL
+──────────────────────────────────────────────────────────────────────
+{
+  "testCase": {
+    "id": "wizard-elf-L2-criminal",
+    "input": {
+      "classId": "wizard",
+      "raceId": "elf",
+      "level": 2,
+      "backgroundId": "criminal",
+      "concept": "A cynical outcast with a heart of gold and a troubled past"
+    },
+    "createdAt": "2025-12-14T03:02:30.138Z"
+  },
+  "aiGeneration": {
+    "parseSuccess": true,
+    "rawResponse": "{\n  \"abilityPriorities\": [\"intelligence\", \"dexterity\", \"constitution\", \"wisdom\", \"charisma\", \"strength\"],\n  \"abilityReasoning\": \"As a wizard, intelligence is the engine behind their magic and problem-solving. Dexterity supports an elf’s natural quickness, helping them stay alive through agility and subtlety—fitting a criminal outcast. Constitution matters for surviving the consequences of a dangerous life. Wisdom reflects street-sense and reading danger, while charisma is secondary for a cynical loner who can still lie when needed. Strength is least important for a lightly equipped, magic-reliant caster.\",\n  \"combatApproach\": \"A cautious battlefield controller who fights from the edges—using clever positioning, misdirection, and selective bursts of magic to protect allies and end threats before they can close in.\",\n  \"skillThemes\": [\"stealth and subterfuge\", \"arcane knowledge and theory\", \"keen observation and deduction\"],\n  \"equipmentStyle\": \"Light, discreet, and easy to conceal—tools that look like a traveler’s kit at a glance, with a simple focus for spellwork and backup options suited to alleys and tight spaces.\",\n  \"cantripThemes\": [\"subtle utility and misdirection\", \"reliable ranged pressure\"],\n  \"spellThemes\": [\"illusions and escapes for a criminal mage\", \"protective wards and survival magic\", \"control effects that disable rather than kill\"],\n  \"character\": {\n    \"name\": \"Vaelis Thornveil\",\n    \"personality\": {\n      \"traits\": [\"Speaks in dry, cutting truths, but quietly fixes problems before anyone notices.\", \"Keeps meticulous mental notes—faces, exits, lies told, and debts owed.\"],\n      \"ideals\": [\"Redemption: You don’t erase the past—you outwork it, one good deed at a time, whether anyone thanks you or not.\"],\n      \"bonds\": [\"A single person once showed kindness when it was inconvenient; Vaelis has been paying that lesson forward ever since, in secret.\"],\n      \"flaws\": [\"Assumes betrayal is inevitable and pushes people away the moment they get close—even when they’ve earned trust.\"]\n    },\n    \"backstory\": \"Vaelis learned early that being an elf didn’t guarantee belonging. In the cities where mortals burned bright and brief, Vaelis was the long-lived stranger—useful when clever, disposable when inconvenient. A petty gang offered a place at the edge of their fire: a job, a cut, and a name whispered with wary respect. Vaelis became the one who could slip past locks and watchers alike, not with brute force, but with quick hands and quicker thinking.\\n\\nThe trouble started when the gang’s work turned from theft to ruin. A mark was supposed to be rich, cruel, and untouchable; instead, it was merely frightened—and connected. Vaelis hesitated at the wrong moment, spared the wrong life, and paid for it in blood and exile. The gang called it weakness. Vaelis called it the first honest choice made in years.\\n\\nNow Vaelis keeps moving, taking low-profile jobs and sleeping light, chasing two conflicting needs: to stay unseen, and to make amends in ways that don’t invite applause or attention. Magic isn’t just power—it’s a lockpick for fate, a way to ensure that next time, someone else doesn’t have to bleed for Vaelis’s choices.\",\n    \"appearance\": \"A lean, sharp-featured elf with watchful eyes and an expression that suggests they’ve already guessed the worst. Their clothes favor muted tones and layered fabrics suited to travel and vanishing into crowds; ink stains and faint scorch marks betray long nights spent practicing spellwork in borrowed rooms.\",\n    \"age\": 25\n  }\n}",
+    "preferences": {
+      "abilityPriorities": [
+        "intelligence",
+        "dexterity",
+        "constitution",
+        "wisdom",
+        "charisma",
+        "strength"
+      ],
+      "abilityReasoning": "As a wizard, intelligence is the engine behind their magic and problem-solving. Dexterity supports an elf’s natural quickness, helping them stay alive through agility and subtlety—fitting a criminal outcast. Constitution matters for surviving the consequences of a dangerous life. Wisdom reflects street-sense and reading danger, while charisma is secondary for a cynical loner who can still lie when needed. Strength is least important for a lightly equipped, magic-reliant caster.",
+      "combatApproach": "A cautious battlefield controller who fights from the edges—using clever positioning, misdirection, and selective bursts of magic to protect allies and end threats before they can close in.",
+      "skillThemes": [
+        "stealth and subterfuge",
+        "arcane knowledge and theory",
+        "keen observation and deduction"
+      ],
+      "equipmentStyle": "Light, discreet, and easy to conceal—tools that look like a traveler’s kit at a glance, with a simple focus for spellwork and backup options suited to alleys and tight spaces.",
+      "subclassPreference": null,
+      "fightingStylePreference": null,
+      "cantripThemes": [
+        "subtle utility and misdirection",
+        "reliable ranged pressure"
+      ],
+      "spellThemes": [
+        "illusions and escapes for a criminal mage",
+        "protective wards and survival magic",
+        "control effects that disable rather than kill"
+      ],
+      "character": {
+        "name": "Vaelis Thornveil",
+        "personality": {
+          "traits": [
+            "Speaks in dry, cutting truths, but quietly fixes problems before anyone notices.",
+            "Keeps meticulous mental notes—faces, exits, lies told, and debts owed."
+          ],
+          "ideals": [
+            "Redemption: You don’t erase the past—you outwork it, one good deed at a time, whether anyone thanks you or not."
+          ],
+          "bonds": [
+            "A single person once showed kindness when it was inconvenient; Vaelis has been paying that lesson forward ever since, in secret."
+          ],
+          "flaws": [
+            "Assumes betrayal is inevitable and pushes people away the moment they get close—even when they’ve earned trust."
+          ]
+        },
+        "backstory": "Vaelis learned early that being an elf didn’t guarantee belonging. In the cities where mortals burned bright and brief, Vaelis was the long-lived stranger—useful when clever, disposable when inconvenient. A petty gang offered a place at the edge of their fire: a job, a cut, and a name whispered with wary respect. Vaelis became the one who could slip past locks and watchers alike, not with brute force, but with quick hands and quicker thinking.\n\nThe trouble started when the gang’s work turned from theft to ruin. A mark was supposed to be rich, cruel, and untouchable; instead, it was merely frightened—and connected. Vaelis hesitated at the wrong moment, spared the wrong life, and paid for it in blood and exile. The gang called it weakness. Vaelis called it the first honest choice made in years.\n\nNow Vaelis keeps moving, taking low-profile jobs and sleeping light, chasing two conflicting needs: to stay unseen, and to make amends in ways that don’t invite applause or attention. Magic isn’t just power—it’s a lockpick for fate, a way to ensure that next time, someone else doesn’t have to bleed for Vaelis’s choices.",
+        "appearance": "A lean, sharp-featured elf with watchful eyes and an expression that suggests they’ve already guessed the worst. Their clothes favor muted tones and layered fabrics suited to travel and vanishing into crowds; ink stains and faint scorch marks betray long nights spent practicing spellwork in borrowed rooms.",
+        "age": 25
+      }
+    }
+  },
+  "translation": {
+    "success": false,
+    "translations": {
+      "abilityScores": {
+        "success": true,
+        "scores": {
+          "strength": 8,
+          "dexterity": 17,
+          "constitution": 13,
+          "intelligence": 15,
+          "wisdom": 12,
+          "charisma": 8
+        },
+        "pointsSpent": 27
+      },
+      "skills": {
+        "success": true,
+        "selected": [
+          "Deception",
+          "Stealth",
+          "Arcana",
+          "History"
+        ],
+        "unmatchedThemes": [
+          "keen observation and deduction"
+        ],
+        "issues": [
+          "Could not match themes: keen observation and deduction"
+        ]
+      },
+      "equipment": {
+        "success": true,
+        "packageId": "B"
+      },
+      "featureChoices": {
+        "success": true,
+        "choices": {
+          "wizard-subclass": "evocation"
+        },
+        "issues": [
+          "No preference for Arcane Tradition, defaulting to School of Evocation"
+        ]
+      },
+      "spells": {
+        "success": false,
+        "cantrips": [
+          "fire-bolt",
+          "mage-hand",
+          "prestidigitation"
+        ],
+        "spells": [
+          "magic-missile",
+          "shield",
+          "burning-hands"
+        ],
+        "issues": [
+          "Only matched 3/4 spells"
+        ]
+      }
+    },
+    "issues": [
+      "Only matched 3/4 spells"
+    ]
+  },
+  "validation": {
+    "isValid": true,
+    "pointBuy": {
+      "valid": true,
+      "pointsSpent": 27,
+      "issues": []
+    },
+    "skills": {
+      "valid": true,
+      "invalidSkills": []
+    },
+    "equipment": {
+      "valid": true,
+      "issues": []
+    },
+    "allIssues": []
+  },
+  "metrics": {
+    "promptTokens": 795,
+    "completionTokens": 782,
+    "totalTokens": 1577,
+    "latencyMs": 25030,
+    "costUsd": 0.0098075,
+    "stageMs": {
+      "constraintsMs": 112,
+      "promptBuildMs": 0,
+      "aiCallMs": 24916,
+      "translateMs": 1,
+      "validateMs": 0
+    }
+  }
+}
+
+──────────────────────────────────────────────────────────────────────
+wizard-halfling-L2-acolyte | TRANSLATE_FAIL
+──────────────────────────────────────────────────────────────────────
+{
+  "testCase": {
+    "id": "wizard-halfling-L2-acolyte",
+    "input": {
+      "classId": "wizard",
+      "raceId": "halfling",
+      "level": 2,
+      "backgroundId": "acolyte",
+      "concept": "A wilderness survivor distrustful of civilization"
+    },
+    "createdAt": "2025-12-14T03:02:30.138Z"
+  },
+  "aiGeneration": {
+    "parseSuccess": true,
+    "rawResponse": "{\n  \"abilityPriorities\": [\"intelligence\", \"dexterity\", \"constitution\", \"wisdom\", \"charisma\", \"strength\"],\n  \"abilityReasoning\": \"As a wizard, intelligence drives spellcraft and problem-solving. A wilderness survivor leans on agility to stay mobile and avoid danger, with constitution to endure hardship. Wisdom supports practical instincts and alertness in the wild, while charisma is less central for a distrustful loner. Strength is lowest, relying on wit and positioning over brawn.\",\n  \"combatApproach\": \"A cautious skirmisher who controls the battlefield from a safe distance, using clever positioning, misdirection, and disabling magic to avoid direct confrontation while protecting an escape route.\",\n  \"skillThemes\": [\"arcane knowledge and ancient lore\", \"keen observation and reading intentions\", \"fieldcraft and self-reliant survival habits\"],\n  \"equipmentStyle\": \"Light and travel-worn, favoring compact, practical gear that can be packed quickly; tools and materials are kept close and concealed, prioritizing mobility and readiness over showy trappings.\",\n  \"cantripThemes\": [\"practical wilderness utility and problem-solving\", \"subtle tricks and defensive harassment\"],\n  \"spellThemes\": [\"illusions and misdirection to avoid fights\", \"protective wards and escape options\", \"investigation and divination-leaning magic to reveal threats and lies\"],\n  \"character\": {\n    \"name\": \"Bram Underbough\",\n    \"personality\": {\n      \"traits\": [\"Speaks softly and watches longer than he talks, as if every room has a hidden snare.\", \"Treats small, practical rituals—checking wind, counting footsteps, tasting water—as seriously as prayer.\"],\n      \"ideals\": [\"Freedom: No lord, council, or temple should decide where a person can walk or what they can know.\"],\n      \"bonds\": [\"A weather-beaten holy token from his old shrine, carried more out of memory than devotion, and a promise to one mentor who believed he could do better than merely survive.\"],\n      \"flaws\": [\"Assumes authority is a trap and withholds help or information until it’s almost too late.\"]\n    },\n    \"backstory\": \"Bram was raised among quiet hymns and orderly candlelight, a halfling acolyte taught that the world could be made safe through rules, rites, and careful stewardship of sacred knowledge. He learned his letters early, copied prayers and histories by hand, and discovered that the margins of holy texts often held stranger truths—old symbols, half-erased warnings, and references to powers the clergy preferred to leave unnamed.\\n\\nWhen a dispute over “dangerous” writings turned into a purge, Bram watched elders he trusted choose reputation over honesty. The shrine’s certainty curdled into something sharp: he fled with only what he could carry, taking to the hedgerows and deep trails where no bell could call him back. In the wilderness he learned the honest laws—hunger, weather, tracks, and the way predators test a boundary before they cross it.\\n\\nNow, Bram travels as a wizard-in-the-making, but his magic bears the stamp of the wild: quiet, efficient, and meant to keep him unseen rather than celebrated. He’s not against people so much as he is against systems—cities that swallow names, temples that file truth into safe shapes. He keeps to the edge of settlements, trading small services for supplies, always ready to vanish into the trees if the wrong questions start to sound like orders.\",\n    \"appearance\": \"A small halfling with sun-browned skin and a lean, wiry build; curly hair kept short and practical. His robes look more like patched travel clothes than ceremonial vestments, with bits of cord, chalk-stained fingers, and ink marks at the cuffs. His eyes are bright and restless, constantly scanning for exits, tracks, and tells.\",\n    \"age\": 25\n  }\n}",
+    "preferences": {
+      "abilityPriorities": [
+        "intelligence",
+        "dexterity",
+        "constitution",
+        "wisdom",
+        "charisma",
+        "strength"
+      ],
+      "abilityReasoning": "As a wizard, intelligence drives spellcraft and problem-solving. A wilderness survivor leans on agility to stay mobile and avoid danger, with constitution to endure hardship. Wisdom supports practical instincts and alertness in the wild, while charisma is less central for a distrustful loner. Strength is lowest, relying on wit and positioning over brawn.",
+      "combatApproach": "A cautious skirmisher who controls the battlefield from a safe distance, using clever positioning, misdirection, and disabling magic to avoid direct confrontation while protecting an escape route.",
+      "skillThemes": [
+        "arcane knowledge and ancient lore",
+        "keen observation and reading intentions",
+        "fieldcraft and self-reliant survival habits"
+      ],
+      "equipmentStyle": "Light and travel-worn, favoring compact, practical gear that can be packed quickly; tools and materials are kept close and concealed, prioritizing mobility and readiness over showy trappings.",
+      "subclassPreference": null,
+      "fightingStylePreference": null,
+      "cantripThemes": [
+        "practical wilderness utility and problem-solving",
+        "subtle tricks and defensive harassment"
+      ],
+      "spellThemes": [
+        "illusions and misdirection to avoid fights",
+        "protective wards and escape options",
+        "investigation and divination-leaning magic to reveal threats and lies"
+      ],
+      "character": {
+        "name": "Bram Underbough",
+        "personality": {
+          "traits": [
+            "Speaks softly and watches longer than he talks, as if every room has a hidden snare.",
+            "Treats small, practical rituals—checking wind, counting footsteps, tasting water—as seriously as prayer."
+          ],
+          "ideals": [
+            "Freedom: No lord, council, or temple should decide where a person can walk or what they can know."
+          ],
+          "bonds": [
+            "A weather-beaten holy token from his old shrine, carried more out of memory than devotion, and a promise to one mentor who believed he could do better than merely survive."
+          ],
+          "flaws": [
+            "Assumes authority is a trap and withholds help or information until it’s almost too late."
+          ]
+        },
+        "backstory": "Bram was raised among quiet hymns and orderly candlelight, a halfling acolyte taught that the world could be made safe through rules, rites, and careful stewardship of sacred knowledge. He learned his letters early, copied prayers and histories by hand, and discovered that the margins of holy texts often held stranger truths—old symbols, half-erased warnings, and references to powers the clergy preferred to leave unnamed.\n\nWhen a dispute over “dangerous” writings turned into a purge, Bram watched elders he trusted choose reputation over honesty. The shrine’s certainty curdled into something sharp: he fled with only what he could carry, taking to the hedgerows and deep trails where no bell could call him back. In the wilderness he learned the honest laws—hunger, weather, tracks, and the way predators test a boundary before they cross it.\n\nNow, Bram travels as a wizard-in-the-making, but his magic bears the stamp of the wild: quiet, efficient, and meant to keep him unseen rather than celebrated. He’s not against people so much as he is against systems—cities that swallow names, temples that file truth into safe shapes. He keeps to the edge of settlements, trading small services for supplies, always ready to vanish into the trees if the wrong questions start to sound like orders.",
+        "appearance": "A small halfling with sun-browned skin and a lean, wiry build; curly hair kept short and practical. His robes look more like patched travel clothes than ceremonial vestments, with bits of cord, chalk-stained fingers, and ink marks at the cuffs. His eyes are bright and restless, constantly scanning for exits, tracks, and tells.",
+        "age": 25
+      }
+    }
+  },
+  "translation": {
+    "success": false,
+    "translations": {
+      "abilityScores": {
+        "success": true,
+        "scores": {
+          "strength": 8,
+          "dexterity": 17,
+          "constitution": 13,
+          "intelligence": 15,
+          "wisdom": 12,
+          "charisma": 8
+        },
+        "pointsSpent": 27
+      },
+      "skills": {
+        "success": true,
+        "selected": [
+          "Insight",
+          "Religion",
+          "Arcana",
+          "History"
+        ],
+        "unmatchedThemes": [
+          "keen observation and reading intentions"
+        ],
+        "issues": [
+          "Could not match themes: keen observation and reading intentions"
+        ]
+      },
+      "equipment": {
+        "success": true,
+        "packageId": "B"
+      },
+      "featureChoices": {
+        "success": true,
+        "choices": {
+          "wizard-subclass": "evocation"
+        },
+        "issues": [
+          "No preference for Arcane Tradition, defaulting to School of Evocation"
+        ]
+      },
+      "spells": {
+        "success": false,
+        "cantrips": [
+          "fire-bolt",
+          "mage-hand",
+          "prestidigitation"
+        ],
+        "spells": [
+          "magic-missile",
+          "shield",
+          "burning-hands"
+        ],
+        "issues": [
+          "Only matched 3/4 spells"
+        ]
+      }
+    },
+    "issues": [
+      "Only matched 3/4 spells"
+    ]
+  },
+  "validation": {
+    "isValid": true,
+    "pointBuy": {
+      "valid": true,
+      "pointsSpent": 27,
+      "issues": []
+    },
+    "skills": {
+      "valid": true,
+      "invalidSkills": []
+    },
+    "equipment": {
+      "valid": true,
+      "issues": []
+    },
+    "allIssues": []
+  },
+  "metrics": {
+    "promptTokens": 792,
+    "completionTokens": 815,
+    "totalTokens": 1607,
+    "latencyMs": 73868,
+    "costUsd": 0.01013,
+    "stageMs": {
+      "constraintsMs": 128,
+      "promptBuildMs": 0,
+      "aiCallMs": 73737,
+      "translateMs": 1,
+      "validateMs": 0
+    }
+  }
+}
+
+──────────────────────────────────────────────────────────────────────
+bard-human-L2-soldier | TRANSLATE_FAIL
+──────────────────────────────────────────────────────────────────────
+{
+  "testCase": {
+    "id": "bard-human-L2-soldier",
+    "input": {
+      "classId": "bard",
+      "raceId": "human",
+      "level": 2,
+      "backgroundId": "soldier",
+      "concept": "A battle-hardened veteran seeking redemption after a war gone wrong"
+    },
+    "createdAt": "2025-12-14T03:02:30.138Z"
+  },
+  "aiGeneration": {
+    "parseSuccess": true,
+    "rawResponse": "{\n  \"abilityPriorities\": [\"charisma\", \"constitution\", \"dexterity\", \"wisdom\", \"strength\", \"intelligence\"],\n  \"abilityReasoning\": \"A redemption-seeking veteran-bard leads with force of personality to rally allies and defuse conflict. They need grit to survive the front line and keep performing under pressure, with agility for quick, disciplined weapon work. Hard-earned judgment guides their choices, while raw brawn is secondary to training and technique; book learning matters least compared to lived experience.\",\n  \"combatApproach\": \"A steady battlefield coordinator who fights close enough to be seen, using sharp words and inspiring presence to bolster allies while striking opportunistically and avoiding reckless duels.\",\n  \"skillThemes\": [\"battlefield leadership and morale-building\", \"hard-edged social pressure and negotiation\", \"soldierly endurance and physical discipline\"],\n  \"equipmentStyle\": \"Practical soldier’s kit with a martial blade and a travel-worn instrument, favoring reliable, no-nonsense gear that looks campaign-used rather than flashy.\",\n  \"cantripThemes\": [\"taunting distractions and minor battlefield tricks\", \"subtle utility to support scouting and survival\"],\n  \"spellThemes\": [\"inspiration and morale-boosting support\", \"battlefield control through fear, charm, and misdirection\", \"protective magic and emergency recovery to keep the squad standing\"],\n  \"character\": {\n    \"name\": \"Corin Vale\",\n    \"personality\": {\n      \"traits\": [\"Speaks with calm command even when everything is falling apart.\", \"Keeps a dry sense of humor as a shield against grief and guilt.\"],\n      \"ideals\": [\"Redemption: You don’t erase the past—you outwork it, one right choice at a time.\"],\n      \"bonds\": [\"The names of the lost are carved into his memory; he won’t let their story end in silence.\"],\n      \"flaws\": [\"He takes responsibility for everything, even what was never in his control, and pushes himself until he breaks.\"]\n    },\n    \"backstory\": \"Corin Vale marched to war with a drummer’s cadence and a sergeant’s certainty, convinced discipline could keep anyone alive. In the mud and smoke, his music became more than ceremony—it became timing for charges, signals in chaos, and the thin thread that kept frightened recruits moving. He earned his scars the old way: by staying when others ran, and by learning that courage is often just refusing to stop.\\n\\nThe war ended wrong. An order came down—clean, official, and fatally incomplete—and Corin carried it out. The result was a village burned for the sins of a few, and a unit that returned with fewer faces than it left with. Corin survived, which felt less like luck and more like a sentence. When the banners were packed away, he found he could not stand the sound of a cheering crowd without hearing screams underneath it.\\n\\nNow he travels as a performer with a soldier’s posture and a penitent’s purpose, taking work that puts him between danger and those who can’t afford it. He sings in taverns not to be praised, but to listen—because rumors point to the officers who profited from the “mistake,” and to the truth that was buried with the dead. Each act of mercy is a note in a new marching song, one he hopes will someday drown out the old.\",\n    \"appearance\": \"A lean, weathered human with close-cropped hair and a soldier’s squared stance. Old burns and blade scars mark his forearms and collarbone; his eyes look alert even when tired. His clothes are functional and travel-stained, and his instrument case is as carefully maintained as his weapon, both treated like tools of duty.\",\n    \"age\": 25\n  }\n}",
+    "preferences": {
+      "abilityPriorities": [
+        "charisma",
+        "constitution",
+        "dexterity",
+        "wisdom",
+        "strength",
+        "intelligence"
+      ],
+      "abilityReasoning": "A redemption-seeking veteran-bard leads with force of personality to rally allies and defuse conflict. They need grit to survive the front line and keep performing under pressure, with agility for quick, disciplined weapon work. Hard-earned judgment guides their choices, while raw brawn is secondary to training and technique; book learning matters least compared to lived experience.",
+      "combatApproach": "A steady battlefield coordinator who fights close enough to be seen, using sharp words and inspiring presence to bolster allies while striking opportunistically and avoiding reckless duels.",
+      "skillThemes": [
+        "battlefield leadership and morale-building",
+        "hard-edged social pressure and negotiation",
+        "soldierly endurance and physical discipline"
+      ],
+      "equipmentStyle": "Practical soldier’s kit with a martial blade and a travel-worn instrument, favoring reliable, no-nonsense gear that looks campaign-used rather than flashy.",
+      "subclassPreference": null,
+      "fightingStylePreference": null,
+      "cantripThemes": [
+        "taunting distractions and minor battlefield tricks",
+        "subtle utility to support scouting and survival"
+      ],
+      "spellThemes": [
+        "inspiration and morale-boosting support",
+        "battlefield control through fear, charm, and misdirection",
+        "protective magic and emergency recovery to keep the squad standing"
+      ],
+      "character": {
+        "name": "Corin Vale",
+        "personality": {
+          "traits": [
+            "Speaks with calm command even when everything is falling apart.",
+            "Keeps a dry sense of humor as a shield against grief and guilt."
+          ],
+          "ideals": [
+            "Redemption: You don’t erase the past—you outwork it, one right choice at a time."
+          ],
+          "bonds": [
+            "The names of the lost are carved into his memory; he won’t let their story end in silence."
+          ],
+          "flaws": [
+            "He takes responsibility for everything, even what was never in his control, and pushes himself until he breaks."
+          ]
+        },
+        "backstory": "Corin Vale marched to war with a drummer’s cadence and a sergeant’s certainty, convinced discipline could keep anyone alive. In the mud and smoke, his music became more than ceremony—it became timing for charges, signals in chaos, and the thin thread that kept frightened recruits moving. He earned his scars the old way: by staying when others ran, and by learning that courage is often just refusing to stop.\n\nThe war ended wrong. An order came down—clean, official, and fatally incomplete—and Corin carried it out. The result was a village burned for the sins of a few, and a unit that returned with fewer faces than it left with. Corin survived, which felt less like luck and more like a sentence. When the banners were packed away, he found he could not stand the sound of a cheering crowd without hearing screams underneath it.\n\nNow he travels as a performer with a soldier’s posture and a penitent’s purpose, taking work that puts him between danger and those who can’t afford it. He sings in taverns not to be praised, but to listen—because rumors point to the officers who profited from the “mistake,” and to the truth that was buried with the dead. Each act of mercy is a note in a new marching song, one he hopes will someday drown out the old.",
+        "appearance": "A lean, weathered human with close-cropped hair and a soldier’s squared stance. Old burns and blade scars mark his forearms and collarbone; his eyes look alert even when tired. His clothes are functional and travel-stained, and his instrument case is as carefully maintained as his weapon, both treated like tools of duty.",
+        "age": 25
+      }
+    }
+  },
+  "translation": {
+    "success": false,
+    "translations": {
+      "abilityScores": {
+        "success": true,
+        "scores": {
+          "strength": 8,
+          "dexterity": 13,
+          "constitution": 15,
+          "intelligence": 8,
+          "wisdom": 12,
+          "charisma": 15
+        },
+        "pointsSpent": 27
+      },
+      "skills": {
+        "success": true,
+        "selected": [
+          "Athletics",
+          "Intimidation",
+          "Persuasion",
+          "Deception",
+          "Acrobatics"
+        ]
+      },
+      "equipment": {
+        "success": true,
+        "packageId": "A"
+      },
+      "featureChoices": {
+        "success": true,
+        "choices": {}
+      },
+      "spells": {
+        "success": false,
+        "cantrips": [
+          "vicious-mockery",
+          "light"
+        ],
+        "spells": [
+          "healing-word",
+          "dissonant-whispers",
+          "thunderwave"
+        ],
+        "issues": [
+          "Only matched 3/5 spells"
+        ]
+      }
+    },
+    "issues": [
+      "Only matched 3/5 spells"
+    ]
+  },
+  "validation": {
+    "isValid": true,
+    "pointBuy": {
+      "valid": true,
+      "pointsSpent": 27,
+      "issues": []
+    },
+    "skills": {
+      "valid": true,
+      "invalidSkills": []
+    },
+    "equipment": {
+      "valid": true,
+      "issues": []
+    },
+    "allIssues": []
+  },
+  "metrics": {
+    "promptTokens": 789,
+    "completionTokens": 783,
+    "totalTokens": 1572,
+    "latencyMs": 24531,
+    "costUsd": 0.0098025,
+    "stageMs": {
+      "constraintsMs": 12584,
+      "promptBuildMs": 0,
+      "aiCallMs": 11946,
+      "translateMs": 1,
+      "validateMs": 0
+    }
+  }
+}
+
+──────────────────────────────────────────────────────────────────────
+bard-dwarf-L2-sage | TRANSLATE_FAIL
+──────────────────────────────────────────────────────────────────────
+{
+  "testCase": {
+    "id": "bard-dwarf-L2-sage",
+    "input": {
+      "classId": "bard",
+      "raceId": "dwarf",
+      "level": 2,
+      "backgroundId": "sage",
+      "concept": "A curious scholar obsessed with forbidden knowledge"
+    },
+    "createdAt": "2025-12-14T03:02:30.138Z"
+  },
+  "aiGeneration": {
+    "parseSuccess": true,
+    "rawResponse": "{\n  \"abilityPriorities\": [\"charisma\", \"constitution\", \"intelligence\", \"dexterity\", \"wisdom\", \"strength\"],\n  \"abilityReasoning\": \"Charisma leads because the character is a bard who persuades, performs, and weaves magic through presence and voice. Constitution is next to reflect dwarven hardiness and the stamina to survive risky expeditions into dangerous lore. Intelligence supports the sage’s scholarly drive and obsession with hidden texts. Dexterity helps with quick reactions and staying mobile in skirmishes, while Wisdom is secondary—keen enough to notice signs of danger but prone to curiosity overriding caution. Strength is lowest, as this scholar relies more on wit and will than brute force.\",\n  \"combatApproach\": \"A support-minded skirmisher who controls the flow of a fight with clever words, unsettling revelations, and timely inspiration—staying just behind the front line, disabling threats, and keeping allies steady while avoiding prolonged toe-to-toe brawls.\",\n  \"skillThemes\": [\"forbidden lore and ancient scholarship\", \"social influence through storytelling and debate\", \"careful investigation of mysteries and hidden motives\"],\n  \"equipmentStyle\": \"Refined and travel-worn scholar-performer: a diplomatic, courtly look with a practical blade at the hip and an understated instrument, favoring tools that help negotiate, gather secrets, and move safely through libraries, ruins, and noble halls.\",\n  \"cantripThemes\": [\"subtle magical tricks and eerie whispers\", \"minor utility to aid research and exploration\"],\n  \"spellThemes\": [\"enchantment and persuasion to bend conversations and wills\", \"illusions and misdirection to conceal forbidden pursuits\", \"protective and restorative magic to survive the consequences of dangerous knowledge\"],\n  \"character\": {\n    \"name\": \"Bromli Runequill\",\n    \"personality\": {\n      \"traits\": [\"Speaks in careful, footnoted phrases—then ruins the formality with an excited tangent when a mystery appears.\", \"Treats every locked door, censored passage, and taboo subject as a personal invitation.\"],\n      \"ideals\": [\"Truth is worth the price—especially the truths others are afraid to name.\"],\n      \"bonds\": [\"A half-burned dwarven codex of outlawed runes, inherited from a mentor who disappeared after claiming to have found its missing chapters.\"],\n      \"flaws\": [\"Cannot resist reading what is sealed, forbidden, or warned against—no matter the risk to self or companions.\"]\n    },\n    \"backstory\": \"Bromli Runequill was raised among practical folk who valued stonework, craft, and honest oaths—yet he always listened harder to the echoes than to the hammer. In the monastery-libraries beneath his clanhold, he learned to catalog runes and genealogies, but his attention drifted toward the margins: redacted names, deliberately broken tablets, and songs that ended mid-verse. He became a bard not for tavern applause, but because music and story were the safest way to smuggle memory past censors and time.\\n\\nHis apprenticeship as a sage began respectably—until he found references to a “Deep Cant,” a set of tonal runes said to make truth audible and lies physically painful to speak. The texts were banned, the citations scrubbed, and the scholars who asked too many questions suddenly reassigned or quietly disgraced. Bromli’s mentor slipped him a scorched codex and a warning: some knowledge is not buried, it is imprisoned.\\n\\nWhen the mentor vanished, Bromli followed the trail through polite archives and impolite black markets, trading performances for rumors and access. Now he travels with ink-stained fingers and a voice trained to charm gatekeepers, knowing that every new clue pulls him closer to the codex’s missing chapters—and to whatever thing the old scholars were so desperate to keep asleep.\",\n    \"appearance\": \"A stout, broad-shouldered dwarf with a scholar’s stoop from long hours over desks, bright inquisitive eyes, and a neatly kept beard threaded with small rune-marked ties. His clothes blend academic respectability with road dust: layered fabrics, deep pockets for notes and charcoal, and a weathered satchel heavy with books. When he speaks or sings, his voice is warm but edged with an unsettling resonance, as if a second, older harmony is always trying to surface.\",\n    \"age\": 25\n  }\n}",
+    "preferences": {
+      "abilityPriorities": [
+        "charisma",
+        "constitution",
+        "intelligence",
+        "dexterity",
+        "wisdom",
+        "strength"
+      ],
+      "abilityReasoning": "Charisma leads because the character is a bard who persuades, performs, and weaves magic through presence and voice. Constitution is next to reflect dwarven hardiness and the stamina to survive risky expeditions into dangerous lore. Intelligence supports the sage’s scholarly drive and obsession with hidden texts. Dexterity helps with quick reactions and staying mobile in skirmishes, while Wisdom is secondary—keen enough to notice signs of danger but prone to curiosity overriding caution. Strength is lowest, as this scholar relies more on wit and will than brute force.",
+      "combatApproach": "A support-minded skirmisher who controls the flow of a fight with clever words, unsettling revelations, and timely inspiration—staying just behind the front line, disabling threats, and keeping allies steady while avoiding prolonged toe-to-toe brawls.",
+      "skillThemes": [
+        "forbidden lore and ancient scholarship",
+        "social influence through storytelling and debate",
+        "careful investigation of mysteries and hidden motives"
+      ],
+      "equipmentStyle": "Refined and travel-worn scholar-performer: a diplomatic, courtly look with a practical blade at the hip and an understated instrument, favoring tools that help negotiate, gather secrets, and move safely through libraries, ruins, and noble halls.",
+      "subclassPreference": null,
+      "fightingStylePreference": null,
+      "cantripThemes": [
+        "subtle magical tricks and eerie whispers",
+        "minor utility to aid research and exploration"
+      ],
+      "spellThemes": [
+        "enchantment and persuasion to bend conversations and wills",
+        "illusions and misdirection to conceal forbidden pursuits",
+        "protective and restorative magic to survive the consequences of dangerous knowledge"
+      ],
+      "character": {
+        "name": "Bromli Runequill",
+        "personality": {
+          "traits": [
+            "Speaks in careful, footnoted phrases—then ruins the formality with an excited tangent when a mystery appears.",
+            "Treats every locked door, censored passage, and taboo subject as a personal invitation."
+          ],
+          "ideals": [
+            "Truth is worth the price—especially the truths others are afraid to name."
+          ],
+          "bonds": [
+            "A half-burned dwarven codex of outlawed runes, inherited from a mentor who disappeared after claiming to have found its missing chapters."
+          ],
+          "flaws": [
+            "Cannot resist reading what is sealed, forbidden, or warned against—no matter the risk to self or companions."
+          ]
+        },
+        "backstory": "Bromli Runequill was raised among practical folk who valued stonework, craft, and honest oaths—yet he always listened harder to the echoes than to the hammer. In the monastery-libraries beneath his clanhold, he learned to catalog runes and genealogies, but his attention drifted toward the margins: redacted names, deliberately broken tablets, and songs that ended mid-verse. He became a bard not for tavern applause, but because music and story were the safest way to smuggle memory past censors and time.\n\nHis apprenticeship as a sage began respectably—until he found references to a “Deep Cant,” a set of tonal runes said to make truth audible and lies physically painful to speak. The texts were banned, the citations scrubbed, and the scholars who asked too many questions suddenly reassigned or quietly disgraced. Bromli’s mentor slipped him a scorched codex and a warning: some knowledge is not buried, it is imprisoned.\n\nWhen the mentor vanished, Bromli followed the trail through polite archives and impolite black markets, trading performances for rumors and access. Now he travels with ink-stained fingers and a voice trained to charm gatekeepers, knowing that every new clue pulls him closer to the codex’s missing chapters—and to whatever thing the old scholars were so desperate to keep asleep.",
+        "appearance": "A stout, broad-shouldered dwarf with a scholar’s stoop from long hours over desks, bright inquisitive eyes, and a neatly kept beard threaded with small rune-marked ties. His clothes blend academic respectability with road dust: layered fabrics, deep pockets for notes and charcoal, and a weathered satchel heavy with books. When he speaks or sings, his voice is warm but edged with an unsettling resonance, as if a second, older harmony is always trying to surface.",
+        "age": 25
+      }
+    }
+  },
+  "translation": {
+    "success": false,
+    "translations": {
+      "abilityScores": {
+        "success": true,
+        "scores": {
+          "strength": 8,
+          "dexterity": 12,
+          "constitution": 17,
+          "intelligence": 13,
+          "wisdom": 8,
+          "charisma": 15
+        },
+        "pointsSpent": 27
+      },
+      "skills": {
+        "success": true,
+        "selected": [
+          "Arcana",
+          "History",
+          "Religion",
+          "Persuasion",
+          "Deception"
+        ]
+      },
+      "equipment": {
+        "success": true,
+        "packageId": "B"
+      },
+      "featureChoices": {
+        "success": true,
+        "choices": {}
+      },
+      "spells": {
+        "success": false,
+        "cantrips": [
+          "vicious-mockery",
+          "light"
+        ],
+        "spells": [
+          "healing-word",
+          "dissonant-whispers",
+          "thunderwave"
+        ],
+        "issues": [
+          "Only matched 3/5 spells"
+        ]
+      }
+    },
+    "issues": [
+      "Only matched 3/5 spells"
+    ]
+  },
+  "validation": {
+    "isValid": true,
+    "pointBuy": {
+      "valid": true,
+      "pointsSpent": 27,
+      "issues": []
+    },
+    "skills": {
+      "valid": true,
+      "invalidSkills": []
+    },
+    "equipment": {
+      "valid": true,
+      "issues": []
+    },
+    "allIssues": []
+  },
+  "metrics": {
+    "promptTokens": 785,
+    "completionTokens": 910,
+    "totalTokens": 1695,
+    "latencyMs": 25480,
+    "costUsd": 0.0110625,
+    "stageMs": {
+      "constraintsMs": 26,
+      "promptBuildMs": 1,
+      "aiCallMs": 25452,
+      "translateMs": 0,
+      "validateMs": 0
+    }
+  }
+}
+
+──────────────────────────────────────────────────────────────────────
+bard-elf-L2-criminal | TRANSLATE_FAIL
+──────────────────────────────────────────────────────────────────────
+{
+  "testCase": {
+    "id": "bard-elf-L2-criminal",
+    "input": {
+      "classId": "bard",
+      "raceId": "elf",
+      "level": 2,
+      "backgroundId": "criminal",
+      "concept": "A cynical outcast with a heart of gold and a troubled past"
+    },
+    "createdAt": "2025-12-14T03:02:30.138Z"
+  },
+  "aiGeneration": {
+    "parseSuccess": true,
+    "rawResponse": "{\n  \"abilityPriorities\": [\"charisma\", \"dexterity\", \"constitution\", \"wisdom\", \"intelligence\", \"strength\"],\n  \"abilityReasoning\": \"Charisma leads because the character survives through charm, lies, and performance as a bard and criminal. Dexterity follows to support an elf’s natural agility for stealthy movement and precise dueling. Constitution keeps them standing when plans go wrong. Wisdom helps them read danger and people despite their cynicism. Intelligence supports underworld know-how and careful plotting, while Strength is least important for a nimble, street-smart operator.\",\n  \"combatApproach\": \"A mobile skirmisher who fights with quick footwork and dirty tricks, using charm and misdirection to control the flow of battle while darting in for precise strikes and slipping away when threatened.\",\n  \"skillThemes\": [\"stealth and subterfuge\", \"social manipulation and fast-talking\", \"streetwise investigation and reading people\"],\n  \"equipmentStyle\": \"Light, elegant, and easy to conceal—an urban duelist’s look with a well-kept instrument that doubles as a harmless disguise, favoring mobility and subtlety over heavy protection.\",\n  \"cantripThemes\": [\"minor illusions and distractions for escapes\", \"cutting mockery and psychological pressure\"],\n  \"spellThemes\": [\"enchantment and charm to turn enemies into assets\", \"illusions and misdirection for heists and getaways\", \"support magic that quietly keeps allies alive and moving\"],\n  \"character\": {\n    \"name\": \"Vaelis Thorne\",\n    \"personality\": {\n      \"traits\": [\"Speaks in dry wit and half-truths, as if sincerity is a debt he refuses to pay.\", \"Quietly watches the room’s exits, pockets, and moods before he ever joins the conversation.\"],\n      \"ideals\": [\"No one else gets left behind—if the world is cruel, then kindness must be chosen on purpose.\"],\n      \"bonds\": [\"He owes his life to a forgotten friend from the streets and sends coin and coded messages whenever he can.\", \"A battered songbook holds the only honest pieces of his past—and the names of people he won’t betray again.\"],\n      \"flaws\": [\"He expects betrayal and sometimes pushes people away before they can disappoint him.\", \"When guilt resurfaces, he takes reckless risks to ‘make up for it’ in the worst possible moment.\"]\n    },\n    \"backstory\": \"Vaelis grew up on the edge of elven society—too sharp-tongued for polite halls, too poor to be tolerated, and too proud to beg. Music became his cover: a lute case for coin, a melody for sympathy, and a smile that suggested he belonged anywhere he chose to stand. When the doors of respectable patronage stayed closed, the alleys opened instead, and he learned the criminal trade the way other elves learned courtly etiquette.\\n\\nHe ran with a small crew that specialized in quiet jobs: clean entries, clean exits, no bodies. Vaelis told himself it was better than the alternatives—until a “harmless” score went wrong and someone who didn’t deserve it paid the price. The crew scattered, the blame stuck to him, and the city’s underworld began to treat his name like a bad omen.\\n\\nNow he travels as a performer with a reputation for being difficult, cynical, and hard to pin down. Beneath the bitterness is a stubborn decency he tries to hide, expressed in small mercies: a bribe that becomes a meal for a hungry kid, a lie that saves a life, a song that gives someone the courage to keep going. He’s on the move partly to outrun his past—and partly to find the one thread that might let him set it right.\",\n    \"appearance\": \"A slender elf with sharp features and tired, watchful eyes. His hair is kept practical for travel, his clothes are dark and well-fitted, and his hands—quick and careful—bear faint nicks from strings, locks, and close calls. He carries himself like someone expecting trouble, but his voice can turn warm and captivating the moment he chooses to perform.\",\n    \"age\": 25\n  }\n}",
+    "preferences": {
+      "abilityPriorities": [
+        "charisma",
+        "dexterity",
+        "constitution",
+        "wisdom",
+        "intelligence",
+        "strength"
+      ],
+      "abilityReasoning": "Charisma leads because the character survives through charm, lies, and performance as a bard and criminal. Dexterity follows to support an elf’s natural agility for stealthy movement and precise dueling. Constitution keeps them standing when plans go wrong. Wisdom helps them read danger and people despite their cynicism. Intelligence supports underworld know-how and careful plotting, while Strength is least important for a nimble, street-smart operator.",
+      "combatApproach": "A mobile skirmisher who fights with quick footwork and dirty tricks, using charm and misdirection to control the flow of battle while darting in for precise strikes and slipping away when threatened.",
+      "skillThemes": [
+        "stealth and subterfuge",
+        "social manipulation and fast-talking",
+        "streetwise investigation and reading people"
+      ],
+      "equipmentStyle": "Light, elegant, and easy to conceal—an urban duelist’s look with a well-kept instrument that doubles as a harmless disguise, favoring mobility and subtlety over heavy protection.",
+      "subclassPreference": null,
+      "fightingStylePreference": null,
+      "cantripThemes": [
+        "minor illusions and distractions for escapes",
+        "cutting mockery and psychological pressure"
+      ],
+      "spellThemes": [
+        "enchantment and charm to turn enemies into assets",
+        "illusions and misdirection for heists and getaways",
+        "support magic that quietly keeps allies alive and moving"
+      ],
+      "character": {
+        "name": "Vaelis Thorne",
+        "personality": {
+          "traits": [
+            "Speaks in dry wit and half-truths, as if sincerity is a debt he refuses to pay.",
+            "Quietly watches the room’s exits, pockets, and moods before he ever joins the conversation."
+          ],
+          "ideals": [
+            "No one else gets left behind—if the world is cruel, then kindness must be chosen on purpose."
+          ],
+          "bonds": [
+            "He owes his life to a forgotten friend from the streets and sends coin and coded messages whenever he can.",
+            "A battered songbook holds the only honest pieces of his past—and the names of people he won’t betray again."
+          ],
+          "flaws": [
+            "He expects betrayal and sometimes pushes people away before they can disappoint him.",
+            "When guilt resurfaces, he takes reckless risks to ‘make up for it’ in the worst possible moment."
+          ]
+        },
+        "backstory": "Vaelis grew up on the edge of elven society—too sharp-tongued for polite halls, too poor to be tolerated, and too proud to beg. Music became his cover: a lute case for coin, a melody for sympathy, and a smile that suggested he belonged anywhere he chose to stand. When the doors of respectable patronage stayed closed, the alleys opened instead, and he learned the criminal trade the way other elves learned courtly etiquette.\n\nHe ran with a small crew that specialized in quiet jobs: clean entries, clean exits, no bodies. Vaelis told himself it was better than the alternatives—until a “harmless” score went wrong and someone who didn’t deserve it paid the price. The crew scattered, the blame stuck to him, and the city’s underworld began to treat his name like a bad omen.\n\nNow he travels as a performer with a reputation for being difficult, cynical, and hard to pin down. Beneath the bitterness is a stubborn decency he tries to hide, expressed in small mercies: a bribe that becomes a meal for a hungry kid, a lie that saves a life, a song that gives someone the courage to keep going. He’s on the move partly to outrun his past—and partly to find the one thread that might let him set it right.",
+        "appearance": "A slender elf with sharp features and tired, watchful eyes. His hair is kept practical for travel, his clothes are dark and well-fitted, and his hands—quick and careful—bear faint nicks from strings, locks, and close calls. He carries himself like someone expecting trouble, but his voice can turn warm and captivating the moment he chooses to perform.",
+        "age": 25
+      }
+    }
+  },
+  "translation": {
+    "success": false,
+    "translations": {
+      "abilityScores": {
+        "success": true,
+        "scores": {
+          "strength": 8,
+          "dexterity": 17,
+          "constitution": 13,
+          "intelligence": 8,
+          "wisdom": 12,
+          "charisma": 15
+        },
+        "pointsSpent": 27
+      },
+      "skills": {
+        "success": true,
+        "selected": [
+          "Deception",
+          "Stealth",
+          "Persuasion",
+          "Intimidation",
+          "Investigation"
+        ]
+      },
+      "equipment": {
+        "success": true,
+        "packageId": "A"
+      },
+      "featureChoices": {
+        "success": true,
+        "choices": {}
+      },
+      "spells": {
+        "success": false,
+        "cantrips": [
+          "vicious-mockery",
+          "light"
+        ],
+        "spells": [
+          "healing-word",
+          "dissonant-whispers",
+          "thunderwave"
+        ],
+        "issues": [
+          "Only matched 3/5 spells"
+        ]
+      }
+    },
+    "issues": [
+      "Only matched 3/5 spells"
+    ]
+  },
+  "validation": {
+    "isValid": true,
+    "pointBuy": {
+      "valid": true,
+      "pointsSpent": 27,
+      "issues": []
+    },
+    "skills": {
+      "valid": true,
+      "invalidSkills": []
+    },
+    "equipment": {
+      "valid": true,
+      "issues": []
+    },
+    "allIssues": []
+  },
+  "metrics": {
+    "promptTokens": 792,
+    "completionTokens": 867,
+    "totalTokens": 1659,
+    "latencyMs": 36932,
+    "costUsd": 0.01065,
+    "stageMs": {
+      "constraintsMs": 11948,
+      "promptBuildMs": 0,
+      "aiCallMs": 24982,
+      "translateMs": 1,
+      "validateMs": 0
+    }
+  }
+}
+
+──────────────────────────────────────────────────────────────────────
+bard-halfling-L2-acolyte | TRANSLATE_FAIL
+──────────────────────────────────────────────────────────────────────
+{
+  "testCase": {
+    "id": "bard-halfling-L2-acolyte",
+    "input": {
+      "classId": "bard",
+      "raceId": "halfling",
+      "level": 2,
+      "backgroundId": "acolyte",
+      "concept": "A wilderness survivor distrustful of civilization"
+    },
+    "createdAt": "2025-12-14T03:02:30.138Z"
+  },
+  "aiGeneration": {
+    "parseSuccess": true,
+    "rawResponse": "{\n  \"abilityPriorities\": [\"charisma\", \"dexterity\", \"wisdom\", \"constitution\", \"intelligence\", \"strength\"],\n  \"abilityReasoning\": \"Charisma stays central for bardic magic and hard-won presence, but this halfling’s life on the margins favors quick reflexes and quiet movement (dexterity) plus practical instincts and suspicion of motives (wisdom). Constitution supports endurance from harsh travel, intelligence reflects learned hymns and stories without being bookish, and strength is least important for a light, evasive survivor.\",\n  \"combatApproach\": \"Mobile skirmisher and battlefield disruptor who avoids fair fights—staying at the edges, using misdirection, quick strikes, and morale-breaking magic to control threats while slipping out of danger.\",\n  \"skillThemes\": [\"wilderness self-reliance and tracking\", \"keen observation and reading intentions\", \"subtle deception and social deflection\"],\n  \"equipmentStyle\": \"Light, travel-worn gear suited for long days on foot—compact, quiet, and practical, with an instrument that looks more like a tool for signaling and solace than a showpiece.\",\n  \"cantripThemes\": [\"minor tricks for distraction and misdirection\", \"small comforts and field utility for travel\"],\n  \"spellThemes\": [\"charm and confusion to avoid violence\", \"healing and protective support drawn from faith and grit\", \"mobility and escape tools for surviving ambushes\"],\n  \"character\": {\n    \"name\": \"Brin Underbough\",\n    \"personality\": {\n      \"traits\": [\"Speaks softly and watches everything, as if every campfire tale might be a warning.\", \"Keeps humor dry and brief, but uses songs and stories to steady frightened people.\"],\n      \"ideals\": [\"Freedom: No wall, law, or lord should decide where a person can walk or how they must live.\"],\n      \"bonds\": [\"A small wilderness shrine and its half-forgotten prayers—Brin refuses to let the old faith die out beyond the borders.\"],\n      \"flaws\": [\"Assumes every official kindness has a hook in it, and can be cruelly dismissive of “soft” cityfolk.\"]\n    },\n    \"backstory\": \"Brin Underbough was raised around incense and quiet vows, a halfling acolyte in a modest roadside chapel that served travelers more than townsfolk. The hymns were meant to be welcoming, but Brin learned early that roads carry trouble as often as they carry pilgrims. When a petty magistrate began “taxing” the chapel’s charity and demanding names of those it sheltered, Brin watched good people turned away in the name of order.\\n\\nOne night the chapel was searched, its stores seized, and its caretakers threatened into silence. Brin fled with only a few sacred verses memorized and a battered traveling instrument slung over one shoulder—less a performer’s treasure than a companion for long miles. In the wilds, Brin discovered an older sort of devotion: listening to wind shifts, reading tracks, and trusting the steady rules of weather over the fickle rules of men.\\n\\nNow Brin moves between lonely trails and scattered hamlets, offering quiet blessings, rough-hewn songs, and practical help—while keeping a careful distance from city gates and official seals. Civilization isn’t evil, Brin believes; it’s hungry. And hunger always demands a price.\",\n    \"appearance\": \"A small, wiry halfling with sun-browned skin, travel-scratched hands, and alert dark eyes that rarely stop scanning. Brin’s hair is kept short and practical, with a few stubborn curls. Clothes are layered and patched from many miles, and the instrument is worn smooth from constant use rather than polished for display.\",\n    \"age\": 25\n  }\n}",
+    "preferences": {
+      "abilityPriorities": [
+        "charisma",
+        "dexterity",
+        "wisdom",
+        "constitution",
+        "intelligence",
+        "strength"
+      ],
+      "abilityReasoning": "Charisma stays central for bardic magic and hard-won presence, but this halfling’s life on the margins favors quick reflexes and quiet movement (dexterity) plus practical instincts and suspicion of motives (wisdom). Constitution supports endurance from harsh travel, intelligence reflects learned hymns and stories without being bookish, and strength is least important for a light, evasive survivor.",
+      "combatApproach": "Mobile skirmisher and battlefield disruptor who avoids fair fights—staying at the edges, using misdirection, quick strikes, and morale-breaking magic to control threats while slipping out of danger.",
+      "skillThemes": [
+        "wilderness self-reliance and tracking",
+        "keen observation and reading intentions",
+        "subtle deception and social deflection"
+      ],
+      "equipmentStyle": "Light, travel-worn gear suited for long days on foot—compact, quiet, and practical, with an instrument that looks more like a tool for signaling and solace than a showpiece.",
+      "subclassPreference": null,
+      "fightingStylePreference": null,
+      "cantripThemes": [
+        "minor tricks for distraction and misdirection",
+        "small comforts and field utility for travel"
+      ],
+      "spellThemes": [
+        "charm and confusion to avoid violence",
+        "healing and protective support drawn from faith and grit",
+        "mobility and escape tools for surviving ambushes"
+      ],
+      "character": {
+        "name": "Brin Underbough",
+        "personality": {
+          "traits": [
+            "Speaks softly and watches everything, as if every campfire tale might be a warning.",
+            "Keeps humor dry and brief, but uses songs and stories to steady frightened people."
+          ],
+          "ideals": [
+            "Freedom: No wall, law, or lord should decide where a person can walk or how they must live."
+          ],
+          "bonds": [
+            "A small wilderness shrine and its half-forgotten prayers—Brin refuses to let the old faith die out beyond the borders."
+          ],
+          "flaws": [
+            "Assumes every official kindness has a hook in it, and can be cruelly dismissive of “soft” cityfolk."
+          ]
+        },
+        "backstory": "Brin Underbough was raised around incense and quiet vows, a halfling acolyte in a modest roadside chapel that served travelers more than townsfolk. The hymns were meant to be welcoming, but Brin learned early that roads carry trouble as often as they carry pilgrims. When a petty magistrate began “taxing” the chapel’s charity and demanding names of those it sheltered, Brin watched good people turned away in the name of order.\n\nOne night the chapel was searched, its stores seized, and its caretakers threatened into silence. Brin fled with only a few sacred verses memorized and a battered traveling instrument slung over one shoulder—less a performer’s treasure than a companion for long miles. In the wilds, Brin discovered an older sort of devotion: listening to wind shifts, reading tracks, and trusting the steady rules of weather over the fickle rules of men.\n\nNow Brin moves between lonely trails and scattered hamlets, offering quiet blessings, rough-hewn songs, and practical help—while keeping a careful distance from city gates and official seals. Civilization isn’t evil, Brin believes; it’s hungry. And hunger always demands a price.",
+        "appearance": "A small, wiry halfling with sun-browned skin, travel-scratched hands, and alert dark eyes that rarely stop scanning. Brin’s hair is kept short and practical, with a few stubborn curls. Clothes are layered and patched from many miles, and the instrument is worn smooth from constant use rather than polished for display.",
+        "age": 25
+      }
+    }
+  },
+  "translation": {
+    "success": false,
+    "translations": {
+      "abilityScores": {
+        "success": true,
+        "scores": {
+          "strength": 8,
+          "dexterity": 17,
+          "constitution": 12,
+          "intelligence": 8,
+          "wisdom": 13,
+          "charisma": 15
+        },
+        "pointsSpent": 27
+      },
+      "skills": {
+        "success": true,
+        "selected": [
+          "Insight",
+          "Religion",
+          "Survival",
+          "Nature",
+          "Animal Handling"
+        ],
+        "unmatchedThemes": [
+          "keen observation and reading intentions"
+        ],
+        "issues": [
+          "Could not match themes: keen observation and reading intentions"
+        ]
+      },
+      "equipment": {
+        "success": true,
+        "packageId": "B"
+      },
+      "featureChoices": {
+        "success": true,
+        "choices": {}
+      },
+      "spells": {
+        "success": false,
+        "cantrips": [
+          "vicious-mockery",
+          "light"
+        ],
+        "spells": [
+          "healing-word",
+          "dissonant-whispers",
+          "thunderwave"
+        ],
+        "issues": [
+          "Only matched 3/5 spells"
+        ]
+      }
+    },
+    "issues": [
+      "Only matched 3/5 spells"
+    ]
+  },
+  "validation": {
+    "isValid": true,
+    "pointBuy": {
+      "valid": true,
+      "pointsSpent": 27,
+      "issues": []
+    },
+    "skills": {
+      "valid": true,
+      "invalidSkills": []
+    },
+    "equipment": {
+      "valid": true,
+      "issues": []
+    },
+    "allIssues": []
+  },
+  "metrics": {
+    "promptTokens": 789,
+    "completionTokens": 793,
+    "totalTokens": 1582,
+    "latencyMs": 58372,
+    "costUsd": 0.0099025,
+    "stageMs": {
+      "constraintsMs": 25006,
+      "promptBuildMs": 0,
+      "aiCallMs": 33365,
+      "translateMs": 0,
+      "validateMs": 0
+    }
+  }
+}
+
+💰 COST BREAKDOWN
+──────────────────────────────────────────────────────────────────────
+   Total Cost: $0.5152
+   Avg Cost/Character: $0.0107

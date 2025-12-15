@@ -1,0 +1,930 @@
+# PCG run log
+timestamp: 2025-12-14T02:07:58.024Z
+cwd: /home/drakosfire/Projects/DungeonOverMind/LandingPage
+args: ["sample","--classes","wizard,cleric,bard","--levels","1,3","--races","human,dwarf,elf","--backgrounds","sage,acolyte,criminal","--live","--concurrency","3","--backend-validate","--backend-compute","--max-retries","2"]
+DUNGEONMIND_ENV: 
+DUNGEONMIND_API_URL: https://dev.dungeonmind.net
+NODE_ENV: 
+
+---
+
+
+🎲 D&D 5e AI Character Generation Demo
+
+🌐 Mode: LIVE API (real OpenAI calls)
+
+══════════════════════════════════════════════════════════════════════
+ AI CHARACTER GENERATION REPRESENTATIVE SAMPLE (75 cases) (LIVE API) (concurrency=3)
+══════════════════════════════════════════════════════════════════════
+
+📋 Generated 54 test cases
+
+⚠️  Using REAL OpenAI API - this will incur costs!
+
+
+🧪 Running test: wizard-human-L1-sage
+   Class: wizard, Race: human, Level: 1
+
+🧪 Running test: wizard-human-L1-criminal
+   Class: wizard, Race: human, Level: 1
+
+🧪 Running test: wizard-human-L1-acolyte
+   Class: wizard, Race: human, Level: 1
+(node:607968) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+   📝 Built prompt (2574 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (2574 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (2578 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1522 tokens)
+   ✅ Parsed preferences for: Mara Vell
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Arcana, Investigation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1478 tokens)
+   ✅ Parsed preferences for: Lysa Marrin
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 13, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Arcana, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1464 tokens)
+   ✅ Parsed preferences for: Garrick Hale
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Investigation, Insight
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 1/54 (ETA ~1972s)
+
+🧪 Running test: wizard-dwarf-L1-sage
+   Class: wizard, Race: dwarf, Level: 1
+   ✅ Backend compute passed
+   ⏱️  Progress: 2/54 (ETA ~968s)
+
+🧪 Running test: wizard-dwarf-L1-criminal
+   Class: wizard, Race: dwarf, Level: 1
+   ✅ Backend validation passed
+   📝 Built prompt (2604 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (2616 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 3/54 (ETA ~633s)
+
+🧪 Running test: wizard-dwarf-L1-acolyte
+   Class: wizard, Race: dwarf, Level: 1
+   🤖 Real API response received (1503 tokens)
+   ✅ Parsed preferences for: Bromli Sanctumforge
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Investigation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1636 tokens)
+   ✅ Parsed preferences for: Borin "Brightcoin" Amberlock
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 15, INT 15, WIS 8, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Arcana, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (2608 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1406 tokens)
+   ✅ Parsed preferences for: Bromdir Stoneveil
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Arcana, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 4/54 (ETA ~909s)
+
+🧪 Running test: wizard-elf-L1-sage
+   Class: wizard, Race: elf, Level: 1
+   ✅ Backend compute passed
+   ⏱️  Progress: 5/54 (ETA ~713s)
+
+🧪 Running test: wizard-elf-L1-criminal
+   Class: wizard, Race: elf, Level: 1
+   📝 Built prompt (2604 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (2593 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1538 tokens)
+   ✅ Parsed preferences for: Sylvarin Ashveil
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Arcana, Investigation
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1503 tokens)
+   ✅ Parsed preferences for: Vaelis Thandoril
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Investigation, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 6/54 (ETA ~798s)
+
+🧪 Running test: wizard-elf-L1-acolyte
+   Class: wizard, Race: elf, Level: 1
+   ✅ Backend validation passed
+   📝 Built prompt (2596 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1444 tokens)
+   ✅ Parsed preferences for: Thalanil Ashgrove
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 12, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Arcana, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 7/54 (ETA ~742s)
+
+🧪 Running test: cleric-human-L1-sage
+   Class: cleric, Race: human, Level: 1
+   ✅ Backend compute passed
+   ⏱️  Progress: 8/54 (ETA ~636s)
+
+🧪 Running test: cleric-human-L1-criminal
+   Class: cleric, Race: human, Level: 1
+   📝 Built prompt (2839 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (2814 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1499 tokens)
+   ✅ Parsed preferences for: Garrick Vane
+   ✅ Translation successful
+   📊 Ability Scores: STR 13, DEX 8, CON 15, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, History, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 9/54 (ETA ~610s)
+
+🧪 Running test: cleric-human-L1-acolyte
+   Class: cleric, Race: human, Level: 1
+   🤖 Real API response received (1590 tokens)
+   ✅ Parsed preferences for: Aurelian Voss
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 8, CON 13, INT 12, WIS 15, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Insight, Persuasion
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (2826 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1528 tokens)
+   ✅ Parsed preferences for: Elian Voss
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 8, CON 15, INT 12, WIS 15, CHA 13
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Medicine, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 10/54 (ETA ~643s)
+
+🧪 Running test: cleric-dwarf-L1-sage
+   Class: cleric, Race: dwarf, Level: 1
+   ✅ Backend validation passed
+   📝 Built prompt (2859 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1473 tokens)
+   ✅ Parsed preferences for: Brynna Coalvein
+   ✅ Translation successful
+   📊 Ability Scores: STR 12, DEX 8, CON 17, INT 13, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Insight, Medicine
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 11/54 (ETA ~615s)
+
+🧪 Running test: cleric-dwarf-L1-criminal
+   Class: cleric, Race: dwarf, Level: 1
+   ✅ Backend compute passed
+   ⏱️  Progress: 12/54 (ETA ~551s)
+
+🧪 Running test: cleric-dwarf-L1-acolyte
+   Class: cleric, Race: dwarf, Level: 1
+   📝 Built prompt (2868 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (2865 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1516 tokens)
+   ✅ Parsed preferences for: Brynna "Glim" Ironprayer
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 15, INT 8, WIS 15, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Persuasion, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 13/54 (ETA ~533s)
+
+🧪 Running test: cleric-elf-L1-sage
+   Class: cleric, Race: elf, Level: 1
+   🤖 Real API response received (1564 tokens)
+   ✅ Parsed preferences for: Bromli Grimvow
+   ✅ Translation successful
+   📊 Ability Scores: STR 13, DEX 8, CON 17, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Religion, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (2852 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1459 tokens)
+   ✅ Parsed preferences for: Thalanil Veyrun
+   ✅ Translation successful
+   📊 Ability Scores: STR 12, DEX 15, CON 15, INT 8, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Insight, Medicine
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 14/54 (ETA ~548s)
+
+🧪 Running test: cleric-elf-L1-criminal
+   Class: cleric, Race: elf, Level: 1
+   ✅ Backend compute passed
+   ⏱️  Progress: 15/54 (ETA ~499s)
+
+🧪 Running test: cleric-elf-L1-acolyte
+   Class: cleric, Race: elf, Level: 1
+   📝 Built prompt (2856 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (2854 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1632 tokens)
+   ✅ Parsed preferences for: Saelith Vaerwyn
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Persuasion, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 16/54 (ETA ~486s)
+
+🧪 Running test: bard-human-L1-sage
+   Class: bard, Race: human, Level: 1
+   🤖 Real API response received (1458 tokens)
+   ✅ Parsed preferences for: Elaris Veyl
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 12, INT 15, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, History, Religion
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (2679 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 17/54 (ETA ~469s)
+
+🧪 Running test: bard-human-L1-criminal
+   Class: bard, Race: human, Level: 1
+   ✅ Backend validation passed
+   🤖 Real API response received (1527 tokens)
+   ✅ Parsed preferences for: Rowan Thatch
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 12, INT 8, WIS 13, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Survival, Nature, Persuasion
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (2686 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 18/54 (ETA ~455s)
+
+🧪 Running test: bard-human-L1-acolyte
+   Class: bard, Race: human, Level: 1
+   🤖 Real API response received (1568 tokens)
+   ✅ Parsed preferences for: Ser Caldor Vayne
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 13, INT 12, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, Intimidation, Acrobatics
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (2702 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1579 tokens)
+   ✅ Parsed preferences for: Garran Vell
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 15, INT 8, WIS 13, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Persuasion, Intimidation, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 19/54 (ETA ~465s)
+
+🧪 Running test: bard-dwarf-L1-sage
+   Class: bard, Race: dwarf, Level: 1
+   ✅ Backend compute passed
+   ⏱️  Progress: 20/54 (ETA ~430s)
+
+🧪 Running test: bard-dwarf-L1-criminal
+   Class: bard, Race: dwarf, Level: 1
+   📝 Built prompt (2731 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (2722 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1549 tokens)
+   ✅ Parsed preferences for: Borin "Gravelvoice" Kegbrand
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 17, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, Intimidation, Perception
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1501 tokens)
+   ✅ Parsed preferences for: Brunna Gemquill
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 13, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Persuasion, Deception, Intimidation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 21/54 (ETA ~435s)
+
+🧪 Running test: bard-dwarf-L1-acolyte
+   Class: bard, Race: dwarf, Level: 1
+   ✅ Backend validation passed
+   📝 Built prompt (2728 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1594 tokens)
+   ✅ Parsed preferences for: Bromli Embercant
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 8, WIS 13, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Acrobatics, Animal Handling, Arcana
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 22/54 (ETA ~420s)
+
+🧪 Running test: bard-elf-L1-sage
+   Class: bard, Race: elf, Level: 1
+   ✅ Backend compute passed
+   ⏱️  Progress: 23/54 (ETA ~389s)
+
+🧪 Running test: bard-elf-L1-criminal
+   Class: bard, Race: elf, Level: 1
+   📝 Built prompt (2724 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (2723 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1521 tokens)
+   ✅ Parsed preferences for: Vaelis Thorne
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, Intimidation, Acrobatics
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1586 tokens)
+   ✅ Parsed preferences for: Lirael Vaeloren
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 12, INT 13, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Persuasion, Deception, Intimidation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 24/54 (ETA ~390s)
+
+🧪 Running test: bard-elf-L1-acolyte
+   Class: bard, Race: elf, Level: 1
+   ✅ Backend validation passed
+   📝 Built prompt (2717 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1472 tokens)
+   ✅ Parsed preferences for: Vaelis Thorneleaf
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 8, INT 15, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, History, Arcana, Persuasion
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 25/54 (ETA ~384s)
+
+🧪 Running test: wizard-human-L3-sage
+   Class: wizard, Race: human, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 26/54 (ETA ~356s)
+
+🧪 Running test: wizard-human-L3-criminal
+   Class: wizard, Race: human, Level: 3
+   📝 Built prompt (2892 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (2891 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1450 tokens)
+   ✅ Parsed preferences for: Rowan Ashford
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 12, INT 15, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Arcana, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 27/54 (ETA ~341s)
+
+🧪 Running test: wizard-human-L3-acolyte
+   Class: wizard, Race: human, Level: 3
+   🤖 Real API response received (1576 tokens)
+   ✅ Parsed preferences for: Corin Vale
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 12, INT 15, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Insight, Investigation
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (2890 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1585 tokens)
+   ✅ Parsed preferences for: Cassian Valemont
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 8, CON 12, INT 15, WIS 13, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Arcana, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 28/54 (ETA ~340s)
+
+🧪 Running test: wizard-dwarf-L3-sage
+   Class: wizard, Race: dwarf, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 29/54 (ETA ~316s)
+
+🧪 Running test: wizard-dwarf-L3-criminal
+   Class: wizard, Race: dwarf, Level: 3
+   📝 Built prompt (2935 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (2939 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1491 tokens)
+   ✅ Parsed preferences for: Brynna "Glimmer" Stonevein
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 17, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Arcana, Investigation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 30/54 (ETA ~301s)
+
+🧪 Running test: wizard-dwarf-L3-acolyte
+   Class: wizard, Race: dwarf, Level: 3
+   🤖 Real API response received (1590 tokens)
+   ✅ Parsed preferences for: Bromdir Ashmantle
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Investigation, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (2935 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 31/54 (ETA ~296s)
+
+🧪 Running test: wizard-elf-L3-sage
+   Class: wizard, Race: elf, Level: 3
+   ✅ Backend validation passed
+   🤖 Real API response received (1586 tokens)
+   ✅ Parsed preferences for: Brynna Embervein
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Arcana, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (2924 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 32/54 (ETA ~284s)
+
+🧪 Running test: wizard-elf-L3-criminal
+   Class: wizard, Race: elf, Level: 3
+   🤖 Real API response received (1541 tokens)
+   ✅ Parsed preferences for: Aelar Thalorien
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 12, INT 15, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Investigation
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (2936 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1566 tokens)
+   ✅ Parsed preferences for: Lirael Vexwhisper
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 12, INT 15, WIS 8, CHA 13
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Arcana, History
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 33/54 (ETA ~279s)
+
+🧪 Running test: wizard-elf-L3-acolyte
+   Class: wizard, Race: elf, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 34/54 (ETA ~257s)
+
+🧪 Running test: cleric-human-L3-sage
+   Class: cleric, Race: human, Level: 3
+   📝 Built prompt (2816 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (2928 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1520 tokens)
+   ✅ Parsed preferences for: Edrin Vale
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 13, INT 15, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Medicine
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 35/54 (ETA ~244s)
+
+🧪 Running test: cleric-human-L3-criminal
+   Class: cleric, Race: human, Level: 3
+   🤖 Real API response received (1434 tokens)
+   ✅ Parsed preferences for: Thalanil Veyr
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Arcana, Investigation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (2827 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1588 tokens)
+   ✅ Parsed preferences for: Elias Varr
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Insight, Persuasion
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 36/54 (ETA ~237s)
+
+🧪 Running test: cleric-human-L3-acolyte
+   Class: cleric, Race: human, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 37/54 (ETA ~218s)
+
+🧪 Running test: cleric-dwarf-L3-sage
+   Class: cleric, Race: dwarf, Level: 3
+   📝 Built prompt (2850 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (2819 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1478 tokens)
+   ✅ Parsed preferences for: Brynna Stonewrit
+   ✅ Translation successful
+   📊 Ability Scores: STR 12, DEX 8, CON 17, INT 13, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 38/54 (ETA ~208s)
+
+🧪 Running test: cleric-dwarf-L3-criminal
+   Class: cleric, Race: dwarf, Level: 3
+   🤖 Real API response received (1433 tokens)
+   ✅ Parsed preferences for: Rowan Ashford
+   ✅ Translation successful
+   📊 Ability Scores: STR 12, DEX 13, CON 15, INT 8, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, History, Medicine
+   📊 Equipment Package: A
+   ✅ Validation passed
+   📝 Built prompt (2875 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1507 tokens)
+   ✅ Parsed preferences for: Bromli Stonevein
+   ✅ Translation successful
+   📊 Ability Scores: STR 13, DEX 12, CON 17, INT 8, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Insight, Medicine
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 39/54 (ETA ~199s)
+
+🧪 Running test: cleric-dwarf-L3-acolyte
+   Class: cleric, Race: dwarf, Level: 3
+   ✅ Backend validation passed
+   📝 Built prompt (2862 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1497 tokens)
+   ✅ Parsed preferences for: Brynna Stonecant
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 8, CON 17, INT 13, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, History, Medicine
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 40/54 (ETA ~185s)
+
+🧪 Running test: cleric-elf-L3-sage
+   Class: cleric, Race: elf, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 41/54 (ETA ~167s)
+
+🧪 Running test: cleric-elf-L3-criminal
+   Class: cleric, Race: elf, Level: 3
+   📝 Built prompt (2854 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1530 tokens)
+   ✅ Parsed preferences for: Vaelis Thorneweave
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 12, WIS 15, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (2860 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 42/54 (ETA ~154s)
+
+🧪 Running test: cleric-elf-L3-acolyte
+   Class: cleric, Race: elf, Level: 3
+   📝 Built prompt (2863 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1523 tokens)
+   ✅ Parsed preferences for: Vaelith Dawnshard
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 15, CHA 12
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, History, Insight
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1603 tokens)
+   ✅ Parsed preferences for: Saelith Veyra
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 12, INT 8, WIS 15, CHA 13
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Persuasion, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 43/54 (ETA ~145s)
+
+🧪 Running test: bard-human-L3-sage
+   Class: bard, Race: human, Level: 3
+   ✅ Backend validation passed
+   📝 Built prompt (3015 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1620 tokens)
+   ✅ Parsed preferences for: Edrin Vale
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Acrobatics, Animal Handling, Athletics
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 44/54 (ETA ~132s)
+
+🧪 Running test: bard-human-L3-criminal
+   Class: bard, Race: human, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 45/54 (ETA ~116s)
+
+🧪 Running test: bard-human-L3-acolyte
+   Class: bard, Race: human, Level: 3
+   📝 Built prompt (3019 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   📝 Built prompt (3017 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1605 tokens)
+   ✅ Parsed preferences for: Sable Rowan
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 12, INT 8, WIS 13, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Persuasion, Deception, Intimidation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 46/54 (ETA ~105s)
+
+🧪 Running test: bard-dwarf-L3-sage
+   Class: bard, Race: dwarf, Level: 3
+   🤖 Real API response received (1622 tokens)
+   ✅ Parsed preferences for: Cassian Vell
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 12, INT 15, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, History, Arcana, Religion
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (3044 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 47/54 (ETA ~94s)
+
+🧪 Running test: bard-dwarf-L3-criminal
+   Class: bard, Race: dwarf, Level: 3
+   ✅ Backend validation passed
+   🤖 Real API response received (1551 tokens)
+   ✅ Parsed preferences for: Brynna Stonewhistle
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 8, WIS 13, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Survival, Nature, Persuasion
+   📊 Equipment Package: B
+   ✅ Validation passed
+   📝 Built prompt (3051 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend compute passed
+   ⏱️  Progress: 48/54 (ETA ~80s)
+
+🧪 Running test: bard-dwarf-L3-acolyte
+   Class: bard, Race: dwarf, Level: 3
+   🤖 Real API response received (1575 tokens)
+   ✅ Parsed preferences for: Brynna Ambervein
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 17, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, Intimidation, Acrobatics
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend validation passed
+   📝 Built prompt (3067 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1571 tokens)
+   ✅ Parsed preferences for: Bromli Ashenhymn
+   ✅ Translation successful
+   📊 Ability Scores: STR 13, DEX 8, CON 17, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Persuasion, Intimidation, Acrobatics
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 49/54 (ETA ~68s)
+
+🧪 Running test: bard-elf-L3-sage
+   Class: bard, Race: elf, Level: 3
+   ✅ Backend compute passed
+   ⏱️  Progress: 50/54 (ETA ~53s)
+
+🧪 Running test: bard-elf-L3-criminal
+   Class: bard, Race: elf, Level: 3
+   📝 Built prompt (3055 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   ✅ Backend validation passed
+   🤖 Real API response received (1565 tokens)
+   ✅ Parsed preferences for: Vaelis Nightchord
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 13, INT 8, WIS 12, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Deception, Stealth, Persuasion, Intimidation, Acrobatics
+   📊 Equipment Package: B
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 51/54 (ETA ~40s)
+
+🧪 Running test: bard-elf-L3-acolyte
+   Class: bard, Race: elf, Level: 3
+   📝 Built prompt (3046 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (3052 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1613 tokens)
+   ✅ Parsed preferences for: Elarion Veyl
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 17, CON 12, INT 13, WIS 8, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Persuasion, Acrobatics, Animal Handling
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   🤖 Real API response received (1483 tokens)
+   ✅ Parsed preferences for: Aelar Thandoril
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 15, CON 12, INT 8, WIS 15, CHA 15
+   📊 Points Spent: 27/27
+   📊 Skills: Insight, Religion, Persuasion, History, Arcana
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 52/54 (ETA ~27s)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 53/54 (ETA ~13s)
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 54/54 (ETA ~0s)
+
+══════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════
+ AI GENERATION EXPERIMENT RESULTS
+ Generated: 2025-12-14T02:07:58.023Z
+ Test Cases: 54
+══════════════════════════════════════════════════════════════════════
+
+OVERALL SUCCESS RATES
+──────────────────────────────────────────────────────────────────────
+ Parse Success:       100.0%
+ Translation Success: 100.0%
+ Validation Success:  100.0%
+ Overall Success:     100.0%
+
+BY CLASS
+──────────────────────────────────────────────────────────────────────
+ wizard       100.0% (18/18)
+ cleric       100.0% (18/18)
+ bard         100.0% (18/18)
+
+BY LEVEL
+──────────────────────────────────────────────────────────────────────
+ Level 1:  100.0% (27/27)
+ Level 3:  100.0% (27/27)
+
+COST ANALYSIS
+──────────────────────────────────────────────────────────────────────
+ Avg Tokens/Request: 1534
+ Avg Latency:        38913ms
+ p50 Latency:        36593ms
+ p95 Latency:        58423ms
+ Total Cost:         $0.5386
+ Cost per Success:   $0.0100
+
+══════════════════════════════════════════════════════════════════════
+
+💰 COST BREAKDOWN
+──────────────────────────────────────────────────────────────────────
+   Total Cost: $0.5386
+   Avg Cost/Character: $0.0100

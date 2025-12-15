@@ -1,0 +1,118 @@
+# PCG run log
+timestamp: 2025-12-14T00:22:50.926Z
+cwd: /home/drakosfire/Projects/DungeonOverMind/LandingPage
+args: ["pilot"]
+DUNGEONMIND_ENV: dev
+DUNGEONMIND_API_URL: 
+NODE_ENV: 
+
+---
+
+
+🎲 D&D 5e AI Character Generation Demo
+
+🧪 Mode: MOCK (no API calls)
+
+══════════════════════════════════════════════════════════════════════
+ AI CHARACTER GENERATION PILOT TEST
+══════════════════════════════════════════════════════════════════════
+
+📋 Generated 5 test cases
+
+
+🧪 Running test: fighter-human-L1-soldier
+   Class: fighter, Race: human, Level: 1
+   📝 Built prompt (3480 chars)
+   🤖 Using mock response
+   ✅ Parsed preferences for: Kira Stonefist
+   ✅ Translation successful
+   📊 Ability Scores: STR 16, DEX 14, CON 16, INT 9, WIS 13, CHA 9
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Perception, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+🧪 Running test: wizard-human-L1-soldier
+   Class: wizard, Race: human, Level: 1
+   📝 Built prompt (4044 chars)
+   🤖 Using mock response
+   ✅ Parsed preferences for: Aldric Thornwood
+   ✅ Translation successful
+   📊 Ability Scores: STR 9, DEX 14, CON 16, INT 16, WIS 13, CHA 9
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+🧪 Running test: rogue-human-L1-soldier
+   Class: rogue, Race: human, Level: 1
+   📝 Built prompt (3480 chars)
+   🤖 Using mock response
+   ✅ Parsed preferences for: Vex Shadowmere
+   ✅ Translation successful
+   📊 Ability Scores: STR 9, DEX 16, CON 16, INT 9, WIS 13, CHA 14
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Acrobatics, Animal Handling
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+🧪 Running test: cleric-human-L1-soldier
+   Class: cleric, Race: human, Level: 1
+   📝 Built prompt (3480 chars)
+   🤖 Using mock response
+   ✅ Parsed preferences for: Brother Marcus Lightbringer
+   ✅ Translation successful
+   📊 Ability Scores: STR 14, DEX 9, CON 16, INT 9, WIS 16, CHA 13
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Insight, History
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+🧪 Running test: bard-human-L1-soldier
+   Class: bard, Race: human, Level: 1
+   📝 Built prompt (3480 chars)
+   🤖 Using mock response
+   ✅ Parsed preferences for: Lyric Silversong
+   ✅ Translation successful
+   📊 Ability Scores: STR 9, DEX 16, CON 14, INT 13, WIS 9, CHA 16
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Acrobatics, Animal Handling
+   📊 Equipment Package: A
+   ✅ Validation passed
+
+══════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════
+ AI GENERATION EXPERIMENT RESULTS
+ Generated: 2025-12-14T00:22:50.926Z
+ Test Cases: 5
+══════════════════════════════════════════════════════════════════════
+
+OVERALL SUCCESS RATES
+──────────────────────────────────────────────────────────────────────
+ Parse Success:       100.0%
+ Translation Success: 100.0%
+ Validation Success:  100.0%
+ Overall Success:     100.0%
+
+BY CLASS
+──────────────────────────────────────────────────────────────────────
+ fighter      100.0% (1/1)
+ wizard       100.0% (1/1)
+ rogue        100.0% (1/1)
+ cleric       100.0% (1/1)
+ bard         100.0% (1/1)
+
+BY LEVEL
+──────────────────────────────────────────────────────────────────────
+ Level 1:  100.0% (5/5)
+
+COST ANALYSIS
+──────────────────────────────────────────────────────────────────────
+ Avg Tokens/Request: 1371
+ Avg Latency:        1ms
+ p50 Latency:        1ms
+ p95 Latency:        2ms
+ Total Cost:         $0.0685
+ Cost per Success:   $0.0137
+
+══════════════════════════════════════════════════════════════════════

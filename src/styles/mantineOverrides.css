@@ -148,3 +148,44 @@ html body .mantine-Drawer-root .mantine-Drawer-inner {
 .mantine-Drawer-root a:focus-visible {
     outline: none !important;
 }
+
+/* Fix checkbox icon centering
+   The SVG viewBox is 10x7 (not square), needs proper centering in the square checkbox.
+   Global line-height: 1.6 may affect inline-block SVG positioning. */
+.mantine-Checkbox-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mantine-Checkbox-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.mantine-Checkbox-icon svg {
+    width: 65%;
+    height: 65%;
+}
+
+/* Fix radio icon centering */
+.mantine-Radio-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mantine-Radio-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}

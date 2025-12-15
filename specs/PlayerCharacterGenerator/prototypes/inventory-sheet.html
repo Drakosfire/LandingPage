@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D 5e Inventory Sheet - HTML Prototype</title>
+
+    <!-- PHB Foundation Styles (fonts, colors, base patterns) -->
+    <link rel="stylesheet" href="phb-prototype.css">
+
+    <style>
+        /* ===== INVENTORY SHEET SPECIFIC STYLES ===== */
+        /* Page container extends .phb-page from phb-prototype.css */
+
+        /* ===== Header ===== */
+        .inventory-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: flex-end;
+        }
+
+        /* Title extends .phb-page-title */
+
+        .character-info {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+        }
+
+        .character-info .labeled-box {
+            flex: 1;
+        }
+
+        .character-info .labeled-box.narrow {
+            flex: 0 0 100px;
+        }
+
+        .character-info .labeled-box .value {
+            padding: 6px 10px;
+            font-size: 13px;
+            min-height: 30px;
+        }
+
+        /* ===== Top Row: Currency & Encumbrance ===== */
+        .top-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Currency Section - extends .phb-section */
+        .currency-section {
+            padding: 10px;
+            flex: 0 0 200px;
+        }
+
+        .currency-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .currency-item {
+            text-align: center;
+        }
+
+        .currency-item .coin-label {
+            font-size: 8px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            color: var(--text-red);
+            margin-bottom: 2px;
+        }
+
+        .currency-item .coin-value {
+            width: 100%;
+            height: 28px;
+            border: 2px solid var(--border-color);
+            text-align: center;
+            font-size: 12px;
+            font-family: 'ScalySansRemake', sans-serif;
+            background: var(--bg-light);
+        }
+
+        .currency-total {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .currency-total .total-label {
+            color: var(--text-red);
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            font-size: 8px;
+        }
+
+        /* Encumbrance Section - extends .phb-section */
+        .encumbrance-section {
+            padding: 10px;
+            flex: 0 0 180px;
+        }
+
+        .encumbrance-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .encumbrance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .encumbrance-row .stat-value {
+            font-weight: bold;
+        }
+
+        .encumbrance-bar {
+            height: 12px;
+            background: #e8e0d0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .encumbrance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a9c4a 0%, #c9a227 60%, #c94a4a 100%);
+            width: 45%;
+            border-radius: 6px 0 0 6px;
+        }
+
+        /* Attunement Section - extends .phb-section */
+        .attunement-section {
+            padding: 10px;
+            flex: 1;
+        }
+
+        .attunement-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .attunement-slot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attunement-marker {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: var(--bg-light);
+        }
+
+        .attunement-marker.active {
+            background: var(--border-color);
+        }
+
+        .attunement-item {
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 10px;
+            padding: 2px 0;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        /* ===== Main Content: 3 Columns ===== */
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            padding-bottom: 40px;
+        }
+
+        .inventory-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ===== Inventory Category Block - extends .phb-section ===== */
+        .inventory-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inventory-block.flex-grow {
+            flex: 1;
+        }
+
+        .item-list {
+            flex: 1;
+            padding: 6px;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 30px 1fr 40px 35px;
+            gap: 4px;
+            align-items: center;
+            padding: 3px 0;
+            border-bottom: 1px dotted var(--border-light);
+            font-size: 10px;
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-row.header {
+            font-size: 7px;
+            font-family: 'ScalySansSmallCapsRemake', sans-serif;
+            color: var(--text-red);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+            margin-bottom: 2px;
+        }
+
+        .item-qty {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .item-name {
+            font-family: 'ScalySansRemake', sans-serif;
+        }
+
+        .item-weight {
+            text-align: right;
+            color: var(--text-red);
+            font-size: 9px;
+        }
+
+        .item-value {
+            text-align: right;
+            font-size: 9px;
+        }
+
+        .item-row.empty {
+            border-bottom: 1px solid #ccc;
+            min-height: 20px;
+        }
+
+        /* Treasure/Valuables Section */
+        .treasure-block .item-row {
+            grid-template-columns: 1fr 60px;
+        }
+
+        /* Consumables Section - wider "Uses" column for dice notation */
+        .consumables-block .item-row {
+            grid-template-columns: 20px 1fr 20px 50px;
+        }
+
+        /* Container Section - overrides .phb-section border */
+        .container-block {
+            border: 2px dashed var(--border-light) !important;
+            background: rgba(255, 255, 255, 0.5) !important;
+            background-image: none !important;
+        }
+
+        .container-block .block-header {
+            background: var(--border-light);
+        }
+
+        .container-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 8px;
+            font-size: 8px;
+            font-family: 'ScalySansRemake', sans-serif;
+            background: rgba(156, 43, 27, 0.1);
+        }
+
+        /* ===== Notes Section ===== */
+        .notes-section {
+            margin-top: 12px;
+        }
+
+        /* Notes box - extends .phb-section */
+        .notes-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notes-content {
+            flex: 1;
+            min-height: 60px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .notes-column {
+            border-right: 1px dashed var(--border-light);
+            padding-right: 12px;
+            font-size: 10px;
+            font-family: 'BookInsanityRemake', Georgia, serif;
+        }
+
+        .notes-column:last-child {
+            border-right: none;
+            padding-right: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="phb-page inventory-sheet">
+
+        <!-- ===== HEADER ===== -->
+        <div class="phb-page-title">Inventory</div>
+        <div class="inventory-header">
+            <div class="character-info">
+                <div class="labeled-box">
+                    <div class="value">Thoradin Fireforge</div>
+                    <div class="label">Character Name</div>
+                </div>
+                <div class="labeled-box narrow">
+                    <div class="value">Paladin 5</div>
+                    <div class="label">Class & Level</div>
+                </div>
+                <div class="labeled-box narrow">
+                    <div class="value">16</div>
+                    <div class="label">Strength</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TOP ROW: Currency, Encumbrance, Attunement ===== -->
+        <div class="top-row">
+            <!-- Currency -->
+            <div class="phb-section currency-section">
+                <div class="section-header">Currency</div>
+                <div class="currency-grid">
+                    <div class="currency-item">
+                        <div class="coin-label">CP</div>
+                        <input type="text" class="coin-value" value="45">
+                    </div>
+                    <div class="currency-item">
+                        <div class="coin-label">SP</div>
+                        <input type="text" class="coin-value" value="120">
+                    </div>
+                    <div class="currency-item">
+                        <div class="coin-label">EP</div>
+                        <input type="text" class="coin-value" value="0">
+                    </div>
+                    <div class="currency-item">
+                        <div class="coin-label">GP</div>
+                        <input type="text" class="coin-value" value="347">
+                    </div>
+                    <div class="currency-item">
+                        <div class="coin-label">PP</div>
+                        <input type="text" class="coin-value" value="12">
+                    </div>
+                </div>
+                <div class="currency-total">
+                    <span class="total-label">Total Value:</span>
+                    <span>482 gp 6 sp 5 cp</span>
+                </div>
+            </div>
+
+            <!-- Encumbrance -->
+            <div class="phb-section encumbrance-section">
+                <div class="section-header">Encumbrance</div>
+                <div class="encumbrance-stats">
+                    <div class="encumbrance-row">
+                        <span class="stat-label">Current Weight</span>
+                        <span class="stat-value">108 lb</span>
+                    </div>
+                    <div class="encumbrance-row">
+                        <span class="stat-label">Carrying Capacity</span>
+                        <span class="stat-value">240 lb</span>
+                    </div>
+                    <div class="encumbrance-row">
+                        <span class="stat-label">Push/Drag/Lift</span>
+                        <span class="stat-value">480 lb</span>
+                    </div>
+                </div>
+                <div class="encumbrance-bar">
+                    <div class="encumbrance-fill"></div>
+                </div>
+            </div>
+
+            <!-- Attunement -->
+            <div class="phb-section attunement-section">
+                <div class="section-header">Attuned Items (3 max)</div>
+                <div class="attunement-slots">
+                    <div class="attunement-slot">
+                        <div class="attunement-marker active"></div>
+                        <div class="attunement-item">+1 Longsword</div>
+                    </div>
+                    <div class="attunement-slot">
+                        <div class="attunement-marker active"></div>
+                        <div class="attunement-item">Cloak of Protection</div>
+                    </div>
+                    <div class="attunement-slot">
+                        <div class="attunement-marker"></div>
+                        <div class="attunement-item"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MAIN CONTENT: 3 Columns ===== -->
+        <div class="main-content">
+
+            <!-- Column 1: Weapons & Armor -->
+            <div class="inventory-column">
+                <!-- Weapons -->
+                <div class="phb-section inventory-block">
+                    <div class="block-header">
+                        <span class="block-title">Weapons</span>
+                        <span class="block-weight">12 lb</span>
+                    </div>
+                    <div class="item-list">
+                        <div class="item-row header">
+                            <span>Qty</span>
+                            <span>Item</span>
+                            <span>Wt.</span>
+                            <span>Value</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">+1 Longsword ✦</span>
+                            <span class="item-weight">3 lb</span>
+                            <span class="item-value">—</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Javelin</span>
+                            <span class="item-weight">2 lb</span>
+                            <span class="item-value">5 sp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">3</span>
+                            <span class="item-name">Handaxe</span>
+                            <span class="item-weight">6 lb</span>
+                            <span class="item-value">15 gp</span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Armor & Shields -->
+                <div class="phb-section inventory-block">
+                    <div class="block-header">
+                        <span class="block-title">Armor & Shields</span>
+                        <span class="block-weight">71 lb</span>
+                    </div>
+                    <div class="item-list">
+                        <div class="item-row header">
+                            <span>Qty</span>
+                            <span>Item</span>
+                            <span>Wt.</span>
+                            <span>AC</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Chain Mail (worn)</span>
+                            <span class="item-weight">55 lb</span>
+                            <span class="item-value">16</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Shield (worn)</span>
+                            <span class="item-weight">6 lb</span>
+                            <span class="item-value">+2</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Cloak of Protection ✦</span>
+                            <span class="item-weight">—</span>
+                            <span class="item-value">+1</span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Magic Items -->
+                <div class="phb-section inventory-block flex-grow">
+                    <div class="block-header">
+                        <span class="block-title">Magic Items</span>
+                        <span class="block-weight">1 lb</span>
+                    </div>
+                    <div class="item-list">
+                        <div class="item-row header">
+                            <span>Qty</span>
+                            <span>Item</span>
+                            <span>Wt.</span>
+                            <span>Rarity</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">2</span>
+                            <span class="item-name">Potion of Healing</span>
+                            <span class="item-weight">1 lb</span>
+                            <span class="item-value">Com</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Scroll of Revivify</span>
+                            <span class="item-weight">—</span>
+                            <span class="item-value">Unc</span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Adventuring Gear -->
+            <div class="inventory-column">
+                <!-- Adventuring Gear -->
+                <div class="phb-section inventory-block flex-grow">
+                    <div class="block-header">
+                        <span class="block-title">Adventuring Gear</span>
+                        <span class="block-weight">18 lb</span>
+                    </div>
+                    <div class="item-list">
+                        <div class="item-row header">
+                            <span>Qty</span>
+                            <span>Item</span>
+                            <span>Wt.</span>
+                            <span>Value</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Backpack</span>
+                            <span class="item-weight">5 lb</span>
+                            <span class="item-value">2 gp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Bedroll</span>
+                            <span class="item-weight">7 lb</span>
+                            <span class="item-value">1 gp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">10</span>
+                            <span class="item-name">Rations (days)</span>
+                            <span class="item-weight">20 lb</span>
+                            <span class="item-value">5 gp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Waterskin</span>
+                            <span class="item-weight">5 lb</span>
+                            <span class="item-value">2 sp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">50</span>
+                            <span class="item-name">Rope, hempen (feet)</span>
+                            <span class="item-weight">10 lb</span>
+                            <span class="item-value">1 gp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">10</span>
+                            <span class="item-name">Torches</span>
+                            <span class="item-weight">10 lb</span>
+                            <span class="item-value">1 sp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Tinderbox</span>
+                            <span class="item-weight">1 lb</span>
+                            <span class="item-value">5 sp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Holy Symbol (amulet)</span>
+                            <span class="item-weight">1 lb</span>
+                            <span class="item-value">5 gp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Mess Kit</span>
+                            <span class="item-weight">1 lb</span>
+                            <span class="item-value">2 sp</span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container: Backpack -->
+                <div class="phb-section inventory-block container-block">
+                    <div class="block-header">
+                        <span class="block-title">📦 Backpack Contents</span>
+                        <span class="block-weight">8/30 lb</span>
+                    </div>
+                    <div class="container-info">
+                        <span>Capacity: 30 lb / 1 cu. ft.</span>
+                    </div>
+                    <div class="item-list">
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Healer's Kit (10 uses)</span>
+                            <span class="item-weight">3 lb</span>
+                            <span class="item-value">5 gp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Climber's Kit</span>
+                            <span class="item-weight">5 lb</span>
+                            <span class="item-value">25 gp</span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: Treasure & Other -->
+            <div class="inventory-column">
+                <!-- Treasure & Valuables -->
+                <div class="phb-section inventory-block treasure-block">
+                    <div class="block-header">
+                        <span class="block-title">Treasure & Valuables</span>
+                        <span class="block-weight">2 lb</span>
+                    </div>
+                    <div class="item-list">
+                        <div class="item-row header">
+                            <span>Item</span>
+                            <span>Value</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-name">Gold Ring with Ruby</span>
+                            <span class="item-value">250 gp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-name">Silver Candlesticks (pair)</span>
+                            <span class="item-value">50 gp</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-name">Deed to Abandoned Tower</span>
+                            <span class="item-value">???</span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-name"></span>
+                            <span class="item-value"></span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-name"></span>
+                            <span class="item-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consumables -->
+                <div class="phb-section inventory-block consumables-block">
+                    <div class="block-header">
+                        <span class="block-title">Consumables</span>
+                        <span class="block-weight">1 lb</span>
+                    </div>
+                    <div class="item-list">
+                        <div class="item-row header">
+                            <span>Qty</span>
+                            <span>Item</span>
+                            <span>Wt.</span>
+                            <span>Uses</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">2</span>
+                            <span class="item-name">Potion of Healing</span>
+                            <span class="item-weight">1 lb</span>
+                            <span class="item-value">2d4+2</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Antitoxin</span>
+                            <span class="item-weight">—</span>
+                            <span class="item-value">1</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">3</span>
+                            <span class="item-name">Holy Water (flask)</span>
+                            <span class="item-weight">3 lb</span>
+                            <span class="item-value">3</span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other / Misc -->
+                <div class="phb-section inventory-block flex-grow">
+                    <div class="block-header">
+                        <span class="block-title">Other Items</span>
+                        <span class="block-weight">3 lb</span>
+                    </div>
+                    <div class="item-list">
+                        <div class="item-row header">
+                            <span>Qty</span>
+                            <span>Item</span>
+                            <span>Wt.</span>
+                            <span>Notes</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Prayer Book</span>
+                            <span class="item-weight">1 lb</span>
+                            <span class="item-value">—</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Letter of Introduction</span>
+                            <span class="item-weight">—</span>
+                            <span class="item-value">—</span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-qty">1</span>
+                            <span class="item-name">Map of Region</span>
+                            <span class="item-weight">—</span>
+                            <span class="item-value">—</span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                        <div class="item-row empty">
+                            <span class="item-qty"></span>
+                            <span class="item-name"></span>
+                            <span class="item-weight"></span>
+                            <span class="item-value"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== NOTES ===== -->
+        <div class="notes-section">
+            <div class="phb-section notes-box">
+                <div class="notes-content">
+                    <div class="notes-column">
+                        <strong>Storage Locations:</strong><br>
+                        Horse: Saddlebags at inn<br>
+                        Bank: 500gp deposited in Waterdeep
+                    </div>
+                    <div class="notes-column">
+                        <strong>Owed / Debts:</strong><br>
+                        Owes 50gp to Merchant's Guild
+                    </div>
+                </div>
+                <div class="box-label">Inventory Notes</div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>

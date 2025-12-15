@@ -19,16 +19,21 @@ import './styles/App.css';
 import CardGenerator from './components/CardGenerator/CardGenerator';
 import StatBlockGenerator from './components/StatBlockGenerator/StatBlockGenerator';
 import { StatBlockGeneratorProvider } from './components/StatBlockGenerator/StatBlockGeneratorProvider';
+import PlayerCharacterGenerator from './components/PlayerCharacterGenerator/PlayerCharacterGenerator';
 import UnifiedHeaderTest from './pages/UnifiedHeaderTest';
 
 // Component to conditionally render Footer
 const ConditionalFooter: React.FC = () => {
   const location = useLocation();
-  const isCardGeneratorRoute = location.pathname === '/cardgenerator';
-  const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
+  
+  // Hide footer on all generator routes (exact or nested)
+  const generatorRoutes = ['/cardgenerator', '/statblockgenerator', '/charactergenerator'];
+  const isGeneratorRoute = generatorRoutes.some(route => 
+    location.pathname === route || location.pathname.startsWith(route + '/')
+  );
 
   // Don't render Footer on generator routes
-  if (isCardGeneratorRoute || isStatBlockGeneratorRoute) {
+  if (isGeneratorRoute) {
     return null;
   }
 
@@ -40,9 +45,10 @@ const ConditionalNavBar: React.FC = () => {
   const location = useLocation();
   const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
   const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
+  const isCharacterGeneratorRoute = location.pathname === '/charactergenerator';
 
   // Don't render NavBar on UnifiedHeader routes
-  if (isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute) {
+  if (isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute || isCharacterGeneratorRoute) {
     return null;
   }
 
@@ -54,9 +60,10 @@ const MainContent: React.FC<{ children: ReactNode }> = ({ children }) => {
   const location = useLocation();
   const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
   const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
+  const isCharacterGeneratorRoute = location.pathname === '/charactergenerator';
 
   // Remove margin-left and reset width when NavBar is hidden (UnifiedHeader routes)
-  const noMargin = isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute;
+  const noMargin = isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute || isCharacterGeneratorRoute;
 
   return (
     <div className="main-content" style={noMargin ? { marginLeft: 0, width: '100%' } : undefined}>
@@ -108,6 +115,7 @@ const App: React.FC = () => {
                     <Route path="/ruleslawyer" element={<RulesLawyer />} />
                     <Route path="/cardgenerator" element={<CardGenerator />} />
                     <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
+                    <Route path="/charactergenerator" element={<PlayerCharacterGenerator />} />
                     <Route path="/test-unified-header" element={<UnifiedHeaderTest />} />
                   </Routes>
                   <ConditionalFooter />

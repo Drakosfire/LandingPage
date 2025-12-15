@@ -70,6 +70,41 @@ body {
     contain: size;
 }
 
+/* ===== PHB Theme Page Styling ===== */
+/* Parchment background and fancy border for PHB-styled pages */
+.page.phb {
+    background-image: url('/dnd-static/themes/assets/parchmentBackground.jpg');
+    background-size: cover;
+    background-position: center;
+    border-style: solid;
+    border-width: 7px 6px;
+    border-image: url('/dnd-static/themes/assets/monsterBorderFancy.png') 14 round;
+    border-image-outset: 0px 2px;
+    box-shadow: 1px 4px 14px #888888;
+}
+
+/* PHB Footer decoration */
+.page.phb::after {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    width: 100%;
+    height: 50px;
+    content: '';
+    background-image: url('/dnd-static/themes/assets/PHB_footerAccent.png');
+    background-size: cover;
+    pointer-events: none;
+}
+
+/* PHB Section Box (stat block background) */
+.page.phb .phb-section {
+    background-color: #F2E5B5;
+    background-image: url('/dnd-static/themes/assets/parchmentBackgroundGrayscale.jpg');
+    background-attachment: fixed;
+    background-blend-mode: overlay;
+}
+
 .page p {
     overflow-wrap: break-word;
     display: block;

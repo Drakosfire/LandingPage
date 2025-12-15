@@ -1,0 +1,147 @@
+# PCG run log
+timestamp: 2025-12-14T03:52:51.615Z
+cwd: /home/drakosfire/Projects/DungeonOverMind/LandingPage
+args: ["sample","--live","--concurrency","4","--backend-validate","--backend-compute","--max-retries","2","--classes","wizard","--levels","2","--races","human,dwarf","--backgrounds","soldier,sage"]
+DUNGEONMIND_ENV: 
+DUNGEONMIND_API_URL: https://dev.dungeonmind.net
+NODE_ENV: 
+
+---
+
+
+🎲 D&D 5e AI Character Generation Demo
+
+🌐 Mode: LIVE API (real OpenAI calls)
+
+══════════════════════════════════════════════════════════════════════
+ AI CHARACTER GENERATION REPRESENTATIVE SAMPLE (75 cases) (LIVE API) (concurrency=4)
+══════════════════════════════════════════════════════════════════════
+
+📋 Generated 4 test cases
+
+⚠️  Using REAL OpenAI API - this will incur costs!
+
+
+🧵 [Concurrency] Starting worker pool: concurrency=4, totalCases=4, mode=LIVE
+🧵 [Concurrency] Worker 1 started
+🧵 [Concurrency] W1 START 1/4 | inFlight=1/4 | wizard-human-L2-soldier
+
+🧪 Running test: wizard-human-L2-soldier
+   Class: wizard, Race: human, Level: 2
+🧵 [Concurrency] Worker 2 started
+🧵 [Concurrency] W2 START 2/4 | inFlight=2/4 | wizard-human-L2-sage
+
+🧪 Running test: wizard-human-L2-sage
+   Class: wizard, Race: human, Level: 2
+🧵 [Concurrency] Worker 3 started
+🧵 [Concurrency] W3 START 3/4 | inFlight=3/4 | wizard-dwarf-L2-soldier
+
+🧪 Running test: wizard-dwarf-L2-soldier
+   Class: wizard, Race: dwarf, Level: 2
+🧵 [Concurrency] Worker 4 started
+🧵 [Concurrency] W4 START 4/4 | inFlight=4/4 | wizard-dwarf-L2-sage
+
+🧪 Running test: wizard-dwarf-L2-sage
+   Class: wizard, Race: dwarf, Level: 2
+(node:628094) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+   📝 Built prompt (4574 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (4552 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (4601 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   📝 Built prompt (4589 chars)
+   🌐 Calling real API at https://dev.dungeonmind.net... (attempt 1/3)
+   🤖 Real API response received (1586 tokens)
+   ✅ Parsed preferences for: Elian Merrow
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Investigation, Insight
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1652 tokens)
+   ✅ Parsed preferences for: Corin Halvek
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 13, CON 15, INT 15, WIS 12, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Arcana, Investigation
+   📊 Equipment Package: A
+   ✅ Validation passed
+   🤖 Real API response received (1624 tokens)
+   ✅ Parsed preferences for: Bromli Ashmantle
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Athletics, Intimidation, Arcana, Insight
+   📊 Equipment Package: B
+   ✅ Validation passed
+   🤖 Real API response received (1679 tokens)
+   ✅ Parsed preferences for: Bromli Runevigil
+   ✅ Translation successful
+   📊 Ability Scores: STR 8, DEX 12, CON 17, INT 15, WIS 13, CHA 8
+   📊 Points Spent: 27/27
+   📊 Skills: Arcana, History, Religion, Insight
+   📊 Equipment Package: A
+   ✅ Validation passed
+   ✅ Backend validation passed
+   ✅ Backend validation passed
+   ✅ Backend validation passed
+   ✅ Backend validation passed
+   ✅ Backend compute passed
+   ⏱️  Progress: 1/4 (ETA ~173s)
+🧵 [Concurrency] W1 END   1/4 | inFlight=3/4 | ✅ OK | 57775ms | wizard-human-L2-soldier
+   ✅ Backend compute passed
+   ⏱️  Progress: 2/4 (ETA ~58s)
+🧵 [Concurrency] W4 END   4/4 | inFlight=2/4 | ✅ OK | 57743ms | wizard-dwarf-L2-sage
+   ✅ Backend compute passed
+   ⏱️  Progress: 3/4 (ETA ~19s)
+🧵 [Concurrency] W2 END   2/4 | inFlight=1/4 | ✅ OK | 57750ms | wizard-human-L2-sage
+   ✅ Backend compute passed
+   ⏱️  Progress: 4/4 (ETA ~0s)
+🧵 [Concurrency] W3 END   3/4 | inFlight=0/4 | ✅ OK | 57751ms | wizard-dwarf-L2-soldier
+🧵 [Concurrency] Pool complete: maxInFlightObserved=4/4, completed=4/4
+
+══════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════
+ AI GENERATION EXPERIMENT RESULTS
+ Generated: 2025-12-14T03:52:51.614Z
+ Test Cases: 4
+══════════════════════════════════════════════════════════════════════
+
+OVERALL SUCCESS RATES
+──────────────────────────────────────────────────────────────────────
+ Parse Success:       100.0%
+ Translation Success: 100.0%
+ Validation Success:  100.0%
+ Overall Success:     100.0%
+
+BY CLASS
+──────────────────────────────────────────────────────────────────────
+ wizard       100.0% (4/4)
+
+BY LEVEL
+──────────────────────────────────────────────────────────────────────
+ Level 2:  100.0% (4/4)
+
+COST ANALYSIS
+──────────────────────────────────────────────────────────────────────
+ Avg Tokens/Request: 1635
+ Avg Latency:        57754ms
+ p50 Latency:        57749ms
+ p95 Latency:        57751ms
+ Total Cost:         $0.0417
+ Cost per Success:   $0.0104
+
+SPELL THEME DIAGNOSTICS
+──────────────────────────────────────────────────────────────────────
+ Spell Theme Mismatch Rate: 0.0%
+ Avg Unmatched Spell Themes: 0.00
+
+══════════════════════════════════════════════════════════════════════
+
+💰 COST BREAKDOWN
+──────────────────────────────────────────────────────────────────────
+   Total Cost: $0.0417
+   Avg Cost/Character: $0.0104

@@ -18,8 +18,9 @@ body {
   background-color: var(--background-color);
 }
 
-/* Only reset child elements when needed - exclude canvas areas */
-body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *) {
+/* Only reset child elements when needed - exclude canvas areas, character sheets, container classes, and sections */
+/* Exclude common container classes that need centering */
+body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *):not(.character-sheet *):not(.app-container):not(.main-content):not(section):not(.blog-container):not(.chat-container):not(.rules-lawyer-container):not(.generator-canvas-container):not(.generator-main-content):not(.generator-layout):not(.mantine-Drawer-content):not(.mantine-Drawer-root):not(.mantine-Drawer-inner) {
   box-sizing: inherit;
   margin: 0;
 }
@@ -38,10 +39,21 @@ body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *) {
   width: 100%;
 }
 
+/* Generator pages have their own layout - don't apply margin-left */
+.main-content .generator-layout {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 @media (min-width: 768px) {
   .main-content {
     margin-left: 80px;
     width: calc(100% - 80px);
+  }
+  
+  /* Generator pages override - no left margin needed */
+  .main-content .generator-layout {
+    margin-left: 0;
   }
 }
 
@@ -52,10 +64,12 @@ body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *) {
   margin: 0 auto;
 }
 
-/* Section-specific styling - exclude canvas sections */
-section:not(.dm-canvas-responsive section):not(.dm-canvas-measurement-layer section) {
+/* Section-specific styling - exclude canvas sections and Mantine drawers */
+section:not(.dm-canvas-responsive section):not(.dm-canvas-measurement-layer section):not(.mantine-Drawer-content):not(.mantine-Drawer-root section) {
   padding: 3rem 0;
   /* Reduced padding for better responsiveness */
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 section h2 {

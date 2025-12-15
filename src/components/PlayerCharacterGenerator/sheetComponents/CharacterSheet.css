@@ -1,0 +1,3108 @@
+/**
+ * Character Sheet Styles
+ * 
+ * Extracted from: specs/PlayerCharacterGenerator/prototypes/character-sheet.html
+ * Date: December 5, 2025
+ * 
+ * This is the canonical CSS for PHB-style character sheet components.
+ * Works in conjunction with the shared PHB foundation styles.
+ * 
+ * Structure:
+ * 1. CSS Variables (extended from PHB foundation)
+ * 2. Page Container
+ * 3. Header Section (Portrait + Info)
+ * 4. Ability Scores Row
+ * 5. Main Content Grid (3 columns)
+ * 6. Column 1: Saves, Skills, Proficiencies
+ * 7. Column 2: Combat Stats, HP, Attacks, Equipment
+ * 8. Column 3: Personality, Features
+ * 9. Notes Section
+ */
+
+/* ===== 1. CSS Variables (PHB Foundation) ===== */
+/* These should match phb-prototype.css - imported via global styles */
+.character-sheet {
+    /* Page Dimensions (US Letter at 96dpi) */
+    --page-width: 816px;
+    --page-height: 1056px;
+
+    /* ===== Spacing Scale ===== */
+    /* Adjust these to change spacing globally */
+    --space-1: 1px;
+    --space-2: 2px;
+    --space-3: 3px;
+    --space-4: 4px;
+    --space-5: 5px;
+    --space-6: 6px;
+    --space-8: 8px;
+    --space-10: 10px;
+    --space-12: 12px;
+    --space-24: 24px;
+
+    /* Semantic Spacing (change these to adjust categories) */
+    --padding-box: var(--space-4);
+    /* Standard box padding */
+    --padding-box-sm: var(--space-3);
+    /* Compact box padding */
+    --padding-box-xs: var(--space-2);
+    /* Minimal padding */
+    --padding-section: var(--space-4);
+    /* Section container padding */
+    --padding-label: var(--space-2) var(--space-3);
+    /* Label padding */
+    --padding-value: var(--space-4) var(--space-5);
+    /* Value box padding */
+    --gap-sm: var(--space-3);
+    /* Small gap between elements */
+    --gap-md: var(--space-6);
+    /* Medium gap */
+    --gap-lg: var(--space-10);
+    /* Large gap (column gap) */
+    --min-height-value: 20px;
+    /* Labeled box value min-height */
+    --min-height-textarea-sm: 40px;
+    /* Small text area */
+    --min-height-textarea-md: 80px;
+    /* Medium text area */
+
+    /* Layout (legacy, use semantic spacing above) */
+    --column-gap: var(--gap-lg);
+    --section-padding: var(--padding-section);
+    --border-radius: 6px;
+
+    /* PHB Colors */
+    --HB_Color_Background: #EEE5CE;
+    --HB_Color_Accent: #E0E5C1;
+    --HB_Color_HeaderUnderline: #C0AD6A;
+    --HB_Color_HorizontalRule: #9C2B1B;
+    --HB_Color_HeaderText: #58180D;
+    --HB_Color_MonsterStatBackground: #F2E5B5;
+    --HB_Color_CaptionText: #766649;
+
+    /* Semantic mappings */
+    --border-color: var(--HB_Color_HeaderText);
+    --border-light: var(--HB_Color_HorizontalRule);
+    --bg-light: rgba(255, 255, 255, 0.5);
+    --bg-page: var(--HB_Color_Background);
+    --bg-section: var(--HB_Color_MonsterStatBackground);
+    --text-dark: #1a1a1a;
+    --text-muted: var(--HB_Color_HeaderText);
+    --text-red: var(--HB_Color_HeaderText);
+}
+
+/* ===== 2. Page Container ===== */
+/* 
+ * NOTE: Parchment background, fancy border, and footer accent come from global PHB CSS:
+ *   public/dnd-static/style.css → .page.phb selector
+ * 
+ * This CSS provides layout and character-sheet-specific overrides only.
+ * The .page.phb classes on the container trigger the PHB styling automatically.
+ */
+.character-sheet {
+    width: var(--page-width);
+    min-height: var(--page-height);
+    padding: 1.4cm 1.9cm 1.7cm;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    /* Solid color fallback (image comes from .page.phb in global CSS) */
+    background-color: var(--bg-page);
+
+    /* Typography defaults */
+    font-family: 'BookInsanityRemake', Georgia, serif;
+}
+
+/* ===== PHB Section Box (reusable) ===== */
+.character-sheet .phb-section {
+    background-color: var(--HB_Color_MonsterStatBackground);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+/* ===== Common Labeled Box Pattern ===== */
+.character-sheet .labeled-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.character-sheet .labeled-box .value {
+    flex: 1;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: var(--padding-value);
+    font-size: 15px;
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    min-height: var(--min-height-value);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--bg-light);
+}
+
+.character-sheet .labeled-box .label {
+    background: var(--border-color);
+    color: #fff;
+    border: 2px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: var(--padding-label);
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', 'ScalySansRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: bold;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+/* ===== Section Title (bottom border style) ===== */
+.character-sheet .section-title {
+    text-align: center;
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-red);
+    letter-spacing: 1px;
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 2px solid var(--border-color);
+}
+
+/* ===== Box Label (bottom label) ===== */
+.character-sheet .box-label {
+    background: var(--border-color);
+    color: #fff;
+    padding: var(--padding-box-xs);
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* ===== Proficiency Markers ===== */
+.character-sheet .prof-marker {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--bg-light);
+}
+
+.character-sheet .prof-marker.filled {
+    background: var(--border-color);
+}
+
+/* Edit mode: clickable proficiency markers */
+.character-canvas-area.edit-mode .prof-marker.clickable {
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode .prof-marker.clickable:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    transform: scale(1.2);
+}
+
+.character-canvas-area.edit-mode .prof-marker.clickable:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* ===== Stat Circle (responsive pill) ===== */
+.character-sheet .stat-circle {
+    min-width: 30px;
+    min-height: 30px;
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--border-color);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    font-family: 'ScalySansRemake', sans-serif;
+    background: var(--bg-light);
+}
+
+/* ===== Stat Label (small caps) ===== */
+.character-sheet .stat-label {
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: var(--text-red);
+}
+
+/* ===== 3. Header Section with Portrait ===== */
+.character-sheet .header {
+    display: flex;
+    gap: var(--gap-sm);
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-1);
+    padding: var(--padding-box);
+    border: 3px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+/* Portrait: static 100x100px dimensions */
+.character-sheet .portrait-box {
+    flex: 0 0 100px;
+    width: 100px;
+    height: 100px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    /* Use an opaque backing so portraits don't look washed out */
+    background: var(--bg-page);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.character-sheet .portrait-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: normal;
+    opacity: 1;
+    filter: none;
+    /* Override global PHB CSS: `.page img { z-index: -1; }` */
+    position: relative;
+    z-index: 1;
+}
+
+.character-sheet .portrait-placeholder {
+    font-family: 'ScalySansRemake', sans-serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.character-sheet .header-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+}
+
+.character-sheet .header-name-row {
+    display: flex;
+    gap: var(--gap-sm);
+}
+
+.character-sheet .header-name-row .labeled-box {
+    flex: 1;
+}
+
+/* XP box in name row - fixed narrow width */
+.character-sheet .header-name-row .labeled-box.narrow {
+    flex: 0 0 60px;
+}
+
+.character-sheet .header-info {
+    flex: 1;
+    display: flex;
+    gap: var(--gap-sm);
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+/* Header info boxes use flex ratios to share available width */
+.character-sheet .header-info .labeled-box {
+    flex: 2;
+    /* Default: takes 3 parts */
+    min-width: 0;
+}
+
+/* Narrow: 1 part (XP, Alignment) */
+.character-sheet .header-info .labeled-box.narrow {
+    flex: 1;
+}
+
+/* Medium: 2 parts (Background) */
+.character-sheet .header-info .labeled-box.medium {
+    flex: 1;
+}
+
+/* Wide: 2 parts (Race) - override global .page .wide styles */
+.character-sheet .header-info .labeled-box.wide {
+    flex: 1;
+    column-span: none;
+    display: flex;
+    margin-bottom: 0;
+}
+
+/* ===== 4. Ability Scores Row (with Combat Status) ===== */
+/* ===== Ability Scores Row - Global Font Management ===== */
+.character-sheet .ability-scores-row {
+    display: flex;
+    gap: var(--space-4);
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-1);
+    /* Global font sizing for this row */
+    --row-font-label: 9px;
+    --row-font-value: 18px;
+    --row-font-small: 11px;
+}
+
+/* Combat Status - Compact (in ability row) */
+.character-sheet .combat-status-compact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    flex: 0 0 auto;
+}
+
+.character-sheet .combat-stats-grid {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.character-sheet .combat-hp-col,
+.character-sheet .combat-stats-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.character-sheet .hp-row,
+.character-sheet .stat-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.character-sheet .hp-val {
+    font-size: var(--row-font-value);
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+.character-sheet .hp-input {
+    width: 30px;
+    height: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-light);
+    font-size: var(--row-font-small);
+    font-family: 'ScalySansRemake', sans-serif;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.character-sheet .hp-input.small {
+    height: 18px;
+}
+
+.character-sheet .hp-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+}
+
+.character-sheet .stat-val {
+    font-size: var(--row-font-value);
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+.character-sheet .stat-val .speed-ft {
+    font-size: var(--row-font-small);
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: normal;
+}
+
+.character-sheet .stat-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+}
+
+/* Death Saves - Bottom Row */
+.character-sheet .combat-death-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-color);
+}
+
+.character-sheet .death-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+}
+
+.character-sheet .death-group {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.character-sheet .death-group-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-weight: bold;
+    color: var(--text-red);
+    min-width: 10px;
+}
+
+.character-sheet .death-dot {
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-light);
+}
+
+.character-sheet .death-dot.success.filled {
+    background: #2d5016;
+}
+
+.character-sheet .death-dot.failure.filled {
+    background: var(--HB_Color_HorizontalRule);
+}
+
+/* Death save dots in edit mode - clickable */
+.character-sheet .death-dot.clickable {
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.character-sheet .death-dot.clickable:hover {
+    transform: scale(1.3);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.character-sheet .death-dot.clickable.success:hover {
+    border-color: #2d5016;
+    box-shadow: 0 0 6px rgba(45, 80, 22, 0.5);
+}
+
+.character-sheet .death-dot.clickable.failure:hover {
+    border-color: var(--HB_Color_HorizontalRule);
+    box-shadow: 0 0 6px rgba(139, 69, 19, 0.5);
+}
+
+.character-sheet .death-dot.clickable:focus {
+    outline: 2px solid var(--edit-quick-color, #3b82f6);
+    outline-offset: 2px;
+}
+
+/* Ability Scores Grid - 2 Column Horizontal Layout */
+.character-sheet .ability-scores-grid {
+    display: flex;
+    gap: var(--space-4);
+    flex: 1;
+    padding: var(--space-1);
+}
+
+.character-sheet .ability-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    flex: 1;
+}
+
+/* Ability Box - Horizontal */
+.character-sheet .ability-box-horizontal {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.character-sheet .ability-box-horizontal .ability-name {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-red);
+    min-width: 32px;
+}
+
+.character-sheet .ability-box-horizontal .ability-score {
+    font-size: var(--row-font-value);
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+    color: var(--text-dark);
+    min-width: 24px;
+    text-align: center;
+}
+
+.character-sheet .ability-box-horizontal .ability-modifier {
+    font-size: var(--row-font-small);
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: 600;
+    color: #fff;
+    padding: var(--space-1) var(--space-3);
+    background: var(--border-color);
+    border-radius: 8px;
+    min-width: 28px;
+    text-align: center;
+}
+
+/* Meta Stats - Stacked (in ability row, right side) */
+.character-sheet .meta-stats-compact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    flex: 0 0 auto;
+}
+
+.character-sheet .meta-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.character-sheet .meta-row.death-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+}
+
+.character-sheet .meta-box {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Inspiration box - larger for better visibility and interaction */
+.character-sheet .inspiration-box {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'NodestoCapsCondensed', serif;
+    background: var(--bg-light);
+    transition: all 0.15s ease;
+}
+
+.character-sheet .inspiration-box.filled {
+    background: var(--HB_Color_HeaderUnderline, #c9ad6a);
+    color: var(--text-red, #58180D);
+    border-color: var(--HB_Color_HeaderUnderline, #c9ad6a);
+}
+
+/* Clickable inspiration in edit mode */
+.character-sheet .inspiration-box.clickable {
+    cursor: pointer;
+}
+
+.character-sheet .inspiration-box.clickable:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-color: var(--HB_Color_HeaderUnderline, #c9ad6a);
+}
+
+.character-sheet .inspiration-box.clickable:focus {
+    outline: 2px solid var(--edit-quick-color, #3b82f6);
+    outline-offset: 2px;
+    background: var(--bg-light);
+}
+
+.character-sheet .meta-box.filled {
+    background: var(--border-color);
+    color: #fff;
+}
+
+.character-sheet .meta-val {
+    font-size: var(--row-font-small);
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: bold;
+    text-align: right;
+    min-width: 30px;
+}
+
+.character-sheet .meta-lbl {
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    flex: 1;
+}
+
+.character-sheet .meta-lbl-stack {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--row-font-label);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    flex: 1;
+    line-height: 1.1;
+}
+
+.character-sheet .death-dots {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.character-sheet .death-dots .dot {
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-light);
+}
+
+.character-sheet .death-dots .dot.success.filled {
+    background: #2d5016;
+}
+
+.character-sheet .death-dots .dot.failure.filled {
+    background: var(--HB_Color_HorizontalRule);
+}
+
+.character-sheet .death-dots .dot-sep {
+    font-size: 8px;
+    color: var(--text-muted);
+    margin: 0 1px;
+}
+
+/* ===== 5. Main Layout (3 Columns) ===== */
+.character-sheet .sheet-main-content {
+    display: grid;
+    grid-template-columns: 160px 280px 200px;
+    gap: var(--column-gap);
+    margin-top: var(--space-1);
+}
+
+.character-sheet .column-1,
+.character-sheet .column-2,
+.character-sheet .column-3 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+    min-width: 0;
+    overflow: hidden;
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-1);
+}
+
+/* ===== 6. Column 1: Saves, Skills, Proficiencies ===== */
+
+/* Inspiration & Prof Bonus Row */
+.character-sheet .top-stats-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: var(--space-4);
+    padding: var(--padding-box-sm) var(--padding-box);
+}
+
+.character-sheet .stat-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.character-sheet .stat-group .stat-label {
+    font-size: 8px;
+    white-space: nowrap;
+}
+
+/* Saves & Skills Sections */
+.character-sheet .saves-section,
+.character-sheet .skills-section {
+    padding: var(--padding-section);
+}
+
+.character-sheet .save-item,
+.character-sheet .skill-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    font-size: 12px;
+    font-family: 'ScalySansRemake', sans-serif;
+    padding: 0;
+}
+
+.character-sheet .modifier {
+    width: 24px;
+    text-align: right;
+    font-weight: bold;
+}
+
+.character-sheet .skill-name {
+    flex: 1;
+}
+
+.character-sheet .skill-ability {
+    color: var(--text-muted);
+    font-size: 10px;
+}
+
+/* Passive Perception */
+.character-sheet .passive-box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-6);
+}
+
+.character-sheet .passive-value {
+    width: 30px;
+    height: 30px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.character-sheet .passive-label {
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+}
+
+/* Proficiencies Box */
+.character-sheet .proficiencies-box {
+    padding: var(--padding-section);
+    flex: 1;
+}
+
+.character-sheet .proficiencies-box .text-area {
+    min-height: var(--min-height-textarea-sm);
+    font-size: 11px;
+    font-family: 'ScalySansRemake', sans-serif;
+    line-height: 1.4;
+}
+
+.character-sheet .proficiencies-box .box-label {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: bold;
+    color: var(--text-red);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 2px solid var(--border-color);
+}
+
+/* ===== 7. Column 2: Combat Status, Attacks, Equipment ===== */
+
+/* Combat Status Section - Unified HP + AC/Init/Speed */
+.character-sheet .combat-status-section {
+    display: flex;
+    gap: var(--space-6);
+    padding: var(--padding-section);
+}
+
+/* HP Column (left, narrower) */
+.character-sheet .combat-hp-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    flex: 0 0 70px;
+}
+
+.character-sheet .hp-stat {
+    text-align: center;
+}
+
+.character-sheet .hp-value {
+    font-size: 20px;
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+    color: var(--text-dark);
+    line-height: 1;
+}
+
+.character-sheet .hp-input {
+    height: 24px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: bold;
+}
+
+.character-sheet .hp-input.small {
+    height: 20px;
+    font-size: 12px;
+}
+
+.character-sheet .hp-label {
+    font-size: 8px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    margin-top: var(--space-1);
+}
+
+/* Divider */
+.character-sheet .combat-divider {
+    width: 1px;
+    background: var(--border-color);
+    opacity: 0.5;
+    margin: var(--space-2) 0;
+}
+
+/* Combat Stats Column (right) */
+.character-sheet .combat-stats-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    flex: 1;
+}
+
+.character-sheet .combat-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.character-sheet .combat-value {
+    font-size: 20px;
+    font-family: 'NodestoCapsCondensed', serif;
+    font-weight: bold;
+    color: var(--text-dark);
+    min-width: 40px;
+    text-align: center;
+}
+
+.character-sheet .combat-value .speed-unit {
+    font-size: 12px;
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: normal;
+    margin-left: 1px;
+}
+
+.character-sheet .combat-label {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    font-weight: bold;
+}
+
+/* Hit Dice & Death Saves Row */
+.character-sheet .hitdice-death-row {
+    display: flex;
+    gap: var(--space-8);
+}
+
+.character-sheet .hitdice-box,
+.character-sheet .death-saves-box {
+    flex: 1;
+    padding: var(--padding-section);
+}
+
+.character-sheet .hitdice-total {
+    font-size: 11px;
+    font-family: 'ScalySansRemake', sans-serif;
+    margin-bottom: 4px;
+}
+
+.character-sheet .hitdice-value {
+    height: 24px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-light);
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.character-sheet .hitdice-label {
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 4px;
+    color: var(--text-red);
+}
+
+.character-sheet .death-saves-content {
+    display: grid;
+    grid-template-columns: auto repeat(3, 1fr);
+    gap: var(--space-4) var(--space-6);
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.character-sheet .death-saves-row {
+    display: contents;
+}
+
+.character-sheet .death-saves-row span {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: right;
+    color: var(--text-red);
+}
+
+.character-sheet .death-circle {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    justify-self: center;
+    background: var(--bg-light);
+}
+
+.character-sheet .death-circle.filled {
+    background: var(--border-color);
+}
+
+.character-sheet .death-saves-label {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    padding-top: 4px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-red);
+}
+
+/* Attacks Section */
+.character-sheet .attacks-section {
+    padding: var(--padding-box-sm);
+    flex: 1;
+}
+
+.character-sheet .attacks-title {
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: bold;
+    color: var(--text-red);
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.character-sheet .attacks-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 30px 65px;
+    gap: var(--space-2);
+    font-size: 8px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    margin-top: var(--space-4);
+    text-align: left;
+    letter-spacing: 0.3px;
+}
+
+.character-sheet .attack-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 30px 65px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.character-sheet .attack-row input,
+.character-sheet .attack-row .attack-field {
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-1) var(--space-2);
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+    background: transparent;
+    min-width: 0;
+}
+
+/* Equipment Section - 2 Column Layout */
+.character-sheet .equipment-section {
+    padding: var(--padding-box-sm);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.character-sheet .equipment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 8px;
+    align-content: start; /* Pack items at the top instead of spreading */
+    padding: var(--padding-box-xs);
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+    line-height: 1.3;
+    min-height: 60px; /* Minimum height for empty state */
+}
+
+.character-sheet .equipment-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+/* Clickable equipment items in edit mode */
+.character-sheet .equipment-item.clickable {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.character-sheet .equipment-item.clickable:hover {
+    background-color: rgba(139, 92, 246, 0.15);
+}
+
+.character-sheet .equipment-item.clickable:focus {
+    outline: 1px solid #8b5cf6;
+    outline-offset: 1px;
+}
+
+/* Footer section containing hint, currency, and title - stays at bottom */
+.character-sheet .equipment-footer {
+    margin-top: auto; /* Push to bottom of flex container */
+}
+
+/* Hint text for edit mode */
+.character-sheet .equipment-hint {
+    font-size: 9px;
+    color: var(--text-muted, #666);
+    text-align: center;
+    padding: 4px;
+    font-style: italic;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.character-sheet .currency-row {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-6);
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-3);
+}
+
+.character-sheet .currency-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.character-sheet .currency-label {
+    font-weight: bold;
+    color: var(--text-red);
+}
+
+.character-sheet .currency-value {
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.character-sheet .equipment-title {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: var(--space-3);
+    padding-top: var(--space-2);
+    font-weight: bold;
+    color: var(--text-red);
+    letter-spacing: 0.5px;
+    border-top: 2px solid var(--border-color);
+}
+
+/* ===== 8. Column 3: Personality & Features ===== */
+
+/* Personality Boxes */
+.character-sheet .personality-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.character-sheet .personality-box .text-area {
+    flex: 1;
+    min-height: var(--min-height-textarea-sm);
+    padding: var(--padding-box-sm);
+    font-size: 12px;
+    font-family: 'BookInsanityRemake', Georgia, serif;
+}
+
+/* Features Box */
+.character-sheet .features-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.character-sheet .features-box .text-area {
+    flex: 1;
+    padding: var(--padding-box-sm);
+    font-size: 12px;
+    font-family: 'BookInsanityRemake', Georgia, serif;
+}
+
+/* ===== 9. Notes Section ===== */
+.character-sheet .notes-section {
+    margin-top: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 40px;
+}
+
+.character-sheet .notes-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+}
+
+.character-sheet .notes-box .notes-content {
+    flex: 1;
+    padding: var(--padding-section);
+    font-size: 12px;
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    line-height: 1.5;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-12);
+}
+
+.character-sheet .notes-column {
+    border-right: 1px dashed var(--border-light);
+    padding-right: var(--space-12);
+}
+
+.character-sheet .notes-column:last-child {
+    border-right: none;
+    padding-right: 0;
+}
+
+/* ===== Print Optimization ===== */
+/* ===== Canvas Container ===== */
+
+/* 
+ * RESPONSIVE CANVAS SCALING
+ * The CharacterCanvas component handles responsive scaling via inline styles.
+ * These CSS rules provide fallback styling and print optimization.
+ */
+
+/* Wrapper for character sheet in the canvas area (fallback, overridden by inline styles) */
+.character-canvas-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    background: #4a3728;
+    /* Dark wood background behind parchment */
+    min-height: 100%;
+}
+
+/* Add bottom margin to page for visual breathing room (fallback) */
+.character-canvas-area .character-sheet {
+    margin-bottom: 24px;
+}
+
+/* Multi-page container (fallback styling) */
+.character-sheet-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background: #4a3728;
+}
+
+/* ===== Responsive Canvas Scaling ===== */
+/* When inside the responsive canvas renderer, use inline style dimensions */
+.character-canvas-wrapper {
+    /* Transform applied via inline style from CharacterCanvas.tsx */
+}
+
+.character-canvas-renderer {
+    /* Width/height set via inline style from CharacterCanvas.tsx */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* CRITICAL: Override container styles when inside responsive canvas */
+.character-canvas-renderer .character-sheet-container {
+    padding: 0 !important;
+    gap: 32px !important;
+    /* Match PAGE_GAP_PX */
+    background: transparent !important;
+    margin: 0 !important;
+}
+
+/* Remove page margins inside renderer - gaps are handled by container */
+.character-canvas-renderer .character-sheet {
+    margin: 0 !important;
+}
+
+/* ===== 10. Background & Personality Sheet ===== */
+
+/* Sheet header with title */
+.character-sheet .sheet-header {
+    text-align: center;
+    margin-bottom: var(--space-12);
+    padding-bottom: var(--space-8);
+    border-bottom: 3px solid var(--border-color);
+}
+
+.character-sheet .sheet-title {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--text-red);
+    letter-spacing: 1px;
+    margin: 0 0 var(--space-4);
+    text-transform: uppercase;
+}
+
+.character-sheet .sheet-subtitle {
+    font-family: 'ScalySansRemake', sans-serif;
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.character-sheet .sheet-subtitle .character-name {
+    font-weight: bold;
+    font-style: italic;
+}
+
+.character-sheet .sheet-subtitle .separator {
+    color: var(--border-light);
+}
+
+.character-sheet .sheet-subtitle .background-name {
+    font-style: italic;
+}
+
+/* Personality Grid - 2x2 layout */
+.character-sheet .personality-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap-md);
+    margin-bottom: var(--space-12);
+}
+
+/* Make personality boxes in grid taller */
+.character-sheet .personality-grid .personality-box {
+    min-height: 180px;
+}
+
+.character-sheet .personality-grid .personality-box .text-area {
+    min-height: 150px;
+    flex: 1;
+}
+
+/* Background & Personality specific overrides */
+.character-sheet.background-personality-sheet .notes-section {
+    margin-top: var(--space-6);
+    flex: 1;
+}
+
+.character-sheet.background-personality-sheet .notes-box {
+    min-height: 300px;
+}
+
+.character-sheet.background-personality-sheet .notes-box .notes-content {
+    min-height: 260px;
+}
+
+/* ===== 11. Footer Bar ===== */
+.character-sheet .sheet-footer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+    padding: var(--space-4) var(--space-8);
+    margin-top: var(--space-6);
+    background: var(--HB_Color_MonsterStatBackground);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.character-sheet .footer-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.character-sheet .footer-stat.death-saves {
+    gap: var(--space-2);
+}
+
+.character-sheet .footer-circle {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    background: var(--bg-light);
+}
+
+.character-sheet .footer-circle.filled {
+    background: var(--border-color);
+    color: #fff;
+}
+
+.character-sheet .footer-value {
+    font-size: 14px;
+    font-family: 'ScalySansRemake', sans-serif;
+    font-weight: bold;
+    color: var(--text-dark);
+}
+
+.character-sheet .footer-label {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.character-sheet .footer-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-color);
+    opacity: 0.5;
+}
+
+.character-sheet .death-circles {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.character-sheet .death-dot {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-light);
+}
+
+.character-sheet .death-dot.filled.success {
+    background: #2d5016;
+}
+
+.character-sheet .death-dot.filled.failure {
+    background: var(--HB_Color_HorizontalRule);
+}
+
+.character-sheet .death-separator {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin: 0 var(--space-1);
+}
+
+/* ===== 12. Inventory Sheet ===== */
+
+/* Inventory Header */
+.inventory-sheet .inventory-header {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 7px;
+    align-items: flex-end;
+}
+
+.inventory-sheet .character-info {
+    flex: 1;
+    display: flex;
+    gap: var(--space-8);
+}
+
+.inventory-sheet .character-info .labeled-box {
+    flex: 1;
+}
+
+.inventory-sheet .character-info .labeled-box.narrow {
+    flex: 0 0 100px;
+}
+
+.inventory-sheet .character-info .labeled-box .value {
+    padding: var(--space-6) var(--space-10);
+    font-size: 13px;
+    min-height: 30px;
+}
+
+/* Top Row: Currency, Encumbrance, Attunement */
+.inventory-sheet .top-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 7px;
+}
+
+/* Currency Section */
+.inventory-sheet .currency-section {
+    padding: var(--space-10);
+    flex: 0 0 200px;
+}
+
+.inventory-sheet .currency-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-6);
+}
+
+.inventory-sheet .currency-item {
+    text-align: center;
+}
+
+.inventory-sheet .currency-item .coin-label {
+    font-size: 8px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    color: var(--text-red);
+    margin-bottom: var(--space-2);
+}
+
+.inventory-sheet .currency-item .coin-value {
+    width: 100%;
+    height: 28px;
+    border: 2px solid var(--border-color);
+    text-align: center;
+    font-size: 12px;
+    font-family: 'ScalySansRemake', sans-serif;
+    background: var(--bg-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Edit mode - inventory currency grid */
+.character-canvas-area.edit-mode .inventory-sheet .currency-grid[data-editable="quick"] {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    padding: 4px;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode .inventory-sheet .currency-grid[data-editable="quick"]:hover {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+.character-canvas-area.edit-mode .inventory-sheet .currency-grid[data-editable="quick"]:focus-within {
+    border-color: #1d4ed8 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.inventory-sheet .currency-total {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px dashed var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.inventory-sheet .currency-total .total-label {
+    color: var(--text-red);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-size: 8px;
+}
+
+/* Encumbrance Section */
+.inventory-sheet .encumbrance-section {
+    padding: var(--space-10);
+    flex: 0 0 180px;
+}
+
+.inventory-sheet .encumbrance-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.inventory-sheet .encumbrance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.inventory-sheet .encumbrance-row .stat-label {
+    font-size: 10px;
+}
+
+.inventory-sheet .encumbrance-row .stat-value {
+    font-weight: bold;
+}
+
+.inventory-sheet .encumbrance-bar {
+    height: 12px;
+    background: #e8e0d0;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-top: var(--space-6);
+    overflow: hidden;
+}
+
+.inventory-sheet .encumbrance-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a9c4a 0%, #c9a227 60%, #c94a4a 100%);
+    border-radius: 6px 0 0 6px;
+    transition: width 0.3s ease;
+}
+
+/* Attunement Section */
+.inventory-sheet .attunement-section {
+    padding: var(--space-10);
+    flex: 1;
+}
+
+.inventory-sheet .attunement-slots {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.inventory-sheet .attunement-slot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.inventory-sheet .attunement-marker {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--bg-light);
+}
+
+.inventory-sheet .attunement-marker.active {
+    background: var(--border-color);
+}
+
+.inventory-sheet .attunement-item {
+    flex: 1;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 10px;
+    padding: var(--space-2) 0;
+    font-family: 'ScalySansRemake', sans-serif;
+    min-height: 18px;
+}
+
+/* Clickable attunement slot in edit mode */
+.inventory-sheet .attunement-slot.clickable {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: var(--space-2) var(--space-4);
+    margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-4));
+    transition: background-color 0.15s ease;
+}
+
+.inventory-sheet .attunement-slot.clickable:hover {
+    background-color: rgba(139, 92, 246, 0.1); /* Light purple hover */
+}
+
+.inventory-sheet .attunement-slot.clickable:focus {
+    outline: 2px solid var(--quick-edit-blue);
+    outline-offset: 2px;
+}
+
+/* Info button in attunement slot */
+.inventory-sheet .attunement-slot .info-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-2);
+    border-radius: 50%;
+    color: var(--text-red);
+    opacity: 0.6;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.inventory-sheet .attunement-slot .info-btn:hover {
+    opacity: 1;
+    background-color: rgba(88, 23, 31, 0.1);
+}
+
+/* Main Content: 3 Columns */
+.inventory-sheet .inventory-main-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-12);
+    padding-bottom: 40px;
+}
+
+.inventory-sheet .inventory-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+}
+
+/* Inventory Category Block */
+.inventory-sheet .inventory-block {
+    display: flex;
+    flex-direction: column;
+}
+
+.inventory-sheet .inventory-block.flex-grow {
+    flex: 1;
+}
+
+.inventory-sheet .item-list {
+    flex: 1;
+    padding: var(--space-4);
+}
+
+/* Item Row Grid */
+.inventory-sheet .item-row {
+    display: grid;
+    grid-template-columns: 30px 1fr 40px 35px;
+    gap: var(--space-4);
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-bottom: 1px dotted var(--border-light);
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.inventory-sheet .item-row:last-child {
+    border-bottom: none;
+}
+
+.inventory-sheet .item-row.header {
+    font-size: 7px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    color: var(--text-red);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-2);
+}
+
+.inventory-sheet .item-qty {
+    text-align: center;
+    font-weight: bold;
+}
+
+.inventory-sheet .item-name {
+    font-family: 'ScalySansRemake', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inventory-sheet .item-weight {
+    text-align: right;
+    color: var(--text-red);
+    font-size: 9px;
+}
+
+.inventory-sheet .item-value {
+    text-align: right;
+    font-size: 9px;
+}
+
+.inventory-sheet .item-row.empty {
+    border-bottom: 1px solid #ccc;
+    min-height: 20px;
+}
+
+/* Clickable Item Row (Edit Mode) */
+.inventory-sheet .item-row.clickable {
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    border-radius: 2px;
+    margin: 0 -2px;
+    padding-left: calc(var(--space-4) + 2px);
+    padding-right: calc(var(--space-4) + 2px);
+}
+
+.inventory-sheet .item-row.clickable:hover {
+    background-color: rgba(139, 92, 246, 0.08);
+    border-color: #8b5cf6;
+}
+
+.inventory-sheet .item-row.clickable:focus {
+    outline: 2px solid #8b5cf6;
+    outline-offset: 1px;
+}
+
+/* Add Item Row (Edit Mode) */
+.inventory-sheet .item-row.add-item-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-6);
+    margin: var(--space-4) 0 0 0;
+    border: 2px dashed #3b82f6;
+    border-radius: 4px;
+    background: rgba(59, 130, 246, 0.04);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-height: 24px;
+    color: #3b82f6;
+    font-family: 'ScalySansRemake', sans-serif;
+    font-size: 10px;
+}
+
+.inventory-sheet .item-row.add-item-row:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.inventory-sheet .item-row.add-item-row:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.inventory-sheet .item-row.add-item-row .add-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3b82f6;
+    color: white;
+    flex-shrink: 0;
+}
+
+.inventory-sheet .item-row.add-item-row:hover .add-item-icon {
+    background: #2563eb;
+}
+
+.inventory-sheet .item-row.add-item-row .add-item-text {
+    font-style: italic;
+    opacity: 0.9;
+}
+
+/* Treasure/Valuables Section - 2 columns */
+.inventory-sheet .treasure-block .item-row {
+    grid-template-columns: 1fr 60px;
+}
+
+/* Consumables Section - tighter qty/wt, wider Uses column for dice notation */
+.inventory-sheet .consumables-block .item-row {
+    grid-template-columns: 20px 1fr 20px 50px;
+}
+
+/* Container Section - dashed border */
+.inventory-sheet .container-block {
+    border: 2px dashed var(--border-light) !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+    background-image: none !important;
+}
+
+.inventory-sheet .container-block .block-header {
+    background: var(--border-light);
+}
+
+.inventory-sheet .container-info {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-8);
+    font-size: 8px;
+    font-family: 'ScalySansRemake', sans-serif;
+    background: rgba(156, 43, 27, 0.1);
+}
+
+/* Section Header (shared pattern) */
+.inventory-sheet .section-header {
+    font-size: 11px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    color: var(--text-red);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-6);
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Block Header (white on red) */
+.inventory-sheet .block-header {
+    background: var(--border-color);
+    color: #fff;
+    padding: var(--space-5) var(--space-10);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inventory-sheet .block-header .block-title {
+    font-size: 11px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.inventory-sheet .block-header .block-weight {
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+    opacity: 0.9;
+}
+
+/* ===== 13. Spell Sheet ===== */
+
+/* Spell Header */
+.spell-sheet .spell-header {
+    display: flex;
+    gap: var(--space-10);
+    margin-bottom: 15px;
+    align-items: flex-end;
+}
+
+.spell-sheet .spell-header-info {
+    flex: 1;
+    display: flex;
+    gap: var(--space-8);
+}
+
+.spell-sheet .spell-header-info .labeled-box {
+    flex: 1;
+}
+
+.spell-sheet .spell-header-info .labeled-box.narrow {
+    flex: 0 0 80px;
+}
+
+.spell-sheet .spell-header-info .labeled-box .value {
+    justify-content: center;
+    padding: var(--space-6) var(--space-8);
+    font-size: 12px;
+    min-height: 28px;
+}
+
+.spell-sheet .spell-header-info .labeled-box .label {
+    padding: var(--space-2) var(--space-4);
+    font-size: 6px;
+}
+
+/* Spell Slots Section */
+.spell-sheet .spell-slots-section {
+    display: flex;
+    gap: var(--space-6);
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.spell-sheet .spell-slot-level {
+    padding: var(--space-6);
+    text-align: center;
+    min-width: 70px;
+}
+
+.spell-sheet .spell-slot-level .level-num {
+    font-size: 10px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    color: var(--text-red);
+    margin-bottom: var(--space-4);
+}
+
+.spell-sheet .spell-slot-level .slots-total {
+    font-size: 8px;
+    font-family: 'ScalySansRemake', sans-serif;
+    color: var(--text-muted);
+    margin-bottom: var(--space-4);
+}
+
+.spell-sheet .spell-slot-level .slot-circles {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+}
+
+.spell-sheet .slot-circle {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-light);
+}
+
+.spell-sheet .slot-circle.used {
+    background: var(--border-color);
+}
+
+/* Edit mode - clickable spell slot circles */
+.character-canvas-area.edit-mode .spell-sheet .slot-circle.clickable {
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode .spell-sheet .slot-circle.clickable:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    transform: scale(1.1);
+}
+
+.character-canvas-area.edit-mode .spell-sheet .slot-circle.used.clickable:hover {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+/* Spell slot level box quick edit indicator */
+.character-canvas-area.edit-mode .spell-slot-level[data-editable="quick"] {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode .spell-slot-level[data-editable="quick"]:hover {
+    border-color: #2563eb !important;
+}
+
+/* Spell List Container - 3 Columns */
+.spell-sheet .spell-list-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--column-gap);
+    padding-bottom: 40px;
+}
+
+.spell-sheet .spell-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+}
+
+/* Spell Level Block */
+.spell-sheet .spell-level-block {
+    /* phb-section provides background, border, border-radius, overflow */
+}
+
+.spell-sheet .spell-level-header {
+    background: var(--border-color);
+    color: #fff;
+    padding: var(--space-4) var(--space-8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.spell-sheet .spell-level-header .level-title {
+    font-size: 9px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.spell-sheet .spell-level-header .slot-info {
+    font-size: 8px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.spell-sheet .spell-level-list {
+    padding: var(--space-6);
+}
+
+/* Spell Item */
+.spell-sheet .spell-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-3) 0;
+    border-bottom: 1px dotted var(--border-light);
+    font-size: 10px;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.spell-sheet .spell-item:last-child {
+    border-bottom: none;
+}
+
+.spell-sheet .spell-prepared {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 2px;
+    flex-shrink: 0;
+    background: var(--bg-light);
+}
+
+.spell-sheet .spell-prepared.checked {
+    background: var(--border-color);
+}
+
+.spell-sheet .spell-name {
+    flex: 1;
+}
+
+.spell-sheet .spell-markers {
+    display: flex;
+    gap: var(--space-2);
+    font-size: 8px;
+    color: var(--text-red);
+}
+
+.spell-sheet .spell-marker {
+    font-weight: bold;
+}
+
+.spell-sheet .spell-item.empty {
+    border-bottom: 1px solid var(--border-color);
+    min-height: 20px;
+}
+
+/* Cantrips special styling */
+.spell-sheet .spell-level-block.cantrips .spell-level-header {
+    background: linear-gradient(135deg, var(--border-color) 0%, #7c3a1f 100%);
+}
+
+.spell-sheet .spell-level-block.cantrips .spell-prepared {
+    display: none;
+}
+
+/* Clickable Spell Items (Edit Mode) */
+.spell-sheet .spell-item.clickable {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.spell-sheet .spell-item.clickable:hover {
+    background: rgba(88, 24, 13, 0.08);
+}
+
+.spell-sheet .spell-item.clickable:focus {
+    outline: 2px solid var(--text-red);
+    outline-offset: 1px;
+}
+
+/* Add Spell Row (Edit Mode) */
+.spell-sheet .spell-item.add-spell-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    cursor: pointer;
+    border: 1px dashed #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 2px;
+    padding: 4px 8px;
+    min-height: 22px;
+    color: #3b82f6;
+    font-size: 10px;
+    transition: all 0.15s ease;
+}
+
+.spell-sheet .spell-item.add-spell-row:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.spell-sheet .spell-item.add-spell-row:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.spell-sheet .spell-item.add-spell-row .add-spell-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    color: white;
+    flex-shrink: 0;
+}
+
+.spell-sheet .spell-item.add-spell-row:hover .add-spell-icon {
+    background: #2563eb;
+}
+
+.spell-sheet .spell-item.add-spell-row .add-spell-text {
+    font-style: italic;
+    opacity: 0.9;
+}
+
+/* ===== 14. Info Button & Detail Modals ===== */
+
+/* Info Button */
+.info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--bg-light);
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-left: 4px;
+    padding: 0;
+    transition: all 0.15s ease;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.info-button:hover {
+    background: var(--HB_Color_MonsterStatBackground);
+    color: var(--text-red);
+    border-color: var(--text-red);
+}
+
+.info-button--sm {
+    width: 14px;
+    height: 14px;
+}
+
+.info-button--md {
+    width: 18px;
+    height: 18px;
+}
+
+/* Detail Modal Styling */
+.detail-modal .mantine-Modal-content {
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    background-color: var(--HB_Color_Background, #EEE5CE);
+    /* Parchment background set via styles prop in component (public assets can't be url() resolved from src/) */
+    background-size: cover;
+    background-position: center;
+    border: 3px solid var(--border-color, #9C2B1B);
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal header - minimal but visible for close button */
+.detail-modal .mantine-Modal-header,
+.detail-modal .detail-modal-mantine-header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 8px;
+    background: transparent;
+    z-index: 10;
+}
+
+/* Close button styling */
+.detail-modal .mantine-Modal-close,
+.detail-modal .detail-modal-close-btn {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 50%;
+    background: var(--HB_Color_MonsterStatBackground, #F2E5B5);
+    border: 2px solid var(--text-red, #58180D);
+    color: var(--text-red, #58180D);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.detail-modal .mantine-Modal-close:hover,
+.detail-modal .detail-modal-close-btn:hover {
+    background: var(--text-red, #58180D);
+    color: white;
+}
+
+.detail-modal-body {
+    padding: var(--space-12);
+}
+
+.detail-modal-header {
+    display: flex;
+    gap: var(--space-12);
+    margin-bottom: var(--space-12);
+}
+
+.detail-modal-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.detail-modal-image-placeholder {
+    width: 100px;
+    height: 100px;
+    background: var(--HB_Color_MonsterStatBackground);
+    border: 2px dashed var(--border-light);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.detail-modal-title-block {
+    flex: 1;
+}
+
+.detail-modal-title {
+    font-family: 'NodestoCapsCondensed', serif;
+    font-size: 1.6em;
+    font-weight: bold;
+    color: var(--text-red);
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-modal-subtitle {
+    font-size: 0.95em;
+    color: var(--text-muted);
+    font-style: italic;
+    margin: 0;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.detail-modal-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.detail-modal-stats {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 16px;
+    background: var(--HB_Color_MonsterStatBackground);
+    padding: var(--space-8) var(--space-10);
+    border-radius: 4px;
+    margin-bottom: var(--space-10);
+    font-size: 0.9em;
+    font-family: 'ScalySansRemake', sans-serif;
+    border: 1px solid var(--border-color);
+}
+
+.detail-modal-stat-label {
+    color: var(--text-red);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-size: 0.85em;
+    text-transform: uppercase;
+}
+
+.detail-modal-stat-value {
+    font-weight: 500;
+}
+
+.detail-modal-description {
+    line-height: 1.6;
+    margin-bottom: var(--space-10);
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    font-size: 0.95em;
+}
+
+.detail-modal-dice-box {
+    background: linear-gradient(135deg, var(--text-red) 0%, #7c3a1f 100%);
+    color: #fff;
+    padding: var(--space-8) var(--space-10);
+    border-radius: 4px;
+    margin-bottom: var(--space-10);
+}
+
+.detail-modal-dice-box.healing {
+    background: linear-gradient(135deg, #2d5016 0%, #1a3010 100%);
+}
+
+.detail-modal-dice-label {
+    font-size: 0.8em;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #000000;
+}
+
+.detail-modal-dice-value {
+    font-size: 1.3em;
+    font-family: 'NodestoCapsCondensed', serif;
+    color: #000000;
+}
+
+.detail-modal-section {
+    border-top: 1px solid var(--border-light);
+    padding-top: var(--space-10);
+    margin-top: var(--space-10);
+}
+
+.detail-modal-section-title {
+    font-weight: bold;
+    margin-bottom: var(--space-6);
+    color: var(--text-red);
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+.detail-modal-section-content {
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.detail-modal-footer {
+    border-top: 1px solid var(--border-light);
+    margin-top: var(--space-10);
+    padding-top: var(--space-8);
+    font-size: 0.85em;
+    color: var(--text-muted);
+    display: flex;
+    gap: var(--space-12);
+    flex-wrap: wrap;
+    font-family: 'ScalySansRemake', sans-serif;
+}
+
+.detail-modal-footer span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Rarity badges */
+.rarity-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+}
+
+.rarity-common {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.rarity-uncommon {
+    background: #1eff00;
+    color: #000;
+}
+
+.rarity-rare {
+    background: #0070dd;
+    color: white;
+}
+
+.rarity-very-rare {
+    background: #a335ee;
+    color: white;
+}
+
+.rarity-legendary {
+    background: #ff8000;
+    color: white;
+}
+
+.rarity-artifact {
+    background: #e6cc80;
+    color: #000;
+}
+
+/* Spell badges */
+.spell-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.7em;
+    font-weight: bold;
+    font-family: 'ScalySansSmallCapsRemake', sans-serif;
+}
+
+.badge-concentration {
+    background: #ffd700;
+    color: #333;
+}
+
+.badge-ritual {
+    background: #9370db;
+    color: white;
+}
+
+.badge-level {
+    background: var(--border-color);
+    color: rgb(0, 0, 0);
+}
+
+/* ===== Hybrid Responsive System ===== */
+/* 
+ * Font and spacing scaling controlled by CSS variables from CharacterCanvas.tsx.
+ * The canvas calculates --dm-font-scale and --dm-spacing-scale based on viewport,
+ * and components use calc() to apply the scaling.
+ * 
+ * Benefits:
+ * - Single source of truth for breakpoints (in canvas)
+ * - No media queries needed for font scaling
+ * - Can be reused across all DungeonMind services
+ * - Easier to test (pure functions in JS)
+ * 
+ * Usage: font-size: calc(BASE_SIZE * var(--dm-font-scale, 1));
+ */
+
+/* Row font variables - scaled by canvas */
+.character-sheet {
+    --row-font-label: calc(9px * var(--dm-font-scale, 1));
+    --row-font-value: calc(18px * var(--dm-font-scale, 1));
+    --row-font-small: calc(11px * var(--dm-font-scale, 1));
+}
+
+/* Header - character name (base 28px) */
+.character-sheet .header-name {
+    font-size: calc(28px * var(--dm-font-scale, 1));
+}
+
+/* Header - class info (base 14px) */
+.character-sheet .header-info {
+    font-size: calc(14px * var(--dm-font-scale, 1));
+}
+
+/* Combat stat values - AC, HP, Initiative, Speed (base 20px) */
+.character-sheet .combat-value,
+.character-sheet .hp-value {
+    font-size: calc(20px * var(--dm-font-scale, 1));
+}
+
+/* Labeled box values (base 15px) */
+.character-sheet .labeled-box .value {
+    font-size: calc(15px * var(--dm-font-scale, 1));
+}
+
+/* Labeled box labels (base 9px) */
+.character-sheet .labeled-box .label {
+    font-size: calc(9px * var(--dm-font-scale, 1));
+}
+
+/* Attack/equipment table cells (base 10px) */
+.character-sheet .attack-row,
+.character-sheet .equipment-list {
+    font-size: calc(10px * var(--dm-font-scale, 1));
+}
+
+/* Features section (base 12px) */
+.character-sheet .features-box .features-content {
+    font-size: calc(12px * var(--dm-font-scale, 1));
+}
+
+/* Inventory sheet - item rows (base 10px) */
+.inventory-sheet .item-row {
+    font-size: calc(10px * var(--dm-font-scale, 1));
+}
+
+/* Inventory sheet - headers (base 11px) */
+.inventory-sheet .section-header,
+.inventory-sheet .block-header .block-title {
+    font-size: calc(11px * var(--dm-font-scale, 1));
+}
+
+/* Spell sheet - spell entries (base 10px) */
+.spell-sheet .spell-entry {
+    font-size: calc(10px * var(--dm-font-scale, 1));
+}
+
+/* Spell sheet - level headers (base 9px) */
+.spell-sheet .spell-level-header .level-title {
+    font-size: calc(9px * var(--dm-font-scale, 1));
+}
+
+/* ===== 15. Edit Mode Styles ===== */
+/*
+ * Edit mode visual indicators and interactions.
+ * Applied when .edit-mode class is present on .character-canvas-area
+ * 
+ * Field Categories:
+ * - [data-editable="quick"] : Inline editable (dashed border, text cursor)
+ * - [data-editable="complex"] : Opens drawer (dotted border, pointer cursor)
+ * - No data-editable : Read-only (no visual change)
+ */
+
+/* Edit mode indicator - visible border on canvas */
+.character-canvas-area.edit-mode {
+    box-shadow: inset 0 0 0 4px rgba(59, 130, 246, 0.6);
+}
+
+/* Quick editable fields - inline edit (BLUE DASHED) */
+/* Target the .value child since .labeled-box .value has its own border */
+.character-canvas-area.edit-mode [data-editable="quick"] {
+    position: relative;
+    cursor: text;
+}
+
+.character-canvas-area.edit-mode [data-editable="quick"] .value {
+    border: 2px dashed #3b82f6 !important;
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode [data-editable="quick"]:hover .value {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.25) !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.character-canvas-area.edit-mode [data-editable="quick"]:focus-within .value {
+    border-color: #1d4ed8 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+}
+
+/* Complex editable fields - opens drawer (PURPLE DOTTED) */
+/* Target the .value child since .labeled-box .value has its own border */
+.character-canvas-area.edit-mode [data-editable="complex"] {
+    position: relative;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode [data-editable="complex"] .value {
+    border: 2px dotted #8b5cf6 !important;
+    background-color: rgba(139, 92, 246, 0.15) !important;
+    transition: all 0.15s ease;
+}
+
+.character-canvas-area.edit-mode [data-editable="complex"]:hover .value {
+    border-color: #7c3aed !important;
+    background-color: rgba(139, 92, 246, 0.25) !important;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+}
+
+/* Direct elements without .value child (hp-row, stat-row, ability-box, meta-row) */
+/* These need direct styling since they don't use labeled-box pattern */
+
+/* Quick edit - direct elements (BLUE DASHED) */
+.character-canvas-area.edit-mode .hp-row[data-editable="quick"],
+.character-canvas-area.edit-mode .stat-row[data-editable="quick"],
+.character-canvas-area.edit-mode .meta-row[data-editable="quick"],
+.character-canvas-area.edit-mode .combat-death-row[data-editable="quick"] {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    transition: all 0.15s ease;
+    cursor: text;
+}
+
+.character-canvas-area.edit-mode .hp-row[data-editable="quick"]:hover,
+.character-canvas-area.edit-mode .stat-row[data-editable="quick"]:hover,
+.character-canvas-area.edit-mode .meta-row[data-editable="quick"]:hover,
+.character-canvas-area.edit-mode .combat-death-row[data-editable="quick"]:hover {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.25) !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Complex edit - direct elements (PURPLE DOTTED) */
+.character-canvas-area.edit-mode .ability-box-horizontal[data-editable="complex"],
+.character-canvas-area.edit-mode .stat-row[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    background-color: rgba(139, 92, 246, 0.15) !important;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .ability-box-horizontal[data-editable="complex"]:hover,
+.character-canvas-area.edit-mode .stat-row[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
+    background-color: rgba(139, 92, 246, 0.25) !important;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+}
+
+/* Link icon indicator for complex fields */
+.character-canvas-area.edit-mode [data-editable="complex"]::after {
+    content: '🔗';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+
+.character-canvas-area.edit-mode [data-editable="complex"]:hover::after {
+    opacity: 0.7;
+}
+
+/* Inline input styling when field is being edited */
+.character-canvas-area.edit-mode .edit-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    padding: 0;
+    margin: 0;
+    outline: none;
+}
+
+.character-canvas-area.edit-mode .edit-input:focus {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Number input specific styling */
+.character-canvas-area.edit-mode .edit-input[type="number"] {
+    -moz-appearance: textfield;
+    text-align: center;
+}
+
+.character-canvas-area.edit-mode .edit-input[type="number"]::-webkit-inner-spin-button,
+.character-canvas-area.edit-mode .edit-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Textarea for longer text fields */
+.character-canvas-area.edit-mode .edit-textarea {
+    width: 100%;
+    min-height: 60px;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    padding: 4px;
+    margin: 0;
+    outline: none;
+    resize: vertical;
+}
+
+.character-canvas-area.edit-mode .edit-textarea:focus {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Visual feedback during save */
+.character-canvas-area.edit-mode [data-saving="true"] {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Edit mode legend (optional, shown in corner) */
+.edit-mode-legend {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: system-ui, sans-serif;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.edit-mode-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-mode-legend-icon {
+    width: 20px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.edit-mode-legend-icon.quick {
+    border: 2px dashed rgba(59, 130, 246, 0.8);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.edit-mode-legend-icon.complex {
+    border: 2px dotted rgba(139, 92, 246, 0.8);
+    background: rgba(139, 92, 246, 0.1);
+}
+
+/* Personality box quick edit styling */
+/* Click anywhere in the box to edit - entire container is clickable */
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"] {
+    position: relative;
+    cursor: text;
+}
+
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"] .text-area {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    transition: all 0.15s ease;
+    cursor: text;
+    min-height: 60px;
+}
+
+/* Hover on entire box highlights it */
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"]:hover .text-area {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"]:focus-within .text-area {
+    border-color: #1d4ed8 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Make editable textarea display fill the container */
+.character-canvas-area.edit-mode .personality-box[data-editable="quick"] .editable-textarea-display {
+    display: block;
+    width: 100%;
+    min-height: 100%;
+    cursor: text;
+}
+
+/* Notes box quick edit styling */
+/* Click anywhere in the 3-column notes box to start editing */
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] {
+    position: relative;
+    cursor: text;
+}
+
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] .notes-content {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    transition: all 0.15s ease;
+    cursor: text;
+}
+
+/* All 3 columns are clickable */
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] .notes-column {
+    cursor: text;
+    min-height: 100px;
+}
+
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"]:hover .notes-content {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"]:focus-within .notes-content {
+    border-color: #1d4ed8 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Make editable textarea fill the first column */
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] .editable-textarea-display {
+    display: block;
+    width: 100%;
+    min-height: 100%;
+    cursor: text;
+}
+
+/* When editing, textarea spans all columns */
+.character-canvas-area.edit-mode .notes-box[data-editable="quick"] .edit-textarea {
+    grid-column: 1 / -1;
+    /* Span all columns when actively editing */
+}
+
+/* Editable textarea display styling */
+.editable-textarea-display {
+    display: block;
+    width: 100%;
+    min-height: 40px;
+}
+
+.editable-textarea-display.editable {
+    cursor: text;
+}
+
+.editable-textarea-display .placeholder {
+    color: var(--text-muted, #666);
+    font-style: italic;
+}
+
+/* Currency row quick edit styling */
+.character-canvas-area.edit-mode .currency-row[data-editable="quick"] {
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    padding: 4px;
+}
+
+.character-canvas-area.edit-mode .currency-row[data-editable="quick"]:hover {
+    border-color: #2563eb !important;
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.currency-row .currency-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.currency-row .currency-label {
+    font-size: 9px;
+    font-weight: bold;
+    color: var(--text-muted, #666);
+}
+
+.currency-row .currency-input {
+    width: 40px;
+    text-align: center;
+}
+
+/* Equipment grid and attacks section complex edit */
+.character-canvas-area.edit-mode .attacks-section[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .attacks-section[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
+}
+
+.character-canvas-area.edit-mode .equipment-grid[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .equipment-grid[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
+}
+
+/* Saves and Skills sections complex edit */
+.character-canvas-area.edit-mode .saves-section[data-editable="complex"],
+.character-canvas-area.edit-mode .skills-section[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .saves-section[data-editable="complex"]:hover,
+.character-canvas-area.edit-mode .skills-section[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
+}
+
+/* Features section complex edit */
+.character-canvas-area.edit-mode .features-box[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .features-box[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
+}
+
+/* Proficiencies box complex edit */
+.character-canvas-area.edit-mode .proficiencies-box[data-editable="complex"] {
+    border: 2px dotted #8b5cf6 !important;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.character-canvas-area.edit-mode .proficiencies-box[data-editable="complex"]:hover {
+    border-color: #7c3aed !important;
+}
+
+/* ===== Print Styles ===== */
+/* Based on StatblockGenerator print pattern (canvas-print.css) */
+@page {
+    size: letter portrait;
+    margin: 0.25in;
+}
+
+@media print {
+    /* Firefox: prevent hidden UI (visibility-hidden) from still taking layout space.
+       Only keep the canvas container in the document flow to avoid a leading blank page. */
+    .generator-layout > * {
+        display: none !important;
+    }
+
+    .generator-layout > .generator-canvas-container {
+        display: block !important;
+    }
+
+    /* Color adjustment for backgrounds */
+    .character-sheet {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Remove scaling for print (match StatblockGenerator approach) */
+    .character-canvas-wrapper {
+        transform: none !important;
+        transform-origin: top center !important;
+    }
+
+    /* Center pages in the printable area */
+    .character-sheet {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Ensure PHB page container keeps its intended vertical flow in print */
+    .page.phb.character-sheet {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Page break rules (Firefox-safe):
+       Prefer break-after on all-but-last page to avoid blank pages between pages in Firefox. */
+    .character-sheet-container > .page.phb.character-sheet {
+        break-before: avoid !important;
+        page-break-before: avoid !important;
+    }
+
+    .character-sheet-container > .page.phb.character-sheet:not(:last-child) {
+        break-after: page !important;
+        page-break-after: always !important;
+    }
+
+    .character-sheet-container > .page.phb.character-sheet:last-child {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+    }
+
+    /* Prevent splitting within a sheet */
+    .character-sheet {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .character-sheet .phb-section {
+        break-inside: avoid;
+    }
+
+    /* Remove gaps between pages (critical for preventing blank pages) */
+    .character-sheet-container {
+        gap: 0 !important;
+    }
+
+    /* Firefox: override screen-level !important gap rules (more specific selector wins) */
+    .character-canvas-renderer .character-sheet-container {
+        gap: 0 !important;
+    }
+
+    /* Neutralize app-shell sizing that can introduce phantom print pages */
+    .generator-canvas-container {
+        min-height: auto !important;
+        height: auto !important;
+        max-height: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+        width: auto !important;
+        max-width: none !important;
+        display: block !important;
+    }
+
+    /* Ensure intermediate canvas containers don't enforce flex sizing/heights in print */
+    .character-canvas-area,
+    .character-canvas-renderer,
+    .character-canvas-wrapper {
+        height: auto !important;
+        max-height: none !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    /* Avoid flex/gap pagination quirks for multi-page print */
+    .character-sheet-container {
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+
+    /* Ensure parent canvas area doesn't keep flex row/gap behavior in print */
+    .character-canvas-area {
+        display: block !important;
+        gap: 0 !important;
+    }
+
+    /* Prevent “brown blank pages” from canvas backgrounds printing between pages */
+    .character-canvas-area,
+    .character-sheet-container {
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Remove pseudo-elements that can cause blank pages */
+    .character-sheet-container::after,
+    .character-sheet-container::before {
+        display: none !important;
+        content: none !important;
+    }
+
+    /* Prevent splitting within content blocks */
+    .inventory-sheet .inventory-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .spell-sheet .spell-level-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}

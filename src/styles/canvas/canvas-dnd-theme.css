@@ -341,7 +341,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(255, 255, 255, 0.55);
+        /* Opaque backing so portraits don't look "washed out" */
+        background: rgb(238, 229, 206); /* matches --HB_Color_Background */
         border: 3px solid rgba(0, 0, 0, 0.6);
         box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.25);
         overflow: hidden;
@@ -351,7 +352,10 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        mix-blend-mode: multiply;
+        /* Render image colors normally (no blend-mode wash) */
+        mix-blend-mode: normal;
+        filter: none;
+        opacity: 1;
     }
 
     .dm-portrait-placeholder {
