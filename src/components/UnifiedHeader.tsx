@@ -337,9 +337,18 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                     )}
                 </Group>
 
-                {/* Center Section: App Icon + Name */}
+                {/* Center Section: App Icon + Name - Hard Centered */}
                 {activeApp && (
-                    <Group gap="xs" style={{ flex: 1, justifyContent: 'center' }}>
+                    <Group 
+                        gap="xs" 
+                        style={{ 
+                            position: 'absolute',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}
+                    >
                         {activeApp.iconFallback ? (
                             activeApp.iconFallback
                         ) : (
