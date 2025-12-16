@@ -16,6 +16,7 @@ import {
     AiPreferences,
     AbilityName,
 } from './types';
+import { getRaceById } from '../data/dnd5e/races';
 
 // ============================================================================
 // PROMPT TEMPLATES
@@ -74,10 +75,23 @@ function formatFoundationSection(
         '## CHARACTER FOUNDATION (Fixed by Player)',
         '',
         `**Class:** ${constraints.class.name}`,
-        `**Race:** ${constraints.race.name}`,
-        `**Level:** ${input.level}`,
-        `**Background:** ${constraints.background.name}`,
     ];
+
+    // Format race display: show subrace if selected, otherwise base race
+    let raceDisplay = constraints.race.name;
+    if (input.subraceId) {
+        // Look up the subrace to get base race name for context
+        const subraceData = getRaceById(input.subraceId);
+        if (subraceData?.baseRace) {
+            const baseRaceData = getRaceById(subraceData.baseRace);
+            const baseRaceName = baseRaceData?.name || subraceData.baseRace;
+            raceDisplay = `${constraints.race.name} (${baseRaceName})`;
+        }
+    }
+    lines.push(`**Race:** ${raceDisplay}`);
+
+    lines.push(`**Level:** ${input.level}`);
+    lines.push(`**Background:** ${constraints.background.name}`);
 
     if (constraints.subclass) {
         lines.push(`**Subclass:** ${constraints.subclass.name}`);
