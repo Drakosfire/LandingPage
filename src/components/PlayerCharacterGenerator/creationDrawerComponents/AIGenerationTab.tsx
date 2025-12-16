@@ -43,7 +43,37 @@ type LevelOption = 1 | 2 | 3;
 
 // Backend PCG v0 catalogs are intentionally smaller than the frontend SRD lists.
 // Filter generation-only selects to prevent "Unknown <id>" errors from /generate.
-const PCG_V0_RACE_IDS = new Set(['human', 'dwarf', 'elf', 'halfling', 'half-orc']);
+const PCG_V0_CLASS_IDS = new Set([
+    'fighter',
+    'rogue',
+    'wizard',
+    'cleric',
+    'bard',
+    'warlock',
+    'paladin',
+    'ranger',
+]);
+
+// IMPORTANT: Backend now enforces subrace selection for races that have subraces.
+// So for /generate we only offer valid race IDs (subraces) instead of base races like "dwarf".
+const PCG_V0_RACE_IDS = new Set([
+    // Races without subraces
+    'human',
+    'half-orc',
+    'dragonborn',
+    'half-elf',
+    'tiefling',
+
+    // Subraces (valid selections)
+    'hill-dwarf',
+    'mountain-dwarf',
+    'high-elf',
+    'wood-elf',
+    'lightfoot-halfling',
+    'stout-halfling',
+    'forest-gnome',
+    'rock-gnome',
+]);
 const PCG_V0_BACKGROUND_IDS = new Set(['soldier', 'sage', 'criminal', 'acolyte', 'folk-hero', 'noble']);
 
 const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete }) => {
@@ -69,17 +99,31 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
     const [progress, setProgress] = useState<{ percent: number; message: string }>({ percent: 0, message: '' });
 
     // ===== OPTIONS =====
+    const titleCase = useCallback((s: string): string => {
+        return String(s || '')
+            .split(/[-\s]+/g)
+            .filter(Boolean)
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
+    }, []);
+
     const classOptions = useMemo(() => {
-        return ruleEngine.getAvailableClasses().map((c) => ({ value: c.id, label: c.name }));
+        return ruleEngine
+            .getAvailableClasses()
+            .filter((c) => PCG_V0_CLASS_IDS.has(c.id))
+            .map((c) => ({ value: c.id, label: c.name }));
     }, [ruleEngine]);
 
     const raceOptions = useMemo(() => {
-        // Use base race IDs (what the backend expects) for generation simplicity
+        // Use valid race IDs for backend generation. If a race has subraces, we must pick a subrace.
         return ruleEngine
-            .getBaseRaceOptions()
+            .getAvailableRaces()
             .filter((r) => PCG_V0_RACE_IDS.has(r.id))
-            .map((r) => ({ value: r.id, label: r.name }));
-    }, [ruleEngine]);
+            .map((r) => {
+                const base = r.baseRace ? titleCase(r.baseRace) : null;
+                return { value: r.id, label: base ? `${r.name} (${base})` : r.name };
+            });
+    }, [ruleEngine, titleCase]);
 
     const backgroundOptions = useMemo(() => {
         return ruleEngine
