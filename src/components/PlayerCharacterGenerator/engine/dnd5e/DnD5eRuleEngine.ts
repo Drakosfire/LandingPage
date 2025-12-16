@@ -240,7 +240,28 @@ export class DnD5eRuleEngine implements RuleEngine<
             return result; // Can't validate further without race
         }
 
-        // Check race is valid
+        // First check if this is a base race that requires subrace selection
+        // This check happens BEFORE checking if the race exists in the list,
+        // to provide a clearer error message for races like "dwarf" that need subraces
+        const baseRaceOptions = this.getBaseRaceOptions();
+        const baseRaceOption = baseRaceOptions.find(r => r.id === character.race?.id);
+        if (baseRaceOption?.hasSubraces) {
+            // This is a base race with subraces - must select a subrace
+            const subraces = this.getSubraces(baseRaceOption.id);
+            if (subraces.length > 0) {
+                result.isValid = false;
+                result.errors.push({
+                    code: 'SUBRACE_REQUIRED',
+                    message: `${baseRaceOption.name} requires a subrace selection (e.g., ${subraces.map(s => s.name).slice(0, 2).join(', ')})`,
+                    step: 'race',
+                    field: 'subrace',
+                    severity: 'error'
+                });
+                return result;
+            }
+        }
+
+        // Check race is valid (exists in the races list)
         const raceData = this.races.find(r => r.id === character.race?.id);
         if (!raceData) {
             result.isValid = false;
@@ -252,23 +273,6 @@ export class DnD5eRuleEngine implements RuleEngine<
                 severity: 'error'
             });
             return result;
-        }
-
-        // Check if race has subraces and one is required but not selected
-        const baseRace = this.getBaseRaceOptions().find(r => r.id === raceData.baseRace || r.id === raceData.id);
-        if (baseRace) {
-            const subraces = this.getSubraces(baseRace.id);
-            if (subraces.length > 0 && !raceData.baseRace) {
-                // This is a base race with subraces - must select a subrace
-                result.isValid = false;
-                result.errors.push({
-                    code: 'SUBRACE_REQUIRED',
-                    message: `${raceData.name} requires a subrace selection`,
-                    step: 'race',
-                    field: 'subrace',
-                    severity: 'error'
-                });
-            }
         }
 
         // Check flexible ability bonus choices (Half-Elf)

@@ -21,7 +21,7 @@
 - **Timeout configuration** - Must match StatblockGenerator pattern (120s for AI)
 
 ### Critical Lessons from StatblockGenerator Deployment
-
+pcg-phase52-ui
 **Issue 1: 504 Gateway Timeout (CRITICAL)**
 - **Root Cause:** nginx default 60s timeout too short for AI generation (60-120s)
 - **Fix:** Set `proxy_read_timeout 120s` in `@backend` location block
