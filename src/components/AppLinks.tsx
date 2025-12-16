@@ -40,7 +40,7 @@ const AppLinks: React.FC = () => {
                     className="app-logo"
                 />
             </Link>
-            <Link to="/charactergenerator" className="app-card">
+            <Link to="/playercharactergenerator" className="app-card">
                 <img
                     src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/102ae220-107f-44e6-f261-8208dd245900/public"
                     alt="Character Generator"

@@ -25,10 +25,10 @@ import UnifiedHeaderTest from './pages/UnifiedHeaderTest';
 // Component to conditionally render Footer
 const ConditionalFooter: React.FC = () => {
   const location = useLocation();
-  
+
   // Hide footer on all generator routes (exact or nested)
-  const generatorRoutes = ['/cardgenerator', '/statblockgenerator', '/charactergenerator'];
-  const isGeneratorRoute = generatorRoutes.some(route => 
+  const generatorRoutes = ['/cardgenerator', '/statblockgenerator', '/playercharactergenerator'];
+  const isGeneratorRoute = generatorRoutes.some(route =>
     location.pathname === route || location.pathname.startsWith(route + '/')
   );
 
@@ -45,7 +45,7 @@ const ConditionalNavBar: React.FC = () => {
   const location = useLocation();
   const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
   const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
-  const isCharacterGeneratorRoute = location.pathname === '/charactergenerator';
+  const isCharacterGeneratorRoute = location.pathname === '/playercharactergenerator';
 
   // Don't render NavBar on UnifiedHeader routes
   if (isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute || isCharacterGeneratorRoute) {
@@ -60,7 +60,7 @@ const MainContent: React.FC<{ children: ReactNode }> = ({ children }) => {
   const location = useLocation();
   const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
   const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
-  const isCharacterGeneratorRoute = location.pathname === '/charactergenerator';
+  const isCharacterGeneratorRoute = location.pathname === '/playercharactergenerator';
 
   // Remove margin-left and reset width when NavBar is hidden (UnifiedHeader routes)
   const noMargin = isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute || isCharacterGeneratorRoute;
@@ -115,7 +115,7 @@ const App: React.FC = () => {
                     <Route path="/ruleslawyer" element={<RulesLawyer />} />
                     <Route path="/cardgenerator" element={<CardGenerator />} />
                     <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
-                    <Route path="/charactergenerator" element={<PlayerCharacterGenerator />} />
+                    <Route path="/playercharactergenerator" element={<PlayerCharacterGenerator />} />
                     <Route path="/test-unified-header" element={<UnifiedHeaderTest />} />
                   </Routes>
                   <ConditionalFooter />
