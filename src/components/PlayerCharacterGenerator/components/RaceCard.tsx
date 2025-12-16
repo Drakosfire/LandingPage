@@ -47,15 +47,15 @@ const RaceCard: React.FC<RaceCardProps> = ({
     const handleSelect = useCallback(() => {
         // If race has subraces, don't select the base race directly
         if (subraces && subraces.length > 0) {
-            // Just expand to show subraces
-            if (!isSelected) {
-                // Select first subrace by default
+            // If no subrace is selected yet, auto-select the first one
+            if (!selectedSubraceId) {
                 onSubraceSelect?.(subraces[0]);
             }
+            // Otherwise, just ensure the card is expanded (subrace selector will show)
         } else if (onSelect) {
             onSelect(race);
         }
-    }, [race, subraces, isSelected, onSelect, onSubraceSelect]);
+    }, [race, subraces, selectedSubraceId, onSelect, onSubraceSelect]);
 
     const toggleTraits = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -150,8 +150,8 @@ const RaceCard: React.FC<RaceCardProps> = ({
                     </Box>
                 </Collapse>
 
-                {/* Subrace Selector (if race has subraces and is selected) */}
-                {isSelected && subraces && subraces.length > 0 && (
+                {/* Subrace Selector (if race has subraces - show when base race is selected/clicked) */}
+                {subraces && subraces.length > 0 && isSelected && (
                     <>
                         <Divider my="xs" />
                         <SubraceSelector
@@ -159,6 +159,11 @@ const RaceCard: React.FC<RaceCardProps> = ({
                             selectedSubraceId={selectedSubraceId || null}
                             onSelect={onSubraceSelect!}
                         />
+                        {!selectedSubraceId && (
+                            <Text size="xs" c="red" mt="xs" fw={500}>
+                                ⚠️ Please select a subrace above to continue
+                            </Text>
+                        )}
                     </>
                 )}
 
