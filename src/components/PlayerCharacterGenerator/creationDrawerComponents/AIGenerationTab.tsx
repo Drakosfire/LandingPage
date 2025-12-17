@@ -44,6 +44,7 @@ type LevelOption = 1 | 2 | 3;
 // Backend PCG v0 catalogs are intentionally smaller than the frontend SRD lists.
 // Filter generation-only selects to prevent "Unknown <id>" errors from /generate.
 const PCG_V0_CLASS_IDS = new Set([
+    'barbarian',
     'fighter',
     'rogue',
     'wizard',
@@ -54,25 +55,20 @@ const PCG_V0_CLASS_IDS = new Set([
     'ranger',
 ]);
 
-// IMPORTANT: Backend now enforces subrace selection for races that have subraces.
-// So for /generate we only offer valid race IDs (subraces) instead of base races like "dwarf".
-const PCG_V0_RACE_IDS = new Set([
-    // Races without subraces
+// IMPORTANT: User flow desired:
+// - Pick BASE RACE in dropdown
+// - If that race has subraces, prompt for picking subrace in a second dropdown
+// We still filter to the backend v0 catalog IDs to avoid unknown-ID errors.
+const PCG_V0_BASE_RACE_IDS = new Set([
     'human',
+    'dwarf',
+    'elf',
+    'halfling',
+    'gnome',
     'half-orc',
     'dragonborn',
     'half-elf',
     'tiefling',
-
-    // Subraces (valid selections)
-    'hill-dwarf',
-    'mountain-dwarf',
-    'high-elf',
-    'wood-elf',
-    'lightfoot-halfling',
-    'stout-halfling',
-    'forest-gnome',
-    'rock-gnome',
 ]);
 const PCG_V0_BACKGROUND_IDS = new Set(['soldier', 'sage', 'criminal', 'acolyte', 'folk-hero', 'noble']);
 
@@ -92,7 +88,8 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
     const [concept, setConcept] = useState('');
     const [classId, setClassId] = useState<string>('');
     const [level, setLevel] = useState<LevelOption>(1);
-    const [raceId, setRaceId] = useState<string | null>(null); // null = random
+    const [baseRaceId, setBaseRaceId] = useState<string | null>(null); // null = random
+    const [subraceId, setSubraceId] = useState<string | null>(null); // only used when base race has subraces
     const [backgroundId, setBackgroundId] = useState<string | null>(null); // null = random
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -114,16 +111,26 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
             .map((c) => ({ value: c.id, label: c.name }));
     }, [ruleEngine]);
 
-    const raceOptions = useMemo(() => {
-        // Use valid race IDs for backend generation. If a race has subraces, we must pick a subrace.
+    const baseRaceOptions = useMemo(() => {
         return ruleEngine
-            .getAvailableRaces()
-            .filter((r) => PCG_V0_RACE_IDS.has(r.id))
-            .map((r) => {
-                const base = r.baseRace ? titleCase(r.baseRace) : null;
-                return { value: r.id, label: base ? `${r.name} (${base})` : r.name };
-            });
-    }, [ruleEngine, titleCase]);
+            .getBaseRaceOptions()
+            .filter((r) => PCG_V0_BASE_RACE_IDS.has(r.id))
+            .map((r) => ({ value: r.id, label: r.name, hasSubraces: r.hasSubraces }));
+    }, [ruleEngine]);
+
+    const selectedBaseRaceHasSubraces = useMemo(() => {
+        if (!baseRaceId) return false;
+        const opt = baseRaceOptions.find((r) => r.value === baseRaceId);
+        return !!opt?.hasSubraces;
+    }, [baseRaceId, baseRaceOptions]);
+
+    const subraceOptions = useMemo(() => {
+        if (!baseRaceId) return [];
+        return ruleEngine.getSubraces(baseRaceId).map((sr) => ({
+            value: sr.id,
+            label: sr.name,
+        }));
+    }, [ruleEngine, baseRaceId]);
 
     const backgroundOptions = useMemo(() => {
         return ruleEngine
@@ -142,8 +149,15 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
 
     // ===== VALIDATION =====
     const canGenerate = useMemo(() => {
-        return concept.trim().length >= CONCEPT_MIN_LENGTH && classId.trim() !== '' && !isGenerating;
-    }, [concept, classId, isGenerating]);
+        if (concept.trim().length < CONCEPT_MIN_LENGTH) return false;
+        if (classId.trim() === '') return false;
+        if (isGenerating) return false;
+
+        // If user explicitly selected a base race that has subraces, require subrace selection.
+        if (baseRaceId && selectedBaseRaceHasSubraces && !subraceId) return false;
+
+        return true;
+    }, [concept, classId, isGenerating, baseRaceId, selectedBaseRaceHasSubraces, subraceId]);
 
     // ===== PROGRESS SIMULATION =====
     useEffect(() => {
@@ -191,12 +205,23 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
         setProgress({ percent: 10, message: 'Starting generation...' });
 
         try {
-            const resolvedRaceId = raceId || pickRandomValue(raceOptions);
+            const resolvedBaseRaceId = baseRaceId || pickRandomValue(baseRaceOptions);
+            const resolvedBaseHasSubraces = !!baseRaceOptions.find((r) => r.value === resolvedBaseRaceId)?.hasSubraces;
+
+            const resolvedSubraceId = (() => {
+                if (!resolvedBaseHasSubraces) return null;
+                if (subraceId) return subraceId;
+                // Only auto-pick when the user left race blank (random flow).
+                if (baseRaceId) return null;
+                const possible = ruleEngine.getSubraces(resolvedBaseRaceId).map((sr) => ({ value: sr.id, label: sr.name }));
+                return possible.length ? pickRandomValue(possible) : null;
+            })();
             const resolvedBackgroundId = backgroundId || pickRandomValue(backgroundOptions);
 
             console.log('🎲 [PCG Generate] Request:', {
                 classId,
-                raceId: resolvedRaceId,
+                raceId: resolvedBaseRaceId,
+                subraceId: resolvedSubraceId || undefined,
                 level,
                 backgroundId: resolvedBackgroundId,
                 conceptLen: concept.trim().length
@@ -208,7 +233,8 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
                 credentials: 'include',
                 body: JSON.stringify({
                     classId,
-                    raceId: resolvedRaceId,
+                    raceId: resolvedBaseRaceId,
+                    ...(resolvedSubraceId ? { subraceId: resolvedSubraceId } : {}),
                     level,
                     backgroundId: resolvedBackgroundId,
                     concept
@@ -241,7 +267,8 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
                     timestamp: new Date().toISOString(),
                     request: {
                         classId,
-                        raceId: resolvedRaceId,
+                        raceId: resolvedBaseRaceId,
+                        subraceId: resolvedSubraceId || undefined,
                         level,
                         backgroundId: resolvedBackgroundId,
                         concept
@@ -255,7 +282,8 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
                 );
                 console.log('Request:', {
                     classId,
-                    raceId: resolvedRaceId,
+                    raceId: resolvedBaseRaceId,
+                    subraceId: resolvedSubraceId || undefined,
                     level,
                     backgroundId: resolvedBackgroundId,
                     concept
@@ -296,14 +324,17 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
         }
     }, [
         canGenerate,
-        raceId,
+        baseRaceId,
+        subraceId,
         backgroundId,
-        raceOptions,
+        baseRaceOptions,
+        subraceOptions,
         backgroundOptions,
         classId,
         level,
         concept,
         pickRandomValue,
+        ruleEngine,
         setCharacter,
         clearCurrentProject,
         onGenerationComplete
@@ -379,26 +410,71 @@ const AIGenerationTab: React.FC<AIGenerationTabProps> = ({ onGenerationComplete 
                         <Select
                             label="Race"
                             placeholder="Random"
-                            data={raceOptions}
-                            value={raceId}
-                            onChange={(val) => setRaceId(val || null)}
+                            data={baseRaceOptions}
+                            value={baseRaceId}
+                            onChange={(val) => {
+                                const next = val || null;
+                                setBaseRaceId(next);
+                                setSubraceId(null);
+                            }}
                             searchable
                             clearable
                             disabled={isGenerating}
                             comboboxProps={{ withinPortal: true, zIndex: 500 }}
                         />
-                        <Select
-                            label="Background"
-                            placeholder="Random"
-                            data={backgroundOptions}
-                            value={backgroundId}
-                            onChange={(val) => setBackgroundId(val || null)}
-                            searchable
-                            clearable
-                            disabled={isGenerating}
-                            comboboxProps={{ withinPortal: true, zIndex: 500 }}
-                        />
+                        {baseRaceId && selectedBaseRaceHasSubraces ? (
+                            <Select
+                                label={
+                                    <>
+                                        Subrace{' '}
+                                        <Text component="span" c={REQUIRED_COLOR} size="sm">
+                                            *
+                                        </Text>
+                                    </>
+                                }
+                                placeholder="Select a subrace"
+                                data={subraceOptions}
+                                value={subraceId}
+                                onChange={(val) => setSubraceId(val || null)}
+                                searchable
+                                disabled={isGenerating}
+                                comboboxProps={{ withinPortal: true, zIndex: 500 }}
+                            />
+                        ) : (
+                            <Select
+                                label="Background"
+                                placeholder="Random"
+                                data={backgroundOptions}
+                                value={backgroundId}
+                                onChange={(val) => setBackgroundId(val || null)}
+                                searchable
+                                clearable
+                                disabled={isGenerating}
+                                comboboxProps={{ withinPortal: true, zIndex: 500 }}
+                            />
+                        )}
                     </Group>
+
+                    {baseRaceId && selectedBaseRaceHasSubraces && (
+                        <Box>
+                            <Select
+                                label="Background"
+                                placeholder="Random"
+                                data={backgroundOptions}
+                                value={backgroundId}
+                                onChange={(val) => setBackgroundId(val || null)}
+                                searchable
+                                clearable
+                                disabled={isGenerating}
+                                comboboxProps={{ withinPortal: true, zIndex: 500 }}
+                            />
+                            {!subraceId && (
+                                <Text size="xs" c="red" mt="xs">
+                                    Please select a subrace to continue
+                                </Text>
+                            )}
+                        </Box>
+                    )}
 
                     {error && (
                         <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
