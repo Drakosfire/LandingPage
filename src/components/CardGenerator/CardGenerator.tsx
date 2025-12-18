@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import "@mantine/core/styles.css";
 import { MantineProvider } from "@mantine/core";
 import dungeonMindTheme from '../../config/mantineTheme';
 import '../../styles/mantineOverrides.css';
 
 import { ItemDetails, GeneratedImage, createTemplate, CardGeneratorState, RenderedCard, Project, ProjectSummary } from '../../types/card.types';
+import { UnifiedHeader } from '../UnifiedHeader';
+import { createCardToolboxSections } from './cardToolboxConfig';
 import {
     saveCardSession,
     loadCardSession,
@@ -23,7 +25,7 @@ import '../../styles/CardGeneratorPolish.css';
 
 // Import step navigation and individual step components
 import { Step, StepStatus } from './StepNavigation';
-// import FloatingHeader from './FloatingHeader'; // Removed - navigation now integrated into steps
+// FloatingHeader removed - using UnifiedHeader
 import Step1TextGeneration from './steps/Step1TextGeneration';
 import Step2CoreImage from './steps/Step2CoreImage';
 import Step3BorderGeneration from './steps/Step3BorderGeneration';
@@ -222,7 +224,7 @@ export default function CardGenerator() {
 
     // Authentication state is handled by AuthContext
 
-    // Project management state (for FloatingHeader)
+    // Project management state
     const [projects, setProjects] = useState<ProjectSummary[]>([]);
     const [isLoadingProjects, setIsLoadingProjects] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
@@ -818,7 +820,7 @@ export default function CardGenerator() {
         }));
     }, [currentStepId, itemDetails, selectedFinalImage, selectedBorder, selectedSeedImage]);
 
-    // Get reliable item name (same logic used in FloatingHeader)
+    // Get reliable item name
     const getReliableItemName = useCallback(() => {
         const itemName = itemDetails.name?.trim();
         if (itemName && itemName !== 'Untitled Project') {
@@ -922,7 +924,7 @@ export default function CardGenerator() {
             // Refresh the projects list to show the updated/new project
             await loadAvailableProjects();
 
-            // Also refresh the projects dropdown in FloatingHeader
+            // Also refresh the projects dropdown
             await loadProjects();
 
         } catch (error) {
@@ -1019,7 +1021,7 @@ export default function CardGenerator() {
         }
     };
 
-    // Load projects list for FloatingHeader dropdown
+    // Load projects list for dropdown
     const loadProjects = useCallback(async () => {
         if (!userId) return;
 
@@ -1173,27 +1175,44 @@ export default function CardGenerator() {
     // Create template for border generation step
     const template = createTemplate(selectedBorder, selectedSeedImage);
 
+    // Create toolbox sections for UnifiedHeader
+    const currentIndex = steps.findIndex(step => step.id === currentStepId);
+    const toolboxSections = useMemo(() => createCardToolboxSections({
+        isLoggedIn,
+        saveStatus,
+        onSave: handleSaveProject,
+        canSave: canSaveProject(),
+        onProjectsClick: () => setForceExpandDrawer(true),
+        currentStepIndex: currentIndex,
+        totalSteps: steps.length,
+        canGoNext: canGoNext(),
+        canGoPrevious: canGoPrevious(),
+        onNext: handleNext,
+        onPrevious: handlePrevious
+    }), [isLoggedIn, saveStatus, currentIndex, steps.length]);
+
+    // Card Generator icon URL
+    const CARD_GENERATOR_ICON_URL = 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/ddef578a-7b1e-499e-a1b0-1374f57a5200/public';
+
     return (
         <MantineProvider theme={dungeonMindTheme}>
+            <UnifiedHeader
+                app={{ id: 'card-generator', name: 'Card Generator', icon: CARD_GENERATOR_ICON_URL }}
+                toolboxSections={toolboxSections}
+                saveStatus={saveStatus}
+                showAuth={true}
+            />
             <div className="card-generator-page" style={{
                 background: 'var(--parchment-base)',
                 minHeight: '100vh',
-                position: 'relative' // Ensure it doesn't interfere with fixed nav
+                position: 'relative'
             }}>
-                {/* 
-              SIMPLIFIED NAVIGATION ARCHITECTURE:
-              - Primary Navigation: Left sidebar (NavBar.tsx) - site-wide navigation (80px width, fixed)
-              - Step Navigation: Integrated into each step component
-              - Content: Respects main layout margins (margin-left: 80px on desktop)
-            */}
-
-                {/* Main Content Area - Account for nav bar and footer only */}
+                {/* Main Content Area - Full width with UnifiedHeader */}
                 <main
                     className="main-content"
                     style={{
                         position: 'relative',
                         zIndex: 100,
-                        marginLeft: '80px', // Account for nav bar width on desktop
                         marginRight: '60px', // Account for collapsed drawer width
                         marginBottom: '60px', // Account for footer height
                         transition: 'margin-right 0.3s ease',

@@ -1,24 +1,53 @@
-// src/components/AboutMe.tsx
+// src/components/AboutDungeonMind.tsx
+// Updated with Mantine components for DungeonMind theme
 import React from 'react';
-import './AboutDungeonMind.css';
+import { Paper, Title, Text, List, Container } from '@mantine/core';
+import { IconCheck } from '@tabler/icons-react';
 
 const AboutDungeonMind: React.FC = () => {
     return (
-        <section id="about" className="about-dungeon-mind">
-            <h2>About DungeonMind</h2>
-            <p>DungeonMind is a collection of tools for tabletop roleplaying game world building powered by multimodal generative AI.
-                This project was inspired by my initial generative AI skepticism and my desire to understand more about how the technology works.
-                I started at generating images locally on my PC, which lead into fine tuning Stable Diffusion models on my hardware and experimenting with what I could generate with custom training sets.
-                This led to beginning to build on HuggingFace with Gradio and Docker Containers. I learned a lot about how to deploy applications and was hooked.
-                I've now built my own custom UI framework with Javascript and a Python backend running on FastAPI.
-                Currently i'm in the process of learning Typescript and React and porting the rest of the tools to the site.
-                This site is under construction. Additional tools that are built and ready to be ported to the site are:</p>
-            <ul>
-                <li>Statblock Generator</li>
-                <li>Item Card Generator</li>
-                <li>Rules Lawyer</li>
-            </ul>
-        </section>
+        <Container size="lg" py="xl">
+            <Paper
+                shadow="sm"
+                radius="md"
+                p="xl"
+                style={{
+                    backgroundColor: 'var(--mantine-color-parchment-3)',
+                    border: '2px solid var(--mantine-color-blue-4)'
+                }}
+            >
+                <Title order={2} mb="md" style={{ fontFamily: 'Balgruf, serif' }}>
+                    About DungeonMind
+                </Title>
+                <Text mb="md" style={{ lineHeight: 1.7 }}>
+                    DungeonMind is a collection of tools for tabletop roleplaying game world building powered by multimodal generative AI.
+                    This project was inspired by my initial generative AI skepticism and my desire to understand more about how the technology works.
+                </Text>
+                <Text mb="md" style={{ lineHeight: 1.7 }}>
+                    I started with generating images locally on my PC, which led to fine tuning Stable Diffusion models and experimenting with custom training sets.
+                    This led to building on HuggingFace with Gradio and Docker Containers, learning about deployment, and eventually building a custom UI framework
+                    with JavaScript and a Python backend running on FastAPI.
+                </Text>
+                <Text mb="lg" style={{ lineHeight: 1.7 }}>
+                    Now I'm using TypeScript and React to build a polished, unified experience for all DungeonMind tools.
+                </Text>
+
+                <Title order={4} mb="sm" style={{ fontFamily: 'Balgruf, serif' }}>
+                    Available Tools
+                </Title>
+                <List
+                    spacing="xs"
+                    size="md"
+                    icon={<IconCheck size={16} style={{ color: 'var(--mantine-color-blue-4)' }} />}
+                >
+                    <List.Item>Statblock Generator - Create custom D&D monster statblocks with AI</List.Item>
+                    <List.Item>Character Sheet Generator - Build complete player character sheets</List.Item>
+                    <List.Item>Item Card Generator - Design magic items with stunning visuals</List.Item>
+                    <List.Item>Rules Lawyer - AI-powered D&D rules assistant</List.Item>
+                    <List.Item>Store Generator - Generate fantasy shops with inventory</List.Item>
+                </List>
+            </Paper>
+        </Container>
     );
 };
 

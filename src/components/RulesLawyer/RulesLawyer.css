@@ -1,32 +1,86 @@
+/* RulesLawyer.css - Updated with Mantine theme tokens */
+
 .rules-lawyer-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Center children horizontally */
-    height: 100vh;
+    min-height: calc(100vh - 60px); /* Account for header */
     padding: 20px;
     flex-grow: 1;
     overflow-y: auto;
-    background-color: var(--HB_Color_Background, #EEE5CE);
+    background-color: var(--mantine-color-parchment-3);
 }
 
-:root {
-    --HB_Color_Background: #EEE5CE;
-    --HB_Color_Accent: #E0E5C1;
-    --HB_Color_HeaderUnderline: #C0AD6A;
-    --HB_Color_HorizontalRule: #9C2B1B;
-    --HB_Color_HeaderText: #58180D;
-    --HB_Color_MonsterStatBackground: #F2E5B5;
-    --HB_Color_CaptionText: #766649;
-    --HB_Color_WatercolorStain: #BBAD82;
-    --HB_Color_Footnotes: #C9AD6A;
+/* Chat interface styling with parchment feel */
+.chat-container {
+    width: 100%;
+    max-width: 800px;
+    background-color: var(--mantine-color-parchment-2);
+    border: 2px solid var(--mantine-color-blue-4);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 16px;
 }
 
+.chat-messages {
+    background-color: var(--mantine-color-parchment-1);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.chat-input-container {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.chat-input {
+    flex: 1;
+    border: 1px solid var(--mantine-color-blue-3);
+    border-radius: 4px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    background-color: white;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--mantine-color-blue-4);
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Message styling */
+.message {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    line-height: 1.6;
+}
+
+.message.user {
+    background-color: var(--mantine-color-blue-1);
+    border-left: 3px solid var(--mantine-color-blue-4);
+}
+
+.message.assistant {
+    background-color: var(--mantine-color-parchment-2);
+    border-left: 3px solid var(--mantine-color-green-4);
+}
+
+/* Controls styling - moved to UnifiedHeader toolbox */
 .controls {
     margin-bottom: 20px;
 }
 
-h1 {
-    text-align: center;
-    margin-bottom: 30px;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .rules-lawyer-container {
+        padding: 12px;
+    }
+    
+    .chat-container {
+        padding: 12px;
+    }
 }

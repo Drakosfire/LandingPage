@@ -14,6 +14,7 @@ interface ChatContextType {
     sendMessage: (message: string) => Promise<void>;
     setCurrentEmbedding: (embedding: string) => void;
     loadEmbedding: (embeddingId: string) => Promise<void>;
+    clearMessages: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -94,6 +95,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setIsLoadingEmbeddings(false);
         }
+    };
+
+    const clearMessages = () => {
+        console.log('🗑️ [RulesLawyer] Clearing chat history');
+        setChatHistory([]);
     };
 
     const sendMessage = async (message: string) => {
@@ -235,6 +241,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             sendMessage,
             setCurrentEmbedding,
             loadEmbedding,
+            clearMessages,
         }}>
             {children}
         </ChatContext.Provider>

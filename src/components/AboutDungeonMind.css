@@ -1,33 +1,4 @@
-.about-dungeon-mind#about {
-    text-align: left;
-    padding: 40px 20px;
-    max-width: 800px;
-    margin: 0 auto;
-    background-color: #9c8f9e;
-    color: #ffffff;
-}
+/* AboutDungeonMind.css - Minimal styles, most styling handled by Mantine components */
+/* Legacy hardcoded colors removed - using Mantine theme tokens */
 
-.about-dungeon-mind#about h2 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 2.5em;
-}
-
-.about-dungeon-mind#about p {
-    text-align: left !important;
-    margin: 0 0 2rem 0;
-    max-width: none;
-    line-height: 1.6;
-}
-
-.about-dungeon-mind#about ul {
-    text-align: left;
-    list-style-type: none;
-    padding: 0;
-    margin-bottom: 20px;
-}
-
-.about-dungeon-mind#about li {
-    text-align: left;
-    margin-bottom: 10px;
-}
+/* This file can be deleted once AboutDungeonMind.tsx no longer imports it */

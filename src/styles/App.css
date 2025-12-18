@@ -1,9 +1,9 @@
 :root {
-  --primary-color: #4a4e69;
-  --secondary-color: #9a8c98;
-  --accent-color: #c9ada7;
-  --background-color: #f2e9e4;
-  --text-color: #22223b;
+  /* Legacy variables mapped to Mantine tokens for gradual migration */
+  --primary-color: var(--mantine-color-blue-4);
+  --background-color: var(--mantine-color-parchment-3);
+  --text-color: #333333;
+  /* --secondary-color and --accent-color removed - use Mantine directly */
 }
 
 /* Reset base defaults */
@@ -12,7 +12,7 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Montserrat', sans-serif;
+  /* Font handled by Mantine theme - no Montserrat */
   line-height: 1.6;
   color: var(--text-color);
   background-color: var(--background-color);
@@ -39,23 +39,8 @@ body *:not(.dm-canvas-responsive *):not(.dm-canvas-measurement-layer *):not(.cha
   width: 100%;
 }
 
-/* Generator pages have their own layout - don't apply margin-left */
-.main-content .generator-layout {
-  margin-left: 0;
-  margin-right: 0;
-}
-
-@media (min-width: 768px) {
-  .main-content {
-    margin-left: 80px;
-    width: calc(100% - 80px);
-  }
-  
-  /* Generator pages override - no left margin needed */
-  .main-content .generator-layout {
-    margin-left: 0;
-  }
-}
+/* Full-width layout - no NavBar margin needed anymore */
+/* Legacy 80px margin-left removed - using UnifiedHeader on all routes */
 
 /* Namespace-specific styles */
 .app-container {

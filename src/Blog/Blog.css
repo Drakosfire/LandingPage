@@ -1,19 +1,5 @@
-:root {
-    --primary-color: #4a4e69;
-    --secondary-color: #9a8c98;
-    --accent-color: #c9ada7;
-    --background-color: #f2e9e4;
-    --text-color: #22223b;
-    --highlight-color: #f0a500;
-    /* A bright color for highlights */
-}
-
-body {
-    font-family: 'Montserrat', sans-serif;
-    line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-color);
-}
+/* Blog styles - using Mantine theme tokens */
+/* Legacy :root removed - colors now come from mantineTheme.ts */
 
 .blog-container {
     width: 90%;
@@ -29,29 +15,39 @@ body {
 
 .blog-header h1 {
     font-size: 3rem;
-    color: var(--primary-color);
+    color: var(--mantine-color-blue-4);
+    font-family: 'Balgruf', serif;
 }
 
 .blog-post {
-    background-color: var(--secondary-color);
+    background-color: var(--mantine-color-parchment-3);
     padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: 2px solid var(--mantine-color-blue-4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.blog-post:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .blog-post h2 {
-    font-size: 2rem;
-    color: var(--background-color);
+    font-size: 1.5rem;
+    color: #333333;
+    font-family: 'Balgruf', serif;
 }
 
 .blog-post p {
-    color: var(--background-color);
+    color: #333333;
     margin-bottom: 1rem;
+    line-height: 1.6;
 }
 
 .blog-post a {
-    color: var(--highlight-color);
+    color: var(--mantine-color-blue-4);
     text-decoration: none;
     font-weight: bold;
 }
@@ -63,9 +59,32 @@ body {
 .blog-footer {
     text-align: center;
     padding: 1rem 0;
-    background-color: var(--primary-color);
-    color: var(--background-color);
-    border-radius: 0 0 10px 10px;
+    background-color: var(--mantine-color-blue-4);
+    color: white;
+    border-radius: 0 0 8px 8px;
+}
+
+/* Card hover effect for BlogList */
+.blog-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Article content readability */
+.blog-article-content {
+    max-width: 800px;
+    line-height: 1.75;
+}
+
+.blog-article-content p {
+    margin-bottom: 1.25rem;
+}
+
+.blog-article-content h2,
+.blog-article-content h3 {
+    font-family: 'Balgruf', serif;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
 }
 
 @media (max-width: 768px) {

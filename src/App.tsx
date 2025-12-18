@@ -1,4 +1,5 @@
 // src/App.tsx
+// Phase 1 Visual Refresh: Removed NavBar, using UnifiedHeader on all routes
 import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import '@mantine/core/styles.css';
@@ -7,7 +8,6 @@ import { DUNGEONMIND_API_URL } from './config';
 import dungeonMindTheme from './config/mantineTheme';
 import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
-import NavBar from './components/NavBar';
 import AppLinks from './components/AppLinks';
 import AboutMe from './components/AboutMe';
 import AboutDungeonMind from './components/AboutDungeonMind';
@@ -21,6 +21,10 @@ import StatBlockGenerator from './components/StatBlockGenerator/StatBlockGenerat
 import { StatBlockGeneratorProvider } from './components/StatBlockGenerator/StatBlockGeneratorProvider';
 import PlayerCharacterGenerator from './components/PlayerCharacterGenerator/PlayerCharacterGenerator';
 import UnifiedHeaderTest from './pages/UnifiedHeaderTest';
+import { UnifiedHeader } from './components/UnifiedHeader';
+
+// DungeonMind Logo URL for home page header
+const DM_LOGO_URL = `${process.env.PUBLIC_URL}/images/DungeonMindLogo2.png`;
 
 // Component to conditionally render Footer
 const ConditionalFooter: React.FC = () => {
@@ -40,33 +44,10 @@ const ConditionalFooter: React.FC = () => {
   return <Footer />;
 };
 
-// Component to conditionally render NavBar
-const ConditionalNavBar: React.FC = () => {
-  const location = useLocation();
-  const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
-  const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
-  const isCharacterGeneratorRoute = location.pathname === '/playercharactergenerator';
-
-  // Don't render NavBar on UnifiedHeader routes
-  if (isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute || isCharacterGeneratorRoute) {
-    return null;
-  }
-
-  return <NavBar />;
-};
-
-// Wrapper component to handle main-content class
+// Simplified wrapper - no more conditional margin for NavBar
 const MainContent: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const location = useLocation();
-  const isTestUnifiedHeaderRoute = location.pathname === '/test-unified-header';
-  const isStatBlockGeneratorRoute = location.pathname === '/statblockgenerator';
-  const isCharacterGeneratorRoute = location.pathname === '/playercharactergenerator';
-
-  // Remove margin-left and reset width when NavBar is hidden (UnifiedHeader routes)
-  const noMargin = isTestUnifiedHeaderRoute || isStatBlockGeneratorRoute || isCharacterGeneratorRoute;
-
   return (
-    <div className="main-content" style={noMargin ? { marginLeft: 0, width: '100%' } : undefined}>
+    <div className="main-content">
       {children}
     </div>
   );
@@ -94,11 +75,14 @@ const App: React.FC = () => {
           <Router>
             <StatBlockGeneratorProvider>
               <div className="App">
-                <ConditionalNavBar />
                 <MainContent>
                   <Routes>
                     <Route path="/" element={
-                      <div>
+                      <>
+                        <UnifiedHeader
+                          app={{ id: 'home', name: 'DungeonMind', icon: DM_LOGO_URL }}
+                          showAuth={true}
+                        />
                         <section id="app-links">
                           <AppLinks />
                         </section>
@@ -108,7 +92,7 @@ const App: React.FC = () => {
                         <section id="about-dungeonmind">
                           <AboutDungeonMind />
                         </section>
-                      </div>
+                      </>
                     } />
                     <Route path="/blog" element={<BlogList />} />
                     <Route path="/blog/:id" element={<BlogPost />} />
