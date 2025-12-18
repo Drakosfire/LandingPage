@@ -1,24 +1,27 @@
 # Handoff: PCG Production Deployment (Phase 8)
 **Date:** 2025-12-14  
 **Type:** Deployment  
-**Last Updated:** 2025-12-14  
-**Status:** ⬜ Not Started  
+**Last Updated:** 2025-12-15  
+**Status:** ✅ Deployed - Polish Needed  
 
 ---
 
 ## 🚨 CURRENT STATE
 
 ### What's Working ✅
-- All V1 features complete (wizard, edit mode, save/load, AI generation, portrait, PDF export)
-- Local development environment fully functional
-- Backend API endpoints tested and working
-- Frontend builds successfully with production config
+- ✅ **Production deployment complete** - `/playercharactergenerator` route live at https://www.dungeonmind.net/playercharactergenerator
+- ✅ **nginx routing configured** - Added location block for `/playercharactergenerator` route
+- ✅ **Frontend build deployed** - Production build with correct API URL deployed
+- ✅ **Route verification** - Route serves new build correctly
+- ✅ **Route mismatch fixed** - Changed all frontend routes from `/charactergenerator` to `/playercharactergenerator`
+- ✅ **Subrace validation error improved** - Better error message when subrace required
+- ✅ **All V1 features deployed** (wizard, edit mode, save/load, AI generation, portrait, PDF export)
 
-### What's NOT Working ❌
-- **Production deployment not attempted** - This handoff is pre-deployment
-- **nginx routing for `/playercharactergenerator`** - Needs to be added
-- **Production environment variables** - Need verification
-- **Timeout configuration** - Must match StatblockGenerator pattern (120s for AI)
+### What Needs Polish ❌
+- **Subrace handling incomplete** - Backend catalog missing subraces, prompt builder doesn't mention subraces
+  - See: `HANDOFF-Subrace-Handling-Fixes.md` for full details
+- **Auth redirect issue fixed** - Was redirecting to wrong route, now corrected
+- **Additional polish items** - See backlog for UI/UX improvements
 
 ### Critical Lessons from StatblockGenerator Deployment
 pcg-phase52-ui
@@ -762,7 +765,8 @@ rsync -avz build/ alan@191.101.14.169:/var/www/DungeonMind/LandingPage/build/
 ---
 
 **Created:** December 14, 2025  
-**Status:** Ready for deployment  
-**Estimated Deployment Time:** 45-60 minutes  
+**Deployed:** December 15, 2025  
+**Status:** ✅ Deployed - Polish in progress  
+**Next:** Complete smoke tests, fix subrace handling (see HANDOFF-Subrace-Handling-Fixes.md)  
 **Next Steps:** Complete pre-deployment checklist, then follow Step 1-4
 

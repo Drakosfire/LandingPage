@@ -1,30 +1,37 @@
 # Handoff: Subrace Handling System-Wide Fixes
 **Date:** 2025-12-15  
 **Type:** Bug Fix / Technical Debt  
-**Last Updated:** 2025-12-15  
+**Last Updated:** 2025-12-17  
+**Status:** 🔄 In Progress (1 of 4 fixes complete)  
 
 ---
 
 ## 🚨 CURRENT STATE
 
 ### What's Working ✅
-- **Frontend validation error message improved** - Now checks for subrace requirements before invalid race error
+- ✅ **Frontend validation error message improved** - Now checks for subrace requirements before invalid race error
   - `LandingPage/src/components/PlayerCharacterGenerator/engine/dnd5e/DnD5eRuleEngine.ts:243-262`
   - Provides clearer error: "Dwarf requires a subrace selection (e.g., Mountain Dwarf, Hill Dwarf)"
-- **Frontend data structure supports subraces** - `subraceId?: string` in GenerationInput
-- **Frontend race data has subraces** - Complete subrace definitions with baseRace field
-- **UI allows subrace selection** - RaceSelectionStep and RaceCard components handle subrace UI
+- ✅ **Frontend data structure supports subraces** - `subraceId?: string` in GenerationInput
+- ✅ **Frontend race data has subraces** - Complete subrace definitions with baseRace field
+- ✅ **UI allows subrace selection** - RaceSelectionStep and RaceCard components handle subrace UI
 
-### What's NOT Working ❌
-- **Backend catalog missing subraces** - Only has base races (dwarf, elf, halfling), not subraces
+### Completed Fix (1/4)
+- ✅ **Frontend validation prioritizes subrace check** - No longer shows generic "invalid race" for subrace-requiring races
+
+### Remaining Fixes ❌
+- ⬜ **Fix 2/4: Backend catalog missing subraces** - Only has base races (dwarf, elf, halfling), not subraces
   - `DungeonMindServer/playercharactergenerator/rule_engine/catalogs/dnd5e_v0/catalog.py:15-21`
   - Causes backend to accept "dwarf" when frontend requires "hill-dwarf" or "mountain-dwarf"
-- **Prompt builder doesn't mention subraces** - AI generation prompt doesn't include subrace info
+  - **Action:** Add subrace entries mirroring frontend `races.ts` data
+- ⬜ **Fix 3/4: Prompt builder doesn't mention subraces** - AI generation prompt doesn't include subrace info
   - `LandingPage/src/components/PlayerCharacterGenerator/generation/promptBuilder.ts:69-101`
   - Shows only `**Race:** ${constraints.race.name}` - no subrace guidance
-- **Backend constraint building doesn't handle subraceId** - get_constraints() only uses race_id
+  - **Action:** Include subrace in prompt when base race has subraces
+- ⬜ **Fix 4/4: Backend constraint building doesn't handle subraceId** - get_constraints() only uses race_id
   - `DungeonMindServer/playercharactergenerator/rule_engine/pcg_rule_engine.py:43-62`
   - No logic to look up subrace from subrace_id
+  - **Action:** Add subrace lookup in constraint building
 
 ### Suspected Causes
 1. **Data model mismatch**: Frontend expects subraces (hill-dwarf, mountain-dwarf), backend only has base races (dwarf)
