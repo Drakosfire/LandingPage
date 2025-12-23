@@ -6,8 +6,7 @@ import { Link } from 'react-router-dom';
 
 // environment variable to store the route
 const storeGeneratorRoute = `${DUNGEONMIND_API_URL}/storegenerator`;
-const rulesLawyerRoute = `${DUNGEONMIND_API_URL}/ruleslawyer`;
-const cardGeneratorRoute = `${DUNGEONMIND_API_URL}/cardgenerator`;
+// RulesLawyer and CardGenerator are frontend routes, not external links
 const AppLinks: React.FC = () => {
     return (
         <div className="app-links">
@@ -18,21 +17,20 @@ const AppLinks: React.FC = () => {
                     className="app-logo"
                 />
             </a>
-            <a href={rulesLawyerRoute} className="app-card" target="_blank" rel="noopener noreferrer">
+            <Link to="/ruleslawyer" className="app-card">
                 <img
                     src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/0ed83976-6007-4b56-7943-1c08d3117e00/public"
                     alt="Rules Lawyer"
                     className="app-logo"
                 />
-            </a>
-            <a href={cardGeneratorRoute} className="app-card" target="_blank" rel="noopener noreferrer">
+            </Link>
+            <Link to="/cardgenerator" className="app-card">
                 <img
-
                     src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/ddef578a-7b1e-499e-a1b0-1374f57a5200/public"
                     alt="Item Generator"
                     className="app-logo"
                 />
-            </a>
+            </Link>
             <Link to="/statblockgenerator" className="app-card">
                 <img
                     src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/03b709db-7da7-42cf-a0a0-f82b40deb300/public"
