@@ -168,6 +168,16 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 if (done) {
                     console.log(`✅ [RulesLawyer] Stream completed: chunks=${chunkCount}, tokens=${tokenCount}, total_length=${assistantMessage.length}`);
+                    // Debug: Log final complete message
+                    console.log(`📋 [RulesLawyer] FINAL COMPLETE MESSAGE:`, {
+                        length: assistantMessage.length,
+                        content: assistantMessage,
+                        has_newlines: assistantMessage.includes('\n'),
+                        newline_count: (assistantMessage.match(/\n/g) || []).length,
+                        markdown_headers: (assistantMessage.match(/^##/gm) || []).length,
+                        markdown_lists: (assistantMessage.match(/^-\s/gm) || []).length,
+                        raw_content: JSON.stringify(assistantMessage)
+                    });
                     break;
                 }
 
@@ -176,47 +186,95 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.log(`📦 [RulesLawyer] Received chunk #${chunkCount}: length=${rawChunk.length}, preview="${rawChunk.substring(0, 100)}..."`);
 
                 buffer += rawChunk;
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
-                console.log(`📝 [RulesLawyer] Processed ${lines.length} lines from chunk, buffer remaining: ${buffer.length} chars`);
+                // Parse SSE format: messages are separated by \n\n
+                // Each message can have multiple lines starting with "data: "
+                // We need to split on \n\n to get complete messages, then parse the data field
+                const messages = buffer.split('\n\n');
+                buffer = messages.pop() || ''; // Keep incomplete message in buffer
 
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const data = line.slice(6);
-                        tokenCount++;
-                        console.log(`📥 [RulesLawyer] Parsed token #${tokenCount}: length=${data.length}, preview="${data.substring(0, 50)}${data.length > 50 ? '...' : ''}"`);
+                console.log(`📝 [RulesLawyer] Processed ${messages.length} complete SSE messages, buffer remaining: ${buffer.length} chars`);
 
-                        if (data === '[DONE]') {
-                            console.log(`✅ [RulesLawyer] Received [DONE] signal: total_length=${assistantMessage.length}`);
-                            const totalDuration = performance.now() - requestStartTime;
-                            console.log(`✅ [RulesLawyer] Total request completed in ${totalDuration.toFixed(2)}ms`);
-                            break;
+                for (const message of messages) {
+                    if (!message.trim()) continue; // Skip empty messages
+
+                    // Parse SSE message - can have multiple "data: " lines (continuation)
+                    const messageLines = message.split('\n');
+                    let dataContent = '';
+
+                    for (const line of messageLines) {
+                        if (line.startsWith('data: ')) {
+                            // First data line or continuation
+                            if (dataContent) {
+                                // Continuation line - add newline before content
+                                dataContent += '\n' + line.slice(6);
+                            } else {
+                                // First data line
+                                dataContent = line.slice(6);
+                            }
+                        } else if (line.startsWith('data:')) {
+                            // Continuation without space (SSE spec allows this)
+                            dataContent += '\n' + line.slice(5);
                         }
-
-                        if (data.startsWith('[ERROR]')) {
-                            const errorMsg = data.slice(7);
-                            console.error(`❌ [RulesLawyer] Received error: ${errorMsg}`);
-                            throw new Error(errorMsg);
-                        }
-
-                        // Append token to message
-                        assistantMessage += data;
-                        console.log(`✏️ [RulesLawyer] Updated message: total_length=${assistantMessage.length}`);
-
-                        // Update the last message in chat history
-                        setChatHistory(prev => {
-                            const updated = [...prev];
-                            updated[updated.length - 1] = {
-                                role: 'assistant',
-                                content: assistantMessage
-                            };
-                            console.log(`🔄 [RulesLawyer] Updated chat history: message_count=${updated.length}`);
-                            return updated;
-                        });
-                    } else if (line.trim()) {
-                        console.log(`⚠️ [RulesLawyer] Non-data line ignored: "${line.substring(0, 50)}"`);
                     }
+
+                    if (!dataContent) {
+                        console.log(`⚠️ [RulesLawyer] Empty data content in message: "${message.substring(0, 100)}"`);
+                        continue;
+                    }
+
+                    tokenCount++;
+                    console.log(`📥 [RulesLawyer] Parsed token #${tokenCount}: raw_length=${dataContent.length}, preview="${dataContent.substring(0, 50)}${dataContent.length > 50 ? '...' : ''}"`);
+
+                    if (dataContent === '[DONE]') {
+                        console.log(`✅ [RulesLawyer] Received [DONE] signal: total_length=${assistantMessage.length}`);
+                        const totalDuration = performance.now() - requestStartTime;
+                        console.log(`✅ [RulesLawyer] Total request completed in ${totalDuration.toFixed(2)}ms`);
+                        break;
+                    }
+
+                    if (dataContent.startsWith('[ERROR]')) {
+                        const errorMsg = dataContent.slice(7);
+                        console.error(`❌ [RulesLawyer] Received error: ${errorMsg}`);
+                        throw new Error(errorMsg);
+                    }
+
+                    // Parse JSON-encoded content (backend sends json.dumps(content) to preserve newlines)
+                    let parsedContent: string;
+                    try {
+                        parsedContent = JSON.parse(dataContent);
+                        console.log(`✅ [RulesLawyer] JSON decoded: length=${parsedContent.length}, has_newlines=${parsedContent.includes('\n')}, newline_count=${(parsedContent.match(/\n/g) || []).length}`);
+                    } catch {
+                        // Fallback for non-JSON data (shouldn't happen with fixed backend)
+                        console.warn(`⚠️ [RulesLawyer] Failed to parse JSON, using raw: ${dataContent.substring(0, 50)}`);
+                        parsedContent = dataContent;
+                    }
+
+                    // Append token to message (newlines now preserved via JSON encoding!)
+                    assistantMessage += parsedContent;
+                    console.log(`✏️ [RulesLawyer] Updated message: total_length=${assistantMessage.length}, newline_count=${(assistantMessage.match(/\n/g) || []).length}`);
+
+                    // Debug: Log full message content every 50 tokens or on first token
+                    if (tokenCount === 1 || tokenCount % 50 === 0) {
+                        console.log(`📋 [RulesLawyer] Full message content (token #${tokenCount}):`, {
+                            length: assistantMessage.length,
+                            content: assistantMessage,
+                            last_100_chars: assistantMessage.slice(-100),
+                            has_newlines: assistantMessage.includes('\n'),
+                            newline_count: (assistantMessage.match(/\n/g) || []).length
+                        });
+                    }
+
+                    // Update the last message in chat history
+                    setChatHistory(prev => {
+                        const updated = [...prev];
+                        updated[updated.length - 1] = {
+                            role: 'assistant',
+                            content: assistantMessage
+                        };
+                        console.log(`🔄 [RulesLawyer] Updated chat history: message_count=${updated.length}`);
+                        return updated;
+                    });
                 }
             }
 
