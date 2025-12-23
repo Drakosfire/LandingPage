@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useChatContext } from '../../context/ChatContext';
 import './ChatInterface.css';
 
@@ -13,6 +14,21 @@ const ChatInterface: React.FC = () => {
     } = useChatContext();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [renderKey, setRenderKey] = useState(0);
+    
+    // Memoize remarkPlugins to avoid recreating on every render
+    const remarkPlugins = useMemo(() => [remarkGfm], []);
+    
+    // Force re-render of markdown when streaming completes
+    useEffect(() => {
+        if (!isLoading) {
+            // Small delay to ensure content is fully updated, then force re-render
+            const timer = setTimeout(() => {
+                setRenderKey(prev => prev + 1);
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoading]);
 
     // Add example prompts
     const examplePrompts = [
@@ -64,6 +80,12 @@ const ChatInterface: React.FC = () => {
             <div className="chat-messages">
                 {chatHistory.map((msg, index) => {
                     const isAssistant = msg.role === 'assistant';
+                    const isLastMessage = index === chatHistory.length - 1;
+                    // Only force re-render on the last message when streaming completes
+                    const markdownKey = isAssistant && isLastMessage 
+                        ? `assistant-${index}-${renderKey}` 
+                        : `assistant-${index}`;
+                    
                     return (
                         <div key={index} className={`message ${msg.role}`}>
                             {isAssistant && (
@@ -72,7 +94,12 @@ const ChatInterface: React.FC = () => {
                                 </div>
                             )}
                             {isAssistant ? (
-                                <ReactMarkdown className="message-content markdown">
+                                <ReactMarkdown 
+                                    key={markdownKey}
+                                    className="message-content markdown"
+                                    remarkPlugins={remarkPlugins}
+                                    rehypePlugins={[]}
+                                >
                                     {msg.content}
                                 </ReactMarkdown>
                             ) : (
