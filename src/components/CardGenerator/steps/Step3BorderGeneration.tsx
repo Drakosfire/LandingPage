@@ -152,7 +152,7 @@ const Step3BorderGeneration: React.FC<Step3BorderGenerationProps> = ({
             formData.append('sdPrompt', localSdPrompt);
             formData.append('numImages', '4');
 
-            const response = await fetch('/api/cardgenerator/generate-card-images', {
+            const response = await fetch(`${DUNGEONMIND_API_URL}/api/cardgenerator/generate-card-images`, {
                 method: 'POST',
                 body: formData,
             });
