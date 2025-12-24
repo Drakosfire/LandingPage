@@ -8,8 +8,12 @@ export type { DrawerShellProps } from './DrawerShell';
 export { TabsContainer } from './TabsContainer';
 export type { TabsContainerProps } from './TabsContainer';
 
-// Additional components will be exported in subsequent phases
-// export { GenerationPanel } from './GenerationPanel';
-// export { ProgressPanel } from './ProgressPanel';
-// etc.
+export { GenerationPanel } from './GenerationPanel';
+export type { GenerationPanelProps } from './GenerationPanel';
+
+export { ProgressPanel } from './ProgressPanel';
+export type { ProgressPanelProps } from './ProgressPanel';
+
+export { ErrorDisplay } from './ErrorDisplay';
+export type { ErrorDisplayProps } from './ErrorDisplay';
 
