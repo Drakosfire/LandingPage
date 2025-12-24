@@ -38,16 +38,13 @@
     "eject": "npx react-scripts eject",
     "build:dev": "export NODE_ENV=development && export REACT_APP_DUNGEONMIND_API_URL=https://dev.dungeonmind.net && npx react-scripts build",
     "benchmark:images": "tsx scripts/benchmarkImageGeneration.ts",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
     "canvas-debug": "node scripts/canvasDebug.js",
     "canvas:snapshot": "ts-node --project tsconfig.scripts.json scripts/canvasPlacementSnapshot.ts"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
-      "react-app/jest",
-      "plugin:storybook/recommended"
+      "react-app/jest"
     ]
   },
   "browserslist": {
@@ -63,21 +60,10 @@
     ]
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^3.2.2",
-    "@storybook/addon-essentials": "^8.4.7",
-    "@storybook/addon-interactions": "^8.4.7",
-    "@storybook/addon-onboarding": "^8.4.7",
-    "@storybook/blocks": "^8.4.7",
-    "@storybook/preset-create-react-app": "^8.4.7",
-    "@storybook/react": "^8.4.7",
-    "@storybook/react-webpack5": "^8.4.7",
-    "@storybook/test": "^8.4.7",
     "@types/js-cookie": "^3.0.6",
     "@types/uuid": "^11.0.0",
-    "eslint-plugin-storybook": "^0.11.1",
     "postcss-preset-mantine": "^1.17.0",
     "prop-types": "^15.8.1",
-    "storybook": "^8.4.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.7.0",
     "webpack": "^5.97.1"
