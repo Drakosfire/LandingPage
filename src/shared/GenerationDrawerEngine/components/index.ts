@@ -26,3 +26,6 @@ export { LibraryBrowser } from './LibraryBrowser';
 export { AuthGate } from './AuthGate';
 export type { ImageModalProps } from './ImageModal';
 
+export { ExamplesBar } from './ExamplesBar';
+export type { ExamplesBarProps } from './ExamplesBar';
+

@@ -16,6 +16,7 @@ import { ImageModal } from './components/ImageModal';
 import { UploadZone } from './components/UploadZone';
 import { LibraryBrowser } from './components/LibraryBrowser';
 import { AuthGate } from './components/AuthGate';
+import { ExamplesBar } from './components/ExamplesBar';
 import { useGeneration } from './hooks/useGeneration';
 import { useImageLibrary } from './hooks/useImageLibrary';
 import { GenerationType, type GeneratedImage } from './types';
@@ -45,6 +46,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     onGenerationError,
     progressConfig,
     imageConfig,
+    examples,
     resetOnClose = false,
     isTutorialMode: configTutorialMode
   } = config;
@@ -177,6 +179,20 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       }
     },
     [activeTab, validationErrors]
+  );
+
+  // Handle example selection - populates the current tab's input
+  const handleExampleSelect = useCallback(
+    (exampleInput: TInput) => {
+      setInputsByTab((prev) => ({
+        ...prev,
+        [activeTab]: exampleInput
+      }));
+      // Clear validation errors when example selected
+      setValidationErrors(undefined);
+      console.log('📋 [Examples] Selected:', exampleInput);
+    },
+    [activeTab]
   );
 
   // Handle generation
@@ -329,6 +345,15 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               data-tutorial={`${tab.id}-panel`}
             >
               <Stack gap="md">
+                {/* Examples Bar (if examples provided) */}
+                {examples && examples.length > 0 && (
+                  <ExamplesBar
+                    examples={examples}
+                    onSelect={handleExampleSelect}
+                    isGenerating={generation.isGenerating}
+                  />
+                )}
+
                 {/* Input Slot */}
                 <InputSlot
                   value={input}

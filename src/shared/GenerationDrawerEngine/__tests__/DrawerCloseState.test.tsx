@@ -22,11 +22,11 @@ jest.mock('../../../context/AuthContext', () => ({
 }));
 
 // Mock fetch
-global.fetch = jest.fn(() => 
+global.fetch = jest.fn(() =>
   Promise.resolve({
     ok: true,
-    json: () => Promise.resolve({ 
-      data: { images: [], currentPage: 1, totalPages: 1 } 
+    json: () => Promise.resolve({
+      data: { images: [], currentPage: 1, totalPages: 1 }
     })
   })
 ) as jest.Mock;
@@ -93,7 +93,7 @@ describe('Drawer Close State Management', () => {
     it('calls onClose when close button is clicked', async () => {
       const onClose = jest.fn();
       const config = createTestConfig();
-      
+
       renderWithProvider(
         <GenerationDrawerEngine
           config={config}
@@ -117,7 +117,7 @@ describe('Drawer Close State Management', () => {
     it('preserves input state after close and reopen when resetOnClose is false', async () => {
       const onClose = jest.fn();
       const config = createTestConfig({ resetOnClose: false });
-      
+
       const { rerender } = renderWithProvider(
         <GenerationDrawerEngine
           config={config}
@@ -177,7 +177,7 @@ describe('Drawer Close State Management', () => {
     it('resets to initialInput when resetOnClose is true', async () => {
       const onClose = jest.fn();
       const config = createTestConfig({ resetOnClose: true });
-      
+
       const { rerender } = renderWithProvider(
         <GenerationDrawerEngine
           config={config}
@@ -243,7 +243,7 @@ describe('Drawer Close State Management', () => {
         ],
         resetOnClose: false
       });
-      
+
       const { rerender } = renderWithProvider(
         <GenerationDrawerEngine
           config={config}
@@ -311,7 +311,7 @@ describe('Drawer Close State Management', () => {
         defaultTab: 'text',
         resetOnClose: true
       });
-      
+
       const { rerender } = renderWithProvider(
         <GenerationDrawerEngine
           config={config}
@@ -369,7 +369,7 @@ describe('Drawer Close State Management', () => {
     it('clears validation errors when drawer closes', async () => {
       const onClose = jest.fn();
       const config = createTestConfig();
-      
+
       const { rerender } = renderWithProvider(
         <GenerationDrawerEngine
           config={config}
