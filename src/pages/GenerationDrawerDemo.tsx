@@ -498,7 +498,24 @@ const createDemoConfig = (
     tutorialConfig: liveMode ? undefined : {
         simulatedDurationMs: 7000,
         mockAuthState: true,
-        mockImages: [],
+        mockImages: [
+            {
+                id: 'demo-img-1',
+                url: 'https://placehold.co/512x512/7c3aed/ffffff?text=Dragon',
+                prompt: 'A fearsome red dragon',
+                createdAt: '2025-12-20T10:00:00Z',
+                sessionId: 'demo-session',
+                service: 'demo-statblock'
+            },
+            {
+                id: 'demo-img-2',
+                url: 'https://placehold.co/512x512/059669/ffffff?text=Goblin',
+                prompt: 'A sneaky goblin rogue',
+                createdAt: '2025-12-21T11:00:00Z',
+                sessionId: 'demo-session',
+                service: 'demo-statblock'
+            }
+        ],
         onTutorialComplete: () => {
             console.log('🎓 Tutorial complete');
         }

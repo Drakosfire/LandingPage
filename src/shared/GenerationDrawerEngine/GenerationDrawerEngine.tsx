@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Stack, Tabs, Text } from '@mantine/core';
+import { Stack, Tabs, Text, Divider, Paper } from '@mantine/core';
 import type { GenerationDrawerEngineProps } from './types';
 import { DrawerShell } from './components/DrawerShell';
 import { TabsContainer } from './components/TabsContainer';
@@ -244,10 +244,41 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         generationStartTimeRef.current = null;
 
         // Handle image generation results
-        if (imageConfig && activeGenerationType === GenerationType.IMAGE) {
-          // Extract images from output (services should provide images in response)
-          // For now, we rely on onImageGenerated callback from services
-          // This will be called by services after processing the API response
+        if (activeGenerationType === GenerationType.IMAGE) {
+          // In tutorial mode, simulate adding generated images
+          if (isTutorialMode) {
+            const inputObj = inputValue as Record<string, unknown>;
+            const description = typeof inputObj === 'object' && inputObj 
+              ? (inputObj.description as string || 'Generated image')
+              : 'Generated image';
+            
+            const mockImage: GeneratedImage = {
+              id: `gen-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+              url: `https://placehold.co/512x512/${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}/ffffff?text=${encodeURIComponent(description.substring(0, 15))}`,
+              prompt: description,
+              createdAt: new Date().toISOString(),
+              sessionId: imageConfig?.sessionId || 'demo-session',
+              service: config.id
+            };
+            
+            setGeneratedImages((prev) => [...prev, mockImage]);
+            imageConfig?.onImageGenerated?.([mockImage]);
+            console.log('📸 [Tutorial] Mock image generated:', mockImage);
+          } else {
+            // In live mode, extract images from API response
+            const outputObj = output as Record<string, unknown>;
+            if (outputObj && Array.isArray(outputObj.images)) {
+              const newImages = (outputObj.images as GeneratedImage[]).map((img) => ({
+                ...img,
+                createdAt: img.createdAt || new Date().toISOString(),
+                sessionId: img.sessionId || imageConfig?.sessionId || '',
+                service: img.service || config.id
+              }));
+              setGeneratedImages((prev) => [...prev, ...newImages]);
+              imageConfig?.onImageGenerated?.(newImages);
+              console.log('📸 [Live] Images generated:', newImages);
+            }
+          }
         }
 
         onGenerationComplete?.(output);
@@ -258,7 +289,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         onGenerationError?.(generation.error!);
       }
     },
-    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType]
+    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id]
   );
 
   // Handle image gallery interactions
@@ -477,14 +508,26 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                   />
                 )}
 
-                {/* Image Gallery (for image generation tabs) */}
-                {tab.generationType === GenerationType.IMAGE && generatedImages.length > 0 && (
-                  <ProjectGallery
-                    images={generatedImages}
-                    selectedImageId={selectedImageId}
-                    onImageClick={handleImageClick}
-                    onImageSelect={handleImageSelect}
-                  />
+                {/* Image Gallery (for image generation tabs - always show, with empty state) */}
+                {tab.generationType === GenerationType.IMAGE && (
+                  <>
+                    <Divider label="Project Gallery" labelPosition="center" />
+                    {generatedImages.length > 0 ? (
+                      <ProjectGallery
+                        images={generatedImages}
+                        selectedImageId={selectedImageId}
+                        onImageClick={handleImageClick}
+                        onImageSelect={handleImageSelect}
+                      />
+                    ) : (
+                      <Paper p="xl" withBorder style={{ textAlign: 'center' }}>
+                        <Stack gap="xs" align="center">
+                          <Text c="dimmed" size="sm">No images yet</Text>
+                          <Text c="dimmed" size="xs">Generate or upload images to see them here</Text>
+                        </Stack>
+                      </Paper>
+                    )}
+                  </>
                 )}
 
                 {/* Upload Tab */}
