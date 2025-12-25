@@ -23,6 +23,8 @@ export interface UseImageLibraryConfig {
     service: string;
     /** Items per page for pagination */
     itemsPerPage?: number;
+    /** Skip API calls (for tutorial mode) */
+    disabled?: boolean;
 }
 
 export interface UseImageLibraryReturn {
@@ -61,7 +63,8 @@ export function useImageLibrary(
         deleteEndpoint,
         sessionId,
         service,
-        itemsPerPage = 20
+        itemsPerPage = 20,
+        disabled = false
     } = config;
 
     const [images, setImages] = useState<SessionImage[]>([]);
@@ -75,7 +78,8 @@ export function useImageLibrary(
      * Fetch library images
      */
     const fetchLibrary = useCallback(async (page: number = 1) => {
-        if (!isLoggedIn) {
+        // Skip API calls if disabled (tutorial mode) or not logged in
+        if (disabled || !isLoggedIn) {
             setImages([]);
             return;
         }
@@ -126,12 +130,18 @@ export function useImageLibrary(
         } finally {
             setIsLoading(false);
         }
-    }, [isLoggedIn, libraryEndpoint, sessionId, service, itemsPerPage]);
+    }, [isLoggedIn, libraryEndpoint, sessionId, service, itemsPerPage, disabled]);
 
     /**
      * Upload a file
      */
     const uploadFile = useCallback(async (file: File): Promise<SessionImage | null> => {
+        // Skip API calls if disabled (tutorial mode)
+        if (disabled) {
+            console.log('📸 [ImageLibrary] Upload skipped (tutorial mode)');
+            return null;
+        }
+        
         if (!isLoggedIn) {
             setError('Authentication required to upload images');
             return null;
@@ -183,12 +193,21 @@ export function useImageLibrary(
         } finally {
             setIsLoading(false);
         }
-    }, [isLoggedIn, uploadEndpoint, sessionId, service, fetchLibrary, currentPage]);
+    }, [disabled, isLoggedIn, uploadEndpoint, sessionId, service, fetchLibrary, currentPage]);
 
     /**
      * Delete an image
      */
     const deleteImage = useCallback(async (imageId: string): Promise<void> => {
+        // Skip API calls if disabled (tutorial mode)
+        if (disabled) {
+            // Just remove from local state
+            setImages(prev => prev.filter(img => img.id !== imageId));
+            setTotal(prev => Math.max(0, prev - 1));
+            console.log('🗑️ [ImageLibrary] Delete simulated (tutorial mode)');
+            return;
+        }
+        
         if (!isLoggedIn) {
             setError('Authentication required to delete images');
             return;
@@ -220,7 +239,7 @@ export function useImageLibrary(
         } finally {
             setIsLoading(false);
         }
-    }, [isLoggedIn, deleteEndpoint, fetchLibrary, currentPage]);
+    }, [disabled, isLoggedIn, deleteEndpoint, fetchLibrary, currentPage]);
 
     /**
      * Change page

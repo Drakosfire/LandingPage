@@ -136,12 +136,14 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   );
 
   // Setup image library hook - always call to satisfy React hooks rules
+  // Disable API calls in tutorial mode (uses local simulation instead)
   const imageLibrary = useImageLibrary({
     libraryEndpoint: imageConfig?.libraryEndpoint || '/api/images/library',
     uploadEndpoint: imageConfig?.uploadEndpoint || '/api/images/upload',
     deleteEndpoint: imageConfig?.deleteEndpoint || imageConfig?.libraryEndpoint || '/api/images/delete',
     sessionId: imageConfig?.sessionId,
-    service: config.id
+    service: config.id,
+    disabled: isTutorialMode
   });
 
   // Track previous opened state for close detection
