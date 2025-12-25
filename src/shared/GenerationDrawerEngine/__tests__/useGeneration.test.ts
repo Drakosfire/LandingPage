@@ -5,7 +5,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useGeneration } from '../hooks/useGeneration';
 import { ErrorCode, GenerationType } from '../types';
-import { setupFetchMock, mockGenerationSuccess, mockGenerationError, mockNetworkError, mockTimeout } from './test-utils/mockApi';
+import { setupFetchMock, mockGenerationSuccess, mockGenerationError, mockNetworkError, mockTimeout } from '../test-utils/mockApi';
 
 // Mock fetch
 global.fetch = jest.fn() as jest.Mock;
@@ -201,7 +201,7 @@ describe('useGeneration', () => {
       abortController.abort = abortSpy;
 
       (global.fetch as jest.Mock).mockImplementation(() => {
-        return new Promise(() => {}); // Never resolves
+        return new Promise(() => { }); // Never resolves
       });
 
       const { result } = renderHook(() =>
@@ -227,7 +227,7 @@ describe('useGeneration', () => {
       const abortSpy = jest.fn();
 
       (global.fetch as jest.Mock).mockImplementation(() => {
-        return new Promise(() => {}); // Never resolves
+        return new Promise(() => { }); // Never resolves
       });
 
       const { result, unmount } = renderHook(() =>

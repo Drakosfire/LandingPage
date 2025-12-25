@@ -6,7 +6,7 @@ import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
 import { AuthProvider } from '../../../context/AuthContext';
-import type { GenerationDrawerConfig, GenerationDrawerEngineProps } from '../../types';
+import type { GenerationDrawerConfig, GenerationDrawerEngineProps } from '../types';
 import { GenerationDrawerEngine } from '../../GenerationDrawerEngine';
 
 /**

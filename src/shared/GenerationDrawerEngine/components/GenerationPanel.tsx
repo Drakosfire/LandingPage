@@ -29,6 +29,8 @@ export interface GenerationPanelProps<TInput> {
   progressConfig?: ProgressConfig;
   /** Generation type (for progress config lookup) */
   generationType?: GenerationType;
+  /** Persisted start time for progress continuity across remounts */
+  persistedStartTime?: number | null;
 }
 
 /**
@@ -42,7 +44,8 @@ export function GenerationPanel<TInput>({
   error,
   onRetry,
   progressConfig,
-  generationType
+  generationType,
+  persistedStartTime
 }: GenerationPanelProps<TInput>) {
   const [validationErrors, setValidationErrors] = useState<Record<string, string> | undefined>();
   const progressOnCompleteRef = useRef<(() => void) | null>(null);
@@ -55,8 +58,8 @@ export function GenerationPanel<TInput>({
     // Validate input if validator provided
     if (validateInput) {
       const validation = validateInput(input);
-      if (!validation.valid) {
-        setValidationErrors(validation.errors);
+      if (!validation || !validation.valid) {
+        setValidationErrors(validation?.errors);
         return;
       }
     }
@@ -80,7 +83,10 @@ export function GenerationPanel<TInput>({
     : progressConfig;
 
   // Determine if generate button should be enabled
-  const isButtonEnabled = !isGenerating && (!validateInput || validateInput(input).valid);
+  // If no validator, button is enabled (assume valid)
+  // If validator exists, check its result (default to valid if undefined)
+  const validationResult = validateInput ? validateInput(input) : { valid: true };
+  const isButtonEnabled = !isGenerating && (validationResult?.valid !== false);
 
   return (
     <Stack gap="md">
@@ -104,6 +110,7 @@ export function GenerationPanel<TInput>({
           isGenerating={isGenerating}
           config={currentProgressConfig}
           onCompleteRef={progressOnCompleteRef}
+          persistedStartTime={persistedStartTime}
         />
       )}
 
@@ -123,4 +130,5 @@ export function GenerationPanel<TInput>({
     </Stack>
   );
 }
+
 

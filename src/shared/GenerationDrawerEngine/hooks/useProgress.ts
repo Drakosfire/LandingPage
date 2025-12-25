@@ -21,11 +21,13 @@ export interface UseProgressReturn {
  * Hook for simulating progress during generation
  * @param isGenerating - Whether generation is in progress
  * @param config - Progress configuration with duration and milestones
+ * @param persistedStartTime - Optional: Start time from parent for progress continuity
  * @returns Progress state and completion callback
  */
 export function useProgress(
   isGenerating: boolean,
-  config: ProgressConfig | undefined
+  config: ProgressConfig | undefined,
+  persistedStartTime?: number | null
 ): UseProgressReturn {
   const [progress, setProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState('');
@@ -33,13 +35,22 @@ export function useProgress(
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const completedRef = useRef(false);
 
-  // Reset when generation starts
+  // Reset when generation starts, using persisted start time if available
   useEffect(() => {
     if (isGenerating && !startTimeRef.current) {
-      startTimeRef.current = Date.now();
+      // Use persisted start time if available (for continuity across remounts)
+      startTimeRef.current = persistedStartTime || Date.now();
       completedRef.current = false;
-      setProgress(0);
-      setCurrentMessage('');
+      
+      // Calculate initial progress if resuming from persisted time
+      if (persistedStartTime && config) {
+        const elapsed = Date.now() - persistedStartTime;
+        const initialProgress = Math.min((elapsed / config.estimatedDurationMs) * 100, 95);
+        setProgress(initialProgress);
+      } else {
+        setProgress(0);
+        setCurrentMessage('');
+      }
     } else if (!isGenerating) {
       // Reset when generation stops
       startTimeRef.current = null;
@@ -47,7 +58,7 @@ export function useProgress(
       setProgress(0);
       setCurrentMessage('');
     }
-  }, [isGenerating]);
+  }, [isGenerating, persistedStartTime, config]);
 
   // Update progress at ~60fps (16ms interval)
   useEffect(() => {
@@ -115,4 +126,5 @@ export function useProgress(
     onComplete
   };
 }
+
 

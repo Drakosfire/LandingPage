@@ -5,7 +5,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { GenerationDrawerEngine } from '../GenerationDrawerEngine';
-import { renderWithConfig, createMockConfig } from './test-utils/mockConfig';
+import { renderWithConfig, createMockConfig } from '../test-utils/mockConfig.tsx';
 import { GenerationType } from '../types';
 
 describe('GenerationDrawerEngine', () => {
@@ -127,7 +127,7 @@ describe('GenerationDrawerEngine', () => {
       const { rerender } = renderWithConfig(config, { opened: true });
       const imageTab = screen.getByRole('tab', { name: 'Image' });
       expect(imageTab).toHaveAttribute('aria-selected', 'true');
-      
+
       rerender(
         <GenerationDrawerEngine
           config={config}
@@ -135,7 +135,7 @@ describe('GenerationDrawerEngine', () => {
           onClose={jest.fn()}
         />
       );
-      
+
       rerender(
         <GenerationDrawerEngine
           config={config}
@@ -143,7 +143,7 @@ describe('GenerationDrawerEngine', () => {
           onClose={jest.fn()}
         />
       );
-      
+
       // Tab should still be 'image' after reopen
       const imageTabAfter = screen.getByRole('tab', { name: 'Image' });
       expect(imageTabAfter).toHaveAttribute('aria-selected', 'true');

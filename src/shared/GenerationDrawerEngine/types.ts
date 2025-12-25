@@ -74,13 +74,15 @@ export interface TabConfig {
     /** Display label */
     label: string;
     /** Tab icon (typically Tabler icon) */
-    icon: ReactNode;
+    icon?: ReactNode;
     /** Links tab to generation type; undefined for custom content tabs */
     generationType?: GenerationType;
     /** Whether tab is disabled */
     disabled?: boolean;
     /** Badge content (e.g., image count) */
     badge?: string | number;
+    /** Content type for special tabs (e.g., 'upload', 'library') */
+    contentType?: 'upload' | 'library';
 }
 
 /**
@@ -205,6 +207,20 @@ export interface ImageConfig<TOutput> {
     onImageGenerated?: (images: GeneratedImage[]) => void;
     /** Callback when user selects an image */
     onImageSelected?: (url: string, index: number) => void;
+    /** API endpoint for uploading images (enables upload tab) */
+    uploadEndpoint?: string;
+    /** API endpoint for fetching library images (enables library tab) */
+    libraryEndpoint?: string;
+    /** API endpoint for deleting images */
+    deleteEndpoint?: string;
+    /** Current session ID for filtering project gallery */
+    sessionId?: string;
+    /** Maximum upload file size in bytes (default: 5MB) */
+    maxUploadSize?: number;
+    /** Accepted MIME types for upload (default: ['image/jpeg', 'image/png', 'image/webp']) */
+    acceptedUploadTypes?: string[];
+    /** Allow multiple file uploads at once (default: false) */
+    allowMultipleUploads?: boolean;
 }
 
 // =============================================================================
@@ -299,6 +315,12 @@ export interface GenerationDrawerConfig<TInput, TOutput> {
     // === Image ===
     /** Image generation configuration */
     imageConfig?: ImageConfig<TOutput>;
+
+    // === State Management ===
+    /** Reset input/tab/state to initial values when drawer closes (default: false) */
+    resetOnClose?: boolean;
+    /** Tutorial mode - uses simulated generation with mock data */
+    isTutorialMode?: boolean;
 }
 
 // =============================================================================

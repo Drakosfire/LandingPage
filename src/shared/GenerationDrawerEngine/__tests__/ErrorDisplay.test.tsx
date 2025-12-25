@@ -4,9 +4,14 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 import { ErrorCode } from '../types';
 import type { GenerationError } from '../types';
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(<MantineProvider>{ui}</MantineProvider>);
+};
 
 describe('ErrorDisplay', () => {
   const createError = (
@@ -29,7 +34,7 @@ describe('ErrorDisplay', () => {
         'The request took too long to complete.',
         true
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       expect(screen.getByText('Request Timeout')).toBeInTheDocument();
       expect(screen.getByText('The request took too long to complete.')).toBeInTheDocument();
     });
@@ -41,7 +46,7 @@ describe('ErrorDisplay', () => {
         'The server took too long to respond.',
         true
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       expect(screen.getByText('Gateway Timeout')).toBeInTheDocument();
     });
 
@@ -52,7 +57,7 @@ describe('ErrorDisplay', () => {
         'Unable to connect to the server.',
         true
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       expect(screen.getByText('Network Error')).toBeInTheDocument();
     });
 
@@ -63,7 +68,7 @@ describe('ErrorDisplay', () => {
         'Please log in to continue.',
         false
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       expect(screen.getByText('Authentication Required')).toBeInTheDocument();
     });
 
@@ -74,7 +79,7 @@ describe('ErrorDisplay', () => {
         'Please check your input.',
         false
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       expect(screen.getByText('Validation Error')).toBeInTheDocument();
     });
 
@@ -85,7 +90,7 @@ describe('ErrorDisplay', () => {
         'Something went wrong.',
         true
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       expect(screen.getByText('Unexpected Error')).toBeInTheDocument();
     });
   });
@@ -98,7 +103,7 @@ describe('ErrorDisplay', () => {
         'Request timed out.',
         true
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
     });
 
@@ -109,7 +114,7 @@ describe('ErrorDisplay', () => {
         'Invalid input.',
         false
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       expect(screen.queryByRole('button', { name: /retry/i })).not.toBeInTheDocument();
     });
 
@@ -121,7 +126,7 @@ describe('ErrorDisplay', () => {
         'Request timed out.',
         true
       );
-      render(<ErrorDisplay error={error} onRetry={onRetry} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={onRetry} onDismiss={jest.fn()} />);
       const retryButton = screen.getByRole('button', { name: /retry/i });
       retryButton.click();
       expect(onRetry).toHaveBeenCalledTimes(1);
@@ -136,7 +141,7 @@ describe('ErrorDisplay', () => {
         'Something went wrong.',
         true
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={jest.fn()} />);
       // Mantine Alert has a close button
       const alert = screen.getByRole('alert');
       expect(alert).toBeInTheDocument();
@@ -150,7 +155,7 @@ describe('ErrorDisplay', () => {
         'Something went wrong.',
         true
       );
-      render(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={onDismiss} />);
+      renderWithProvider(<ErrorDisplay error={error} onRetry={jest.fn()} onDismiss={onDismiss} />);
       // Find and click close button (Mantine Alert close button)
       const alert = screen.getByRole('alert');
       const closeButton = alert.querySelector('[aria-label*="close" i], [aria-label*="dismiss" i]');

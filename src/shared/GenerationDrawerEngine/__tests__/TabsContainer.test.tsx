@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { Tabs } from '@mantine/core';
+import { Tabs, MantineProvider } from '@mantine/core';
 import { IconWand, IconPhoto } from '@tabler/icons-react';
 import { GenerationType } from '../types';
 import { TabsContainer } from '../components/TabsContainer';
@@ -33,9 +33,11 @@ describe('TabsContainer', () => {
 
     const renderWithTabs = (props: typeof defaultProps, activeTab: string = 'text') => {
         return render(
-            <Tabs value={activeTab}>
-                <TabsContainer {...props} />
-            </Tabs>
+            <MantineProvider>
+                <Tabs value={activeTab}>
+                    <TabsContainer {...props} />
+                </Tabs>
+            </MantineProvider>
         );
     };
 
@@ -57,14 +59,14 @@ describe('TabsContainer', () => {
         });
 
         it('displays tab icon', () => {
-            render(<TabsContainer {...defaultProps} />);
+            renderWithTabs(defaultProps);
             const textTab = screen.getByRole('tab', { name: 'Text Generation' });
             // Icon should be rendered within the tab
             expect(textTab).toBeInTheDocument();
         });
 
         it('displays tab label', () => {
-            render(<TabsContainer {...defaultProps} />);
+            renderWithTabs(defaultProps);
             expect(screen.getByText('Text Generation')).toBeInTheDocument();
             expect(screen.getByText('Image Generation')).toBeInTheDocument();
         });
@@ -93,15 +95,17 @@ describe('TabsContainer', () => {
             ];
             renderWithTabs({ ...defaultProps, tabs: tabsWithDisabled });
             const textTab = screen.getByRole('tab', { name: 'Text Generation' });
-            expect(textTab).toHaveAttribute('aria-disabled', 'true');
+            // Mantine may use disabled attribute or aria-disabled
+            expect(textTab).toHaveAttribute('disabled');
         });
 
         it('disables all tabs when isGenerating=true', () => {
             renderWithTabs({ ...defaultProps, isGenerating: true });
             const textTab = screen.getByRole('tab', { name: 'Text Generation' });
             const imageTab = screen.getByRole('tab', { name: 'Image Generation' });
-            expect(textTab).toHaveAttribute('aria-disabled', 'true');
-            expect(imageTab).toHaveAttribute('aria-disabled', 'true');
+            // Mantine may use disabled attribute or aria-disabled
+            expect(textTab).toHaveAttribute('disabled');
+            expect(imageTab).toHaveAttribute('disabled');
         });
     });
 

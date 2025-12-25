@@ -17,3 +17,12 @@ export type { ProgressPanelProps } from './ProgressPanel';
 export { ErrorDisplay } from './ErrorDisplay';
 export type { ErrorDisplayProps } from './ErrorDisplay';
 
+export { ProjectGallery } from './ProjectGallery';
+export type { ProjectGalleryProps, SessionImage } from './ProjectGallery';
+
+export { ImageModal } from './ImageModal';
+export { UploadZone } from './UploadZone';
+export { LibraryBrowser } from './LibraryBrowser';
+export { AuthGate } from './AuthGate';
+export type { ImageModalProps } from './ImageModal';
+

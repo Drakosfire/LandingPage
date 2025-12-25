@@ -21,6 +21,7 @@ import StatBlockGenerator from './components/StatBlockGenerator/StatBlockGenerat
 import { StatBlockGeneratorProvider } from './components/StatBlockGenerator/StatBlockGeneratorProvider';
 import PlayerCharacterGenerator from './components/PlayerCharacterGenerator/PlayerCharacterGenerator';
 import UnifiedHeaderTest from './pages/UnifiedHeaderTest';
+import GenerationDrawerDemo from './pages/GenerationDrawerDemo';
 import { UnifiedHeader } from './components/UnifiedHeader';
 
 // DungeonMind Logo URL for home page header
@@ -101,6 +102,7 @@ const App: React.FC = () => {
                     <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
                     <Route path="/playercharactergenerator" element={<PlayerCharacterGenerator />} />
                     <Route path="/test-unified-header" element={<UnifiedHeaderTest />} />
+                    <Route path="/generation-drawer-demo" element={<GenerationDrawerDemo />} />
                   </Routes>
                   <ConditionalFooter />
                 </MainContent>

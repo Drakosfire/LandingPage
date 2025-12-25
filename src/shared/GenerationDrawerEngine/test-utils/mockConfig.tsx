@@ -3,8 +3,8 @@
  */
 
 import type { ReactNode } from 'react';
-import { GenerationType } from '../../types';
-import type { GenerationDrawerConfig, ExampleConfig } from '../../types';
+import { GenerationType } from '../types';
+import type { GenerationDrawerConfig, ExampleConfig } from '../types';
 
 /**
  * Mock input slot component for testing
@@ -23,19 +23,19 @@ export const MockInputSlot = <TInput,>({
     errors?: Record<string, string>;
 }) => {
     return (
-        <div data - testid= "mock-input-slot" >
-        <div data - testid="input-value" > { JSON.stringify(value) } </div>
-            < div data - testid="is-generating" > { String(isGenerating) } </div>
-                < div data - testid="is-tutorial-mode" > { String(isTutorialMode) } </div>
-    { errors && <div data - testid="errors" > { JSON.stringify(errors) } </div> }
-    <button
-        onClick={ () => onChange({} as Partial<TInput>) }
-    data - testid="mock-change-button"
-        >
-        Change
-        </button>
+        <div data-testid="mock-input-slot">
+            <div data-testid="input-value">{JSON.stringify(value)}</div>
+            <div data-testid="is-generating">{String(isGenerating)}</div>
+            <div data-testid="is-tutorial-mode">{String(isTutorialMode)}</div>
+            {errors && <div data-testid="errors">{JSON.stringify(errors)}</div>}
+            <button
+                onClick={() => onChange({} as Partial<TInput>)}
+                data-testid="mock-change-button"
+            >
+                Change
+            </button>
         </div>
-  );
+    );
 };
 
 /**

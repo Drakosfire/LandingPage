@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { DUNGEONMIND_API_URL } from '../../config';
+import { DUNGEONMIND_API_URL } from '../../../config';
 import { ErrorCode, type GenerationError } from '../types';
 
 export interface UseGenerationConfig<TInput, TOutput> {
@@ -15,6 +15,7 @@ export interface UseGenerationConfig<TInput, TOutput> {
   transformOutput: (response: unknown) => TOutput;
   timeout?: number;
   tutorialConfig?: {
+    mockData?: TOutput; // Optional mock data for tutorial mode
     simulatedDurationMs?: number;
   };
 }
@@ -96,17 +97,24 @@ export function useGeneration<TInput, TOutput>(
       // Clear previous error
       setError(null);
 
-      // Tutorial mode: simulate delay and return empty output
-      // Services should provide mock data via onGenerationComplete callback
+      // Tutorial mode: simulate delay and return mock data
       if (isTutorialMode && config.tutorialConfig) {
         setIsGenerating(true);
-        const { simulatedDurationMs = 7000 } = config.tutorialConfig;
+        const { mockData, simulatedDurationMs = 7000 } = config.tutorialConfig;
 
         return new Promise((resolve) => {
           setTimeout(() => {
             setIsGenerating(false);
-            // Return empty object - services handle mock data via callbacks
-            resolve({} as TOutput);
+            // Priority: mockData > transformOutput > empty object
+            if (mockData) {
+              resolve(mockData);
+            } else if (config.transformOutput) {
+              // Use transformOutput to generate mock data (services define this)
+              resolve(config.transformOutput({}));
+            } else {
+              console.warn('⚠️ [useGeneration] Tutorial mode: no mockData or transformOutput provided');
+              resolve({} as TOutput);
+            }
           }, simulatedDurationMs);
         });
       }

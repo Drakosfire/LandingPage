@@ -4,8 +4,13 @@
 
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
 import { ProgressPanel } from '../components/ProgressPanel';
 import type { ProgressConfig } from '../types';
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(<MantineProvider>{ui}</MantineProvider>);
+};
 
 describe('ProgressPanel', () => {
   const defaultConfig: ProgressConfig = {
@@ -28,18 +33,33 @@ describe('ProgressPanel', () => {
   });
 
   describe('Rendering', () => {
-    it('renders progress bar with 0% initially', () => {
-      render(<ProgressPanel isGenerating={false} config={defaultConfig} />);
-      const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-valuenow', '0');
+    it('does not render when not generating', () => {
+      renderWithProvider(<ProgressPanel isGenerating={false} config={defaultConfig} />);
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+
+    it('renders progress bar when generating', async () => {
+      renderWithProvider(<ProgressPanel isGenerating={true} config={defaultConfig} />);
+      // Hook uses setInterval which needs time to initialize
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      await waitFor(() => {
+        const progressBar = screen.getByRole('progressbar');
+        expect(progressBar).toBeInTheDocument();
+      });
     });
 
     it('updates progress over time', async () => {
-      const { rerender } = render(
+      const { rerender } = renderWithProvider(
         <ProgressPanel isGenerating={false} config={defaultConfig} />
       );
 
-      rerender(<ProgressPanel isGenerating={true} config={defaultConfig} />);
+      rerender(
+        <MantineProvider>
+          <ProgressPanel isGenerating={true} config={defaultConfig} />
+        </MantineProvider>
+      );
 
       act(() => {
         jest.advanceTimersByTime(2000);
@@ -52,19 +72,28 @@ describe('ProgressPanel', () => {
       });
     });
 
-    it('applies color from config', () => {
-      render(<ProgressPanel isGenerating={false} config={defaultConfig} />);
-      const progressBar = screen.getByRole('progressbar');
-      // Mantine Progress applies color via class or style
-      expect(progressBar).toBeInTheDocument();
+    it('applies color from config', async () => {
+      renderWithProvider(<ProgressPanel isGenerating={true} config={defaultConfig} />);
+      // Hook uses setInterval which needs time to initialize
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      await waitFor(() => {
+        const progressBar = screen.getByRole('progressbar');
+        expect(progressBar).toBeInTheDocument();
+      });
     });
 
     it('displays milestone message at correct percentage', async () => {
-      const { rerender } = render(
+      const { rerender } = renderWithProvider(
         <ProgressPanel isGenerating={false} config={defaultConfig} />
       );
 
-      rerender(<ProgressPanel isGenerating={true} config={defaultConfig} />);
+      rerender(
+        <MantineProvider>
+          <ProgressPanel isGenerating={true} config={defaultConfig} />
+        </MantineProvider>
+      );
 
       act(() => {
         jest.advanceTimersByTime(100);
@@ -76,11 +105,15 @@ describe('ProgressPanel', () => {
     });
 
     it('caps progress at 95% until complete', async () => {
-      const { rerender } = render(
+      const { rerender } = renderWithProvider(
         <ProgressPanel isGenerating={false} config={defaultConfig} />
       );
 
-      rerender(<ProgressPanel isGenerating={true} config={defaultConfig} />);
+      rerender(
+        <MantineProvider>
+          <ProgressPanel isGenerating={true} config={defaultConfig} />
+        </MantineProvider>
+      );
 
       act(() => {
         jest.advanceTimersByTime(12000); // Past estimated duration
@@ -94,30 +127,34 @@ describe('ProgressPanel', () => {
     });
 
     it('jumps to 100% on completion', async () => {
-      const onComplete = jest.fn();
-      const { rerender } = render(
+      const onCompleteRef = React.createRef<(() => void) | null>();
+      const { rerender } = renderWithProvider(
         <ProgressPanel
           isGenerating={false}
           config={defaultConfig}
-          onComplete={onComplete}
+          onCompleteRef={onCompleteRef}
         />
       );
 
       rerender(
-        <ProgressPanel
-          isGenerating={true}
-          config={defaultConfig}
-          onComplete={onComplete}
-        />
+        <MantineProvider>
+          <ProgressPanel
+            isGenerating={true}
+            config={defaultConfig}
+            onCompleteRef={onCompleteRef}
+          />
+        </MantineProvider>
       );
 
       act(() => {
         jest.advanceTimersByTime(5000);
       });
 
-      // Simulate completion
+      // Simulate completion by calling the ref callback
       act(() => {
-        onComplete();
+        if (onCompleteRef.current) {
+          onCompleteRef.current();
+        }
       });
 
       await waitFor(() => {
@@ -127,7 +164,7 @@ describe('ProgressPanel', () => {
     });
 
     it('applies data-tutorial="progress-bar"', () => {
-      render(<ProgressPanel isGenerating={false} config={defaultConfig} />);
+      renderWithProvider(<ProgressPanel isGenerating={true} config={defaultConfig} />);
       const container = screen.getByTestId('progress-panel');
       expect(container).toHaveAttribute('data-tutorial', 'progress-bar');
     });
@@ -135,11 +172,15 @@ describe('ProgressPanel', () => {
 
   describe('Milestone Messages', () => {
     it('shows first milestone immediately', async () => {
-      const { rerender } = render(
+      const { rerender } = renderWithProvider(
         <ProgressPanel isGenerating={false} config={defaultConfig} />
       );
 
-      rerender(<ProgressPanel isGenerating={true} config={defaultConfig} />);
+      rerender(
+        <MantineProvider>
+          <ProgressPanel isGenerating={true} config={defaultConfig} />
+        </MantineProvider>
+      );
 
       act(() => {
         jest.advanceTimersByTime(100);
@@ -151,11 +192,15 @@ describe('ProgressPanel', () => {
     });
 
     it('transitions to next milestone at threshold', async () => {
-      const { rerender } = render(
+      const { rerender } = renderWithProvider(
         <ProgressPanel isGenerating={false} config={defaultConfig} />
       );
 
-      rerender(<ProgressPanel isGenerating={true} config={defaultConfig} />);
+      rerender(
+        <MantineProvider>
+          <ProgressPanel isGenerating={true} config={defaultConfig} />
+        </MantineProvider>
+      );
 
       act(() => {
         jest.advanceTimersByTime(5000); // 50% of 10s
@@ -167,11 +212,15 @@ describe('ProgressPanel', () => {
     });
 
     it('shows final milestone near completion', async () => {
-      const { rerender } = render(
+      const { rerender } = renderWithProvider(
         <ProgressPanel isGenerating={false} config={defaultConfig} />
       );
 
-      rerender(<ProgressPanel isGenerating={true} config={defaultConfig} />);
+      rerender(
+        <MantineProvider>
+          <ProgressPanel isGenerating={true} config={defaultConfig} />
+        </MantineProvider>
+      );
 
       act(() => {
         jest.advanceTimersByTime(9000); // 90% of 10s

@@ -17,6 +17,8 @@ export interface ProgressPanelProps {
   config: ProgressConfig;
   /** Completion callback ref (parent calls this when generation completes) */
   onCompleteRef?: React.MutableRefObject<(() => void) | null>;
+  /** Optional: Persisted start time from parent for progress continuity across remounts */
+  persistedStartTime?: number | null;
 }
 
 /**
@@ -25,11 +27,13 @@ export interface ProgressPanelProps {
 export const ProgressPanel: React.FC<ProgressPanelProps> = ({
   isGenerating,
   config,
-  onCompleteRef
+  onCompleteRef,
+  persistedStartTime
 }) => {
   const { progress, currentMessage, onComplete } = useProgress(
     isGenerating,
-    config
+    config,
+    persistedStartTime
   );
 
   // Expose onComplete callback via ref for parent to call

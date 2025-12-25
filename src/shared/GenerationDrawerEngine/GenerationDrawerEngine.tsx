@@ -5,14 +5,20 @@
  * This is the main entry point for services to use the generation drawer.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Stack, Tabs } from '@mantine/core';
 import type { GenerationDrawerEngineProps } from './types';
 import { DrawerShell } from './components/DrawerShell';
 import { TabsContainer } from './components/TabsContainer';
 import { GenerationPanel } from './components/GenerationPanel';
+import { ProjectGallery } from './components/ProjectGallery';
+import { ImageModal } from './components/ImageModal';
+import { UploadZone } from './components/UploadZone';
+import { LibraryBrowser } from './components/LibraryBrowser';
+import { AuthGate } from './components/AuthGate';
 import { useGeneration } from './hooks/useGeneration';
-import { GenerationType } from './types';
+import { useImageLibrary } from './hooks/useImageLibrary';
+import { GenerationType, type GeneratedImage } from './types';
 
 /**
  * Main orchestrating component for the generation drawer engine.
@@ -37,20 +43,45 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     onGenerationStart,
     onGenerationComplete,
     onGenerationError,
-    progressConfig
+    progressConfig,
+    imageConfig,
+    resetOnClose = false,
+    isTutorialMode: configTutorialMode
   } = config;
 
   // State management
   const [activeTab, setActiveTab] = useState<string>(
     defaultTab || tabs[0]?.id || ''
   );
-  const [input, setInput] = useState<TInput>(initialInput);
+  
+  // Per-tab input state - each tab has its own independent input
+  const [inputsByTab, setInputsByTab] = useState<Record<string, TInput>>(() => {
+    const initial: Record<string, TInput> = {};
+    tabs.forEach((tab) => {
+      initial[tab.id] = initialInput;
+    });
+    return initial;
+  });
+  
+  // Get current tab's input
+  const input = inputsByTab[activeTab] || initialInput;
+  
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string> | undefined
   >(undefined);
 
+  // Image gallery state (for image generation tabs)
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [modalOpened, setModalOpened] = useState(false);
+  const [modalIndex, setModalIndex] = useState(0);
+
+  // Generation start time for progress persistence across drawer close/reopen
+  // Stored at engine level so ProgressPanel can resume from correct position
+  const generationStartTimeRef = useRef<number | null>(null);
+
   // Determine if in tutorial mode
-  const isTutorialMode = Boolean(tutorialConfig);
+  const isTutorialMode = configTutorialMode || Boolean(tutorialConfig);
 
   // Setup generation hook
   // Note: Tutorial mode mock data should be provided via onGenerationComplete callback
@@ -63,66 +94,220 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       timeout: 150000, // 150 seconds
       tutorialConfig: tutorialConfig
         ? {
-            simulatedDurationMs: tutorialConfig.simulatedDurationMs || 7000
-          }
+          simulatedDurationMs: tutorialConfig.simulatedDurationMs || 7000
+        }
         : undefined
     },
     isTutorialMode
   );
 
-  // Update active tab when defaultTab changes or drawer opens
-  useEffect(() => {
-    if (opened && defaultTab) {
-      setActiveTab(defaultTab);
-    }
-  }, [opened, defaultTab]);
+  // Setup image library hook - always call to satisfy React hooks rules
+  const imageLibrary = useImageLibrary({
+    libraryEndpoint: imageConfig?.libraryEndpoint || '/api/images/library',
+    uploadEndpoint: imageConfig?.uploadEndpoint || '/api/images/upload',
+    deleteEndpoint: imageConfig?.deleteEndpoint || imageConfig?.libraryEndpoint || '/api/images/delete',
+    sessionId: imageConfig?.sessionId,
+    service: config.id
+  });
 
-  // Reset input when drawer closes
+  // Track previous opened state for close detection
+  const wasOpenedRef = React.useRef(opened);
+  
+  // Ref for tabs container to auto-focus on open
+  const tabsListRef = useRef<HTMLDivElement>(null);
+
+  // Handle drawer close - reset state if configured
   useEffect(() => {
-    if (!opened) {
-      setInput(initialInput);
-      setValidationErrors(undefined);
+    const wasOpened = wasOpenedRef.current;
+    wasOpenedRef.current = opened;
+
+    // Drawer just closed
+    if (wasOpened && !opened) {
+      // Always clear errors and progress when closing
       generation.clearError();
-    }
-  }, [opened, initialInput, generation]);
 
-  // Handle input changes from InputSlot
+      if (resetOnClose) {
+        // Reset all tab inputs to initial values
+        const resetInputs: Record<string, TInput> = {};
+        tabs.forEach((tab) => {
+          resetInputs[tab.id] = initialInput;
+        });
+        setInputsByTab(resetInputs);
+        setValidationErrors(undefined);
+        // Reset tab to default
+        if (defaultTab) {
+          setActiveTab(defaultTab);
+        }
+        // Reset generated images
+        setGeneratedImages([]);
+        setSelectedImageId(null);
+      }
+    }
+  }, [opened, resetOnClose, initialInput, defaultTab, generation, tabs]);
+
+  // Auto-focus tabs when drawer opens for keyboard navigation
+  useEffect(() => {
+    if (opened && tabsListRef.current) {
+      // Delay focus to ensure drawer animation has started
+      const timer = setTimeout(() => {
+        // Focus the first tab button for keyboard navigation
+        const firstTab = tabsListRef.current?.querySelector('[role="tab"]') as HTMLElement;
+        if (firstTab) {
+          firstTab.focus();
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [opened]);
+
+  // Find active tab config (needed for generation type check)
+  const activeTabConfig = tabs.find((tab) => tab.id === activeTab);
+  const activeGenerationType = activeTabConfig?.generationType;
+
+  // Handle input changes from InputSlot - updates current tab's input only
   const handleInputChange = useCallback(
     (value: Partial<TInput>) => {
-      setInput((prev) => ({ ...prev, ...value }));
+      setInputsByTab((prev) => ({
+        ...prev,
+        [activeTab]: { ...prev[activeTab], ...value }
+      }));
       // Clear validation errors when input changes
       if (validationErrors) {
         setValidationErrors(undefined);
       }
     },
-    [validationErrors]
+    [activeTab, validationErrors]
   );
 
   // Handle generation
   const handleGenerate = useCallback(
     async (inputValue: TInput) => {
+      // Record start time for progress persistence
+      generationStartTimeRef.current = Date.now();
+      
       onGenerationStart?.();
 
       try {
         const output = await generation.generate(inputValue);
+
+        // Clear start time on completion
+        generationStartTimeRef.current = null;
+
+        // Handle image generation results
+        if (imageConfig && activeGenerationType === GenerationType.IMAGE) {
+          // Extract images from output (services should provide images in response)
+          // For now, we rely on onImageGenerated callback from services
+          // This will be called by services after processing the API response
+        }
+
         onGenerationComplete?.(output);
       } catch (err) {
+        // Clear start time on error
+        generationStartTimeRef.current = null;
         // Error is already set in generation hook
         onGenerationError?.(generation.error!);
       }
     },
-    [generation, onGenerationStart, onGenerationComplete, onGenerationError]
+    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType]
   );
+
+  // Handle image gallery interactions
+  // Handle image click in gallery (opens modal)
+  const handleImageClick = useCallback((image: GeneratedImage | { id: string; url: string; prompt: string; createdAt?: string; sessionId?: string; service?: string }, index: number) => {
+    setModalIndex(index);
+    setModalOpened(true);
+  }, []);
+
+  // Handle image selection in gallery
+  const handleImageSelect = useCallback((image: GeneratedImage | { id: string; url: string; prompt: string; createdAt?: string; sessionId?: string; service?: string }, index: number) => {
+    imageConfig?.onImageSelected?.(image.url, index);
+    setSelectedImageId(image.id || null);
+    setModalOpened(false);
+  }, [imageConfig]);
+
+  // Handle image selection from modal (url-based signature for ImageModal)
+  const handleModalSelect = useCallback((url: string, index: number) => {
+    imageConfig?.onImageSelected?.(url, index);
+    setSelectedImageId(generatedImages[index]?.id || null);
+    setModalOpened(false);
+  }, [imageConfig, generatedImages]);
+
+  const handleImageDelete = useCallback((imageId: string) => {
+    setGeneratedImages(prev => prev.filter(img => img.id !== imageId));
+    if (selectedImageId === imageId) {
+      setSelectedImageId(null);
+    }
+    // Also delete from library if hook is available
+    if (imageLibrary) {
+      imageLibrary.deleteImage(imageId).catch((err) => {
+        console.error('❌ [GenerationDrawer] Failed to delete from library:', err);
+      });
+    }
+  }, [selectedImageId, imageLibrary]);
+
+  // Handle file upload
+  const handleFileUpload = useCallback(async (files: File[]) => {
+    if (!imageLibrary) return;
+
+    for (const file of files) {
+      const uploadedImage = await imageLibrary.uploadFile(file);
+      if (uploadedImage) {
+        // Add to generated images (project gallery)
+        const generatedImage: GeneratedImage = {
+          id: uploadedImage.id,
+          url: uploadedImage.url,
+          prompt: uploadedImage.prompt,
+          createdAt: uploadedImage.createdAt || new Date().toISOString(),
+          sessionId: uploadedImage.sessionId || '',
+          service: uploadedImage.service || config.id
+        };
+        setGeneratedImages((prev) => [...prev, generatedImage]);
+        // Notify service
+        imageConfig?.onImageGenerated?.([generatedImage]);
+      }
+    }
+  }, [imageLibrary, imageConfig]);
+
+  // Handle upload error
+  const handleUploadError = useCallback((error: string) => {
+    console.error('❌ [GenerationDrawer] Upload error:', error);
+    // Could show toast notification here
+  }, []);
+
+  // Handle add from library to project
+  const handleAddFromLibrary = useCallback((image: any) => {
+    const generatedImage: GeneratedImage = {
+      id: image.id,
+      url: image.url,
+      prompt: image.prompt,
+      createdAt: image.createdAt,
+      sessionId: image.sessionId,
+      service: image.service
+    };
+    setGeneratedImages((prev) => [...prev, generatedImage]);
+    // Notify service
+    imageConfig?.onImageGenerated?.([generatedImage]);
+  }, [imageConfig]);
+
+  const handleModalNavigate = useCallback((newIndex: number) => {
+    setModalIndex(newIndex);
+  }, []);
+
+  // Update generated images when imageConfig callback is triggered
+  // Services should call onImageGenerated with the generated images
+  useEffect(() => {
+    if (imageConfig?.onImageGenerated) {
+      // Store the callback so services can call it
+      // This is a workaround - in practice, services will call this after generation
+      // For now, we'll handle it via the config callback
+    }
+  }, [imageConfig]);
 
   // Handle retry
   const handleRetry = useCallback(() => {
     generation.clearError();
     handleGenerate(input);
   }, [generation, handleGenerate, input]);
-
-  // Get active tab config
-  const activeTabConfig = tabs.find((tab) => tab.id === activeTab);
-  const activeGenerationType = activeTabConfig?.generationType;
 
   // Get progress config for active generation type
   const currentProgressConfig =
@@ -134,7 +319,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     <DrawerShell opened={opened} onClose={onClose} title={config.title}>
       <Stack gap="md" h="100%">
         <Tabs value={activeTab} onChange={(val) => setActiveTab(val || '')}>
-          <TabsContainer tabs={tabs} isGenerating={generation.isGenerating} />
+          <TabsContainer ref={tabsListRef} tabs={tabs} isGenerating={generation.isGenerating} />
 
           {tabs.map((tab) => (
             <Tabs.Panel
@@ -164,12 +349,62 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     onRetry={handleRetry}
                     progressConfig={currentProgressConfig}
                     generationType={tab.generationType}
+                    persistedStartTime={generationStartTimeRef.current}
                   />
+                )}
+
+                {/* Image Gallery (for image generation tabs) */}
+                {tab.generationType === GenerationType.IMAGE && generatedImages.length > 0 && (
+                  <ProjectGallery
+                    images={generatedImages}
+                    selectedImageId={selectedImageId}
+                    onImageClick={handleImageClick}
+                    onImageSelect={handleImageSelect}
+                  />
+                )}
+
+                {/* Upload Tab */}
+                {tab.id === 'upload' && imageLibrary && (
+                  <AuthGate isTutorialMode={isTutorialMode}>
+                    <UploadZone
+                      onUpload={handleFileUpload}
+                      onError={handleUploadError}
+                      isUploading={imageLibrary.isLoading}
+                    />
+                  </AuthGate>
+                )}
+
+                {/* Library Tab */}
+                {tab.id === 'library' && imageLibrary && (
+                  <AuthGate isTutorialMode={isTutorialMode}>
+                    <LibraryBrowser
+                      images={imageLibrary.images}
+                      onAddToProject={handleAddFromLibrary}
+                      onDelete={handleImageDelete}
+                      isLoading={imageLibrary.isLoading}
+                      currentPage={imageLibrary.currentPage}
+                      totalPages={imageLibrary.totalPages}
+                      onPageChange={imageLibrary.changePage}
+                    />
+                  </AuthGate>
                 )}
               </Stack>
             </Tabs.Panel>
           ))}
         </Tabs>
+
+        {/* Image Modal (shared across all tabs) */}
+        {imageConfig && (
+          <ImageModal
+            opened={modalOpened}
+            images={generatedImages}
+            currentIndex={modalIndex}
+            onClose={() => setModalOpened(false)}
+            onSelect={handleModalSelect}
+            onDelete={handleImageDelete}
+            onNavigate={handleModalNavigate}
+          />
+        )}
       </Stack>
     </DrawerShell>
   );
