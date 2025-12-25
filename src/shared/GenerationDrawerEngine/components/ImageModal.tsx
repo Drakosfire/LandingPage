@@ -123,6 +123,7 @@ export function ImageModal({
               onClick={() => onNavigate(currentIndex - 1)}
               aria-label="Previous image"
               data-testid="prev-button"
+              data-tutorial="modal-prev-button"
             >
               <IconChevronLeft size={20} />
             </ActionIcon>
@@ -143,6 +144,7 @@ export function ImageModal({
               onClick={() => onNavigate(currentIndex + 1)}
               aria-label="Next image"
               data-testid="next-button"
+              data-tutorial="modal-next-button"
             >
               <IconChevronRight size={20} />
             </ActionIcon>
@@ -176,6 +178,14 @@ export function ImageModal({
               Delete
             </Button>
           )}
+          <Button
+            onClick={onClose}
+            variant="default"
+            data-testid="close-button"
+            data-tutorial="modal-close-button"
+          >
+            Close
+          </Button>
         </Group>
       </Stack>
     </Modal>

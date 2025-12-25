@@ -30,7 +30,14 @@ import { GenerationType, type GeneratedImage } from './types';
 export function GenerationDrawerEngine<TInput, TOutput>(
   props: GenerationDrawerEngineProps<TInput, TOutput>
 ) {
-  const { config, opened, onClose } = props;
+  const { 
+    config, 
+    opened, 
+    onClose,
+    isTutorialMode: propsTutorialMode,
+    initialImages,
+    onGenerationComplete: propsOnGenerationComplete
+  } = props;
   const {
     tabs,
     defaultTab,
@@ -42,7 +49,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     transformInput,
     transformOutput,
     onGenerationStart,
-    onGenerationComplete,
+    onGenerationComplete: configOnGenerationComplete,
     onGenerationError,
     progressConfig,
     imageConfig,
@@ -73,7 +80,16 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   >(undefined);
 
   // Image gallery state (for image generation tabs)
-  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  // Initialize with initialImages or tutorialConfig mock images if in tutorial mode
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>(() => {
+    if (initialImages && initialImages.length > 0) {
+      return initialImages;
+    }
+    if (tutorialConfig?.mockImages && tutorialConfig.mockImages.length > 0) {
+      return tutorialConfig.mockImages;
+    }
+    return [];
+  });
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
@@ -82,8 +98,14 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   // Stored at engine level so ProgressPanel can resume from correct position
   const generationStartTimeRef = useRef<number | null>(null);
 
-  // Determine if in tutorial mode
-  const isTutorialMode = configTutorialMode || Boolean(tutorialConfig);
+  // Determine if in tutorial mode (props takes precedence over config)
+  const isTutorialMode = propsTutorialMode ?? configTutorialMode ?? Boolean(tutorialConfig);
+  
+  // Combined onGenerationComplete - calls both props and config callbacks
+  const onGenerationComplete = useCallback((output: TOutput) => {
+    propsOnGenerationComplete?.(output);
+    configOnGenerationComplete?.(output);
+  }, [propsOnGenerationComplete, configOnGenerationComplete]);
 
   // Setup generation hook
   // Note: Tutorial mode mock data should be provided via onGenerationComplete callback
@@ -96,6 +118,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       timeout: 150000, // 150 seconds
       tutorialConfig: tutorialConfig
         ? {
+          mockData: tutorialConfig.mockData as TOutput | undefined,
           simulatedDurationMs: tutorialConfig.simulatedDurationMs || 7000
         }
         : undefined

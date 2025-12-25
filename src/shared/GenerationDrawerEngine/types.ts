@@ -126,6 +126,8 @@ export interface TutorialConfig {
     mockAuthState?: boolean;
     /** Pre-loaded gallery images for tutorial */
     mockImages?: GeneratedImage[];
+    /** Mock data to return from generation (for text generation) */
+    mockData?: unknown;
     /** Progress bar simulation duration (default: 7000ms) */
     simulatedDurationMs?: number;
     /** Callback when tutorial simulation completes */
@@ -341,5 +343,11 @@ export interface GenerationDrawerEngineProps<TInput, TOutput> {
     onClose: () => void;
     /** Optional service context (e.g., React context value) */
     context?: unknown;
+    /** Whether in tutorial mode (bypasses API, uses mock data) */
+    isTutorialMode?: boolean;
+    /** Initial images to display in gallery */
+    initialImages?: GeneratedImage[];
+    /** Callback when generation completes successfully */
+    onGenerationComplete?: (output: TOutput) => void;
 }
 

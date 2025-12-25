@@ -55,9 +55,12 @@ export function ProjectGallery({
       cols={{ base: 2, sm: 3, md: 4 }}
       spacing="md"
       data-testid="project-gallery"
+      data-tutorial="image-results-grid"
     >
       {images.map((image, index) => {
         const isSelected = selectedImageId === image.id;
+        // Add data-tutorial for specific indices (for tutorial targeting)
+        const tutorialAttr = index === 0 ? 'image-result-0' : index === 2 ? 'image-result-2' : undefined;
 
         return (
           <Card
@@ -72,6 +75,7 @@ export function ProjectGallery({
             onClick={() => onImageClick(image, index)}
             onDoubleClick={() => onImageSelect?.(image, index)}
             data-testid={`gallery-image-${image.id}`}
+            data-tutorial={tutorialAttr}
             data-selected={isSelected}
           >
             <Image
