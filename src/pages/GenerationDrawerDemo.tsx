@@ -18,7 +18,7 @@ import {
     Checkbox, Badge, Group, Divider, Accordion, Alert, Switch, Loader,
     ThemeIcon, Tooltip
 } from '@mantine/core';
-import { IconWand, IconPhoto, IconCheck, IconAlertCircle, IconRefresh, IconPlugConnected, IconPlugConnectedX } from '@tabler/icons-react';
+import { IconWand, IconPhoto, IconCheck, IconAlertCircle, IconRefresh, IconPlugConnected, IconPlugConnectedX, IconUpload, IconLibrary } from '@tabler/icons-react';
 import { GenerationDrawerEngine } from '../shared/GenerationDrawerEngine';
 import type { GenerationDrawerConfig, GenerationError } from '../shared/GenerationDrawerEngine';
 import { GenerationType } from '../shared/GenerationDrawerEngine';
@@ -191,6 +191,84 @@ const MANUAL_TEST_CHECKLIST: ChecklistItem[] = [
         expected: 'See logs: 🚀 start, ✅ complete with output object, 🎓 tutorial complete'
     },
 
+    // Upload Tab
+    {
+        id: 'upload-tab-open',
+        category: 'Upload Tab',
+        action: 'Click "Upload" tab',
+        expected: 'Tab switches to upload zone with drag-and-drop area'
+    },
+    {
+        id: 'upload-auth-gate',
+        category: 'Upload Tab',
+        action: 'View upload tab in demo mode (not logged in)',
+        expected: 'In tutorial mode, upload zone is accessible. In live mode without auth, shows login prompt.'
+    },
+    {
+        id: 'upload-drag-drop',
+        category: 'Upload Tab',
+        action: 'Drag an image file onto the drop zone',
+        expected: 'Zone highlights on drag-over, file is accepted'
+    },
+    {
+        id: 'upload-file-picker',
+        category: 'Upload Tab',
+        action: 'Click the drop zone to open file picker',
+        expected: 'File browser opens, can select image files'
+    },
+
+    // Library Tab
+    {
+        id: 'library-tab-open',
+        category: 'Library Tab',
+        action: 'Click "Library" tab',
+        expected: 'Tab switches to library browser with image grid (may be empty)'
+    },
+    {
+        id: 'library-empty-state',
+        category: 'Library Tab',
+        action: 'View library when empty',
+        expected: 'Shows "No images in library" or similar empty state'
+    },
+    {
+        id: 'library-pagination',
+        category: 'Library Tab',
+        action: 'If library has images, check pagination',
+        expected: 'Page numbers or prev/next controls visible if more than one page'
+    },
+
+    // Project Gallery (within Image Generation tab)
+    {
+        id: 'project-gallery-empty',
+        category: 'Project Gallery',
+        action: 'Switch to Image tab before generating',
+        expected: 'Gallery shows "No images generated yet" or is hidden'
+    },
+    {
+        id: 'project-gallery-images',
+        category: 'Project Gallery',
+        action: 'After image generation (mock in demo mode)',
+        expected: 'Images appear in a grid below the generate button'
+    },
+    {
+        id: 'project-gallery-click',
+        category: 'Project Gallery',
+        action: 'Click on an image in the gallery',
+        expected: 'Full-size modal opens with navigation arrows'
+    },
+    {
+        id: 'project-gallery-modal-nav',
+        category: 'Project Gallery',
+        action: 'Use arrow keys or buttons in image modal',
+        expected: 'Navigate between images'
+    },
+    {
+        id: 'project-gallery-select',
+        category: 'Project Gallery',
+        action: 'Click Select button in image modal',
+        expected: 'Image is selected (visual indicator), modal closes'
+    },
+
     // Live Mode (requires backend running)
     {
         id: 'live-health-check',
@@ -281,6 +359,16 @@ const createDemoConfig = (
             label: 'Image Generation',
             icon: <IconPhoto size={16} />,
             generationType: GenerationType.IMAGE
+        },
+        {
+            id: 'upload',
+            label: 'Upload',
+            icon: <IconUpload size={16} />
+        },
+        {
+            id: 'library',
+            label: 'Library',
+            icon: <IconLibrary size={16} />
         }
     ],
 
