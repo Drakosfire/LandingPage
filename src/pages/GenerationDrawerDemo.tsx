@@ -143,6 +143,58 @@ const MANUAL_TEST_CHECKLIST: ChecklistItem[] = [
         expected: 'Generate button is enabled again'
     },
 
+    // Text Generation Results
+    {
+        id: 'text-result-display',
+        category: 'Text Generation Results',
+        action: 'Complete a text generation',
+        expected: 'Generated statblock data displays in the Text tab (name, stats, abilities visible)'
+    },
+    {
+        id: 'text-result-matches-input',
+        category: 'Text Generation Results',
+        action: 'Check the generated content',
+        expected: 'Content reflects your input description (e.g., dragon description → dragon statblock)'
+    },
+    {
+        id: 'text-result-alert',
+        category: 'Text Generation Results',
+        action: 'Check the page alert below drawer',
+        expected: 'Alert shows "Generated: [creature name]" with the actual creature name'
+    },
+
+    // Image Generation Results
+    {
+        id: 'image-generation-flow',
+        category: 'Image Generation Results',
+        action: 'Switch to Image tab, enter prompt, click Generate',
+        expected: 'Progress bar shows, image generation runs'
+    },
+    {
+        id: 'image-result-gallery',
+        category: 'Image Generation Results',
+        action: 'Wait for image generation to complete',
+        expected: 'Generated images appear in Project Gallery grid below the input'
+    },
+    {
+        id: 'image-result-click',
+        category: 'Image Generation Results',
+        action: 'Click on a generated image in the gallery',
+        expected: 'Image modal opens showing full-size image with navigation arrows'
+    },
+    {
+        id: 'image-result-select',
+        category: 'Image Generation Results',
+        action: 'Click "Select" button in image modal',
+        expected: 'Image is selected (highlighted border), modal closes'
+    },
+    {
+        id: 'image-result-multiple',
+        category: 'Image Generation Results',
+        action: 'Generate images multiple times',
+        expected: 'All generated images accumulate in Project Gallery'
+    },
+
     // State Persistence (Close/Reopen)
     {
         id: 'state-input-modified',
@@ -625,9 +677,64 @@ export default function GenerationDrawerDemo() {
 
             {/* Status Alerts */}
             {lastOutput && lastOutput.statblock && (
-                <Alert icon={<IconCheck size={16} />} color="green" title="Last Generation Result">
-                    Generated: {lastOutput.statblock.name} (CR {lastOutput.statblock.challengeRating})
-                </Alert>
+                <Paper p="lg" withBorder shadow="sm">
+                    <Stack gap="md">
+                        <Group justify="space-between" align="center">
+                            <Title order={3}>
+                                <Group gap="xs">
+                                    <IconCheck size={20} color="green" />
+                                    Generated: {lastOutput.statblock.name}
+                                </Group>
+                            </Title>
+                            <Badge size="lg" color="violet">
+                                CR {lastOutput.statblock.challengeRating}
+                            </Badge>
+                        </Group>
+                        
+                        <Divider />
+                        
+                        <Group gap="lg">
+                            <Text size="sm"><strong>Type:</strong> {lastOutput.statblock.size} {lastOutput.statblock.type}</Text>
+                            <Text size="sm"><strong>Alignment:</strong> {lastOutput.statblock.alignment}</Text>
+                            <Text size="sm"><strong>AC:</strong> {lastOutput.statblock.armorClass}</Text>
+                            <Text size="sm"><strong>HP:</strong> {lastOutput.statblock.hitPoints} ({lastOutput.statblock.hitDice})</Text>
+                        </Group>
+                        
+                        {lastOutput.statblock.abilityScores && (
+                            <Group gap="md">
+                                <Badge variant="outline">STR {lastOutput.statblock.abilityScores.strength}</Badge>
+                                <Badge variant="outline">DEX {lastOutput.statblock.abilityScores.dexterity}</Badge>
+                                <Badge variant="outline">CON {lastOutput.statblock.abilityScores.constitution}</Badge>
+                                <Badge variant="outline">INT {lastOutput.statblock.abilityScores.intelligence}</Badge>
+                                <Badge variant="outline">WIS {lastOutput.statblock.abilityScores.wisdom}</Badge>
+                                <Badge variant="outline">CHA {lastOutput.statblock.abilityScores.charisma}</Badge>
+                            </Group>
+                        )}
+                        
+                        {lastOutput.statblock.actions && lastOutput.statblock.actions.length > 0 && (
+                            <div>
+                                <Text size="sm" fw={600} mb="xs">Actions:</Text>
+                                <Stack gap="xs">
+                                    {lastOutput.statblock.actions.slice(0, 3).map((action: { name: string; description: string }, i: number) => (
+                                        <Text key={i} size="xs" c="dimmed">
+                                            <strong>{action.name}:</strong> {action.description.substring(0, 100)}...
+                                        </Text>
+                                    ))}
+                                    {lastOutput.statblock.actions.length > 3 && (
+                                        <Text size="xs" c="dimmed">...and {lastOutput.statblock.actions.length - 3} more actions</Text>
+                                    )}
+                                </Stack>
+                            </div>
+                        )}
+                        
+                        {lastOutput.imagePrompt && (
+                            <div>
+                                <Text size="sm" fw={600}>Image Prompt:</Text>
+                                <Code block>{lastOutput.imagePrompt}</Code>
+                            </div>
+                        )}
+                    </Stack>
+                </Paper>
             )}
             {lastError && (
                 <Alert icon={<IconAlertCircle size={16} />} color="red" title="Last Error">
