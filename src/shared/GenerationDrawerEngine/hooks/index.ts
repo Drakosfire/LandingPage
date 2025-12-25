@@ -10,6 +10,6 @@ export { useImageLibrary } from './useImageLibrary';
 export type { UseImageLibraryConfig, UseImageLibraryReturn } from './useImageLibrary';
 export type { UseProgressReturn } from './useProgress';
 
-// Additional hooks will be exported in subsequent phases
-// export { useImageLibrary } from './useImageLibrary';
+export { useBackendHealth } from './useBackendHealth';
+export type { ServiceHealth, BackendHealthState, UseBackendHealthReturn } from './useBackendHealth';
 

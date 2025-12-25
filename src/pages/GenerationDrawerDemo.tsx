@@ -12,15 +12,17 @@
  * Access: Navigate to /generation-drawer-demo
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
     Button, Stack, Title, Text, Code, Paper, Textarea,
-    Checkbox, Badge, Group, Divider, Accordion, Alert
+    Checkbox, Badge, Group, Divider, Accordion, Alert, Switch, Loader,
+    ThemeIcon, Tooltip
 } from '@mantine/core';
-import { IconWand, IconPhoto, IconCheck, IconAlertCircle } from '@tabler/icons-react';
+import { IconWand, IconPhoto, IconCheck, IconAlertCircle, IconRefresh, IconPlugConnected, IconPlugConnectedX } from '@tabler/icons-react';
 import { GenerationDrawerEngine } from '../shared/GenerationDrawerEngine';
 import type { GenerationDrawerConfig, GenerationError } from '../shared/GenerationDrawerEngine';
 import { GenerationType } from '../shared/GenerationDrawerEngine';
+import { useBackendHealth } from '../shared/GenerationDrawerEngine/hooks/useBackendHealth';
 import type {
     StatBlockInput,
     StatBlockOutput
@@ -187,6 +189,32 @@ const MANUAL_TEST_CHECKLIST: ChecklistItem[] = [
         category: 'Console Verification',
         action: 'Open browser console, perform generation',
         expected: 'See logs: 🚀 start, ✅ complete with output object, 🎓 tutorial complete'
+    },
+
+    // Live Mode (requires backend running)
+    {
+        id: 'live-health-check',
+        category: 'Live Mode',
+        action: 'View backend status indicator in header',
+        expected: 'Shows "Online" (green) or "Offline" (red) based on backend availability'
+    },
+    {
+        id: 'live-toggle',
+        category: 'Live Mode',
+        action: 'Toggle "Live Mode" switch (when backend online)',
+        expected: 'Switch enables, drawer uses real API endpoints'
+    },
+    {
+        id: 'live-generate',
+        category: 'Live Mode',
+        action: 'In live mode, enter prompt and generate',
+        expected: 'Real generation occurs, actual statblock data returned (not mock)'
+    },
+    {
+        id: 'live-error-handling',
+        category: 'Live Mode',
+        action: 'In live mode, if backend returns error',
+        expected: 'Error display shows with retry option'
     }
 ];
 
@@ -235,10 +263,11 @@ const StatBlockInputForm: React.FC<{
 
 const createDemoConfig = (
     onComplete: (output: StatBlockOutput) => void,
-    onError: (error: GenerationError) => void
+    onError: (error: GenerationError) => void,
+    liveMode: boolean = false
 ): GenerationDrawerConfig<StatBlockInput, StatBlockOutput> => ({
     id: 'demo-statblock',
-    title: 'Generate StatBlock (Demo)',
+    title: liveMode ? 'Generate StatBlock (Live)' : 'Generate StatBlock (Demo)',
 
     tabs: [
         {
@@ -270,13 +299,27 @@ const createDemoConfig = (
         return { valid: true, errors: {} as Record<string, string> };
     },
 
-    generationEndpoint: '/api/demo/generate',
+    // Use real endpoint in live mode, demo endpoint otherwise
+    generationEndpoint: liveMode 
+        ? '/api/statblockgenerator/generate-statblock' 
+        : '/api/demo/generate',
     transformInput: (input: StatBlockInput) => ({
         description: input.description,
         name: input.name,
         challengeRating: input.challengeRating
     }),
-    transformOutput: (): StatBlockOutput => STATBLOCK_OUTPUT_EXAMPLE,
+    // In live mode, transform actual API response; in demo mode, return mock
+    transformOutput: liveMode 
+        ? (response: unknown): StatBlockOutput => {
+            // Real API response structure
+            const data = response as any;
+            return {
+                statblock: data.statblock || data,
+                imagePrompt: data.image_prompt || data.description,
+                images: []
+            };
+        }
+        : (): StatBlockOutput => STATBLOCK_OUTPUT_EXAMPLE,
 
     progressConfig: {
         [GenerationType.TEXT]: PROGRESS_CONFIG_EXAMPLE,
@@ -311,7 +354,8 @@ const createDemoConfig = (
     onGenerationComplete: onComplete,
     onGenerationError: onError,
 
-    tutorialConfig: {
+    // Only use tutorial config in demo mode (not live mode)
+    tutorialConfig: liveMode ? undefined : {
         simulatedDurationMs: 7000,
         mockAuthState: true,
         mockImages: [],
@@ -322,7 +366,8 @@ const createDemoConfig = (
 
     // State management - preserve state on close for testing
     resetOnClose: false,
-    isTutorialMode: true
+    // In live mode, use real API; in demo mode, use tutorial simulation
+    isTutorialMode: !liveMode
 });
 
 // =============================================================================
@@ -334,6 +379,10 @@ export default function GenerationDrawerDemo() {
     const [completedTests, setCompletedTests] = useState<Set<string>>(new Set());
     const [lastOutput, setLastOutput] = useState<StatBlockOutput | null>(null);
     const [lastError, setLastError] = useState<GenerationError | null>(null);
+    const [liveMode, setLiveMode] = useState(false);
+
+    // Backend health check
+    const { health, isChecking, checkHealth } = useBackendHealth(true, 0);
 
     const handleComplete = useCallback((output: StatBlockOutput) => {
         console.log('✅ Generation complete:', output);
@@ -363,7 +412,14 @@ export default function GenerationDrawerDemo() {
     const totalCount = MANUAL_TEST_CHECKLIST.length;
     const progress = Math.round((completedCount / totalCount) * 100);
 
-    const demoConfig = createDemoConfig(handleComplete, handleError);
+    // Create config with current mode (memoized to prevent unnecessary re-renders)
+    const demoConfig = useMemo(
+        () => createDemoConfig(handleComplete, handleError, liveMode),
+        [handleComplete, handleError, liveMode]
+    );
+
+    // Disable live mode toggle if backend is offline
+    const canEnableLiveMode = health.statblockgenerator.status === 'online';
 
     return (
         <Stack gap="xl" p="xl" maw={1200} mx="auto">
@@ -376,23 +432,101 @@ export default function GenerationDrawerDemo() {
                             Interactive checklist for manual verification
                         </Text>
                     </div>
-                    <Badge size="xl" variant="filled" color={progress === 100 ? 'green' : 'blue'}>
-                        {completedCount} / {totalCount} ({progress}%)
-                    </Badge>
+                    <Group gap="md">
+                        {/* Backend Status */}
+                        <Tooltip 
+                            label={
+                                health.statblockgenerator.status === 'online' 
+                                    ? 'Backend is running' 
+                                    : health.statblockgenerator.error || 'Backend not reachable'
+                            }
+                        >
+                            <Group gap="xs">
+                                {isChecking ? (
+                                    <Loader size="xs" />
+                                ) : (
+                                    <ThemeIcon 
+                                        size="sm" 
+                                        variant="light"
+                                        color={health.statblockgenerator.status === 'online' ? 'green' : 'red'}
+                                    >
+                                        {health.statblockgenerator.status === 'online' 
+                                            ? <IconPlugConnected size={14} />
+                                            : <IconPlugConnectedX size={14} />
+                                        }
+                                    </ThemeIcon>
+                                )}
+                                <Text size="sm" c={health.statblockgenerator.status === 'online' ? 'green' : 'red'}>
+                                    {health.statblockgenerator.status === 'online' ? 'Online' : 'Offline'}
+                                </Text>
+                                <Button 
+                                    variant="subtle" 
+                                    size="compact-xs" 
+                                    onClick={checkHealth}
+                                    loading={isChecking}
+                                    leftSection={<IconRefresh size={12} />}
+                                >
+                                    Refresh
+                                </Button>
+                            </Group>
+                        </Tooltip>
+                        
+                        <Badge size="xl" variant="filled" color={progress === 100 ? 'green' : 'blue'}>
+                            {completedCount} / {totalCount} ({progress}%)
+                        </Badge>
+                    </Group>
                 </Group>
             </div>
 
-            {/* Launch Button */}
+            {/* Mode Selection & Launch Button */}
             <Paper p="lg" withBorder shadow="sm">
                 <Stack gap="md">
-                    <Text fw={600} size="lg">Step 1: Open the Drawer</Text>
+                    <Group justify="space-between">
+                        <Text fw={600} size="lg">Step 1: Choose Mode & Open Drawer</Text>
+                        <Group gap="md">
+                            <Tooltip 
+                                label={
+                                    canEnableLiveMode 
+                                        ? 'Use real backend API' 
+                                        : 'Backend must be online to enable live mode'
+                                }
+                            >
+                                <Group gap="xs">
+                                    <Switch
+                                        checked={liveMode}
+                                        onChange={(e) => setLiveMode(e.currentTarget.checked)}
+                                        disabled={!canEnableLiveMode}
+                                        label="Live Mode"
+                                        color="green"
+                                    />
+                                    <Badge 
+                                        variant="light" 
+                                        color={liveMode ? 'green' : 'blue'}
+                                    >
+                                        {liveMode ? 'Real API' : 'Mock Data'}
+                                    </Badge>
+                                </Group>
+                            </Tooltip>
+                        </Group>
+                    </Group>
+                    
+                    {liveMode && (
+                        <Alert color="yellow" variant="light">
+                            <Text size="sm">
+                                <strong>Live Mode:</strong> Generation will use the real StatBlockGenerator API. 
+                                This may take 10-30 seconds and incurs API costs.
+                            </Text>
+                        </Alert>
+                    )}
+                    
                     <Group>
                         <Button
                             size="lg"
                             onClick={() => setOpened(true)}
                             leftSection={<IconWand size={20} />}
+                            color={liveMode ? 'green' : 'blue'}
                         >
-                            Open Generation Drawer
+                            Open Generation Drawer {liveMode ? '(Live)' : '(Demo)'}
                         </Button>
                         <Text c="dimmed" size="sm">
                             Then work through the checklist below
