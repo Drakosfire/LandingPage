@@ -3,11 +3,21 @@
  * 
  * Provides drag-and-drop and file picker interfaces for image uploads.
  * Validates file types and sizes before calling onUpload.
+ * Shows upload success feedback with recently uploaded files.
  */
 
 import React, { useCallback, useState, useRef } from 'react';
-import { Button, Text, Stack, Progress, Paper, Group } from '@mantine/core';
-import { IconUpload, IconPhoto } from '@tabler/icons-react';
+import { Button, Text, Stack, Progress, Paper, Group, Alert, Image, SimpleGrid, CloseButton } from '@mantine/core';
+import { IconUpload, IconPhoto, IconCheck, IconX } from '@tabler/icons-react';
+
+/** Recently uploaded file for feedback display */
+export interface RecentUpload {
+    id: string;
+    name: string;
+    url?: string;
+    status: 'pending' | 'success' | 'error';
+    error?: string;
+}
 
 export interface UploadZoneProps {
     /** Callback when files are uploaded */
@@ -24,6 +34,10 @@ export interface UploadZoneProps {
     isUploading?: boolean;
     /** Upload progress (0-100) */
     uploadProgress?: number;
+    /** Recently uploaded files for feedback */
+    recentUploads?: RecentUpload[];
+    /** Callback to clear a recent upload from the list */
+    onClearUpload?: (id: string) => void;
 }
 
 /**
@@ -36,7 +50,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
     acceptedTypes = ['image/jpeg', 'image/png', 'image/webp'],
     multiple = false,
     isUploading = false,
-    uploadProgress = 0
+    uploadProgress = 0,
+    recentUploads = [],
+    onClearUpload
 }) => {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -158,7 +174,73 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
             {isUploading && (
                 <Stack gap="xs">
                     <Text size="sm" c="dimmed">Uploading...</Text>
-                    <Progress value={uploadProgress} size="sm" />
+                    <Progress value={uploadProgress} size="sm" animated />
+                </Stack>
+            )}
+
+            {/* Recent uploads feedback */}
+            {recentUploads.length > 0 && (
+                <Stack gap="sm">
+                    <Text size="sm" fw={500}>Recently Uploaded</Text>
+                    <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
+                        {recentUploads.map((upload) => (
+                            <Paper
+                                key={upload.id}
+                                p="xs"
+                                withBorder
+                                style={{
+                                    position: 'relative',
+                                    borderColor: upload.status === 'success' 
+                                        ? 'var(--mantine-color-green-4)' 
+                                        : upload.status === 'error'
+                                        ? 'var(--mantine-color-red-4)'
+                                        : 'var(--mantine-color-gray-4)'
+                                }}
+                            >
+                                {onClearUpload && (
+                                    <CloseButton
+                                        size="xs"
+                                        style={{
+                                            position: 'absolute',
+                                            top: 4,
+                                            right: 4,
+                                            zIndex: 1
+                                        }}
+                                        onClick={() => onClearUpload(upload.id)}
+                                        aria-label="Remove"
+                                    />
+                                )}
+                                {upload.url && upload.status === 'success' && (
+                                    <Image
+                                        src={upload.url}
+                                        alt={upload.name}
+                                        h={80}
+                                        fit="cover"
+                                        radius="sm"
+                                    />
+                                )}
+                                <Group gap="xs" mt="xs">
+                                    {upload.status === 'success' && (
+                                        <IconCheck size={14} color="var(--mantine-color-green-6)" />
+                                    )}
+                                    {upload.status === 'error' && (
+                                        <IconX size={14} color="var(--mantine-color-red-6)" />
+                                    )}
+                                    {upload.status === 'pending' && (
+                                        <Progress size="xs" value={uploadProgress} w={50} />
+                                    )}
+                                    <Text size="xs" lineClamp={1} style={{ flex: 1 }}>
+                                        {upload.name}
+                                    </Text>
+                                </Group>
+                                {upload.error && (
+                                    <Text size="xs" c="red" mt="xs">
+                                        {upload.error}
+                                    </Text>
+                                )}
+                            </Paper>
+                        ))}
+                    </SimpleGrid>
                 </Stack>
             )}
         </Stack>

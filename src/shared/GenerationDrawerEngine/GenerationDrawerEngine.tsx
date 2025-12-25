@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Stack, Tabs } from '@mantine/core';
+import { Stack, Tabs, Text } from '@mantine/core';
 import type { GenerationDrawerEngineProps } from './types';
 import { DrawerShell } from './components/DrawerShell';
 import { TabsContainer } from './components/TabsContainer';
@@ -93,6 +93,15 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
+
+  // Recent uploads for feedback display
+  const [recentUploads, setRecentUploads] = useState<Array<{
+    id: string;
+    name: string;
+    url?: string;
+    status: 'pending' | 'success' | 'error';
+    error?: string;
+  }>>([]);
 
   // Generation start time for progress persistence across drawer close/reopen
   // Stored at engine level so ProgressPanel can resume from correct position
@@ -284,32 +293,97 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     }
   }, [selectedImageId, imageLibrary]);
 
-  // Handle file upload
+  // Handle file upload with feedback
   const handleFileUpload = useCallback(async (files: File[]) => {
-    if (!imageLibrary) return;
-
     for (const file of files) {
-      const uploadedImage = await imageLibrary.uploadFile(file);
-      if (uploadedImage) {
-        // Add to generated images (project gallery)
-        const generatedImage: GeneratedImage = {
-          id: uploadedImage.id,
-          url: uploadedImage.url,
-          prompt: uploadedImage.prompt,
-          createdAt: uploadedImage.createdAt || new Date().toISOString(),
-          sessionId: uploadedImage.sessionId || '',
-          service: uploadedImage.service || config.id
-        };
-        setGeneratedImages((prev) => [...prev, generatedImage]);
-        // Notify service
-        imageConfig?.onImageGenerated?.([generatedImage]);
+      const uploadId = `upload-${Date.now()}-${file.name}`;
+      
+      // Add pending upload to recent uploads for feedback
+      setRecentUploads((prev) => [
+        {
+          id: uploadId,
+          name: file.name,
+          status: 'pending'
+        },
+        ...prev.slice(0, 5) // Keep last 5 uploads
+      ]);
+
+      try {
+        let uploadedImage: GeneratedImage | null = null;
+
+        if (isTutorialMode || !imageLibrary) {
+          // Simulate upload in tutorial mode
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const objectUrl = URL.createObjectURL(file);
+          uploadedImage = {
+            id: uploadId,
+            url: objectUrl,
+            prompt: file.name,
+            createdAt: new Date().toISOString(),
+            sessionId: 'tutorial-session',
+            service: config.id
+          };
+        } else {
+          // Real upload via library hook
+          const result = await imageLibrary.uploadFile(file);
+          if (result) {
+            uploadedImage = {
+              id: result.id,
+              url: result.url,
+              prompt: result.prompt,
+              createdAt: result.createdAt || new Date().toISOString(),
+              sessionId: result.sessionId || '',
+              service: result.service || config.id
+            };
+          }
+        }
+
+        if (uploadedImage) {
+          // Update recent uploads with success
+          setRecentUploads((prev) =>
+            prev.map((u) =>
+              u.id === uploadId
+                ? { ...u, status: 'success' as const, url: uploadedImage!.url }
+                : u
+            )
+          );
+
+          // Add to generated images (project gallery)
+          setGeneratedImages((prev) => [...prev, uploadedImage!]);
+          
+          // Notify service
+          imageConfig?.onImageGenerated?.([uploadedImage]);
+          
+          console.log('✅ [GenerationDrawer] Upload success:', uploadedImage.url);
+        } else {
+          throw new Error('Upload failed - no image returned');
+        }
+      } catch (err) {
+        // Update recent uploads with error
+        setRecentUploads((prev) =>
+          prev.map((u) =>
+            u.id === uploadId
+              ? {
+                  ...u,
+                  status: 'error' as const,
+                  error: err instanceof Error ? err.message : 'Upload failed'
+                }
+              : u
+          )
+        );
+        console.error('❌ [GenerationDrawer] Upload error:', err);
       }
     }
-  }, [imageLibrary, imageConfig]);
+  }, [imageLibrary, imageConfig, isTutorialMode, config.id]);
+
+  // Clear a recent upload from the list
+  const handleClearUpload = useCallback((uploadId: string) => {
+    setRecentUploads((prev) => prev.filter((u) => u.id !== uploadId));
+  }, []);
 
   // Handle upload error
   const handleUploadError = useCallback((error: string) => {
-    console.error('❌ [GenerationDrawer] Upload error:', error);
+    console.error('❌ [GenerationDrawer] Upload validation error:', error);
     // Could show toast notification here
   }, []);
 
@@ -412,29 +486,54 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                 )}
 
                 {/* Upload Tab */}
-                {tab.id === 'upload' && imageLibrary && (
+                {tab.id === 'upload' && (
                   <AuthGate isTutorialMode={isTutorialMode}>
                     <UploadZone
                       onUpload={handleFileUpload}
                       onError={handleUploadError}
-                      isUploading={imageLibrary.isLoading}
+                      isUploading={imageLibrary?.isLoading || false}
+                      recentUploads={recentUploads}
+                      onClearUpload={handleClearUpload}
                     />
                   </AuthGate>
                 )}
 
                 {/* Library Tab */}
-                {tab.id === 'library' && imageLibrary && (
+                {tab.id === 'library' && (
                   <AuthGate isTutorialMode={isTutorialMode}>
-                    <LibraryBrowser
-                      images={imageLibrary.images}
-                      onAddToProject={handleAddFromLibrary}
-                      onDelete={handleImageDelete}
-                      isLoading={imageLibrary.isLoading}
-                      currentPage={imageLibrary.currentPage}
-                      totalPages={imageLibrary.totalPages}
-                      onPageChange={imageLibrary.changePage}
-                    />
+                    {isTutorialMode ? (
+                      // In tutorial mode, show project gallery as the "library"
+                      <ProjectGallery
+                        images={generatedImages}
+                        selectedImageId={selectedImageId}
+                        onImageClick={handleImageClick}
+                        onImageSelect={handleImageSelect}
+                      />
+                    ) : imageLibrary ? (
+                      <LibraryBrowser
+                        images={imageLibrary.images}
+                        onAddToProject={handleAddFromLibrary}
+                        onDelete={handleImageDelete}
+                        isLoading={imageLibrary.isLoading}
+                        currentPage={imageLibrary.currentPage}
+                        totalPages={imageLibrary.totalPages}
+                        onPageChange={imageLibrary.changePage}
+                      />
+                    ) : null}
                   </AuthGate>
+                )}
+
+                {/* Show Project Gallery below upload zone when there are images */}
+                {tab.id === 'upload' && generatedImages.length > 0 && (
+                  <Stack gap="md" mt="md">
+                    <Text size="sm" fw={500}>Uploaded Images</Text>
+                    <ProjectGallery
+                      images={generatedImages}
+                      selectedImageId={selectedImageId}
+                      onImageClick={handleImageClick}
+                      onImageSelect={handleImageSelect}
+                    />
+                  </Stack>
                 )}
               </Stack>
             </Tabs.Panel>

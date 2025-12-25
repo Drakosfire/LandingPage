@@ -41,7 +41,7 @@ export function useProgress(
       // Use persisted start time if available (for continuity across remounts)
       startTimeRef.current = persistedStartTime || Date.now();
       completedRef.current = false;
-      
+
       // Calculate initial progress if resuming from persisted time
       if (persistedStartTime && config) {
         const elapsed = Date.now() - persistedStartTime;
