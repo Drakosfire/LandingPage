@@ -48,6 +48,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     generationEndpoint,
     imageGenerationEndpoint,
     transformInput,
+    imageTransformInput,
     transformOutput,
     onGenerationStart,
     onGenerationComplete: configOnGenerationComplete,
@@ -241,12 +242,16 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       onGenerationStart?.();
 
       try {
-        // Use image endpoint for image generation, otherwise default endpoint
-        const endpointOverride = activeGenerationType === GenerationType.IMAGE && imageGenerationEndpoint
+        // Use image endpoint and transform for image generation
+        const isImageGeneration = activeGenerationType === GenerationType.IMAGE;
+        const endpointOverride = isImageGeneration && imageGenerationEndpoint
           ? imageGenerationEndpoint
           : undefined;
+        const transformOverride = isImageGeneration && imageTransformInput
+          ? imageTransformInput
+          : undefined;
         
-        const output = await generation.generate(inputValue, { endpointOverride });
+        const output = await generation.generate(inputValue, { endpointOverride, transformOverride });
 
         // Clear start time on completion
         generationStartTimeRef.current = null;

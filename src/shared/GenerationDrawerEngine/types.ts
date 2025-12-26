@@ -286,8 +286,10 @@ export interface GenerationDrawerConfig<TInput, TOutput> {
     generationEndpoint: string;
     /** API endpoint for image generation (POST) - defaults to generationEndpoint if not set */
     imageGenerationEndpoint?: string;
-    /** Transform input for API request body */
+    /** Transform input for API request body (text generation) */
     transformInput: (input: TInput) => Record<string, unknown>;
+    /** Transform input for image generation API request body - defaults to transformInput if not set */
+    imageTransformInput?: (input: TInput) => Record<string, unknown>;
     /** Transform API response to output type */
     transformOutput: (response: unknown) => TOutput;
 

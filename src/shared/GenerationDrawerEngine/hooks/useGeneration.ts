@@ -27,6 +27,8 @@ export interface UseGenerationConfig<TInput, TOutput> {
 export interface GenerateOptions {
   /** Override the default endpoint for this generation */
   endpointOverride?: string;
+  /** Override the transform function for this generation */
+  transformOverride?: (input: unknown) => Record<string, unknown>;
 }
 
 export interface UseGenerationReturn<TInput, TOutput> {
@@ -158,8 +160,9 @@ export function useGeneration<TInput, TOutput>(
       try {
         setIsGenerating(true);
 
-        // Transform input
-        const requestBody = config.transformInput(input);
+        // Transform input (use override if provided)
+        const transformer = options?.transformOverride || config.transformInput;
+        const requestBody = transformer(input);
 
         // Make API call - use endpoint override if provided
         const baseEndpoint = options?.endpointOverride || config.generationEndpoint;

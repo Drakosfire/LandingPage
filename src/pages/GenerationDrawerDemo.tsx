@@ -454,6 +454,16 @@ const createDemoConfig = (
         name: input.name,
         challengeRating: input.challengeRating
     }),
+    // Image generation needs different format for live vs demo endpoints
+    imageTransformInput: liveMode 
+        ? (input: StatBlockInput) => ({
+            sd_prompt: input.description,  // Real endpoint expects sd_prompt
+            num_images: 1,
+            model: 'flux-pro'
+        })
+        : (input: StatBlockInput) => ({
+            description: input.description  // Demo endpoint accepts description
+        }),
     // In live mode, transform actual API response; in demo mode, return mock
     transformOutput: liveMode 
         ? (response: unknown): StatBlockOutput => {
