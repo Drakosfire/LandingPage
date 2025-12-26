@@ -42,6 +42,8 @@ export interface UseImageLibraryReturn {
     total: number;
     /** Upload a file */
     uploadFile: (file: File) => Promise<SessionImage | null>;
+    /** Add images to local state (for generated images) */
+    addImages: (newImages: SessionImage[]) => void;
     /** Delete an image */
     deleteImage: (imageId: string) => Promise<void>;
     /** Change page */
@@ -257,6 +259,21 @@ export function useImageLibrary(
         await fetchLibrary(currentPage);
     }, [fetchLibrary, currentPage]);
 
+    /**
+     * Add images to local state (for generated images)
+     * Adds to the beginning of the list (most recent first)
+     */
+    const addImages = useCallback((newImages: SessionImage[]) => {
+        setImages(prev => {
+            // Deduplicate by id
+            const existingIds = new Set(prev.map(img => img.id));
+            const uniqueNew = newImages.filter(img => !existingIds.has(img.id));
+            console.log('📸 [ImageLibrary] Adding', uniqueNew.length, 'new images to library');
+            return [...uniqueNew, ...prev];
+        });
+        setTotal(prev => prev + newImages.length);
+    }, []);
+
     // Fetch on mount and when dependencies change
     useEffect(() => {
         fetchLibrary(1);
@@ -270,6 +287,7 @@ export function useImageLibrary(
         totalPages,
         total,
         uploadFile,
+        addImages,
         deleteImage,
         changePage,
         refresh

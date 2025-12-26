@@ -276,9 +276,12 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               service: config.id
             };
             
+            // Add to project gallery
             setGeneratedImages((prev) => [...prev, mockImage]);
+            // Add to library as well
+            imageLibrary.addImages([mockImage]);
             imageConfig?.onImageGenerated?.([mockImage]);
-            console.log('📸 [Tutorial] Mock image generated:', mockImage);
+            console.log('📸 [Tutorial] Mock image generated and added to library:', mockImage);
           } else {
             // In live mode, extract images from API response
             // API returns: { success: true, data: { images: [...] } }
@@ -308,9 +311,12 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                 sessionId: img.sessionId || imageConfig?.sessionId || '',
                 service: img.service || config.id
               }));
+              // Add to project gallery
               setGeneratedImages((prev) => [...prev, ...newImages]);
+              // Add to library as well
+              imageLibrary.addImages(newImages);
               imageConfig?.onImageGenerated?.(newImages);
-              console.log('📸 [Live] Images added to gallery:', newImages);
+              console.log('📸 [Live] Images added to gallery and library:', newImages);
             } else {
               console.warn('📸 [Live] No images found in response:', outputObj);
             }
