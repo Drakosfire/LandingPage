@@ -10,7 +10,7 @@ import { Stack, Tabs, Text, Divider, Paper } from '@mantine/core';
 import type { GenerationDrawerEngineProps } from './types';
 import { DrawerShell } from './components/DrawerShell';
 import { TabsContainer } from './components/TabsContainer';
-import { GenerationPanel } from './components/GenerationPanel';
+import { GenerationPanel, type ImageGenerationOptions } from './components/GenerationPanel';
 import { ProjectGallery } from './components/ProjectGallery';
 import { ImageModal } from './components/ImageModal';
 import { UploadZone } from './components/UploadZone';
@@ -19,7 +19,7 @@ import { AuthGate } from './components/AuthGate';
 import { ExamplesBar } from './components/ExamplesBar';
 import { useGeneration } from './hooks/useGeneration';
 import { useImageLibrary } from './hooks/useImageLibrary';
-import { GenerationType, type GeneratedImage } from './types';
+import { GenerationType, type GeneratedImage, type ImageGenerationStyle } from './types';
 
 /**
  * Main orchestrating component for the generation drawer engine.
@@ -108,6 +108,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   // Generation start time for progress persistence across drawer close/reopen
   // Stored at engine level so ProgressPanel can resume from correct position
   const generationStartTimeRef = useRef<number | null>(null);
+
+  // Image generation options selected by user (model, style, numImages)
+  const imageOptionsRef = useRef<ImageGenerationOptions>({});
 
   // Determine if in tutorial mode (props takes precedence over config)
   const isTutorialMode = propsTutorialMode ?? configTutorialMode ?? Boolean(tutorialConfig);
@@ -233,6 +236,18 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     [activeTab]
   );
 
+  // Callback for GenerationPanel to report image option changes
+  const handleImageOptionsChange = useCallback((options: ImageGenerationOptions) => {
+    imageOptionsRef.current = options;
+  }, []);
+
+  // Build style suffix from selected style
+  const getStyleSuffix = useCallback((styleId: string | undefined): string => {
+    if (!styleId || !imageConfig?.styles) return '';
+    const style = imageConfig.styles.find((s: ImageGenerationStyle) => s.id === styleId);
+    return style?.suffix || '';
+  }, [imageConfig?.styles]);
+
   // Handle generation
   const handleGenerate = useCallback(
     async (inputValue: TInput) => {
@@ -247,9 +262,49 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         const endpointOverride = isImageGeneration && imageGenerationEndpoint
           ? imageGenerationEndpoint
           : undefined;
-        const transformOverride = isImageGeneration && imageTransformInput
+        
+        // For image generation, create a wrapper transform that includes selected options
+        let transformOverride = isImageGeneration && imageTransformInput
           ? imageTransformInput
           : undefined;
+        
+        if (isImageGeneration && transformOverride) {
+          const originalTransform = transformOverride;
+          const imageOptions = imageOptionsRef.current;
+          const styleSuffix = getStyleSuffix(imageOptions.style);
+          
+          transformOverride = (input: TInput) => {
+            const baseResult = originalTransform(input);
+            
+            // Merge in the selected image options
+            const mergedResult: Record<string, unknown> = { ...baseResult };
+            
+            // Add model if selected
+            if (imageOptions.model) {
+              mergedResult.model = imageOptions.model;
+            }
+            
+            // Add num_images if selected and > 1
+            if (imageOptions.numImages && imageOptions.numImages > 0) {
+              mergedResult.num_images = imageOptions.numImages;
+            }
+            
+            // Apply style suffix to prompt if style is selected
+            if (styleSuffix && mergedResult.sd_prompt) {
+              mergedResult.sd_prompt = `${mergedResult.sd_prompt}, ${styleSuffix}`;
+            }
+            
+            console.log('📸 [GenerationDrawer] Image generation request:', {
+              model: mergedResult.model,
+              num_images: mergedResult.num_images,
+              style: imageOptions.style,
+              hasStyleSuffix: !!styleSuffix
+            });
+            
+            return mergedResult;
+          };
+        }
+        
         // Skip transformOutput for image generation - we need raw response to extract images
         const skipTransform = isImageGeneration;
         
@@ -331,7 +386,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         onGenerationError?.(generation.error!);
       }
     },
-    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id, imageGenerationEndpoint]
+    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id, imageGenerationEndpoint, imageTransformInput, getStyleSuffix, imageLibrary]
   );
 
   // Handle image gallery interactions
@@ -550,6 +605,14 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     progressConfig={currentProgressConfig}
                     generationType={tab.generationType}
                     persistedStartTime={generationStartTimeRef.current}
+                    // Image generation options (only used for IMAGE type)
+                    models={imageConfig?.models}
+                    defaultModel={imageConfig?.defaultModel}
+                    styles={imageConfig?.styles}
+                    defaultStyle={imageConfig?.defaultStyle}
+                    maxImages={imageConfig?.maxImages}
+                    defaultNumImages={imageConfig?.defaultNumImages}
+                    onImageOptionsChange={handleImageOptionsChange}
                   />
                 )}
 

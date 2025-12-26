@@ -19,10 +19,16 @@ export type {
   ValidationResult,
   InputSlotProps,
   OutputSlotProps,
-  ImageConfig
+  ImageConfig,
+  // Dynamic image capabilities types
+  ImageGenerationModel,
+  ImageGenerationStyle
 } from './types';
 
 export { GenerationType, ErrorCode } from './types';
+
+// Image generation options (from GenerationPanel)
+export type { ImageGenerationOptions } from './components/GenerationPanel';
 
 // Main Component (will be implemented in Phase 2)
 export { GenerationDrawerEngine } from './GenerationDrawerEngine';

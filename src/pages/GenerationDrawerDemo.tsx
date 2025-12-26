@@ -455,14 +455,13 @@ const createDemoConfig = (
         challengeRating: input.challengeRating
     }),
     // Image generation needs different format for live vs demo endpoints
+    // Note: model, num_images, and style suffix are merged by the engine from UI selections
     imageTransformInput: liveMode 
         ? (input: StatBlockInput) => ({
-            sd_prompt: input.description,  // Real endpoint expects sd_prompt
-            num_images: 1,
-            model: 'flux-pro'
+            sd_prompt: input.description  // Real endpoint expects sd_prompt (model/num_images added by engine)
         })
         : (input: StatBlockInput) => ({
-            description: input.description  // Demo endpoint accepts description
+            sd_prompt: input.description  // Demo endpoint - engine will add style suffix
         }),
     // In live mode, transform actual API response; in demo mode, return mock
     transformOutput: liveMode 
@@ -501,7 +500,25 @@ const createDemoConfig = (
         },
         onImageSelected: (url, index) => {
             console.log('🖼️ Image selected:', url, index);
-        }
+        },
+        // Dynamic image capabilities
+        models: [
+            { id: 'flux-pro', name: 'FLUX Pro', description: 'High quality, balanced speed', default: true },
+            { id: 'imagen4', name: 'Imagen 4', description: "Google's model, premium quality" },
+            { id: 'openai', name: 'OpenAI GPT-Image', description: 'Fast, cost-effective' }
+        ],
+        defaultModel: 'flux-pro',
+        styles: [
+            { id: 'classic_dnd', name: 'Classic D&D', suffix: 'in the style of classic Dungeons & Dragons art, detailed fantasy illustration', default: true },
+            { id: 'oil_painting', name: 'Oil Painting', suffix: 'oil painting, traditional fantasy art, detailed brushwork' },
+            { id: 'fantasy_book', name: 'Fantasy Book Cover', suffix: 'epic fantasy book cover art, dramatic lighting, cinematic composition' },
+            { id: 'dark_gothic', name: 'Dark Gothic', suffix: 'dark gothic fantasy art, dramatic shadows, moody atmosphere' },
+            { id: 'anime', name: 'Anime Style', suffix: 'anime fantasy art, vibrant colors, dynamic pose' },
+            { id: 'realistic', name: 'Photorealistic', suffix: 'photorealistic fantasy creature, highly detailed, 8k resolution' }
+        ],
+        defaultStyle: 'classic_dnd',
+        maxImages: 4,
+        defaultNumImages: 4
     },
 
     onGenerationStart: () => {

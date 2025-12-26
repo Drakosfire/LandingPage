@@ -204,6 +204,38 @@ export interface OutputSlotProps<TOutput> {
 // =============================================================================
 
 /**
+ * Available image generation model.
+ * Services provide these from backend capabilities endpoint.
+ */
+export interface ImageGenerationModel {
+    /** Unique model identifier (e.g., 'flux-pro', 'imagen4', 'openai') */
+    id: string;
+    /** Display name */
+    name: string;
+    /** Optional description for tooltip/help text */
+    description?: string;
+    /** Whether this is the default model */
+    default?: boolean;
+    /** Optional tier for access control (e.g., 'free', 'pro') */
+    tier?: 'free' | 'pro';
+}
+
+/**
+ * Available image generation style.
+ * Services provide these from backend capabilities or local constants.
+ */
+export interface ImageGenerationStyle {
+    /** Unique style identifier */
+    id: string;
+    /** Display name */
+    name: string;
+    /** Suffix appended to prompt when this style is selected */
+    suffix?: string;
+    /** Whether this is the default style */
+    default?: boolean;
+}
+
+/**
  * Image generation configuration.
  * @typeParam TOutput - The output type that contains image prompt
  */
@@ -228,6 +260,23 @@ export interface ImageConfig<TOutput> {
     acceptedUploadTypes?: string[];
     /** Allow multiple file uploads at once (default: false) */
     allowMultipleUploads?: boolean;
+    
+    // === Dynamic Capabilities ===
+    
+    /** Available models from backend (enables model selector UI) */
+    models?: ImageGenerationModel[];
+    /** Default model ID (uses first model or model with default:true if not set) */
+    defaultModel?: string;
+    
+    /** Available styles from backend/config (enables style selector UI) */
+    styles?: ImageGenerationStyle[];
+    /** Default style ID (uses first style or style with default:true if not set) */
+    defaultStyle?: string;
+    
+    /** Maximum number of images per generation (enables num_images selector if > 1) */
+    maxImages?: number;
+    /** Default number of images to generate */
+    defaultNumImages?: number;
 }
 
 // =============================================================================
