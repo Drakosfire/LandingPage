@@ -11,13 +11,22 @@ import { ErrorCode, type GenerationError } from '../types';
 
 export interface UseGenerationConfig<TInput, TOutput> {
   generationEndpoint: string;
+  /** Optional separate endpoint for image generation */
+  imageGenerationEndpoint?: string;
   transformInput: (input: TInput) => Record<string, unknown>;
   transformOutput: (response: unknown) => TOutput;
   timeout?: number;
   tutorialConfig?: {
     mockData?: TOutput; // Optional mock data for tutorial mode
     simulatedDurationMs?: number;
+    /** If false, hit real API even in tutorial mode (default: true) */
+    simulateGeneration?: boolean;
   };
+}
+
+export interface GenerateOptions {
+  /** Override the default endpoint for this generation */
+  endpointOverride?: string;
 }
 
 export interface UseGenerationReturn<TInput, TOutput> {
@@ -25,8 +34,8 @@ export interface UseGenerationReturn<TInput, TOutput> {
   isGenerating: boolean;
   /** Current error (if any) */
   error: GenerationError | null;
-  /** Generate function */
-  generate: (input: TInput) => Promise<TOutput>;
+  /** Generate function - accepts optional endpoint override */
+  generate: (input: TInput, options?: GenerateOptions) => Promise<TOutput>;
   /** Clear error */
   clearError: () => void;
 }
@@ -93,12 +102,17 @@ export function useGeneration<TInput, TOutput>(
 
   // Generate function
   const generate = useCallback(
-    async (input: TInput): Promise<TOutput> => {
+    async (input: TInput, options?: GenerateOptions): Promise<TOutput> => {
       // Clear previous error
       setError(null);
 
-      // Tutorial mode: simulate delay and return mock data
-      if (isTutorialMode && config.tutorialConfig) {
+      // Tutorial mode with simulation: simulate delay and return mock data
+      // Skip simulation if simulateGeneration is explicitly false
+      const shouldSimulate = isTutorialMode && 
+        config.tutorialConfig && 
+        config.tutorialConfig.simulateGeneration !== false;
+      
+      if (shouldSimulate) {
         setIsGenerating(true);
         const { mockData, simulatedDurationMs = 7000 } = config.tutorialConfig;
 
@@ -147,10 +161,11 @@ export function useGeneration<TInput, TOutput>(
         // Transform input
         const requestBody = config.transformInput(input);
 
-        // Make API call
-        const endpoint = config.generationEndpoint.startsWith('http')
-          ? config.generationEndpoint
-          : `${DUNGEONMIND_API_URL}${config.generationEndpoint}`;
+        // Make API call - use endpoint override if provided
+        const baseEndpoint = options?.endpointOverride || config.generationEndpoint;
+        const endpoint = baseEndpoint.startsWith('http')
+          ? baseEndpoint
+          : `${DUNGEONMIND_API_URL}${baseEndpoint}`;
 
         const response = await fetch(endpoint, {
           method: 'POST',

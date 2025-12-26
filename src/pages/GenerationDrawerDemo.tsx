@@ -443,6 +443,10 @@ const createDemoConfig = (
     generationEndpoint: liveMode 
         ? '/api/statblockgenerator/generate-statblock' 
         : '/api/demo/generate',
+    // Image generation endpoint (demo always uses demo endpoint for images)
+    imageGenerationEndpoint: liveMode 
+        ? '/api/statblockgenerator/generate-image'
+        : '/api/demo/generate-image',
     transformInput: (input: StatBlockInput) => ({
         description: input.description,
         name: input.name,
@@ -494,28 +498,15 @@ const createDemoConfig = (
     onGenerationComplete: onComplete,
     onGenerationError: onError,
 
-    // Only use tutorial config in demo mode (not live mode)
+    // Tutorial config for auth bypass and mock images
+    // In demo mode: hit real demo API endpoints (simulateGeneration: false)
+    // In live mode: no tutorial config
     tutorialConfig: liveMode ? undefined : {
         simulatedDurationMs: 7000,
         mockAuthState: true,
-        mockImages: [
-            {
-                id: 'demo-img-1',
-                url: 'https://placehold.co/512x512/7c3aed/ffffff?text=Dragon',
-                prompt: 'A fearsome red dragon',
-                createdAt: '2025-12-20T10:00:00Z',
-                sessionId: 'demo-session',
-                service: 'demo-statblock'
-            },
-            {
-                id: 'demo-img-2',
-                url: 'https://placehold.co/512x512/059669/ffffff?text=Goblin',
-                prompt: 'A sneaky goblin rogue',
-                createdAt: '2025-12-21T11:00:00Z',
-                sessionId: 'demo-session',
-                service: 'demo-statblock'
-            }
-        ],
+        // Hit real demo API instead of simulating locally
+        simulateGeneration: false,
+        mockImages: [],  // Images come from initialImages prop or API
         onTutorialComplete: () => {
             console.log('🎓 Tutorial complete');
         }
@@ -523,8 +514,8 @@ const createDemoConfig = (
 
     // State management - preserve state on close for testing
     resetOnClose: false,
-    // In live mode, use real API; in demo mode, use tutorial simulation
-    isTutorialMode: !liveMode
+    // Config-level isTutorialMode is used as default, but prop can override
+    isTutorialMode: false
 });
 
 // =============================================================================
@@ -849,6 +840,25 @@ export default function GenerationDrawerDemo() {
                 config={demoConfig}
                 opened={opened}
                 onClose={() => setOpened(false)}
+                initialImages={[
+                    {
+                        id: 'demo-img-1',
+                        url: 'https://placehold.co/512x512/7c3aed/ffffff?text=Dragon',
+                        prompt: 'A fearsome red dragon',
+                        createdAt: '2025-12-20T10:00:00Z',
+                        sessionId: 'demo-session',
+                        service: 'demo-statblock'
+                    },
+                    {
+                        id: 'demo-img-2',
+                        url: 'https://placehold.co/512x512/059669/ffffff?text=Goblin',
+                        prompt: 'A sneaky goblin rogue',
+                        createdAt: '2025-12-21T11:00:00Z',
+                        sessionId: 'demo-session',
+                        service: 'demo-statblock'
+                    }
+                ]}
+                isTutorialMode={!liveMode}
             />
         </Stack>
     );

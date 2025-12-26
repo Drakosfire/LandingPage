@@ -132,6 +132,11 @@ export interface TutorialConfig {
     simulatedDurationMs?: number;
     /** Callback when tutorial simulation completes */
     onTutorialComplete?: () => void;
+    /** 
+     * If true, simulate generation locally without API calls (default: true)
+     * If false, hit real API endpoints but still bypass auth
+     */
+    simulateGeneration?: boolean;
 }
 
 /**
@@ -277,8 +282,10 @@ export interface GenerationDrawerConfig<TInput, TOutput> {
     validateInput?: (input: TInput) => ValidationResult;
 
     // === Generation ===
-    /** API endpoint for generation (POST) */
+    /** API endpoint for text generation (POST) */
     generationEndpoint: string;
+    /** API endpoint for image generation (POST) - defaults to generationEndpoint if not set */
+    imageGenerationEndpoint?: string;
     /** Transform input for API request body */
     transformInput: (input: TInput) => Record<string, unknown>;
     /** Transform API response to output type */

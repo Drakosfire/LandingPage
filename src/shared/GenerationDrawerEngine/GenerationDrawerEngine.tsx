@@ -46,6 +46,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     tutorialConfig,
     validateInput,
     generationEndpoint,
+    imageGenerationEndpoint,
     transformInput,
     transformOutput,
     onGenerationStart,
@@ -128,7 +129,8 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       tutorialConfig: tutorialConfig
         ? {
           mockData: tutorialConfig.mockData as TOutput | undefined,
-          simulatedDurationMs: tutorialConfig.simulatedDurationMs || 7000
+          simulatedDurationMs: tutorialConfig.simulatedDurationMs || 7000,
+          simulateGeneration: tutorialConfig.simulateGeneration
         }
         : undefined
     },
@@ -136,14 +138,15 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   );
 
   // Setup image library hook - always call to satisfy React hooks rules
-  // Disable API calls in tutorial mode (uses local simulation instead)
+  // Only disable if simulating (simulateGeneration !== false means simulate)
+  const shouldSimulateLibrary = isTutorialMode && tutorialConfig?.simulateGeneration !== false;
   const imageLibrary = useImageLibrary({
     libraryEndpoint: imageConfig?.libraryEndpoint || '/api/images/library',
     uploadEndpoint: imageConfig?.uploadEndpoint || '/api/images/upload',
     deleteEndpoint: imageConfig?.deleteEndpoint || imageConfig?.libraryEndpoint || '/api/images/delete',
     sessionId: imageConfig?.sessionId,
     service: config.id,
-    disabled: isTutorialMode
+    disabled: shouldSimulateLibrary
   });
 
   // Track previous opened state for close detection
@@ -238,7 +241,12 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       onGenerationStart?.();
 
       try {
-        const output = await generation.generate(inputValue);
+        // Use image endpoint for image generation, otherwise default endpoint
+        const endpointOverride = activeGenerationType === GenerationType.IMAGE && imageGenerationEndpoint
+          ? imageGenerationEndpoint
+          : undefined;
+        
+        const output = await generation.generate(inputValue, { endpointOverride });
 
         // Clear start time on completion
         generationStartTimeRef.current = null;
@@ -289,7 +297,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         onGenerationError?.(generation.error!);
       }
     },
-    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id]
+    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id, imageGenerationEndpoint]
   );
 
   // Handle image gallery interactions
