@@ -23,6 +23,8 @@ import { GenerationDrawerEngine } from '../shared/GenerationDrawerEngine';
 import type { GenerationDrawerConfig, GenerationError } from '../shared/GenerationDrawerEngine';
 import { GenerationType } from '../shared/GenerationDrawerEngine';
 import { useBackendHealth } from '../shared/GenerationDrawerEngine/hooks/useBackendHealth';
+import { UnifiedHeader } from '../components/UnifiedHeader';
+import { useAuth } from '../context/AuthContext';
 import type {
     StatBlockInput,
     StatBlockOutput
@@ -529,6 +531,9 @@ export default function GenerationDrawerDemo() {
     const [lastError, setLastError] = useState<GenerationError | null>(null);
     const [liveMode, setLiveMode] = useState(false);
 
+    // Auth state (for warning message)
+    const { isAuthenticated } = useAuth();
+
     // Backend health check
     const { health, isChecking, checkHealth } = useBackendHealth(true, 0);
 
@@ -570,61 +575,73 @@ export default function GenerationDrawerDemo() {
     const canEnableLiveMode = health.statblockgenerator.status === 'online';
 
     return (
-        <Stack gap="xl" p="xl" maw={1200} mx="auto">
-            {/* Header */}
-            <div>
-                <Group justify="space-between" align="start">
-                    <div>
-                        <Title order={1}>Generation Drawer Engine - Manual Test</Title>
-                        <Text c="dimmed" mt="xs">
-                            Interactive checklist for manual verification
-                        </Text>
-                    </div>
-                    <Group gap="md">
-                        {/* Backend Status */}
-                        <Tooltip 
-                            label={
-                                health.statblockgenerator.status === 'online' 
-                                    ? 'Backend is running' 
-                                    : health.statblockgenerator.error || 'Backend not reachable'
-                            }
-                        >
-                            <Group gap="xs">
-                                {isChecking ? (
-                                    <Loader size="xs" />
-                                ) : (
-                                    <ThemeIcon 
-                                        size="sm" 
-                                        variant="light"
-                                        color={health.statblockgenerator.status === 'online' ? 'green' : 'red'}
+        <>
+            {/* Unified Header with Auth */}
+            <UnifiedHeader 
+                app={{
+                    id: 'demo',
+                    name: 'Generation Drawer Demo',
+                    path: '/generation-drawer-demo',
+                    color: 'violet'
+                }}
+                showAuth={true}
+            />
+            
+            <Stack gap="xl" p="xl" maw={1200} mx="auto" mt="md">
+                {/* Page Header */}
+                <div>
+                    <Group justify="space-between" align="start">
+                        <div>
+                            <Title order={2}>Manual Test Checklist</Title>
+                            <Text c="dimmed" mt="xs">
+                                Interactive verification for the Generation Drawer Engine
+                            </Text>
+                        </div>
+                        <Group gap="md">
+                            {/* Backend Status */}
+                            <Tooltip 
+                                label={
+                                    health.statblockgenerator.status === 'online' 
+                                        ? 'Backend is running' 
+                                        : health.statblockgenerator.error || 'Backend not reachable'
+                                }
+                            >
+                                <Group gap="xs">
+                                    {isChecking ? (
+                                        <Loader size="xs" />
+                                    ) : (
+                                        <ThemeIcon 
+                                            size="sm" 
+                                            variant="light"
+                                            color={health.statblockgenerator.status === 'online' ? 'green' : 'red'}
+                                        >
+                                            {health.statblockgenerator.status === 'online' 
+                                                ? <IconPlugConnected size={14} />
+                                                : <IconPlugConnectedX size={14} />
+                                            }
+                                        </ThemeIcon>
+                                    )}
+                                    <Text size="sm" c={health.statblockgenerator.status === 'online' ? 'green' : 'red'}>
+                                        {health.statblockgenerator.status === 'online' ? 'Online' : 'Offline'}
+                                    </Text>
+                                    <Button 
+                                        variant="subtle" 
+                                        size="compact-xs" 
+                                        onClick={checkHealth}
+                                        loading={isChecking}
+                                        leftSection={<IconRefresh size={12} />}
                                     >
-                                        {health.statblockgenerator.status === 'online' 
-                                            ? <IconPlugConnected size={14} />
-                                            : <IconPlugConnectedX size={14} />
-                                        }
-                                    </ThemeIcon>
-                                )}
-                                <Text size="sm" c={health.statblockgenerator.status === 'online' ? 'green' : 'red'}>
-                                    {health.statblockgenerator.status === 'online' ? 'Online' : 'Offline'}
-                                </Text>
-                                <Button 
-                                    variant="subtle" 
-                                    size="compact-xs" 
-                                    onClick={checkHealth}
-                                    loading={isChecking}
-                                    leftSection={<IconRefresh size={12} />}
-                                >
-                                    Refresh
-                                </Button>
-                            </Group>
-                        </Tooltip>
-                        
-                        <Badge size="xl" variant="filled" color={progress === 100 ? 'green' : 'blue'}>
-                            {completedCount} / {totalCount} ({progress}%)
-                        </Badge>
+                                        Refresh
+                                    </Button>
+                                </Group>
+                            </Tooltip>
+                            
+                            <Badge size="xl" variant="filled" color={progress === 100 ? 'green' : 'blue'}>
+                                {completedCount} / {totalCount} ({progress}%)
+                            </Badge>
+                        </Group>
                     </Group>
-                </Group>
-            </div>
+                </div>
 
             {/* Mode Selection & Launch Button */}
             <Paper p="lg" withBorder shadow="sm">
@@ -663,6 +680,11 @@ export default function GenerationDrawerDemo() {
                             <Text size="sm">
                                 <strong>Live Mode:</strong> Generation will use the real StatBlockGenerator API. 
                                 This may take 10-30 seconds and incurs API costs.
+                                {!isAuthenticated && (
+                                    <Text c="red" fw={600} mt="xs">
+                                        ⚠️ You must be logged in for live mode to work. Click "Login" above.
+                                    </Text>
+                                )}
                             </Text>
                         </Alert>
                     )}
@@ -861,5 +883,6 @@ export default function GenerationDrawerDemo() {
                 isTutorialMode={!liveMode}
             />
         </Stack>
+        </>
     );
 }
