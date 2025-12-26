@@ -290,10 +290,8 @@ export interface GenerationDrawerConfig<TInput, TOutput> {
     transformInput: (input: TInput) => Record<string, unknown>;
     /** Transform input for image generation API request body - defaults to transformInput if not set */
     imageTransformInput?: (input: TInput) => Record<string, unknown>;
-    /** Transform API response to output type (for text generation) */
+    /** Transform API response to output type */
     transformOutput: (response: unknown) => TOutput;
-    /** Transform API response for image generation - should return array of GeneratedImage */
-    imageTransformOutput?: (response: unknown) => GeneratedImage[];
 
     // === Callbacks ===
     /** Called when generation starts */

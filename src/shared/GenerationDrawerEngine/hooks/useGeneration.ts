@@ -29,6 +29,8 @@ export interface GenerateOptions {
   endpointOverride?: string;
   /** Override the transform function for this generation */
   transformOverride?: (input: unknown) => Record<string, unknown>;
+  /** Skip transformOutput and return raw response (for image generation) */
+  skipTransform?: boolean;
 }
 
 export interface UseGenerationReturn<TInput, TOutput> {
@@ -198,8 +200,10 @@ export function useGeneration<TInput, TOutput>(
 
         const responseData = await response.json();
 
-        // Transform output
-        const output = config.transformOutput(responseData);
+        // Transform output (unless skipTransform is set)
+        const output = options?.skipTransform 
+          ? responseData as TOutput  // Return raw response for image generation
+          : config.transformOutput(responseData);
 
         setIsGenerating(false);
         return output;

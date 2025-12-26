@@ -50,7 +50,6 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     transformInput,
     imageTransformInput,
     transformOutput,
-    imageTransformOutput,
     onGenerationStart,
     onGenerationComplete: configOnGenerationComplete,
     onGenerationError,
@@ -251,8 +250,10 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         const transformOverride = isImageGeneration && imageTransformInput
           ? imageTransformInput
           : undefined;
+        // Skip transformOutput for image generation - we need raw response to extract images
+        const skipTransform = isImageGeneration;
         
-        const output = await generation.generate(inputValue, { endpointOverride, transformOverride });
+        const output = await generation.generate(inputValue, { endpointOverride, transformOverride, skipTransform });
 
         // Clear start time on completion
         generationStartTimeRef.current = null;
@@ -280,45 +281,38 @@ export function GenerationDrawerEngine<TInput, TOutput>(
             console.log('📸 [Tutorial] Mock image generated:', mockImage);
           } else {
             // In live mode, extract images from API response
-            // Use imageTransformOutput if provided, otherwise try common patterns
-            let extractedImages: GeneratedImage[] = [];
+            // API returns: { success: true, data: { images: [...] } }
+            const outputObj = output as Record<string, unknown>;
             
-            if (imageTransformOutput) {
-              // Use custom transformer
-              extractedImages = imageTransformOutput(output);
-              console.log('📸 [Live] Using imageTransformOutput:', extractedImages);
-            } else {
-              // Try common response patterns
-              const outputObj = output as Record<string, unknown>;
-              if (outputObj) {
-                // Pattern 1: { images: [...] }
-                if (Array.isArray(outputObj.images)) {
-                  extractedImages = outputObj.images as GeneratedImage[];
-                }
-                // Pattern 2: { data: { images: [...] } }
-                else if (outputObj.data && typeof outputObj.data === 'object') {
-                  const dataObj = outputObj.data as Record<string, unknown>;
-                  if (Array.isArray(dataObj.images)) {
-                    extractedImages = dataObj.images as GeneratedImage[];
-                  }
-                }
+            // Try common response patterns:
+            // 1. { data: { images: [...] } } - DungeonMind pattern
+            // 2. { images: [...] } - direct pattern
+            let rawImages: GeneratedImage[] | undefined;
+            
+            if (outputObj?.data && typeof outputObj.data === 'object') {
+              const dataObj = outputObj.data as Record<string, unknown>;
+              if (Array.isArray(dataObj.images)) {
+                rawImages = dataObj.images as GeneratedImage[];
+                console.log('📸 [Live] Found images in data.images:', rawImages.length);
               }
+            } else if (Array.isArray(outputObj?.images)) {
+              rawImages = outputObj.images as GeneratedImage[];
+              console.log('📸 [Live] Found images in images:', rawImages.length);
             }
             
-            if (extractedImages.length > 0) {
-              // Normalize images with required fields
-              const newImages = extractedImages.map((img) => ({
+            if (rawImages && rawImages.length > 0) {
+              const newImages = rawImages.map((img) => ({
                 ...img,
-                id: img.id || `img-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                // Backend returns created_at, normalize to createdAt
                 createdAt: img.createdAt || (img as Record<string, unknown>).created_at as string || new Date().toISOString(),
                 sessionId: img.sessionId || imageConfig?.sessionId || '',
                 service: img.service || config.id
               }));
               setGeneratedImages((prev) => [...prev, ...newImages]);
               imageConfig?.onImageGenerated?.(newImages);
-              console.log('📸 [Live] Images generated:', newImages);
+              console.log('📸 [Live] Images added to gallery:', newImages);
             } else {
-              console.warn('📸 [Live] No images found in response:', output);
+              console.warn('📸 [Live] No images found in response:', outputObj);
             }
           }
         }
@@ -331,7 +325,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         onGenerationError?.(generation.error!);
       }
     },
-    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id, imageGenerationEndpoint, imageTransformOutput]
+    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id, imageGenerationEndpoint]
   );
 
   // Handle image gallery interactions
