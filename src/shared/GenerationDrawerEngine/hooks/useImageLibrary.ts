@@ -143,7 +143,7 @@ export function useImageLibrary(
             console.log('📸 [ImageLibrary] Upload skipped (tutorial mode)');
             return null;
         }
-        
+
         if (!isLoggedIn) {
             setError('Authentication required to upload images');
             return null;
@@ -172,7 +172,12 @@ export function useImageLibrary(
                 throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
             }
 
-            const uploadedImage = await response.json();
+            const responseData = await response.json();
+
+            // Handle nested response patterns:
+            // Pattern 1: { image: { id, url, ... } } - demo endpoint
+            // Pattern 2: { id, url, ... } - direct response
+            const uploadedImage = responseData.image || responseData;
 
             // Transform to SessionImage format
             const sessionImage: SessionImage = {
@@ -183,6 +188,8 @@ export function useImageLibrary(
                 sessionId: uploadedImage.sessionId || sessionId || '',
                 service: uploadedImage.service || service
             };
+
+            console.log('📤 [ImageLibrary] Uploaded image:', sessionImage.id, sessionImage.url?.substring(0, 50));
 
             // Refresh library to include new image
             await fetchLibrary(currentPage);
@@ -205,13 +212,13 @@ export function useImageLibrary(
         setImages(prev => prev.filter(img => img.id !== imageId));
         setTotal(prev => Math.max(0, prev - 1));
         console.log('🗑️ [ImageLibrary] Removed from local state:', imageId);
-        
+
         // Skip API calls if disabled (tutorial mode)
         if (disabled) {
             console.log('🗑️ [ImageLibrary] Delete simulated (tutorial mode)');
             return;
         }
-        
+
         if (!isLoggedIn) {
             // Already removed from local state, just log
             console.log('🗑️ [ImageLibrary] Not logged in, skipping backend delete');

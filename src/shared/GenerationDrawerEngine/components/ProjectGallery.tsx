@@ -61,10 +61,12 @@ export function ProjectGallery({
         const isSelected = selectedImageId === image.id;
         // Add data-tutorial for specific indices (for tutorial targeting)
         const tutorialAttr = index === 0 ? 'image-result-0' : index === 2 ? 'image-result-2' : undefined;
+        // Use stable key: prefer id, fallback to url hash, lastly index
+        const imageKey = image.id || image.url || `gallery-${index}`;
 
         return (
           <Card
-            key={image.id}
+            key={imageKey}
             p="xs"
             style={{
               cursor: 'pointer',
