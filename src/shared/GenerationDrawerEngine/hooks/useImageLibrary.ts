@@ -201,23 +201,24 @@ export function useImageLibrary(
      * Delete an image
      */
     const deleteImage = useCallback(async (imageId: string): Promise<void> => {
+        // Always remove from local state immediately (optimistic update)
+        setImages(prev => prev.filter(img => img.id !== imageId));
+        setTotal(prev => Math.max(0, prev - 1));
+        console.log('🗑️ [ImageLibrary] Removed from local state:', imageId);
+        
         // Skip API calls if disabled (tutorial mode)
         if (disabled) {
-            // Just remove from local state
-            setImages(prev => prev.filter(img => img.id !== imageId));
-            setTotal(prev => Math.max(0, prev - 1));
             console.log('🗑️ [ImageLibrary] Delete simulated (tutorial mode)');
             return;
         }
         
         if (!isLoggedIn) {
-            setError('Authentication required to delete images');
+            // Already removed from local state, just log
+            console.log('🗑️ [ImageLibrary] Not logged in, skipping backend delete');
             return;
         }
 
-        setIsLoading(true);
-        setError(null);
-
+        // Try to delete from backend (best effort, don't block UI)
         try {
             const url = `${DUNGEONMIND_API_URL}${deleteEndpoint}/${imageId}`;
             const response = await fetch(url, {
@@ -226,22 +227,17 @@ export function useImageLibrary(
             });
 
             if (!response.ok) {
-                throw new Error(`Delete failed: ${response.statusText}`);
+                // Image might not exist on backend (was only local), that's OK
+                console.warn('🗑️ [ImageLibrary] Backend delete returned:', response.status);
+            } else {
+                console.log('🗑️ [ImageLibrary] Deleted from backend:', imageId);
             }
-
-            // Remove from local state
-            setImages(prev => prev.filter(img => img.id !== imageId));
-            setTotal(prev => Math.max(0, prev - 1));
-
-            // Refresh library to sync with server
-            await fetchLibrary(currentPage);
+            // Don't refresh - we already updated local state optimistically
         } catch (err) {
-            console.error('❌ [ImageLibrary] Delete failed:', err);
-            setError(err instanceof Error ? err.message : 'Failed to delete image');
-        } finally {
-            setIsLoading(false);
+            // Log but don't restore - image is already gone from UI
+            console.error('❌ [ImageLibrary] Backend delete failed:', err);
         }
-    }, [disabled, isLoggedIn, deleteEndpoint, fetchLibrary, currentPage]);
+    }, [disabled, isLoggedIn, deleteEndpoint]);
 
     /**
      * Change page
