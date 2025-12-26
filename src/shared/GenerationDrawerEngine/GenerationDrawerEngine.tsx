@@ -50,6 +50,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     transformInput,
     imageTransformInput,
     transformOutput,
+    imageTransformOutput,
     onGenerationStart,
     onGenerationComplete: configOnGenerationComplete,
     onGenerationError,
@@ -279,17 +280,45 @@ export function GenerationDrawerEngine<TInput, TOutput>(
             console.log('📸 [Tutorial] Mock image generated:', mockImage);
           } else {
             // In live mode, extract images from API response
-            const outputObj = output as Record<string, unknown>;
-            if (outputObj && Array.isArray(outputObj.images)) {
-              const newImages = (outputObj.images as GeneratedImage[]).map((img) => ({
+            // Use imageTransformOutput if provided, otherwise try common patterns
+            let extractedImages: GeneratedImage[] = [];
+            
+            if (imageTransformOutput) {
+              // Use custom transformer
+              extractedImages = imageTransformOutput(output);
+              console.log('📸 [Live] Using imageTransformOutput:', extractedImages);
+            } else {
+              // Try common response patterns
+              const outputObj = output as Record<string, unknown>;
+              if (outputObj) {
+                // Pattern 1: { images: [...] }
+                if (Array.isArray(outputObj.images)) {
+                  extractedImages = outputObj.images as GeneratedImage[];
+                }
+                // Pattern 2: { data: { images: [...] } }
+                else if (outputObj.data && typeof outputObj.data === 'object') {
+                  const dataObj = outputObj.data as Record<string, unknown>;
+                  if (Array.isArray(dataObj.images)) {
+                    extractedImages = dataObj.images as GeneratedImage[];
+                  }
+                }
+              }
+            }
+            
+            if (extractedImages.length > 0) {
+              // Normalize images with required fields
+              const newImages = extractedImages.map((img) => ({
                 ...img,
-                createdAt: img.createdAt || new Date().toISOString(),
+                id: img.id || `img-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                createdAt: img.createdAt || (img as Record<string, unknown>).created_at as string || new Date().toISOString(),
                 sessionId: img.sessionId || imageConfig?.sessionId || '',
                 service: img.service || config.id
               }));
               setGeneratedImages((prev) => [...prev, ...newImages]);
               imageConfig?.onImageGenerated?.(newImages);
               console.log('📸 [Live] Images generated:', newImages);
+            } else {
+              console.warn('📸 [Live] No images found in response:', output);
             }
           }
         }
@@ -302,7 +331,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         onGenerationError?.(generation.error!);
       }
     },
-    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id, imageGenerationEndpoint]
+    [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id, imageGenerationEndpoint, imageTransformOutput]
   );
 
   // Handle image gallery interactions
