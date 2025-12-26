@@ -112,7 +112,7 @@ export function useGeneration<TInput, TOutput>(
         config.tutorialConfig && 
         config.tutorialConfig.simulateGeneration !== false;
       
-      if (shouldSimulate) {
+      if (shouldSimulate && config.tutorialConfig) {
         setIsGenerating(true);
         const { mockData, simulatedDurationMs = 7000 } = config.tutorialConfig;
 

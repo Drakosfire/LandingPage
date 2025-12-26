@@ -705,17 +705,17 @@ export default function GenerationDrawerDemo() {
                             <Text size="sm"><strong>Type:</strong> {lastOutput.statblock.size} {lastOutput.statblock.type}</Text>
                             <Text size="sm"><strong>Alignment:</strong> {lastOutput.statblock.alignment}</Text>
                             <Text size="sm"><strong>AC:</strong> {lastOutput.statblock.armorClass}</Text>
-                            <Text size="sm"><strong>HP:</strong> {lastOutput.statblock.hitPoints} ({lastOutput.statblock.hitDice})</Text>
+                            <Text size="sm"><strong>HP:</strong> {lastOutput.statblock.hitPoints}</Text>
                         </Group>
                         
-                        {lastOutput.statblock.abilityScores && (
+                        {lastOutput.statblock.stats && (
                             <Group gap="md">
-                                <Badge variant="outline">STR {lastOutput.statblock.abilityScores.strength}</Badge>
-                                <Badge variant="outline">DEX {lastOutput.statblock.abilityScores.dexterity}</Badge>
-                                <Badge variant="outline">CON {lastOutput.statblock.abilityScores.constitution}</Badge>
-                                <Badge variant="outline">INT {lastOutput.statblock.abilityScores.intelligence}</Badge>
-                                <Badge variant="outline">WIS {lastOutput.statblock.abilityScores.wisdom}</Badge>
-                                <Badge variant="outline">CHA {lastOutput.statblock.abilityScores.charisma}</Badge>
+                                <Badge variant="outline">STR {lastOutput.statblock.stats.strength}</Badge>
+                                <Badge variant="outline">DEX {lastOutput.statblock.stats.dexterity}</Badge>
+                                <Badge variant="outline">CON {lastOutput.statblock.stats.constitution}</Badge>
+                                <Badge variant="outline">INT {lastOutput.statblock.stats.intelligence}</Badge>
+                                <Badge variant="outline">WIS {lastOutput.statblock.stats.wisdom}</Badge>
+                                <Badge variant="outline">CHA {lastOutput.statblock.stats.charisma}</Badge>
                             </Group>
                         )}
                         
