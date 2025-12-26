@@ -532,7 +532,7 @@ export default function GenerationDrawerDemo() {
     const [liveMode, setLiveMode] = useState(false);
 
     // Auth state (for warning message)
-    const { isAuthenticated } = useAuth();
+    const { isLoggedIn } = useAuth();
 
     // Backend health check
     const { health, isChecking, checkHealth } = useBackendHealth(true, 0);
@@ -581,8 +581,7 @@ export default function GenerationDrawerDemo() {
                 app={{
                     id: 'demo',
                     name: 'Generation Drawer Demo',
-                    path: '/generation-drawer-demo',
-                    color: 'violet'
+                    icon: 'https://placehold.co/32x32/7c3aed/ffffff?text=D'
                 }}
                 showAuth={true}
             />
@@ -680,7 +679,7 @@ export default function GenerationDrawerDemo() {
                             <Text size="sm">
                                 <strong>Live Mode:</strong> Generation will use the real StatBlockGenerator API. 
                                 This may take 10-30 seconds and incurs API costs.
-                                {!isAuthenticated && (
+                                {!isLoggedIn && (
                                     <Text c="red" fw={600} mt="xs">
                                         ⚠️ You must be logged in for live mode to work. Click "Login" above.
                                     </Text>
