@@ -191,8 +191,8 @@ export function useImageLibrary(
 
             console.log('📤 [ImageLibrary] Uploaded image:', sessionImage.id, sessionImage.url?.substring(0, 50));
 
-            // Refresh library to include new image
-            await fetchLibrary(currentPage);
+            // Don't refresh - caller will add to library via addImages()
+            // This avoids race conditions where fetchLibrary replaces local state
 
             return sessionImage;
         } catch (err) {

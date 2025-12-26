@@ -426,6 +426,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
           // Add to generated images (project gallery)
           setGeneratedImages((prev) => [...prev, uploadedImage!]);
           
+          // Add to library as well
+          imageLibrary?.addImages([uploadedImage!]);
+          
           // Notify service
           imageConfig?.onImageGenerated?.([uploadedImage]);
           
