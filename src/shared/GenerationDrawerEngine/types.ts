@@ -101,7 +101,7 @@ export interface ExampleConfig<TInput> {
 }
 
 /**
- * Generated image entity.
+ * Generated image entity (frontend format - camelCase).
  */
 export interface GeneratedImage {
     /** Unique identifier (UUID) */
@@ -116,6 +116,60 @@ export interface GeneratedImage {
     sessionId: string;
     /** Service that created the image */
     service: string;
+}
+
+// =============================================================================
+// API RESPONSE CONTRACTS (matches backend Pydantic models)
+// =============================================================================
+
+/**
+ * Single image from backend API (snake_case - Python convention).
+ * Contract: DungeonMindServer/statblockgenerator/models/statblock_models.py::GeneratedImageData
+ */
+export interface ApiGeneratedImage {
+    id: string;
+    url: string;
+    prompt: string;
+    created_at: string;  // snake_case from backend
+}
+
+/**
+ * Generation metadata from backend.
+ */
+export interface ApiImageGenerationInfo {
+    prompt: string;
+    model: string;
+    num_images: number;
+}
+
+/**
+ * Response payload from /generate-image endpoint.
+ * Contract: DungeonMindServer/statblockgenerator/models/statblock_models.py::ImageGenerationResponse
+ */
+export interface ApiImageGenerationResponse {
+    success: boolean;
+    data: {
+        images: ApiGeneratedImage[];
+        generation_info: ApiImageGenerationInfo;
+    };
+}
+
+/**
+ * Normalize backend image format (snake_case) to frontend format (camelCase).
+ */
+export function normalizeApiImage(
+    apiImage: ApiGeneratedImage,
+    sessionId: string,
+    service: string
+): GeneratedImage {
+    return {
+        id: apiImage.id,
+        url: apiImage.url,
+        prompt: apiImage.prompt,
+        createdAt: apiImage.created_at,  // snake_case → camelCase
+        sessionId,
+        service
+    };
 }
 
 /**

@@ -22,6 +22,8 @@ export interface BackendHealthState {
   statblockgenerator: ServiceHealth;
   /** PlayerCharacterGenerator service health */
   playercharactergenerator: ServiceHealth;
+  /** Image capabilities endpoint health */
+  imageCapabilities: ServiceHealth;
   /** Whether any service is online */
   anyOnline: boolean;
   /** Whether all services are online */
@@ -48,6 +50,7 @@ const initialHealth: BackendHealthState = {
   api: initialServiceHealth,
   statblockgenerator: initialServiceHealth,
   playercharactergenerator: initialServiceHealth,
+  imageCapabilities: initialServiceHealth,
   anyOnline: false,
   allOnline: false
 };
@@ -128,10 +131,11 @@ export function useBackendHealth(
 
     try {
       // Check all endpoints in parallel
-      const [apiHealth, sbgHealth, pcgHealth] = await Promise.all([
+      const [apiHealth, sbgHealth, pcgHealth, imgCapHealth] = await Promise.all([
         checkEndpoint('/api/health'),
         checkEndpoint('/api/statblockgenerator/health'),
-        checkEndpoint('/api/playercharactergenerator/health')
+        checkEndpoint('/api/playercharactergenerator/health'),
+        checkEndpoint('/api/images/capabilities')
       ]);
 
       const anyOnline = 
@@ -142,12 +146,14 @@ export function useBackendHealth(
       const allOnline = 
         apiHealth.status === 'online' &&
         sbgHealth.status === 'online' &&
-        pcgHealth.status === 'online';
+        pcgHealth.status === 'online' &&
+        imgCapHealth.status === 'online';
 
       setHealth({
         api: apiHealth,
         statblockgenerator: sbgHealth,
         playercharactergenerator: pcgHealth,
+        imageCapabilities: imgCapHealth,
         anyOnline,
         allOnline
       });
@@ -156,6 +162,7 @@ export function useBackendHealth(
         api: apiHealth.status,
         sbg: sbgHealth.status,
         pcg: pcgHealth.status,
+        imgCap: imgCapHealth.status,
         anyOnline,
         allOnline
       });
@@ -189,4 +196,6 @@ export function useBackendHealth(
     error
   };
 }
+
+
 

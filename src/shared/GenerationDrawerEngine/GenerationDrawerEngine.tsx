@@ -19,7 +19,14 @@ import { AuthGate } from './components/AuthGate';
 import { ExamplesBar } from './components/ExamplesBar';
 import { useGeneration } from './hooks/useGeneration';
 import { useImageLibrary } from './hooks/useImageLibrary';
-import { GenerationType, type GeneratedImage, type ImageGenerationStyle } from './types';
+import {
+  GenerationType,
+  type GeneratedImage,
+  type ImageGenerationStyle,
+  type ApiImageGenerationResponse,
+  type ApiGeneratedImage,
+  normalizeApiImage
+} from './types';
 
 /**
  * Main orchestrating component for the generation drawer engine.
@@ -30,9 +37,9 @@ import { GenerationType, type GeneratedImage, type ImageGenerationStyle } from '
 export function GenerationDrawerEngine<TInput, TOutput>(
   props: GenerationDrawerEngineProps<TInput, TOutput>
 ) {
-  const { 
-    config, 
-    opened, 
+  const {
+    config,
+    opened,
     onClose,
     isTutorialMode: propsTutorialMode,
     initialImages,
@@ -64,7 +71,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   const [activeTab, setActiveTab] = useState<string>(
     defaultTab || tabs[0]?.id || ''
   );
-  
+
   // Per-tab input state - each tab has its own independent input
   const [inputsByTab, setInputsByTab] = useState<Record<string, TInput>>(() => {
     const initial: Record<string, TInput> = {};
@@ -73,10 +80,10 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     });
     return initial;
   });
-  
+
   // Get current tab's input
   const input = inputsByTab[activeTab] || initialInput;
-  
+
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string> | undefined
   >(undefined);
@@ -114,7 +121,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
   // Determine if in tutorial mode (props takes precedence over config)
   const isTutorialMode = propsTutorialMode ?? configTutorialMode ?? Boolean(tutorialConfig);
-  
+
   // Combined onGenerationComplete - calls both props and config callbacks
   const onGenerationComplete = useCallback((output: TOutput) => {
     propsOnGenerationComplete?.(output);
@@ -155,7 +162,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
   // Track previous opened state for close detection
   const wasOpenedRef = React.useRef(opened);
-  
+
   // Ref for tabs container to auto-focus on open
   const tabsListRef = useRef<HTMLDivElement>(null);
 
@@ -253,7 +260,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     async (inputValue: TInput) => {
       // Record start time for progress persistence
       generationStartTimeRef.current = Date.now();
-      
+
       onGenerationStart?.();
 
       try {
@@ -262,53 +269,58 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         const endpointOverride = isImageGeneration && imageGenerationEndpoint
           ? imageGenerationEndpoint
           : undefined;
-        
+
         // For image generation, create a wrapper transform that includes selected options
         let transformOverride = isImageGeneration && imageTransformInput
           ? imageTransformInput
           : undefined;
-        
+
         if (isImageGeneration && transformOverride) {
           const originalTransform = transformOverride;
           const imageOptions = imageOptionsRef.current;
           const styleSuffix = getStyleSuffix(imageOptions.style);
-          
+
           transformOverride = (input: TInput) => {
             const baseResult = originalTransform(input);
-            
+
             // Merge in the selected image options
             const mergedResult: Record<string, unknown> = { ...baseResult };
-            
+
             // Add model if selected
             if (imageOptions.model) {
               mergedResult.model = imageOptions.model;
             }
-            
+
             // Add num_images if selected and > 1
             if (imageOptions.numImages && imageOptions.numImages > 0) {
               mergedResult.num_images = imageOptions.numImages;
             }
-            
+
             // Apply style suffix to prompt if style is selected
             if (styleSuffix && mergedResult.sd_prompt) {
               mergedResult.sd_prompt = `${mergedResult.sd_prompt}, ${styleSuffix}`;
             }
-            
+
             console.log('📸 [GenerationDrawer] Image generation request:', {
               model: mergedResult.model,
               num_images: mergedResult.num_images,
               style: imageOptions.style,
               hasStyleSuffix: !!styleSuffix
             });
-            
+
             return mergedResult;
           };
         }
-        
+
         // Skip transformOutput for image generation - we need raw response to extract images
         const skipTransform = isImageGeneration;
-        
-        const output = await generation.generate(inputValue, { endpointOverride, transformOverride, skipTransform });
+
+        // Cast transformOverride to match the expected signature
+        const output = await generation.generate(inputValue, {
+          endpointOverride,
+          transformOverride: transformOverride as ((input: unknown) => Record<string, unknown>) | undefined,
+          skipTransform
+        });
 
         // Clear start time on completion
         generationStartTimeRef.current = null;
@@ -318,19 +330,19 @@ export function GenerationDrawerEngine<TInput, TOutput>(
           // In tutorial mode, simulate adding generated images
           if (isTutorialMode) {
             const inputObj = inputValue as Record<string, unknown>;
-            const description = typeof inputObj === 'object' && inputObj 
+            const description = typeof inputObj === 'object' && inputObj
               ? (inputObj.description as string || 'Generated image')
               : 'Generated image';
-            
+
             const mockImage: GeneratedImage = {
               id: `gen-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-              url: `https://placehold.co/512x512/${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}/ffffff?text=${encodeURIComponent(description.substring(0, 15))}`,
+              url: `https://placehold.co/512x512/${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}/ffffff?text=${encodeURIComponent(description.substring(0, 15))}`,
               prompt: description,
               createdAt: new Date().toISOString(),
               sessionId: imageConfig?.sessionId || 'demo-session',
               service: config.id
             };
-            
+
             // Add to project gallery
             setGeneratedImages((prev) => [...prev, mockImage]);
             // Add to library as well
@@ -338,42 +350,31 @@ export function GenerationDrawerEngine<TInput, TOutput>(
             imageConfig?.onImageGenerated?.([mockImage]);
             console.log('📸 [Tutorial] Mock image generated and added to library:', mockImage);
           } else {
-            // In live mode, extract images from API response
-            // API returns: { success: true, data: { images: [...] } }
-            const outputObj = output as Record<string, unknown>;
-            
-            // Try common response patterns:
-            // 1. { data: { images: [...] } } - DungeonMind pattern
-            // 2. { images: [...] } - direct pattern
-            let rawImages: GeneratedImage[] | undefined;
-            
-            if (outputObj?.data && typeof outputObj.data === 'object') {
-              const dataObj = outputObj.data as Record<string, unknown>;
-              if (Array.isArray(dataObj.images)) {
-                rawImages = dataObj.images as GeneratedImage[];
-                console.log('📸 [Live] Found images in data.images:', rawImages.length);
-              }
-            } else if (Array.isArray(outputObj?.images)) {
-              rawImages = outputObj.images as GeneratedImage[];
-              console.log('📸 [Live] Found images in images:', rawImages.length);
-            }
-            
-            if (rawImages && rawImages.length > 0) {
-              const newImages = rawImages.map((img) => ({
-                ...img,
-                // Backend returns created_at, normalize to createdAt
-                createdAt: img.createdAt || (img as Record<string, unknown>).created_at as string || new Date().toISOString(),
-                sessionId: img.sessionId || imageConfig?.sessionId || '',
-                service: img.service || config.id
-              }));
+            // In live mode, extract images from typed API response
+            // Contract: ApiImageGenerationResponse from types.ts
+            const apiResponse = output as ApiImageGenerationResponse;
+
+            if (apiResponse?.success && apiResponse?.data?.images) {
+              const apiImages: ApiGeneratedImage[] = apiResponse.data.images;
+              console.log('📸 [Live] Received', apiImages.length, 'images from API');
+
+              // Normalize backend format (snake_case) to frontend format (camelCase)
+              const newImages: GeneratedImage[] = apiImages.map((apiImg) =>
+                normalizeApiImage(
+                  apiImg,
+                  imageConfig?.sessionId || '',
+                  config.id
+                )
+              );
+
               // Add to project gallery
               setGeneratedImages((prev) => [...prev, ...newImages]);
               // Add to library as well
               imageLibrary.addImages(newImages);
               imageConfig?.onImageGenerated?.(newImages);
-              console.log('📸 [Live] Images added to gallery and library:', newImages);
+              console.log('📸 [Live] Images normalized and added to gallery:', newImages.length);
             } else {
-              console.warn('📸 [Live] No images found in response:', outputObj);
+              console.warn('📸 [Live] Invalid API response format:', apiResponse);
             }
           }
         }
@@ -382,8 +383,14 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       } catch (err) {
         // Clear start time on error
         generationStartTimeRef.current = null;
-        // Error is already set in generation hook
-        onGenerationError?.(generation.error!);
+        // Pass the error from generation hook (may be set) or create one from the exception
+        const errorToReport = generation.error || {
+          code: 'UNKNOWN',
+          title: 'Generation Failed',
+          message: err instanceof Error ? err.message : 'An unexpected error occurred',
+          retryable: true
+        };
+        onGenerationError?.(errorToReport);
       }
     },
     [generation, onGenerationStart, onGenerationComplete, onGenerationError, imageConfig, activeGenerationType, isTutorialMode, config.id, imageGenerationEndpoint, imageTransformInput, getStyleSuffix, imageLibrary]
@@ -427,7 +434,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   const handleFileUpload = useCallback(async (files: File[]) => {
     for (const file of files) {
       const uploadId = `upload-${Date.now()}-${file.name}`;
-      
+
       // Add pending upload to recent uploads for feedback
       setRecentUploads((prev) => [
         {
@@ -480,13 +487,13 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
           // Add to generated images (project gallery)
           setGeneratedImages((prev) => [...prev, uploadedImage!]);
-          
+
           // Add to library as well
           imageLibrary?.addImages([uploadedImage!]);
-          
+
           // Notify service
           imageConfig?.onImageGenerated?.([uploadedImage]);
-          
+
           console.log('✅ [GenerationDrawer] Upload success:', uploadedImage.url);
         } else {
           throw new Error('Upload failed - no image returned');
@@ -497,10 +504,10 @@ export function GenerationDrawerEngine<TInput, TOutput>(
           prev.map((u) =>
             u.id === uploadId
               ? {
-                  ...u,
-                  status: 'error' as const,
-                  error: err instanceof Error ? err.message : 'Upload failed'
-                }
+                ...u,
+                status: 'error' as const,
+                error: err instanceof Error ? err.message : 'Upload failed'
+              }
               : u
           )
         );

@@ -16,13 +16,14 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
     Button, Stack, Title, Text, Code, Paper, Textarea,
     Checkbox, Badge, Group, Divider, Accordion, Alert, Switch, Loader,
-    ThemeIcon, Tooltip
+    ThemeIcon, Tooltip, SegmentedControl, SimpleGrid
 } from '@mantine/core';
 import { IconWand, IconPhoto, IconCheck, IconAlertCircle, IconRefresh, IconPlugConnected, IconPlugConnectedX, IconUpload, IconLibrary } from '@tabler/icons-react';
 import { GenerationDrawerEngine } from '../shared/GenerationDrawerEngine';
-import type { GenerationDrawerConfig, GenerationError } from '../shared/GenerationDrawerEngine';
+import type { GenerationDrawerConfig, GenerationError, ImageGenerationModel, ImageGenerationStyle } from '../shared/GenerationDrawerEngine';
 import { GenerationType } from '../shared/GenerationDrawerEngine';
 import { useBackendHealth } from '../shared/GenerationDrawerEngine/hooks/useBackendHealth';
+import { useImageCapabilities } from '../shared/GenerationDrawerEngine/hooks/useImageCapabilities';
 import { UnifiedHeader } from '../components/UnifiedHeader';
 import { useAuth } from '../context/AuthContext';
 import type {
@@ -393,11 +394,40 @@ const StatBlockInputForm: React.FC<{
 // DRAWER CONFIGURATION
 // =============================================================================
 
-const createDemoConfig = (
-    onComplete: (output: StatBlockOutput) => void,
-    onError: (error: GenerationError) => void,
-    liveMode: boolean = false
-): GenerationDrawerConfig<StatBlockInput, StatBlockOutput> => ({
+// Default mock capabilities for demo mode
+const DEMO_MODELS: ImageGenerationModel[] = [
+    { id: 'flux-pro', name: 'FLUX Pro', description: 'High quality, balanced speed', default: true },
+    { id: 'imagen4', name: 'Imagen 4', description: "Google's model, premium quality" },
+    { id: 'openai', name: 'OpenAI GPT-Image', description: 'Fast, cost-effective' }
+];
+
+const DEMO_STYLES: ImageGenerationStyle[] = [
+    { id: 'classic_dnd', name: 'Classic D&D', suffix: 'in the style of classic Dungeons & Dragons art, detailed fantasy illustration', default: true },
+    { id: 'oil_painting', name: 'Oil Painting', suffix: 'oil painting, traditional fantasy art, detailed brushwork' },
+    { id: 'fantasy_book', name: 'Fantasy Book Cover', suffix: 'epic fantasy book cover art, dramatic lighting, cinematic composition' },
+    { id: 'dark_gothic', name: 'Dark Gothic', suffix: 'dark gothic fantasy art, dramatic shadows, moody atmosphere' },
+    { id: 'anime', name: 'Anime Style', suffix: 'anime fantasy art, vibrant colors, dynamic pose' },
+    { id: 'realistic', name: 'Photorealistic', suffix: 'photorealistic fantasy creature, highly detailed, 8k resolution' }
+];
+
+interface CreateDemoConfigOptions {
+    onComplete: (output: StatBlockOutput) => void;
+    onError: (error: GenerationError) => void;
+    liveMode?: boolean;
+    // Live mode capabilities from backend
+    liveModels?: ImageGenerationModel[];
+    liveStyles?: ImageGenerationStyle[];
+    liveMaxImages?: number;
+}
+
+const createDemoConfig = ({
+    onComplete,
+    onError,
+    liveMode = false,
+    liveModels,
+    liveStyles,
+    liveMaxImages
+}: CreateDemoConfigOptions): GenerationDrawerConfig<StatBlockInput, StatBlockOutput> => ({
     id: 'demo-statblock',
     title: liveMode ? 'Generate StatBlock (Live)' : 'Generate StatBlock (Demo)',
 
@@ -491,9 +521,9 @@ const createDemoConfig = (
 
     imageConfig: {
         promptField: 'imagePrompt' as keyof StatBlockOutput,
-        uploadEndpoint: '/api/demo/upload',
-        deleteEndpoint: '/api/demo/delete',
-        libraryEndpoint: '/api/demo/library',
+        uploadEndpoint: liveMode ? '/api/statblockgenerator/upload-images' : '/api/demo/upload',
+        deleteEndpoint: liveMode ? '/api/statblockgenerator/delete-image' : '/api/demo/delete',
+        libraryEndpoint: liveMode ? '/api/statblockgenerator/list-all-images' : '/api/demo/library',
         sessionId: 'demo-session-123',
         onImageGenerated: (images) => {
             console.log('📸 Images generated:', images);
@@ -501,23 +531,12 @@ const createDemoConfig = (
         onImageSelected: (url, index) => {
             console.log('🖼️ Image selected:', url, index);
         },
-        // Dynamic image capabilities
-        models: [
-            { id: 'flux-pro', name: 'FLUX Pro', description: 'High quality, balanced speed', default: true },
-            { id: 'imagen4', name: 'Imagen 4', description: "Google's model, premium quality" },
-            { id: 'openai', name: 'OpenAI GPT-Image', description: 'Fast, cost-effective' }
-        ],
+        // Dynamic image capabilities - use backend data in live mode, mock data in demo mode
+        models: liveMode && liveModels ? liveModels : DEMO_MODELS,
         defaultModel: 'flux-pro',
-        styles: [
-            { id: 'classic_dnd', name: 'Classic D&D', suffix: 'in the style of classic Dungeons & Dragons art, detailed fantasy illustration', default: true },
-            { id: 'oil_painting', name: 'Oil Painting', suffix: 'oil painting, traditional fantasy art, detailed brushwork' },
-            { id: 'fantasy_book', name: 'Fantasy Book Cover', suffix: 'epic fantasy book cover art, dramatic lighting, cinematic composition' },
-            { id: 'dark_gothic', name: 'Dark Gothic', suffix: 'dark gothic fantasy art, dramatic shadows, moody atmosphere' },
-            { id: 'anime', name: 'Anime Style', suffix: 'anime fantasy art, vibrant colors, dynamic pose' },
-            { id: 'realistic', name: 'Photorealistic', suffix: 'photorealistic fantasy creature, highly detailed, 8k resolution' }
-        ],
+        styles: liveMode && liveStyles ? liveStyles : DEMO_STYLES,
         defaultStyle: 'classic_dnd',
-        maxImages: 4,
+        maxImages: liveMode && liveMaxImages ? liveMaxImages : 4,
         defaultNumImages: 4
     },
 
@@ -557,12 +576,22 @@ export default function GenerationDrawerDemo() {
     const [lastOutput, setLastOutput] = useState<StatBlockOutput | null>(null);
     const [lastError, setLastError] = useState<GenerationError | null>(null);
     const [liveMode, setLiveMode] = useState(false);
+    const [selectedService, setSelectedService] = useState<'statblock' | 'pcg'>('statblock');
 
     // Auth state (for warning message)
     const { isLoggedIn } = useAuth();
 
     // Backend health check
     const { health, isChecking, checkHealth } = useBackendHealth(true, 0);
+
+    // Image capabilities from backend (for live mode)
+    const { 
+        capabilities, 
+        isLoading: isLoadingCapabilities, 
+        isUsingDefaults 
+    } = useImageCapabilities({ 
+        skip: !liveMode  // Only fetch when in live mode
+    });
 
     const handleComplete = useCallback((output: StatBlockOutput) => {
         console.log('✅ Generation complete:', output);
@@ -593,13 +622,29 @@ export default function GenerationDrawerDemo() {
     const progress = Math.round((completedCount / totalCount) * 100);
 
     // Create config with current mode (memoized to prevent unnecessary re-renders)
+    // Create config with current mode and capabilities
     const demoConfig = useMemo(
-        () => createDemoConfig(handleComplete, handleError, liveMode),
-        [handleComplete, handleError, liveMode]
+        () => createDemoConfig({
+            onComplete: handleComplete,
+            onError: handleError,
+            liveMode,
+            // Pass backend capabilities for live mode
+            liveModels: capabilities.models,
+            liveStyles: capabilities.styles,
+            liveMaxImages: capabilities.maxImages
+        }),
+        [handleComplete, handleError, liveMode, capabilities]
     );
 
-    // Disable live mode toggle if backend is offline
-    const canEnableLiveMode = health.statblockgenerator.status === 'online';
+    // Disable live mode toggle if selected service is offline
+    const canEnableLiveMode = selectedService === 'statblock' 
+        ? health.statblockgenerator.status === 'online'
+        : health.playercharactergenerator.status === 'online';
+    
+    // Get service-specific health status
+    const selectedServiceHealth = selectedService === 'statblock' 
+        ? health.statblockgenerator 
+        : health.playercharactergenerator;
 
     return (
         <>
@@ -624,12 +669,23 @@ export default function GenerationDrawerDemo() {
                             </Text>
                         </div>
                         <Group gap="md">
-                            {/* Backend Status */}
+                            {/* Service Selector */}
+                            <SegmentedControl
+                                value={selectedService}
+                                onChange={(value) => setSelectedService(value as 'statblock' | 'pcg')}
+                                data={[
+                                    { label: 'StatBlock', value: 'statblock' },
+                                    { label: 'PCG', value: 'pcg' }
+                                ]}
+                                size="xs"
+                            />
+                            
+                            {/* Backend Status for Selected Service */}
                             <Tooltip 
                                 label={
-                                    health.statblockgenerator.status === 'online' 
-                                        ? 'Backend is running' 
-                                        : health.statblockgenerator.error || 'Backend not reachable'
+                                    selectedServiceHealth.status === 'online' 
+                                        ? `${selectedService === 'statblock' ? 'StatBlock' : 'PCG'} service running` 
+                                        : selectedServiceHealth.error || 'Service not reachable'
                                 }
                             >
                                 <Group gap="xs">
@@ -639,16 +695,16 @@ export default function GenerationDrawerDemo() {
                                         <ThemeIcon 
                                             size="sm" 
                                             variant="light"
-                                            color={health.statblockgenerator.status === 'online' ? 'green' : 'red'}
+                                            color={selectedServiceHealth.status === 'online' ? 'green' : 'red'}
                                         >
-                                            {health.statblockgenerator.status === 'online' 
+                                            {selectedServiceHealth.status === 'online' 
                                                 ? <IconPlugConnected size={14} />
                                                 : <IconPlugConnectedX size={14} />
                                             }
                                         </ThemeIcon>
                                     )}
-                                    <Text size="sm" c={health.statblockgenerator.status === 'online' ? 'green' : 'red'}>
-                                        {health.statblockgenerator.status === 'online' ? 'Online' : 'Offline'}
+                                    <Text size="sm" c={selectedServiceHealth.status === 'online' ? 'green' : 'red'}>
+                                        {selectedServiceHealth.status === 'online' ? 'Online' : 'Offline'}
                                     </Text>
                                     <Button 
                                         variant="subtle" 
@@ -728,6 +784,46 @@ export default function GenerationDrawerDemo() {
                             Then work through the checklist below
                         </Text>
                     </Group>
+                </Stack>
+            </Paper>
+
+            {/* Service Health Status Panel */}
+            <Paper p="md" withBorder>
+                <Stack gap="sm">
+                    <Text fw={600} size="sm">Backend Services Status</Text>
+                    <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="xs">
+                        {/* API */}
+                        <Group gap="xs">
+                            <ThemeIcon size="xs" variant="light" color={health.api.status === 'online' ? 'green' : 'red'}>
+                                {health.api.status === 'online' ? <IconPlugConnected size={10} /> : <IconPlugConnectedX size={10} />}
+                            </ThemeIcon>
+                            <Text size="xs">API</Text>
+                        </Group>
+                        
+                        {/* StatBlock */}
+                        <Group gap="xs">
+                            <ThemeIcon size="xs" variant="light" color={health.statblockgenerator.status === 'online' ? 'green' : 'red'}>
+                                {health.statblockgenerator.status === 'online' ? <IconPlugConnected size={10} /> : <IconPlugConnectedX size={10} />}
+                            </ThemeIcon>
+                            <Text size="xs">StatBlock</Text>
+                        </Group>
+                        
+                        {/* PCG */}
+                        <Group gap="xs">
+                            <ThemeIcon size="xs" variant="light" color={health.playercharactergenerator.status === 'online' ? 'green' : 'red'}>
+                                {health.playercharactergenerator.status === 'online' ? <IconPlugConnected size={10} /> : <IconPlugConnectedX size={10} />}
+                            </ThemeIcon>
+                            <Text size="xs">PCG</Text>
+                        </Group>
+                        
+                        {/* Image Capabilities */}
+                        <Group gap="xs">
+                            <ThemeIcon size="xs" variant="light" color={health.imageCapabilities.status === 'online' ? 'green' : 'red'}>
+                                {health.imageCapabilities.status === 'online' ? <IconPlugConnected size={10} /> : <IconPlugConnectedX size={10} />}
+                            </ThemeIcon>
+                            <Text size="xs">Images</Text>
+                        </Group>
+                    </SimpleGrid>
                 </Stack>
             </Paper>
 

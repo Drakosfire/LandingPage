@@ -13,3 +13,6 @@ export type { UseProgressReturn } from './useProgress';
 export { useBackendHealth } from './useBackendHealth';
 export type { ServiceHealth, BackendHealthState, UseBackendHealthReturn } from './useBackendHealth';
 
+export { useImageCapabilities } from './useImageCapabilities';
+export type { ImageCapabilities, UseImageCapabilitiesConfig, UseImageCapabilitiesReturn } from './useImageCapabilities';
+

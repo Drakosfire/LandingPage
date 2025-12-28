@@ -22,10 +22,14 @@ export type {
   ImageConfig,
   // Dynamic image capabilities types
   ImageGenerationModel,
-  ImageGenerationStyle
+  ImageGenerationStyle,
+  // API response contracts (for typed backend communication)
+  ApiGeneratedImage,
+  ApiImageGenerationInfo,
+  ApiImageGenerationResponse
 } from './types';
 
-export { GenerationType, ErrorCode } from './types';
+export { GenerationType, ErrorCode, normalizeApiImage } from './types';
 
 // Image generation options (from GenerationPanel)
 export type { ImageGenerationOptions } from './components/GenerationPanel';
