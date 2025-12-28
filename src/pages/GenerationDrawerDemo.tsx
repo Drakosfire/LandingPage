@@ -475,9 +475,9 @@ const createDemoConfig = ({
     generationEndpoint: liveMode 
         ? '/api/statblockgenerator/generate-statblock' 
         : '/api/demo/generate',
-    // Image generation endpoint (demo always uses demo endpoint for images)
+    // Image generation endpoint - generic /api/images/generate for live mode
     imageGenerationEndpoint: liveMode 
-        ? '/api/statblockgenerator/generate-image'
+        ? '/api/images/generate'
         : '/api/demo/generate-image',
     transformInput: (input: StatBlockInput) => ({
         description: input.description,
@@ -488,10 +488,10 @@ const createDemoConfig = ({
     // Note: model, num_images, and style suffix are merged by the engine from UI selections
     imageTransformInput: liveMode 
         ? (input: StatBlockInput) => ({
-            sd_prompt: input.description  // Real endpoint expects sd_prompt (model/num_images added by engine)
+            prompt: input.description  // /api/images/generate expects "prompt"
         })
         : (input: StatBlockInput) => ({
-            sd_prompt: input.description  // Demo endpoint - engine will add style suffix
+            sd_prompt: input.description  // Demo endpoint uses sd_prompt
         }),
     // In live mode, transform actual API response; in demo mode, return mock
     transformOutput: liveMode 

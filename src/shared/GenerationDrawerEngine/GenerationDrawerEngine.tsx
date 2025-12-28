@@ -25,6 +25,8 @@ import {
   type ImageGenerationStyle,
   type ApiImageGenerationResponse,
   type ApiGeneratedImage,
+  type GenerationError,
+  ErrorCode,
   normalizeApiImage
 } from './types';
 
@@ -297,8 +299,13 @@ export function GenerationDrawerEngine<TInput, TOutput>(
             }
 
             // Apply style suffix to prompt if style is selected
-            if (styleSuffix && mergedResult.sd_prompt) {
-              mergedResult.sd_prompt = `${mergedResult.sd_prompt}, ${styleSuffix}`;
+            // Handle both "prompt" (generic endpoint) and "sd_prompt" (legacy/demo)
+            if (styleSuffix) {
+              if (mergedResult.prompt) {
+                mergedResult.prompt = `${mergedResult.prompt}, ${styleSuffix}`;
+              } else if (mergedResult.sd_prompt) {
+                mergedResult.sd_prompt = `${mergedResult.sd_prompt}, ${styleSuffix}`;
+              }
             }
 
             console.log('📸 [GenerationDrawer] Image generation request:', {
@@ -384,8 +391,8 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         // Clear start time on error
         generationStartTimeRef.current = null;
         // Pass the error from generation hook (may be set) or create one from the exception
-        const errorToReport = generation.error || {
-          code: 'UNKNOWN',
+        const errorToReport: GenerationError = generation.error || {
+          code: ErrorCode.UNKNOWN,
           title: 'Generation Failed',
           message: err instanceof Error ? err.message : 'An unexpected error occurred',
           retryable: true
