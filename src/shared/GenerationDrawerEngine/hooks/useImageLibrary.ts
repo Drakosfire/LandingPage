@@ -230,7 +230,22 @@ export function useImageLibrary(
 
         // Always remove from local state immediately (optimistic update)
         setImages(prev => prev.filter(img => img.id !== imageId));
-        setTotal(prev => Math.max(0, prev - 1));
+        setTotal(prev => {
+            const newTotal = Math.max(0, prev - 1);
+            // Recalculate totalPages and adjust currentPage if needed
+            const pageSize = 20; // Same as backend limit
+            const newTotalPages = Math.max(1, Math.ceil(newTotal / pageSize));
+            setTotalPages(newTotalPages);
+
+            // If current page is now beyond valid range, go to last valid page
+            if (currentPage > newTotalPages) {
+                console.log('📚 [ImageLibrary] Page out of range, adjusting:', currentPage, '→', newTotalPages);
+                setCurrentPage(newTotalPages);
+                // Fetch the new page to get correct data
+                fetchLibrary(newTotalPages);
+            }
+            return newTotal;
+        });
         console.log('🗑️ [ImageLibrary] Removed from local state:', imageId);
 
         // Skip API calls if disabled (tutorial mode)
@@ -281,7 +296,7 @@ export function useImageLibrary(
             // Log but don't restore - image is already gone from UI
             console.error('❌ [ImageLibrary] Backend delete failed:', err);
         }
-    }, [disabled, isLoggedIn, deleteEndpoint, images, service, onImageDeleted]);
+    }, [disabled, isLoggedIn, deleteEndpoint, images, service, onImageDeleted, currentPage, fetchLibrary]);
 
     /**
      * Change page

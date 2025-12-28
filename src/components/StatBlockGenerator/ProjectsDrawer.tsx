@@ -162,9 +162,19 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                 closeButtonProps={{ 'aria-label': 'Close projects drawer' }}
                 overlayProps={{ opacity: 0.3, blur: 2 }}
                 styles={{
-                    content: {
-                        marginTop: '88px', // Below UnifiedHeader (88px desktop height)
+                    inner: {
+                        top: '88px', // Below UnifiedHeader (88px desktop height)
                         height: 'calc(100vh - 88px)'
+                    },
+                    content: {
+                        height: '100%',
+                        maxHeight: '100%'
+                    },
+                    body: {
+                        // Account for drawer header (~60px)
+                        height: 'calc(100vh - 88px - 60px)',
+                        maxHeight: 'calc(100vh - 88px - 60px)',
+                        overflow: 'auto'
                     }
                 }}
             >
