@@ -20,7 +20,6 @@ import { UnifiedHeader } from '../UnifiedHeader';
 import { CHARACTER_GENERATOR_APP } from '../../context/AppContext';
 import { createCharacterToolboxSections } from './characterToolboxConfig';
 import { DND_CSS_BASE_URL } from '../../config';
-import Footer from '../Footer';
 import CharacterCanvas from './shared/CharacterCanvas';
 import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
 import PlayerCharacterRosterDrawer from './PlayerCharacterRosterDrawer';
@@ -270,8 +269,6 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
                 onClose={() => setIsRosterOpen(false)}
             />
 
-            {/* Footer */}
-            <Footer />
         </div>
     );
 };

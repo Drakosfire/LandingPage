@@ -1621,7 +1621,7 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             return;
         }
 
-        // Deduplication: Create content hash from statblock + project ID
+        // Deduplication: Create content hash from statblock + project ID + images
         const contentToHash = JSON.stringify({
             projectId: currentProject?.id,
             name: creatureDetails.name,
@@ -1630,7 +1630,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             traits: creatureDetails.specialAbilities?.length,
             // Add key fields that indicate meaningful changes
             challengeRating: creatureDetails.challengeRating,
-            hp: creatureDetails.hitPoints
+            hp: creatureDetails.hitPoints,
+            // Include image count so new images trigger saves
+            imagesCount: generatedContent.images.length
         });
 
         // Skip if content hasn't changed since last save

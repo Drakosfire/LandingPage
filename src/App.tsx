@@ -1,7 +1,7 @@
 // src/App.tsx
 // Phase 1 Visual Refresh: Removed NavBar, using UnifiedHeader on all routes
 import React, { useEffect, ReactNode } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import '@mantine/core/styles.css';
 import { MantineProvider } from '@mantine/core';
 import { DUNGEONMIND_API_URL } from './config';
@@ -11,7 +11,6 @@ import { AppProvider } from './context/AppContext';
 import AppLinks from './components/AppLinks';
 import AboutMe from './components/AboutMe';
 import AboutDungeonMind from './components/AboutDungeonMind';
-import Footer from './components/Footer';
 import BlogList from './Blog/BlogList';
 import BlogPost from './Blog/BlogPost';
 import RulesLawyer from './components/RulesLawyer';
@@ -26,24 +25,6 @@ import { UnifiedHeader } from './components/UnifiedHeader';
 
 // DungeonMind Logo URL for home page header
 const DM_LOGO_URL = `${process.env.PUBLIC_URL}/images/DungeonMindLogo2.png`;
-
-// Component to conditionally render Footer
-const ConditionalFooter: React.FC = () => {
-  const location = useLocation();
-
-  // Hide footer on all generator routes (exact or nested)
-  const generatorRoutes = ['/cardgenerator', '/statblockgenerator', '/playercharactergenerator'];
-  const isGeneratorRoute = generatorRoutes.some(route =>
-    location.pathname === route || location.pathname.startsWith(route + '/')
-  );
-
-  // Don't render Footer on generator routes
-  if (isGeneratorRoute) {
-    return null;
-  }
-
-  return <Footer />;
-};
 
 // Simplified wrapper - no more conditional margin for NavBar
 const MainContent: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -104,7 +85,6 @@ const App: React.FC = () => {
                     <Route path="/test-unified-header" element={<UnifiedHeaderTest />} />
                     <Route path="/generation-drawer-demo" element={<GenerationDrawerDemo />} />
                   </Routes>
-                  <ConditionalFooter />
                 </MainContent>
               </div>
             </StatBlockGeneratorProvider>

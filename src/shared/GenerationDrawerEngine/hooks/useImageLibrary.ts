@@ -25,6 +25,8 @@ export interface UseImageLibraryConfig {
     itemsPerPage?: number;
     /** Skip API calls (for tutorial mode) */
     disabled?: boolean;
+    /** Callback when an image is deleted - use to sync with external state (e.g., provider state) */
+    onImageDeleted?: (imageId: string, imageUrl: string) => void;
 }
 
 export interface UseImageLibraryReturn {
@@ -66,7 +68,8 @@ export function useImageLibrary(
         sessionId,
         service,
         itemsPerPage = 20,
-        disabled = false
+        disabled = false,
+        onImageDeleted
     } = config;
 
     const [images, setImages] = useState<SessionImage[]>([]);
@@ -110,6 +113,14 @@ export function useImageLibrary(
             }
 
             const data = await response.json();
+            console.log('📚 [ImageLibrary] API Response:', {
+                imagesCount: data.images?.length,
+                total: data.total,
+                totalPages: data.totalPages,
+                page: data.page,
+                limit: data.limit,
+                rawData: data
+            });
 
             // Transform API response to SessionImage format
             const transformedImages: SessionImage[] = (data.images || []).map((img: any) => ({
@@ -125,6 +136,12 @@ export function useImageLibrary(
             setTotal(data.total || 0);
             setTotalPages(data.totalPages || 1);
             setCurrentPage(page);
+            console.log('📚 [ImageLibrary] State set:', {
+                imagesCount: transformedImages.length,
+                total: data.total || 0,
+                totalPages: data.totalPages || 1,
+                currentPage: page
+            });
         } catch (err) {
             console.error('❌ [ImageLibrary] Fetch failed:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch library');
@@ -208,6 +225,9 @@ export function useImageLibrary(
      * Delete an image
      */
     const deleteImage = useCallback(async (imageId: string): Promise<void> => {
+        // Find the image URL before removing from state (backend needs URL, not ID)
+        const imageToDelete = images.find(img => img.id === imageId);
+
         // Always remove from local state immediately (optimistic update)
         setImages(prev => prev.filter(img => img.id !== imageId));
         setTotal(prev => Math.max(0, prev - 1));
@@ -225,9 +245,17 @@ export function useImageLibrary(
             return;
         }
 
+        // Need the image URL to delete from backend
+        if (!imageToDelete?.url) {
+            console.warn('🗑️ [ImageLibrary] Image not found in local state, skipping backend delete:', imageId);
+            return;
+        }
+
         // Try to delete from backend (best effort, don't block UI)
+        // Backend expects: DELETE /delete?image_url=https://...&service=statblock
         try {
-            const url = `${DUNGEONMIND_API_URL}${deleteEndpoint}/${imageId}`;
+            const url = `${DUNGEONMIND_API_URL}${deleteEndpoint}?image_url=${encodeURIComponent(imageToDelete.url)}&service=${encodeURIComponent(service)}`;
+            console.log('🗑️ [ImageLibrary] Deleting from backend:', imageToDelete.url.substring(0, 50) + '...');
             const response = await fetch(url, {
                 method: 'DELETE',
                 credentials: 'include'
@@ -237,14 +265,23 @@ export function useImageLibrary(
                 // Image might not exist on backend (was only local), that's OK
                 console.warn('🗑️ [ImageLibrary] Backend delete returned:', response.status);
             } else {
-                console.log('🗑️ [ImageLibrary] Deleted from backend:', imageId);
+                const result = await response.json();
+                console.log('🗑️ [ImageLibrary] Deleted from backend:', imageId, result);
             }
+
+            // Notify external state (e.g., provider) to sync their state
+            // This prevents race condition with debounced saves
+            if (onImageDeleted) {
+                console.log('🗑️ [ImageLibrary] Notifying onImageDeleted callback:', imageId);
+                onImageDeleted(imageId, imageToDelete.url);
+            }
+
             // Don't refresh - we already updated local state optimistically
         } catch (err) {
             // Log but don't restore - image is already gone from UI
             console.error('❌ [ImageLibrary] Backend delete failed:', err);
         }
-    }, [disabled, isLoggedIn, deleteEndpoint]);
+    }, [disabled, isLoggedIn, deleteEndpoint, images, service, onImageDeleted]);
 
     /**
      * Change page

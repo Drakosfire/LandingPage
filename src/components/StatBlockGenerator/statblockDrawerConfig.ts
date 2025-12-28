@@ -174,6 +174,8 @@ export interface CreateStatBlockConfigOptions {
     onImageGenerated?: (images: { url: string; id: string }[]) => void;
     /** Callback when an image is selected */
     onImageSelected?: (url: string, index: number) => void;
+    /** Callback when an image is deleted from library - use to sync provider state */
+    onImageDeleted?: (imageId: string, imageUrl: string) => void;
     /** Tutorial mode - bypasses auth checks */
     isTutorialMode?: boolean;
     /** Mock auth state for tutorial */
@@ -214,6 +216,7 @@ export function createStatBlockDrawerConfig(
         onGenerationError,
         onImageGenerated,
         onImageSelected,
+        onImageDeleted,
         isTutorialMode = false,
         mockAuthState = false,
         tutorialDurationMs = 7000,
@@ -326,6 +329,8 @@ export function createStatBlockDrawerConfig(
             sessionId,
             onImageGenerated: onImageGenerated as ((images: { id: string; url: string; prompt: string; createdAt: string; sessionId: string; service: string }[]) => void) | undefined,
             onImageSelected,
+            // Callback to sync provider state when images are deleted from library
+            onImageDeleted,
             // Dynamic capabilities
             models: models || IMAGE_MODELS,
             defaultModel: 'flux-pro',

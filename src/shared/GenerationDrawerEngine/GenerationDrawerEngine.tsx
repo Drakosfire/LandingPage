@@ -204,7 +204,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     deleteEndpoint: resolvedImageConfig?.deleteEndpoint || resolvedImageConfig?.libraryEndpoint || '/api/images/delete',
     sessionId: resolvedImageConfig?.sessionId,
     service: config.id,
-    disabled: shouldSimulateLibrary
+    disabled: shouldSimulateLibrary,
+    // Pass through callback to sync external state when images are deleted from library
+    onImageDeleted: resolvedImageConfig?.onImageDeleted
   });
 
   // Track previous opened state for close detection

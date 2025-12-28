@@ -18,7 +18,6 @@ import { projectAPI } from '../../services/projectAPI';
 import { useAuth } from '../../context/AuthContext';
 import CreateProjectModal from './CreateProjectModal';
 
-import Footer from '../Footer';
 import '../../styles/DesignSystem.css';
 import '../../styles/CardGeneratorLayout.css';
 import '../../styles/CardGeneratorPolish.css';
@@ -1382,8 +1381,6 @@ export default function CardGenerator() {
 
 
 
-            {/* Footer */}
-            <Footer />
         </MantineProvider>
     );
 }

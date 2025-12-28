@@ -20,7 +20,6 @@ import { createStatblockAdapters } from './canvasAdapters';
 // Import components
 import { UnifiedHeader } from '../UnifiedHeader';
 import { createStatBlockToolboxSections } from './statblockToolboxConfig';
-import Footer from '../Footer';
 import FunGenerationFeedback from './shared/FunGenerationFeedback';
 import StatBlockProjectsDrawer from './StatBlockProjectsDrawer';
 import StatBlockGenerationDrawer from './StatBlockGenerationDrawer';
@@ -403,8 +402,6 @@ const StatBlockGenerator: React.FC = () => {
                     />
                 )}
 
-                {/* Footer */}
-                <Footer />
             </div>
         </div>
     );

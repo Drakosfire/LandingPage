@@ -38,6 +38,14 @@ export const LibraryBrowser: React.FC<LibraryBrowserProps> = ({
     totalPages,
     onPageChange
 }) => {
+    console.log('📚 [LibraryBrowser] Render:', {
+        imagesCount: images.length,
+        currentPage,
+        totalPages,
+        isLoading,
+        showPagination: totalPages > 1
+    });
+
     if (isLoading) {
         return (
             <Center py="xl">
@@ -63,7 +71,7 @@ export const LibraryBrowser: React.FC<LibraryBrowserProps> = ({
     }
 
     return (
-        <Stack gap="md">
+        <Stack gap="md" pb="xl">
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="md">
                 {images.map((image) => (
                     <Card

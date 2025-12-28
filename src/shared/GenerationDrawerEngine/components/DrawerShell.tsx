@@ -46,11 +46,19 @@ export const DrawerShell: React.FC<DrawerShellProps> = ({
       closeButtonProps={{ 'aria-label': 'Close generation drawer' }}
       overlayProps={{ opacity: 0.3, blur: 2 }}
       styles={{
+        inner: {
+          top: '88px', // Below UnifiedHeader (88px desktop height)
+          height: 'calc(100vh - 88px)'
+        },
         content: {
-          marginTop: '88px', // Below UnifiedHeader (88px desktop height)
-          marginLeft: '0', // Full width with UnifiedHeader
-          height: 'calc(100vh - 88px)',
-          width: '100%' // Full width
+          height: '100%',
+          maxHeight: '100%'
+        },
+        body: {
+          // Use calc to account for drawer header (~60px)
+          height: 'calc(100vh - 88px - 60px)',
+          maxHeight: 'calc(100vh - 88px - 60px)',
+          overflow: 'auto'
         }
       }}
       data-tutorial="generation-drawer"

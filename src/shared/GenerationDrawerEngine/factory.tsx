@@ -70,6 +70,9 @@ export interface ServiceDrawerFactoryConfig<TInput, TOutput, TContext> {
     /** Handle image selection from gallery */
     handleImageSelected?: (ctx: TContext, url: string, index: number) => void;
 
+    /** Handle image deletion from library - sync with context state */
+    handleImageDeleted?: (ctx: TContext, imageId: string, imageUrl: string) => void;
+
     /** Get session ID for image management (defaults to serviceId-session) */
     getSessionId?: (ctx: TContext) => string;
 
@@ -161,6 +164,7 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
         getInitialImages,
         handleImagesGenerated,
         handleImageSelected,
+        handleImageDeleted,
         getSessionId,
         getImagePrompt,
         tutorialConfig
@@ -227,6 +231,12 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
             handleImageSelected?.(ctx, url, index);
         }, [ctx]);
 
+        // Handle image deletion from library - syncs with provider state
+        const handleImageDelete = useCallback((imageId: string, imageUrl: string) => {
+            console.log(`🗑️ [${displayName}] Image deleted from library:`, imageId);
+            handleImageDeleted?.(ctx, imageId, imageUrl);
+        }, [ctx]);
+
         // Build tutorial config for engine
         const tutorialEngineConfig: TutorialConfig | undefined = isTutorialMode ? {
             mockAuthState: tutorialConfig?.mockAuthState ?? false,
@@ -250,13 +260,15 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
                 ...engineConfig.imageConfig,
                 sessionId,
                 onImageGenerated: handleImageGenerated,
-                onImageSelected: handleImageSelect
+                onImageSelected: handleImageSelect,
+                onImageDeleted: handleImageDelete
             } : undefined
         }), [
             handleGenerationComplete,
             handleGenerationError,
             handleImageGenerated,
             handleImageSelect,
+            handleImageDelete,
             sessionId,
             initialTab,
             tutorialEngineConfig

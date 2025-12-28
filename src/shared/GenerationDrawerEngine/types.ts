@@ -300,6 +300,8 @@ export interface ImageConfig<TOutput> {
     onImageGenerated?: (images: GeneratedImage[]) => void;
     /** Callback when user selects an image */
     onImageSelected?: (url: string, index: number) => void;
+    /** Callback when an image is deleted from library - use to sync with external state */
+    onImageDeleted?: (imageId: string, imageUrl: string) => void;
     /** API endpoint for uploading images (enables upload tab) */
     uploadEndpoint?: string;
     /** API endpoint for fetching library images (enables library tab) */

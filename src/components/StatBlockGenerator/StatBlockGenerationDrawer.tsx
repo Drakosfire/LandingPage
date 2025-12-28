@@ -83,6 +83,19 @@ const FactoryStatBlockGenerationDrawer = createServiceDrawer<
     handleImageSelected: (ctx, url, index) => {
         ctx.setSelectedCreatureImage(url, index);
     },
+
+    // Handle image deletion from library - sync with provider's generatedContent
+    handleImageDeleted: (ctx, imageId, imageUrl) => {
+        // Remove from provider state to prevent debounced save from re-adding
+        const imageInProject = ctx.generatedContent.images.find(
+            img => img.id === imageId || img.url === imageUrl
+        );
+        if (imageInProject) {
+            console.log('🗑️ [StatBlock] Syncing library delete to provider:', imageId);
+            // Use removeGeneratedImage to properly remove from all state
+            ctx.removeGeneratedImage(imageInProject.id);
+        }
+    },
     
     // === Tutorial Mode ===
     tutorialConfig: {

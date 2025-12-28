@@ -150,7 +150,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={true}
                     onGenerationComplete={handleComplete}
@@ -195,7 +195,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={true}
                 />
@@ -227,7 +227,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={true}
                     onGenerationComplete={handleComplete}
@@ -263,7 +263,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={true}
                 />
@@ -279,14 +279,14 @@ describe('TutorialMode Integration', () => {
         it('shows login prompt when not in tutorial mode and not logged in', () => {
             // This test verifies the contrast - tutorial mode bypasses auth
             const config = createTutorialConfig();
-            
+
             // Add upload tab to test AuthGate
             config.tabs.push({
                 id: 'upload',
                 label: 'Upload',
                 type: GenerationType.IMAGE
             });
-            
+
             config.imageConfig = {
                 ...config.imageConfig!,
                 uploadEndpoint: '/api/test/upload',
@@ -296,7 +296,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={false} // NOT in tutorial mode
                 />
@@ -314,7 +314,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={true}
                     initialImages={MOCK_IMAGES}
@@ -340,7 +340,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={true}
                 />
@@ -370,7 +370,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={true}
                 />
@@ -402,7 +402,7 @@ describe('TutorialMode Integration', () => {
             renderWithMantine(
                 <GenerationDrawerEngine
                     opened={true}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     config={config}
                     isTutorialMode={true}
                 />
