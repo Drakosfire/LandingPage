@@ -34,12 +34,16 @@ export { GenerationType, ErrorCode, normalizeApiImage } from './types';
 // Image generation options (from GenerationPanel)
 export type { ImageGenerationOptions } from './components/GenerationPanel';
 
-// Main Component (will be implemented in Phase 2)
+// Main Component
 export { GenerationDrawerEngine } from './GenerationDrawerEngine';
 
-// Components (will be exported as they're implemented)
+// Factory Pattern
+export { createServiceDrawer } from './factory';
+export type { ServiceDrawerFactoryConfig, ServiceDrawerProps } from './factory';
+
+// Components
 export * from './components';
 
-// Hooks (will be exported as they're implemented)
+// Hooks
 export * from './hooks';
 

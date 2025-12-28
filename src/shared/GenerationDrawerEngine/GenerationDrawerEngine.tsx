@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Stack, Tabs, Text, Divider, Paper } from '@mantine/core';
+import { Stack, Tabs, Text, Divider, Paper, Textarea } from '@mantine/core';
 import type { GenerationDrawerEngineProps } from './types';
 import { DrawerShell } from './components/DrawerShell';
 import { TabsContainer } from './components/TabsContainer';
@@ -19,6 +19,7 @@ import { AuthGate } from './components/AuthGate';
 import { ExamplesBar } from './components/ExamplesBar';
 import { useGeneration } from './hooks/useGeneration';
 import { useImageLibrary } from './hooks/useImageLibrary';
+import { useImageCapabilities } from './hooks/useImageCapabilities';
 import {
   GenerationType,
   type GeneratedImage,
@@ -45,7 +46,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     onClose,
     isTutorialMode: propsTutorialMode,
     initialImages,
-    onGenerationComplete: propsOnGenerationComplete
+    onGenerationComplete: propsOnGenerationComplete,
+    onGeneratingChange,
+    imageTabPrompt
   } = props;
   const {
     tabs,
@@ -68,6 +71,24 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     resetOnClose = false,
     isTutorialMode: configTutorialMode
   } = config;
+
+  // Fetch image capabilities from backend if not provided in config
+  // This provides the shared model/style list for all services
+  const hasImageTab = tabs.some(tab => tab.generationType === GenerationType.IMAGE);
+  const needsCapabilities = hasImageTab && (!imageConfig?.models || imageConfig.models.length === 0);
+  
+  const { capabilities, isLoading: capabilitiesLoading } = useImageCapabilities({
+    skip: !needsCapabilities || propsTutorialMode
+  });
+
+  // Merge fetched capabilities with any config overrides
+  const resolvedImageConfig = imageConfig ? {
+    ...imageConfig,
+    models: imageConfig.models?.length ? imageConfig.models : capabilities.models,
+    styles: imageConfig.styles?.length ? imageConfig.styles : capabilities.styles,
+    maxImages: imageConfig.maxImages ?? capabilities.maxImages,
+    defaultNumImages: imageConfig.defaultNumImages ?? capabilities.defaultNumImages
+  } : undefined;
 
   // State management
   const [activeTab, setActiveTab] = useState<string>(
@@ -150,14 +171,38 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     isTutorialMode
   );
 
+  // Sync generation state to parent (for context state management)
+  useEffect(() => {
+    onGeneratingChange?.(generation.isGenerating);
+  }, [generation.isGenerating, onGeneratingChange]);
+
+  // Sync imageTabPrompt to image tab's input (populates prompt after text generation)
+  useEffect(() => {
+    if (imageTabPrompt) {
+      // Find the image tab (generationType === IMAGE)
+      const imageTab = tabs.find(tab => tab.generationType === GenerationType.IMAGE);
+      if (imageTab) {
+        setInputsByTab(prev => ({
+          ...prev,
+          [imageTab.id]: {
+            ...prev[imageTab.id],
+            // Update description field which is used as the prompt
+            description: imageTabPrompt
+          } as TInput
+        }));
+        console.log('📝 [Engine] Synced image prompt to image tab:', imageTabPrompt.substring(0, 50) + '...');
+      }
+    }
+  }, [imageTabPrompt, tabs]);
+
   // Setup image library hook - always call to satisfy React hooks rules
   // Only disable if simulating (simulateGeneration !== false means simulate)
   const shouldSimulateLibrary = isTutorialMode && tutorialConfig?.simulateGeneration !== false;
   const imageLibrary = useImageLibrary({
-    libraryEndpoint: imageConfig?.libraryEndpoint || '/api/images/library',
-    uploadEndpoint: imageConfig?.uploadEndpoint || '/api/images/upload',
-    deleteEndpoint: imageConfig?.deleteEndpoint || imageConfig?.libraryEndpoint || '/api/images/delete',
-    sessionId: imageConfig?.sessionId,
+    libraryEndpoint: resolvedImageConfig?.libraryEndpoint || '/api/images/library',
+    uploadEndpoint: resolvedImageConfig?.uploadEndpoint || '/api/images/upload',
+    deleteEndpoint: resolvedImageConfig?.deleteEndpoint || resolvedImageConfig?.libraryEndpoint || '/api/images/delete',
+    sessionId: resolvedImageConfig?.sessionId,
     service: config.id,
     disabled: shouldSimulateLibrary
   });
@@ -252,10 +297,10 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
   // Build style suffix from selected style
   const getStyleSuffix = useCallback((styleId: string | undefined): string => {
-    if (!styleId || !imageConfig?.styles) return '';
-    const style = imageConfig.styles.find((s: ImageGenerationStyle) => s.id === styleId);
+    if (!styleId || !resolvedImageConfig?.styles) return '';
+    const style = resolvedImageConfig.styles.find((s: ImageGenerationStyle) => s.id === styleId);
     return style?.suffix || '';
-  }, [imageConfig?.styles]);
+  }, [resolvedImageConfig?.styles]);
 
   // Handle generation
   const handleGenerate = useCallback(
@@ -346,7 +391,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               url: `https://placehold.co/512x512/${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}/ffffff?text=${encodeURIComponent(description.substring(0, 15))}`,
               prompt: description,
               createdAt: new Date().toISOString(),
-              sessionId: imageConfig?.sessionId || 'demo-session',
+              sessionId: resolvedImageConfig?.sessionId || 'demo-session',
               service: config.id
             };
 
@@ -354,7 +399,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
             setGeneratedImages((prev) => [...prev, mockImage]);
             // Add to library as well
             imageLibrary.addImages([mockImage]);
-            imageConfig?.onImageGenerated?.([mockImage]);
+            resolvedImageConfig?.onImageGenerated?.([mockImage]);
             console.log('📸 [Tutorial] Mock image generated and added to library:', mockImage);
           } else {
             // In live mode, extract images from typed API response
@@ -369,7 +414,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               const newImages: GeneratedImage[] = apiImages.map((apiImg) =>
                 normalizeApiImage(
                   apiImg,
-                  imageConfig?.sessionId || '',
+                  resolvedImageConfig?.sessionId || '',
                   config.id
                 )
               );
@@ -378,7 +423,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               setGeneratedImages((prev) => [...prev, ...newImages]);
               // Add to library as well
               imageLibrary.addImages(newImages);
-              imageConfig?.onImageGenerated?.(newImages);
+              resolvedImageConfig?.onImageGenerated?.(newImages);
               console.log('📸 [Live] Images normalized and added to gallery:', newImages.length);
             } else {
               console.warn('📸 [Live] Invalid API response format:', apiResponse);
@@ -412,14 +457,14 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
   // Handle image selection in gallery
   const handleImageSelect = useCallback((image: GeneratedImage | { id: string; url: string; prompt: string; createdAt?: string; sessionId?: string; service?: string }, index: number) => {
-    imageConfig?.onImageSelected?.(image.url, index);
+    resolvedImageConfig?.onImageSelected?.(image.url, index);
     setSelectedImageId(image.id || null);
     setModalOpened(false);
   }, [imageConfig]);
 
   // Handle image selection from modal (url-based signature for ImageModal)
   const handleModalSelect = useCallback((url: string, index: number) => {
-    imageConfig?.onImageSelected?.(url, index);
+    resolvedImageConfig?.onImageSelected?.(url, index);
     setSelectedImageId(generatedImages[index]?.id || null);
     setModalOpened(false);
   }, [imageConfig, generatedImages]);
@@ -499,7 +544,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
           imageLibrary?.addImages([uploadedImage!]);
 
           // Notify service
-          imageConfig?.onImageGenerated?.([uploadedImage]);
+          resolvedImageConfig?.onImageGenerated?.([uploadedImage]);
 
           console.log('✅ [GenerationDrawer] Upload success:', uploadedImage.url);
         } else {
@@ -546,8 +591,8 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     };
     setGeneratedImages((prev) => [...prev, generatedImage]);
     // Notify service
-    imageConfig?.onImageGenerated?.([generatedImage]);
-  }, [imageConfig]);
+    resolvedImageConfig?.onImageGenerated?.([generatedImage]);
+  }, [resolvedImageConfig]);
 
   const handleModalNavigate = useCallback((newIndex: number) => {
     setModalIndex(newIndex);
@@ -556,7 +601,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   // Update generated images when imageConfig callback is triggered
   // Services should call onImageGenerated with the generated images
   useEffect(() => {
-    if (imageConfig?.onImageGenerated) {
+    if (resolvedImageConfig?.onImageGenerated) {
       // Store the callback so services can call it
       // This is a workaround - in practice, services will call this after generation
       // For now, we'll handle it via the config callback
@@ -589,8 +634,8 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               data-tutorial={`${tab.id}-panel`}
             >
               <Stack gap="md">
-                {/* Examples Bar (if examples provided) */}
-                {examples && examples.length > 0 && (
+                {/* Examples Bar - only show for TEXT generation (not image/upload/library) */}
+                {examples && examples.length > 0 && tab.generationType === GenerationType.TEXT && (
                   <ExamplesBar
                     examples={examples}
                     onSelect={handleExampleSelect}
@@ -598,17 +643,19 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                   />
                 )}
 
-                {/* Input Slot */}
-                <InputSlot
-                  value={input}
-                  onChange={handleInputChange}
-                  isGenerating={generation.isGenerating}
-                  isTutorialMode={isTutorialMode}
-                  errors={validationErrors}
-                />
+                {/* Input Slot - only show for TEXT generation (image tab uses prompt from context) */}
+                {tab.generationType === GenerationType.TEXT && (
+                  <InputSlot
+                    value={input}
+                    onChange={handleInputChange}
+                    isGenerating={generation.isGenerating}
+                    isTutorialMode={isTutorialMode}
+                    errors={validationErrors}
+                  />
+                )}
 
-                {/* Generation Panel (only for generation tabs) */}
-                {tab.generationType && (
+                {/* Generation Panel for TEXT generation (no auth required) */}
+                {tab.generationType === GenerationType.TEXT && (
                   <GenerationPanel
                     input={input}
                     validateInput={validateInput}
@@ -619,15 +666,49 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     progressConfig={currentProgressConfig}
                     generationType={tab.generationType}
                     persistedStartTime={generationStartTimeRef.current}
-                    // Image generation options (only used for IMAGE type)
-                    models={imageConfig?.models}
-                    defaultModel={imageConfig?.defaultModel}
-                    styles={imageConfig?.styles}
-                    defaultStyle={imageConfig?.defaultStyle}
-                    maxImages={imageConfig?.maxImages}
-                    defaultNumImages={imageConfig?.defaultNumImages}
                     onImageOptionsChange={handleImageOptionsChange}
                   />
+                )}
+
+                {/* IMAGE generation - all content auth gated in single wrapper */}
+                {tab.generationType === GenerationType.IMAGE && (
+                  <AuthGate 
+                    isTutorialMode={isTutorialMode}
+                    message="Login required to generate AI images."
+                  >
+                    <Stack gap="md">
+                      <Textarea
+                        label="Image Prompt"
+                        description="Describe the image you want to generate"
+                        placeholder="Enter a description for image generation..."
+                        value={(input as Record<string, unknown>)?.description as string || ''}
+                        onChange={(e) => handleInputChange({ description: e.target.value } as unknown as Partial<TInput>)}
+                        disabled={generation.isGenerating}
+                        minRows={3}
+                        maxRows={6}
+                        autosize
+                        data-tutorial="image-prompt-input"
+                      />
+                      <GenerationPanel
+                        input={input}
+                        validateInput={validateInput}
+                        onGenerate={handleGenerate}
+                        isGenerating={generation.isGenerating}
+                        error={generation.error}
+                        onRetry={handleRetry}
+                        progressConfig={currentProgressConfig}
+                        generationType={tab.generationType}
+                        persistedStartTime={generationStartTimeRef.current}
+                        models={resolvedImageConfig?.models}
+                        defaultModel={resolvedImageConfig?.defaultModel}
+                        styles={resolvedImageConfig?.styles}
+                        defaultStyle={resolvedImageConfig?.defaultStyle}
+                        maxImages={resolvedImageConfig?.maxImages}
+                        defaultNumImages={resolvedImageConfig?.defaultNumImages}
+                        onImageOptionsChange={handleImageOptionsChange}
+                      />
+                    </Stack>
+                  </AuthGate>
                 )}
 
                 {/* Image Gallery (for image generation tabs - always show, with empty state) */}

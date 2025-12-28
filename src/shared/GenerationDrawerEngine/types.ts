@@ -461,5 +461,17 @@ export interface GenerationDrawerEngineProps<TInput, TOutput> {
     initialImages?: GeneratedImage[];
     /** Callback when generation completes successfully */
     onGenerationComplete?: (output: TOutput) => void;
+    /** 
+     * Sync generation state to parent.
+     * Called whenever internal isGenerating state changes.
+     * Enables automatic loading state management in service contexts.
+     */
+    onGeneratingChange?: (isGenerating: boolean) => void;
+    /**
+     * Image prompt to populate the image generation tab.
+     * When provided, updates the image tab's input prompt field.
+     * Typically sourced from context after text generation completes.
+     */
+    imageTabPrompt?: string;
 }
 

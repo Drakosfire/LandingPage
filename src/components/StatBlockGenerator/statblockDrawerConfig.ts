@@ -7,12 +7,12 @@
  * @module StatBlockGenerator
  */
 
-import type { 
-    GenerationDrawerConfig, 
+import type {
+    GenerationDrawerConfig,
     GenerationError,
     ImageGenerationModel,
     ImageGenerationStyle,
-    ProgressConfig 
+    ProgressConfig
 } from '../../shared/GenerationDrawerEngine';
 import { GenerationType } from '../../shared/GenerationDrawerEngine';
 import { IconWand, IconPhoto, IconUpload, IconLibrary } from '@tabler/icons-react';
@@ -65,7 +65,7 @@ export const STATBLOCK_DEFAULT_INPUT: StatBlockInput = {
 
 /** Quick-fill examples for the form */
 export const STATBLOCK_EXAMPLES = [
-    { 
+    {
         name: 'Forest Guardian',
         description: 'A mystical creature that protects ancient forests, with bark-like skin and glowing green eyes',
         input: {
@@ -75,7 +75,7 @@ export const STATBLOCK_EXAMPLES = [
             includeLairActions: false
         }
     },
-    { 
+    {
         name: 'Shadow Assassin',
         description: 'A deadly humanoid that can meld with shadows and strikes from darkness',
         input: {
@@ -85,7 +85,7 @@ export const STATBLOCK_EXAMPLES = [
             includeLairActions: false
         }
     },
-    { 
+    {
         name: 'Crystal Golem',
         description: 'A construct made of living crystal that pulses with magical energy',
         input: {
@@ -95,7 +95,7 @@ export const STATBLOCK_EXAMPLES = [
             includeLairActions: false
         }
     },
-    { 
+    {
         name: 'Flame Salamander',
         description: 'A fire-breathing lizard that dwells in volcanic regions',
         input: {
@@ -105,7 +105,7 @@ export const STATBLOCK_EXAMPLES = [
             includeLairActions: false
         }
     },
-    { 
+    {
         name: 'Storm Eagle',
         description: 'A magnificent bird that can summon lightning and control weather',
         input: {
@@ -286,9 +286,9 @@ export function createStatBlockDrawerConfig(
 
         // Transform API response to output type
         transformOutput: (response: unknown): StatBlockOutput => {
-            const data = response as { 
+            const data = response as {
                 success?: boolean;
-                data?: { 
+                data?: {
                     statblock?: StatBlockDetails;
                     image_prompt?: string;
                 };
@@ -317,11 +317,12 @@ export function createStatBlockDrawerConfig(
         },
 
         // Image configuration
+        // Note: endpoints are relative paths - useImageLibrary.ts prepends DUNGEONMIND_API_URL
         imageConfig: {
             promptField: 'imagePrompt',
-            uploadEndpoint: `${DUNGEONMIND_API_URL}/api/images/upload`,
-            deleteEndpoint: `${DUNGEONMIND_API_URL}/api/images/delete`,
-            libraryEndpoint: `${DUNGEONMIND_API_URL}/api/images/library`,
+            uploadEndpoint: '/api/images/upload',
+            deleteEndpoint: '/api/images/delete',
+            libraryEndpoint: '/api/images/library',
             sessionId,
             onImageGenerated: onImageGenerated as ((images: { id: string; url: string; prompt: string; createdAt: string; sessionId: string; service: string }[]) => void) | undefined,
             onImageSelected,

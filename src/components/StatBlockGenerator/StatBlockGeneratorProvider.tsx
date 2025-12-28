@@ -167,6 +167,20 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         };
     }, [instanceId]);
 
+    // Ref to hold latest state for beforeunload handler (prevents state loss on OAuth redirect)
+    const latestStateRef = useRef<{
+        creatureDetails: StatBlockDetails;
+        selectedAssets: StatBlockGeneratorContextType['selectedAssets'];
+        generatedContent: StatBlockGeneratorContextType['generatedContent'];
+        imagePrompt: string;
+        imageStyle: string;
+        imageModel: string;
+        currentProjectId: string | null;
+        isGenerating: boolean;
+    } | null>(null);
+
+    // NOTE: latestStateRef gets updated in useEffect after state declarations (search for "UPDATE latestStateRef")
+
     // Auto-load demo if no saved data exists
     useEffect(() => {
         // Only run once on mount
@@ -1527,6 +1541,59 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
         // CRITICAL: Only depend on currentProject?.id, not the whole object
         // Otherwise setCurrentProject() creates new object reference → triggers this effect again → loop!
     }, [creatureDetails, selectedAssets, generatedContent, imagePrompt, imageStyle, imageModel, currentProject?.id, isGenerating]);
+
+    // UPDATE latestStateRef - keep in sync with current state for beforeunload handler
+    useEffect(() => {
+        latestStateRef.current = {
+            creatureDetails,
+            selectedAssets,
+            generatedContent,
+            imagePrompt,
+            imageStyle,
+            imageModel,
+            currentProjectId: currentProject?.id || null,
+            isGenerating
+        };
+    }, [creatureDetails, selectedAssets, generatedContent, imagePrompt, imageStyle, imageModel, currentProject?.id, isGenerating]);
+
+    // beforeunload handler - saves state before page unload (e.g., OAuth redirect)
+    // This prevents losing unsaved work when clicking Login
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            const state = latestStateRef.current;
+            if (!state || state.isGenerating) {
+                console.log('🚪 [Provider] beforeunload: Skipping save (no state or generating)');
+                return;
+            }
+
+            try {
+                // Filter out tutorial images
+                const imagesToSave = state.generatedContent.images.filter(img => !img.isTutorial);
+
+                const stateSnapshot = {
+                    creatureDetails: state.creatureDetails,
+                    selectedAssets: state.selectedAssets,
+                    generatedContent: {
+                        ...state.generatedContent,
+                        images: imagesToSave
+                    },
+                    imagePrompt: state.imagePrompt,
+                    imageStyle: state.imageStyle,
+                    imageModel: state.imageModel,
+                    currentProject: state.currentProjectId,
+                    timestamp: Date.now()
+                };
+                const serialized = JSON.stringify(stateSnapshot);
+                localStorage.setItem('statblockGenerator_state', serialized);
+                console.log(`🚪 [Provider] beforeunload: Saved state to localStorage (${(serialized.length / 1024).toFixed(2)} KB)`);
+            } catch (err) {
+                console.error('🚪 [Provider] beforeunload: Failed to save:', err);
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, []); // Empty deps - handler reads from ref
 
     // Debounced save to Firestore (auth required, 2 second delay)
     useEffect(() => {

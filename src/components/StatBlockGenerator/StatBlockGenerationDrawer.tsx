@@ -1,27 +1,100 @@
 /**
- * StatBlockGenerationDrawer.tsx - Context-aware wrapper for Generation Drawer
+ * StatBlockGenerationDrawer.tsx - Factory-based generation drawer
  * 
- * Supports both the old GenerationDrawer and the new GenerationDrawerEngine
+ * Uses the createServiceDrawer factory pattern for automatic context wiring.
+ * Supports both the old GenerationDrawer and the new factory-based engine
  * via the USE_NEW_GENERATION_DRAWER feature flag.
- * 
- * Pattern: Follow StatBlockProjectsDrawer.tsx structure
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React from 'react';
 import { USE_NEW_GENERATION_DRAWER } from '../../config';
 import GenerationDrawer from './GenerationDrawer';
-import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
+import { useStatBlockGenerator, type StatBlockGeneratorContextType } from './StatBlockGeneratorProvider';
 import { TutorialMockImage } from './generationDrawerComponents/ImageGenerationTab';
 
-// New engine imports
-import { GenerationDrawerEngine } from '../../shared/GenerationDrawerEngine';
-import type { GeneratedImage } from '../../shared/GenerationDrawerEngine';
-import { useImageCapabilities } from '../../shared/GenerationDrawerEngine/hooks/useImageCapabilities';
+// Factory imports
+import { createServiceDrawer, type GeneratedImage } from '../../shared/GenerationDrawerEngine/factory';
 import StatBlockInputForm from './StatBlockInputForm';
 import { 
-    createStatBlockDrawerConfig, 
+    statblockEngineConfig, 
+    type StatBlockInput, 
     type StatBlockOutput 
-} from './statblockDrawerConfig';
+} from './statblockEngineConfig';
+
+// =============================================================================
+// FACTORY-BASED DRAWER (New Pattern)
+// =============================================================================
+
+/**
+ * Factory-created StatBlock generation drawer.
+ * 
+ * Benefits:
+ * - Automatic `isGenerating` state sync (impossible to forget)
+ * - Declarative configuration
+ * - Type-safe context wiring
+ * - ~40 lines vs ~120 lines of boilerplate
+ */
+const FactoryStatBlockGenerationDrawer = createServiceDrawer<
+    StatBlockInput,
+    StatBlockOutput,
+    StatBlockGeneratorContextType
+>({
+    serviceId: 'statblock',
+    displayName: 'AI Generation',
+    InputForm: StatBlockInputForm,
+    engineConfig: statblockEngineConfig,
+    
+    // === Context Wiring ===
+    useContext: useStatBlockGenerator,
+    getIsGeneratingSetter: (ctx) => ctx.setIsGenerating,
+    
+    // === Output Handling ===
+    handleOutput: (ctx, output) => {
+        ctx.replaceCreatureDetails(output.statblock);
+        // Always set imagePrompt (even if empty) to clear stale prompts from previous creatures
+        ctx.setImagePrompt(output.imagePrompt || '');
+    },
+    
+    // === Image Handling ===
+    getSessionId: (ctx) => ctx.currentProject?.id || 'statblock-session',
+    getImagePrompt: (ctx) => ctx.imagePrompt,
+    
+    getInitialImages: (ctx): GeneratedImage[] => 
+        ctx.generatedContent.images.map((img) => ({
+            id: img.id,
+            url: img.url,
+            prompt: img.prompt || '',
+            createdAt: img.timestamp || new Date().toISOString(),
+            sessionId: ctx.currentProject?.id || 'statblock-session',
+            service: 'statblock'
+        })),
+    
+    handleImagesGenerated: (ctx, images) => {
+        images.forEach((img) => {
+            ctx.addGeneratedImage({
+                id: img.id,
+                url: img.url,
+                prompt: img.prompt || '',
+                timestamp: img.createdAt || new Date().toISOString()
+            });
+        });
+    },
+    
+    handleImageSelected: (ctx, url, index) => {
+        ctx.setSelectedCreatureImage(url, index);
+    },
+    
+    // === Tutorial Mode ===
+    tutorialConfig: {
+        isTutorialMode: (_ctx, props) => props.isTutorialMode ?? false,
+        mockAuthState: true,
+        simulatedDurationMs: 7000
+    }
+});
+
+// =============================================================================
+// PROPS INTERFACE
+// =============================================================================
 
 interface StatBlockGenerationDrawerProps {
     opened: boolean;
@@ -34,140 +107,27 @@ interface StatBlockGenerationDrawerProps {
     onGenerationComplete?: () => void;
 }
 
+// =============================================================================
+// WRAPPER COMPONENTS
+// =============================================================================
+
 /**
- * New engine-based implementation of the generation drawer.
- * Uses GenerationDrawerEngine with StatBlock-specific configuration.
+ * Wrapper for the factory-based drawer to handle legacy props.
  */
 const NewStatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = ({
     opened,
     onClose,
     initialTab,
-    initialPrompt,
     isTutorialMode = false,
-    isTutorialMockAuth = false,
-    tutorialMockImages = [],
     onGenerationComplete
 }) => {
-    const {
-        replaceCreatureDetails,
-        setImagePrompt,
-        addGeneratedImage,
-        setSelectedCreatureImage,
-        generatedContent,
-        currentProject
-    } = useStatBlockGenerator();
-
-    // Fetch image capabilities from backend (skip in tutorial mode)
-    const { capabilities } = useImageCapabilities({ 
-        skip: isTutorialMode 
-    });
-
-    // Session ID for image management
-    const sessionId = currentProject?.id || 'statblock-session';
-
-    // Handle generation complete - update statblock in context
-    const handleGenerationComplete = useCallback((output: StatBlockOutput) => {
-        console.log('✅ [StatBlockGeneration] Generation complete:', output.statblock.name);
-        
-        // Update creature details in context
-        replaceCreatureDetails(output.statblock);
-        
-        // Set image prompt if provided
-        if (output.imagePrompt) {
-            setImagePrompt(output.imagePrompt);
-        }
-        
-        // Notify parent
-        onGenerationComplete?.();
-    }, [replaceCreatureDetails, setImagePrompt, onGenerationComplete]);
-
-    // Handle image generation - add to context
-    const handleImageGenerated = useCallback((images: { url: string; id: string }[]) => {
-        console.log('📸 [StatBlockGeneration] Images generated:', images.length);
-        
-        images.forEach((img) => {
-            addGeneratedImage({
-                id: img.id,
-                url: img.url,
-                prompt: '',
-                timestamp: new Date().toISOString()
-            });
-        });
-    }, [addGeneratedImage]);
-
-    // Handle image selection
-    const handleImageSelected = useCallback((url: string, index: number) => {
-        console.log('🖼️ [StatBlockGeneration] Image selected:', url, index);
-        setSelectedCreatureImage(url, index);
-    }, [setSelectedCreatureImage]);
-
-    // Handle generation error
-    const handleGenerationError = useCallback((error: { title: string; message: string }) => {
-        console.error('❌ [StatBlockGeneration] Generation error:', error.title, error.message);
-    }, []);
-
-    // Create config with callbacks
-    const config = useMemo(() => createStatBlockDrawerConfig(
-        StatBlockInputForm,
-        {
-            sessionId,
-            onGenerationComplete: handleGenerationComplete,
-            onGenerationError: handleGenerationError,
-            onImageGenerated: handleImageGenerated,
-            onImageSelected: handleImageSelected,
-            isTutorialMode,
-            mockAuthState: isTutorialMockAuth,
-            tutorialDurationMs: 7000,
-            onTutorialComplete: onGenerationComplete,
-            models: capabilities.models,
-            styles: capabilities.styles,
-            maxImages: capabilities.maxImages
-        }
-    ), [
-        sessionId,
-        handleGenerationComplete,
-        handleGenerationError,
-        handleImageGenerated,
-        handleImageSelected,
-        isTutorialMode,
-        isTutorialMockAuth,
-        onGenerationComplete,
-        capabilities
-    ]);
-
-    // Convert existing generated images to engine format
-    const initialImages: GeneratedImage[] = useMemo(() => {
-        // Tutorial mock images take priority
-        if (isTutorialMode && tutorialMockImages.length > 0) {
-            return tutorialMockImages.map((img, index) => ({
-                id: img.id || `tutorial-${index}`,
-                url: img.url,
-                prompt: img.prompt || '',
-                createdAt: img.timestamp || new Date().toISOString(),
-                sessionId: sessionId,
-                service: 'statblock'
-            }));
-        }
-        
-        // Otherwise use existing generated images from context
-        return generatedContent.images.map((img) => ({
-            id: img.id,
-            url: img.url,
-            prompt: img.prompt || '',
-            createdAt: img.timestamp || new Date().toISOString(),
-            sessionId: sessionId,
-            service: 'statblock'
-        }));
-    }, [isTutorialMode, tutorialMockImages, generatedContent.images, sessionId]);
-
     return (
-        <GenerationDrawerEngine
-            config={config}
+        <FactoryStatBlockGenerationDrawer
             opened={opened}
             onClose={onClose}
+            initialTab={initialTab}
             isTutorialMode={isTutorialMode}
-            initialImages={initialImages}
-            onGenerationComplete={handleGenerationComplete}
+            onGenerationComplete={onGenerationComplete}
         />
     );
 };
@@ -203,11 +163,15 @@ const OldStatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = (
     );
 };
 
+// =============================================================================
+// EXPORTED COMPONENT
+// =============================================================================
+
 /**
  * StatBlockGenerationDrawer - Feature-flagged wrapper
  * 
  * Uses USE_NEW_GENERATION_DRAWER feature flag to switch between:
- * - New: GenerationDrawerEngine (reusable engine)
+ * - New: Factory-based GenerationDrawerEngine (automatic context wiring)
  * - Old: GenerationDrawer (legacy implementation)
  */
 const StatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = (props) => {
