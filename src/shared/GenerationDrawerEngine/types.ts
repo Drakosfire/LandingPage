@@ -316,19 +316,19 @@ export interface ImageConfig<TOutput> {
     acceptedUploadTypes?: string[];
     /** Allow multiple file uploads at once (default: false) */
     allowMultipleUploads?: boolean;
-    
+
     // === Dynamic Capabilities ===
-    
+
     /** Available models from backend (enables model selector UI) */
     models?: ImageGenerationModel[];
     /** Default model ID (uses first model or model with default:true if not set) */
     defaultModel?: string;
-    
+
     /** Available styles from backend/config (enables style selector UI) */
     styles?: ImageGenerationStyle[];
     /** Default style ID (uses first style or style with default:true if not set) */
     defaultStyle?: string;
-    
+
     /** Maximum number of images per generation (enables num_images selector if > 1) */
     maxImages?: number;
     /** Default number of images to generate */

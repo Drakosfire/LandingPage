@@ -76,7 +76,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   // This provides the shared model/style list for all services
   const hasImageTab = tabs.some(tab => tab.generationType === GenerationType.IMAGE);
   const needsCapabilities = hasImageTab && (!imageConfig?.models || imageConfig.models.length === 0);
-  
+
   const { capabilities, isLoading: capabilitiesLoading } = useImageCapabilities({
     skip: !needsCapabilities || propsTutorialMode
   });
@@ -176,7 +176,11 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     onGeneratingChange?.(generation.isGenerating);
   }, [generation.isGenerating, onGeneratingChange]);
 
+  // Track previous imageTabPrompt to detect changes (for auto-switch)
+  const prevImageTabPromptRef = React.useRef<string>('');
+
   // Sync imageTabPrompt to image tab's input (populates prompt after text generation)
+  // Also auto-switch to image tab when prompt changes (indicating text generation completed)
   useEffect(() => {
     if (imageTabPrompt) {
       // Find the image tab (generationType === IMAGE)
@@ -191,9 +195,20 @@ export function GenerationDrawerEngine<TInput, TOutput>(
           } as TInput
         }));
         console.log('📝 [Engine] Synced image prompt to image tab:', imageTabPrompt.substring(0, 50) + '...');
+
+        // Auto-switch to image tab if the prompt changed (text generation just completed)
+        // Only switch if we were on the text tab (not already on image/upload/library)
+        if (prevImageTabPromptRef.current !== imageTabPrompt) {
+          const textTab = tabs.find(tab => tab.generationType === GenerationType.TEXT);
+          if (textTab && activeTab === textTab.id) {
+            console.log('🔄 [Engine] Auto-switching to image tab after text generation');
+            setActiveTab(imageTab.id);
+          }
+        }
       }
     }
-  }, [imageTabPrompt, tabs]);
+    prevImageTabPromptRef.current = imageTabPrompt || '';
+  }, [imageTabPrompt, tabs, activeTab]);
 
   // Setup image library hook - always call to satisfy React hooks rules
   // Only disable if simulating (simulateGeneration !== false means simulate)
@@ -674,7 +689,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
                 {/* IMAGE generation - all content auth gated in single wrapper */}
                 {tab.generationType === GenerationType.IMAGE && (
-                  <AuthGate 
+                  <AuthGate
                     isTutorialMode={isTutorialMode}
                     message="Login required to generate AI images."
                   >
@@ -693,7 +708,17 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                       />
                       <GenerationPanel
                         input={input}
-                        validateInput={validateInput}
+                        validateInput={(inp) => {
+                          // For image generation, validate the description/prompt field
+                          const prompt = (inp as Record<string, unknown>)?.description as string || '';
+                          if (!prompt || prompt.trim().length < 5) {
+                            return { 
+                              valid: false, 
+                              errors: { description: 'Image prompt must be at least 5 characters' } 
+                            };
+                          }
+                          return { valid: true };
+                        }}
                         onGenerate={handleGenerate}
                         isGenerating={generation.isGenerating}
                         error={generation.error}

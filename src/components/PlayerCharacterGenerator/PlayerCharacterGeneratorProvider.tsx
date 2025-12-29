@@ -64,7 +64,7 @@ export interface CharacterProjectSummary {
 /**
  * Player Character Generator context type
  */
-interface PlayerCharacterGeneratorContextType {
+export interface PlayerCharacterGeneratorContextType {
     // ===== CHARACTER STATE =====
     character: Character | null;
 
@@ -85,6 +85,12 @@ interface PlayerCharacterGeneratorContextType {
     validation: ValidationResult;
     isCharacterValid: boolean;
 
+    // ===== GENERATION STATE =====
+    /** Is AI generation in progress */
+    isGenerating: boolean;
+    /** Set generation state (used by GenerationDrawerEngine factory) */
+    setIsGenerating: (isGenerating: boolean) => void;
+
     // ===== EDIT MODE =====
     isEditMode: boolean;
     setIsEditMode: (enabled: boolean) => void;
@@ -96,11 +102,23 @@ interface PlayerCharacterGeneratorContextType {
     wizardStep: number;
     /** Set wizard step directly */
     setWizardStep: (step: number) => void;
-    /** Is creation drawer open */
+    
+    /** Is build drawer open (manual wizard) */
+    isBuildDrawerOpen: boolean;
+    /** Set build drawer open state */
+    setBuildDrawerOpen: (open: boolean) => void;
+    
+    /** Is generation drawer open (AI generation) */
+    isGenerationDrawerOpen: boolean;
+    /** Set generation drawer open state */
+    setGenerationDrawerOpen: (open: boolean) => void;
+    
+    /** @deprecated Use isBuildDrawerOpen instead - kept for backwards compatibility */
     isDrawerOpen: boolean;
-    /** Set drawer open state */
+    /** @deprecated Use setBuildDrawerOpen instead - kept for backwards compatibility */
     setDrawerOpen: (open: boolean) => void;
-    /** Open drawer to a specific wizard step (convenience function for edit mode) */
+    
+    /** Open build drawer to a specific wizard step (convenience function for edit mode) */
     openDrawerToStep: (step: number) => void;
 
     // ===== PROJECT MANAGEMENT (Phase 4) =====
@@ -200,6 +218,14 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [character]);
 
+    // ===== GENERATION STATE =====
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    // Log generation state changes
+    useEffect(() => {
+        console.log(`🎲 [PlayerCharacterGenerator] isGenerating: ${isGenerating}`);
+    }, [isGenerating]);
+
     // ===== EDIT MODE STATE =====
     const [isEditMode, setIsEditMode] = useState(false);
     const [isHomebrewMode, setIsHomebrewMode] = useState(false);
@@ -229,7 +255,14 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
     // ===== DRAWER/WIZARD STATE =====
     const WIZARD_STEP_KEY = 'charactergen_wizard_step';
 
-    const [isDrawerOpen, setDrawerOpen] = useState(false);
+    // Separate drawer states for Build and Generation
+    const [isBuildDrawerOpen, setBuildDrawerOpen] = useState(false);
+    const [isGenerationDrawerOpen, setGenerationDrawerOpen] = useState(false);
+    
+    // Backwards compatibility aliases
+    const isDrawerOpen = isBuildDrawerOpen;
+    const setDrawerOpen = setBuildDrawerOpen;
+
     const [wizardStep, setWizardStepInternal] = useState<number>(() => {
         // Restore from localStorage on mount
         try {
@@ -250,11 +283,11 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         }
     }, []);
 
-    // Open drawer to a specific step (for edit mode complex field clicks)
+    // Open build drawer to a specific step (for edit mode complex field clicks)
     const openDrawerToStep = useCallback((step: number) => {
-        console.log(`📂 [PlayerCharacterGenerator] Opening drawer to step ${step}`);
+        console.log(`📂 [PlayerCharacterGenerator] Opening build drawer to step ${step}`);
         setWizardStep(step);
-        setDrawerOpen(true);
+        setBuildDrawerOpen(true);
     }, [setWizardStep]);
 
     // ===== DEBOUNCED CLOUD SAVE (Phase 4c) =====
@@ -880,6 +913,10 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         validation,
         isCharacterValid,
 
+        // Generation state
+        isGenerating,
+        setIsGenerating,
+
         // Edit mode
         isEditMode,
         setIsEditMode,
@@ -889,8 +926,12 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
         // Drawer/wizard control
         wizardStep,
         setWizardStep,
-        isDrawerOpen,
-        setDrawerOpen,
+        isBuildDrawerOpen,
+        setBuildDrawerOpen,
+        isGenerationDrawerOpen,
+        setGenerationDrawerOpen,
+        isDrawerOpen,      // deprecated alias
+        setDrawerOpen,     // deprecated alias
         openDrawerToStep,
 
         // Project management (Phase 4)

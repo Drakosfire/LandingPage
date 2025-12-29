@@ -36,6 +36,7 @@ export const DrawerShell: React.FC<DrawerShellProps> = ({
       onClose={onClose}
       position="left"
       size="lg"
+      zIndex={400} // Above other drawers (PlayerCharacterCreationDrawer is 350)
       title={
         <Box data-tutorial="generation-drawer-title">
           <Title order={4}>

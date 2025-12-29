@@ -46,6 +46,11 @@ export interface UnifiedHeaderProps {
     onGenerationClick?: () => void;     // Generation button click handler
     generationIconUrl?: string;         // Custom generation icon URL
 
+    // Build Button (optional)
+    showBuild?: boolean;                // Show build button (default: false)
+    onBuildClick?: () => void;          // Build button click handler
+    buildIconUrl?: string;              // Custom build icon URL
+
     // Edit Mode Toggle (optional)
     showEditMode?: boolean;             // Show edit mode toggle (default: false)
     isEditMode?: boolean;               // Current edit mode state
@@ -126,6 +131,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
     showGeneration = false,
     onGenerationClick,
     generationIconUrl,
+    showBuild = false,
+    onBuildClick,
+    buildIconUrl,
     showEditMode = false,
     isEditMode = false,
     onEditModeToggle,
@@ -532,6 +540,34 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                             <img
                                 src={generationIconUrl || 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/08bd0df7-2c6b-4a96-028e-b91bf1935c00/public'}
                                 alt="AI Generation"
+                                onError={handleImageError}
+                                style={{
+                                    height: iconSize,
+                                    objectFit: 'contain',
+                                    cursor: 'pointer'
+                                }}
+                            />
+                        </Box>
+                    )}
+
+                    {/* Build Button (if enabled) */}
+                    {showBuild && onBuildClick && (
+                        <Box
+                            onClick={onBuildClick}
+                            data-tutorial="build-button"
+                            style={{
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'opacity 0.2s ease, filter 0.2s ease'
+                            }}
+                            aria-label="Build Character"
+                            title="Open Build Wizard"
+                        >
+                            <img
+                                src={buildIconUrl || 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/c71c3c8e-2acf-42a1-d5e0-2c8c26a49600/public'}
+                                alt="Build"
                                 onError={handleImageError}
                                 style={{
                                     height: iconSize,

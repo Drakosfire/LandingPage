@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Button, Stack, Select, Group, Text, Tooltip, NumberInput } from '@mantine/core';
+import { Button, Stack, Select, Group, Text, Tooltip } from '@mantine/core';
 import { IconWand, IconInfoCircle } from '@tabler/icons-react';
 import { ProgressPanel } from './ProgressPanel';
 import { ErrorDisplay } from './ErrorDisplay';
@@ -233,20 +233,24 @@ export function GenerationPanel<TInput>({
               value={selectedStyle}
               onChange={(value) => setSelectedStyle(value || undefined)}
               disabled={isGenerating}
+              comboboxProps={{ withinPortal: true, zIndex: 500 }}
               data-tutorial="style-selector"
             />
           )}
 
           {/* Number of Images Selector */}
           {maxImages && maxImages > 1 && (
-            <NumberInput
+            <Select
               label="Number of Images"
-              description={`Generate 1-${maxImages} images`}
-              value={numImages}
-              onChange={(value) => setNumImages(typeof value === 'number' ? value : 1)}
-              min={1}
-              max={maxImages}
+              description="How many images to generate"
+              data={Array.from({ length: maxImages }, (_, i) => ({
+                value: String(i + 1),
+                label: `${i + 1} image${i + 1 > 1 ? 's' : ''}`
+              }))}
+              value={String(numImages)}
+              onChange={(value) => setNumImages(value ? parseInt(value, 10) : 1)}
               disabled={isGenerating}
+              comboboxProps={{ withinPortal: true, zIndex: 500 }}
               data-tutorial="num-images-selector"
             />
           )}
@@ -270,6 +274,7 @@ export function GenerationPanel<TInput>({
               value={selectedModel}
               onChange={(value) => setSelectedModel(value || undefined)}
               disabled={isGenerating}
+              comboboxProps={{ withinPortal: true, zIndex: 500 }}
               data-tutorial="model-selector"
             />
           )}

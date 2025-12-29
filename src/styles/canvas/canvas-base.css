@@ -272,6 +272,10 @@
         /* Override PHB theme padding (1.4cm 1.9cm 1.7cm) with Canvas margins (10mm = ~37.8px) */
         padding: 10mm 1cm;
         box-sizing: border-box;
+        /* Remove fancy decorative border from D&D theme (border-image) */
+        border-image: none;
+        border: none;
+        box-shadow: none;
     }
 
     /* Ensure monster frame doesn't add extra padding/margin */

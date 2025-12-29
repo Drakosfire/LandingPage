@@ -21,7 +21,8 @@ import { CHARACTER_GENERATOR_APP } from '../../context/AppContext';
 import { createCharacterToolboxSections } from './characterToolboxConfig';
 import { DND_CSS_BASE_URL } from '../../config';
 import CharacterCanvas from './shared/CharacterCanvas';
-import PlayerCharacterCreationDrawer from './PlayerCharacterCreationDrawer';
+import PCGBuildDrawer from './PCGBuildDrawer';
+import PCGGenerationDrawer from './PCGGenerationDrawer';
 import PlayerCharacterRosterDrawer from './PlayerCharacterRosterDrawer';
 import { capturePcgPrintSnapshot } from './printDebug';
 
@@ -34,8 +35,10 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
         demoCharacterOptions,
         isEditMode,
         setIsEditMode,
-        isDrawerOpen,
-        setDrawerOpen,
+        isBuildDrawerOpen,
+        setBuildDrawerOpen,
+        isGenerationDrawerOpen,
+        setGenerationDrawerOpen,
         saveStatus,
         saveProject,
         isUnsavedNewCharacter
@@ -183,24 +186,41 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
             console.log('📂 [PlayerCharacterGen] Closing Character Roster (toggle)');
             setIsRosterOpen(false);
         } else {
-            // Close creation drawer, open roster
+            // Close other drawers, open roster
             console.log('📂 [PlayerCharacterGen] Opening Character Roster');
-            setDrawerOpen(false);
+            setBuildDrawerOpen(false);
+            setGenerationDrawerOpen(false);
             setIsRosterOpen(true);
         }
     };
 
-    // Handler for Creation drawer (toggle + mutual exclusion)
-    const handleGenerationClick = () => {
-        if (isDrawerOpen) {
+    // Handler for Build drawer (toggle + mutual exclusion)
+    const handleBuildClick = () => {
+        if (isBuildDrawerOpen) {
             // Toggle: close if already open
-            console.log('🎨 [PlayerCharacterGen] Closing creation drawer (toggle)');
-            setDrawerOpen(false);
+            console.log('🔨 [PlayerCharacterGen] Closing Build drawer (toggle)');
+            setBuildDrawerOpen(false);
         } else {
-            // Close roster drawer, open creation
-            console.log('🎨 [PlayerCharacterGen] Opening creation drawer');
+            // Close other drawers, open build
+            console.log('🔨 [PlayerCharacterGen] Opening Build drawer');
+            setGenerationDrawerOpen(false);
             setIsRosterOpen(false);
-            setDrawerOpen(true);
+            setBuildDrawerOpen(true);
+        }
+    };
+
+    // Handler for Generation drawer (toggle + mutual exclusion)
+    const handleGenerationClick = () => {
+        if (isGenerationDrawerOpen) {
+            // Toggle: close if already open
+            console.log('✨ [PlayerCharacterGen] Closing Generation drawer (toggle)');
+            setGenerationDrawerOpen(false);
+        } else {
+            // Close other drawers, open generation
+            console.log('✨ [PlayerCharacterGen] Opening Generation drawer');
+            setBuildDrawerOpen(false);
+            setIsRosterOpen(false);
+            setGenerationDrawerOpen(true);
         }
     };
 
@@ -229,8 +249,10 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
                 onEditModeToggle={setIsEditMode}
                 showProjects={true}  // Character Roster (Phase 4)
                 onProjectsClick={handleProjectsClick}
-                showGeneration={true}  // Creation Wizard drawer
+                showGeneration={true}  // AI Generation drawer
                 onGenerationClick={handleGenerationClick}
+                showBuild={true}  // Build Wizard drawer (NEW)
+                onBuildClick={handleBuildClick}
                 showAuth={true}
                 showHelp={false}  // Phase 2+
             />
@@ -257,10 +279,21 @@ const PlayerCharacterGeneratorInner: React.FC = () => {
                 </div>
             </div>
 
-            {/* Player Character Creation Drawer */}
-            <PlayerCharacterCreationDrawer
-                opened={isDrawerOpen}
-                onClose={() => setDrawerOpen(false)}
+            {/* PCG Build Drawer - Manual wizard */}
+            <PCGBuildDrawer
+                opened={isBuildDrawerOpen}
+                onClose={() => setBuildDrawerOpen(false)}
+            />
+
+            {/* PCG Generation Drawer - AI generation */}
+            <PCGGenerationDrawer
+                opened={isGenerationDrawerOpen}
+                onClose={() => setGenerationDrawerOpen(false)}
+                onGenerationComplete={() => {
+                    // After generation, switch to build drawer at review step
+                    setGenerationDrawerOpen(false);
+                    setBuildDrawerOpen(true);
+                }}
             />
 
             {/* Character Roster Drawer (Phase 4) */}
