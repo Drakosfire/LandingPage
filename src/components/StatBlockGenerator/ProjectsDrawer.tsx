@@ -15,6 +15,8 @@ import {
     TextInput,
     Title,
     Drawer,
+    LoadingOverlay,
+    Loader,
 } from '@mantine/core';
 import {
     IconPlus,
@@ -43,6 +45,7 @@ interface ProjectsDrawerProps {
     onDeleteProject: (projectId: string) => Promise<void>;
     onRefresh?: () => Promise<void>;
     isGenerationInProgress?: boolean;
+    isLoadingProject?: boolean;  // True when a project is being loaded (from parent)
 }
 
 const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
@@ -58,14 +61,17 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
     onSaveProject,
     onDeleteProject,
     onRefresh,
-    isGenerationInProgress = false
+    isGenerationInProgress = false,
+    isLoadingProject = false  // From parent - blocks all interaction
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState<StatBlockProjectSummary | null>(null);
     const [isDeletingProject, setIsDeletingProject] = useState(false);
-    const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
+    
+    // Combine parent loading state with local loading state for full lock
+    const isAnyLoadInProgress = isLoadingProject;
 
     // Filter projects based on search
     const filteredProjects = projects.filter(project =>
@@ -95,16 +101,14 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
     };
 
     const handleLoadProject = async (projectId: string) => {
-        if (loadingProjectId || isGenerationInProgress) return;
-
-        setLoadingProjectId(projectId);
-        try {
-            await onLoadProject(projectId);
-        } catch (error) {
-            console.error('Failed to load project:', error);
-        } finally {
-            setLoadingProjectId(null);
+        // Loading state is now managed by parent via isLoadingProject prop
+        if (isAnyLoadInProgress || isGenerationInProgress) {
+            console.log('⚠️ [ProjectsDrawer] Load blocked - operation in progress');
+            return;
         }
+        
+        // Parent will set isLoadingProject = true and show the loading modal
+        await onLoadProject(projectId);
     };
 
     const handleDeleteClick = (project: StatBlockProjectSummary) => {
@@ -145,21 +149,31 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
         <>
             <Drawer
                 opened={opened}
-                onClose={onClose}
+                onClose={() => {
+                    // Prevent closing while a project is loading
+                    if (isAnyLoadInProgress) {
+                        console.log('⚠️ [ProjectsDrawer] Cannot close while loading project');
+                        return;
+                    }
+                    onClose();
+                }}
                 position="right"
                 size="md"
                 title={
                     <Group gap="sm">
                         <IconFolderOpen size={20} />
                         <Title order={4}>Projects</Title>
-                        {loadingProjectId && (
-                            <Text size="xs" c="blue">
+                        {isAnyLoadInProgress && (
+                            <Badge color="blue" variant="light" leftSection={<IconLoader size={12} />}>
                                 Loading...
-                            </Text>
+                            </Badge>
                         )}
                     </Group>
                 }
-                closeButtonProps={{ 'aria-label': 'Close projects drawer' }}
+                closeButtonProps={{
+                    'aria-label': 'Close projects drawer',
+                    disabled: isAnyLoadInProgress
+                }}
                 overlayProps={{ opacity: 0.3, blur: 2 }}
                 styles={{
                     inner: {
@@ -178,7 +192,22 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                     }
                 }}
             >
-                <Stack gap="md" h="100%">
+                <Stack gap="md" h="100%" pos="relative">
+                    {/* Loading overlay when a project is being loaded */}
+                    <LoadingOverlay
+                        visible={isAnyLoadInProgress}
+                        zIndex={1000}
+                        overlayProps={{ radius: "sm", blur: 2 }}
+                        loaderProps={{
+                            children: (
+                                <Stack align="center" gap="xs">
+                                    <Loader size="lg" />
+                                    <Text size="sm" c="dimmed">Loading project...</Text>
+                                </Stack>
+                            )
+                        }}
+                    />
+
                     {/* Refresh Button */}
                     {onRefresh && (
                         <Group justify="flex-end">
@@ -203,8 +232,14 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                             onClick={onCreateNewProject}
                             variant="filled"
                             fullWidth
-                            disabled={isGenerationInProgress}
-                            title={isGenerationInProgress ? "Project creation disabled during generation" : ""}
+                            disabled={isGenerationInProgress || isAnyLoadInProgress}
+                            title={
+                                isGenerationInProgress
+                                    ? "Project creation disabled during generation"
+                                    : isAnyLoadInProgress
+                                        ? "Please wait while project loads..."
+                                        : ""
+                            }
                             size="md"
                             style={{ minHeight: 44 }}
                         >
@@ -235,8 +270,7 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                             ) : (
                                 sortedProjects.map((project) => {
                                     const isCurrentProject = currentProjectId === project.id;
-                                    const isBeingLoaded = loadingProjectId === project.id;
-                                    const isDisabled = !!loadingProjectId || isGenerationInProgress;
+                                    const isDisabled = isAnyLoadInProgress || isGenerationInProgress;
 
                                     return (
                                         <Card
@@ -269,15 +303,7 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
 
                                                     {/* Load Button and Actions */}
                                                     <Group gap={4} wrap="nowrap">
-                                                        {isBeingLoaded ? (
-                                                            <Badge
-                                                                color="blue"
-                                                                variant="light"
-                                                                leftSection={<IconLoader size={12} />}
-                                                            >
-                                                                Loading...
-                                                            </Badge>
-                                                        ) : isCurrentProject ? (
+                                                        {isCurrentProject ? (
                                                             <Badge color="green" variant="light">
                                                                 Active
                                                             </Badge>
@@ -287,16 +313,15 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                                 variant="light"
                                                                 color="blue"
                                                                 disabled={isDisabled}
-                                                                loading={isBeingLoaded}
                                                                 leftSection={<IconDownload size={14} />}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     handleLoadProject(project.id);
                                                                 }}
                                                                 title={
-                                                                    isDisabled ?
-                                                                        "Cannot load during generation" :
-                                                                        "Load this project"
+                                                                    isDisabled
+                                                                        ? "Please wait - operation in progress"
+                                                                        : "Load this project"
                                                                 }
                                                             >
                                                                 Load
@@ -314,11 +339,11 @@ const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                                                                 handleDeleteClick(project);
                                                             }}
                                                             title={
-                                                                isDisabled ?
-                                                                    "Cannot delete during generation" :
-                                                                    isCurrentProject ?
-                                                                        "Delete this active project (⚠️ Will clear current work)" :
-                                                                        "Delete this project"
+                                                                isDisabled
+                                                                    ? "Please wait - operation in progress"
+                                                                    : isCurrentProject
+                                                                        ? "Delete this active project (⚠️ Will clear current work)"
+                                                                        : "Delete this project"
                                                             }
                                                             style={{
                                                                 opacity: isDisabled ? 0.5 : 1,

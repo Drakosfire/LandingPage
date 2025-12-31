@@ -219,10 +219,18 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
             }
         }, [ctx]);
 
-        // Handle image generation
+        // Handle image generation (also used for Add from Library)
         const handleImageGenerated = useCallback((images: GeneratedImage[]) => {
-            console.log(`📸 [${displayName}] Images generated:`, images.length);
-            handleImagesGenerated?.(ctx, images);
+            console.log(`📸 [${displayName}] handleImageGenerated called:`, {
+                count: images.length,
+                hasHandler: !!handleImagesGenerated,
+                firstImageId: images[0]?.id
+            });
+            if (handleImagesGenerated) {
+                handleImagesGenerated(ctx, images);
+            } else {
+                console.warn(`⚠️ [${displayName}] No handleImagesGenerated configured!`);
+            }
         }, [ctx]);
 
         // Handle image selection

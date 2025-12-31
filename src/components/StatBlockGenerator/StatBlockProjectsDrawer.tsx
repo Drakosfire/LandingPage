@@ -1,8 +1,8 @@
 // StatBlockProjectsDrawer.tsx - Projects Drawer for StatBlock Generator
 // Phase 4: Full project management integration
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Modal, Text, Button, Stack, TextInput } from '@mantine/core';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Modal, Text, Button, Stack, TextInput, Loader, Center } from '@mantine/core';
 import ProjectsDrawer from './ProjectsDrawer';
 import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { useAuth } from '../../context/AuthContext';
@@ -35,9 +35,22 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
     const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
     const [newProjectName, setNewProjectName] = useState('');
     const [newProjectDescription, setNewProjectDescription] = useState('');
+    
+    // Loading state for individual project operations (load/delete)
+    const [isLoadingProject, setIsLoadingProject] = useState(false);
+    const [loadingProjectName, setLoadingProjectName] = useState<string>('');
+    
+    // Ref to track if we're in the middle of loading a project (to skip refresh effects)
+    const isLoadingProjectRef = useRef(false);
 
     // Define loadProjectsList with useCallback to prevent infinite loops
     const loadProjectsList = useCallback(async () => {
+        // Skip refresh if we're in the middle of loading a project
+        if (isLoadingProjectRef.current) {
+            console.log('📁 [ProjectsDrawer] Skipping refresh - project load in progress');
+            return;
+        }
+        
         setIsLoadingProjects(true);
         try {
             const projectsList = await listProjects();
@@ -60,21 +73,28 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
 
     // Refresh list when drawer opens (in case projects changed elsewhere)
     useEffect(() => {
-        if (isLoggedIn && opened) {
+        if (isLoggedIn && opened && !isLoadingProjectRef.current) {
             console.log('📁 [ProjectsDrawer] Refreshing on drawer open');
             loadProjectsList();
         }
     }, [isLoggedIn, opened, loadProjectsList]);
 
     // Refresh list when current project changes (after save/create/delete)
+    // Skip during active project load to prevent duplicate refreshes
     useEffect(() => {
-        if (isLoggedIn && currentProject?.id) {
+        if (isLoggedIn && currentProject?.id && !isLoadingProjectRef.current) {
             console.log('📁 [ProjectsDrawer] Refreshing after project change:', currentProject.id);
             loadProjectsList();
         }
     }, [isLoggedIn, currentProject?.id, loadProjectsList]);
 
     const handleLoadProject = async (projectId: string) => {
+        // Prevent multiple loads
+        if (isLoadingProject) {
+            console.log('⚠️ [ProjectsDrawer] Already loading a project, ignoring click');
+            return;
+        }
+        
         try {
             // Phase 4 Task 5: Unsaved changes warning
             if (saveStatus === 'saving') {
@@ -86,10 +106,28 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
                 }
             }
 
+            // Find project name for loading modal
+            const project = projects.find(p => p.id === projectId);
+            setLoadingProjectName(project?.name || 'project');
+            
+            // Set loading state (both state and ref)
+            setIsLoadingProject(true);
+            isLoadingProjectRef.current = true;
+            console.log('🔒 [ProjectsDrawer] Loading project - locking UI:', projectId);
+
             await loadProject(projectId);
-            await loadProjectsList(); // Refresh list
+            
+            // Refresh list AFTER load completes (but before unlocking)
+            await loadProjectsList();
+            
         } catch (err) {
             console.error('Failed to load project:', err);
+        } finally {
+            // Clear loading state
+            setIsLoadingProject(false);
+            isLoadingProjectRef.current = false;
+            setLoadingProjectName('');
+            console.log('🔓 [ProjectsDrawer] Project loaded - unlocking UI');
         }
     };
 
@@ -153,7 +191,14 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
         <>
             <ProjectsDrawer
                 opened={opened}
-                onClose={onClose}
+                onClose={() => {
+                    // Prevent closing while loading a project
+                    if (isLoadingProject) {
+                        console.log('⚠️ [ProjectsDrawer] Cannot close while loading');
+                        return;
+                    }
+                    onClose();
+                }}
                 projects={projects}
                 currentProjectId={currentProject?.id}
                 currentCreatureName={creatureDetails.name}
@@ -165,7 +210,30 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
                 onDeleteProject={handleDeleteProject}
                 onRefresh={loadProjectsList}
                 isGenerationInProgress={isGenerating}
+                isLoadingProject={isLoadingProject}
             />
+
+            {/* Loading Modal - Blocks all interaction while loading a project */}
+            <Modal
+                opened={isLoadingProject}
+                onClose={() => {}} // Cannot close
+                withCloseButton={false}
+                centered
+                size="sm"
+                overlayProps={{ blur: 3 }}
+                closeOnClickOutside={false}
+                closeOnEscape={false}
+            >
+                <Center>
+                    <Stack align="center" gap="md" py="lg">
+                        <Loader size="lg" />
+                        <Text size="lg" fw={500}>Loading Project</Text>
+                        <Text size="sm" c="dimmed">
+                            {loadingProjectName ? `Loading "${loadingProjectName}"...` : 'Please wait...'}
+                        </Text>
+                    </Stack>
+                </Center>
+            </Modal>
 
             {/* New Project Modal */}
             <Modal

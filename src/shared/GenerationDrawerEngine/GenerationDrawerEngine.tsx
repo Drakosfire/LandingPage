@@ -598,18 +598,40 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
   // Handle add from library to project
   const handleAddFromLibrary = useCallback((image: any) => {
+    console.log('📚 [Engine] handleAddFromLibrary called with:', {
+      imageId: image.id,
+      imageUrl: image.url?.substring(0, 50) + '...',
+      hasOnImageGenerated: !!resolvedImageConfig?.onImageGenerated
+    });
+    
     const generatedImage: GeneratedImage = {
       id: image.id,
       url: image.url,
       prompt: image.prompt,
       createdAt: image.createdAt,
-      sessionId: image.sessionId,
-      service: image.service
+      sessionId: image.sessionId || resolvedImageConfig?.sessionId || '',
+      service: image.service || config.id
     };
-    setGeneratedImages((prev) => [...prev, generatedImage]);
-    // Notify service
-    resolvedImageConfig?.onImageGenerated?.([generatedImage]);
-  }, [resolvedImageConfig]);
+    
+    // Add to local drawer gallery
+    setGeneratedImages((prev) => {
+      const isDuplicate = prev.some(img => img.id === generatedImage.id || img.url === generatedImage.url);
+      if (isDuplicate) {
+        console.log('⚠️ [Engine] Image already in drawer gallery, skipping');
+        return prev;
+      }
+      console.log('✅ [Engine] Adding image to drawer gallery');
+      return [...prev, generatedImage];
+    });
+    
+    // Notify service (provider) to add to project state
+    if (resolvedImageConfig?.onImageGenerated) {
+      console.log('📤 [Engine] Calling onImageGenerated to sync with provider');
+      resolvedImageConfig.onImageGenerated([generatedImage]);
+    } else {
+      console.warn('⚠️ [Engine] No onImageGenerated callback - image not saved to project!');
+    }
+  }, [resolvedImageConfig, config.id]);
 
   const handleModalNavigate = useCallback((newIndex: number) => {
     setModalIndex(newIndex);

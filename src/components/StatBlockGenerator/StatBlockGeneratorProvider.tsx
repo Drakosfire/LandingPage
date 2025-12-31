@@ -952,14 +952,34 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
     }, []);
 
     const addGeneratedImage = useCallback((image: GeneratedImage) => {
-        setGeneratedContent((prev: typeof generatedContent) => ({
-            ...prev,
-            images: [...prev.images, image]
-        }));
-        setSelectedAssets((prev: typeof selectedAssets) => ({
-            ...prev,
-            generatedImages: [...prev.generatedImages, image.url]
-        }));
+        setGeneratedContent((prev: typeof generatedContent) => {
+            // Check for duplicates by ID or URL
+            const isDuplicate = prev.images.some(
+                existingImg => existingImg.id === image.id || existingImg.url === image.url
+            );
+            
+            if (isDuplicate) {
+                console.log('⚠️ [Provider] Image already in project, skipping duplicate:', image.id);
+                return prev; // No change - prevent duplicate
+            }
+            
+            console.log('📸 [Provider] Adding image to project:', image.id);
+            return {
+                ...prev,
+                images: [...prev.images, image]
+            };
+        });
+        
+        setSelectedAssets((prev: typeof selectedAssets) => {
+            // Also check duplicates for selectedAssets
+            if (prev.generatedImages.includes(image.url)) {
+                return prev; // No change
+            }
+            return {
+                ...prev,
+                generatedImages: [...prev.generatedImages, image.url]
+            };
+        });
     }, []);
 
     const removeGeneratedImage = useCallback(async (imageId: string): Promise<void> => {
@@ -1674,11 +1694,23 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                 const result = await response.json();
                 console.log('💾 [Provider] Firestore save successful:', result);
 
-                // Update last saved content hash to prevent duplicate saves
-                lastSavedContentHashRef.current = contentToHash;
-
                 // Update current project with server response
                 if (result.projectId) {
+                    // CRITICAL FIX: Update content hash with NEW project ID to prevent duplicate saves
+                    // The next effect run will compute a hash with the new projectId, so we must match it
+                    const updatedContentHash = JSON.stringify({
+                        projectId: result.projectId,
+                        name: creatureDetails.name,
+                        type: creatureDetails.type,
+                        actions: creatureDetails.actions?.length,
+                        traits: creatureDetails.specialAbilities?.length,
+                        challengeRating: creatureDetails.challengeRating,
+                        hp: creatureDetails.hitPoints,
+                        imagesCount: generatedContent.images.length
+                    });
+                    lastSavedContentHashRef.current = updatedContentHash;
+                    console.log('🔒 [Provider] Updated content hash with new projectId:', result.projectId);
+
                     setCurrentProject({
                         id: result.projectId,
                         name: creatureDetails.name || 'Untitled Creature',
@@ -1699,6 +1731,9 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
                             platform: 'web'
                         }
                     });
+                } else {
+                    // No new project ID - just update hash with existing values
+                    lastSavedContentHashRef.current = contentToHash;
                 }
 
                 setLastSaved(new Date().toISOString());
