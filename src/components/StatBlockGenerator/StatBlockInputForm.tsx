@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { Stack, Textarea, Checkbox, Card, Text, Group } from '@mantine/core';
-import type { StatBlockInput } from './statblockDrawerConfig';
+import type { StatBlockInput } from './statblockEngineConfig';
 import type { InputSlotProps } from '../../shared/GenerationDrawerEngine';
 
 /**

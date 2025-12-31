@@ -24,7 +24,8 @@ import { IconAlertCircle, IconCheck, IconCopy, IconLogin, IconSparkles, IconTras
 import { DUNGEONMIND_API_URL } from '../../../config';
 import { useAuth } from '../../../context/AuthContext';
 import { buildFullPrompt, getStyleOptions, ImageStyle } from '../../../constants/imageStyles';
-import { ImageGenerationProgress } from '../../StatBlockGenerator/generationDrawerComponents/ImageGenerationProgress';
+import { ProgressPanel } from '../../../shared/GenerationDrawerEngine/components/ProgressPanel';
+import type { ProgressConfig } from '../../../shared/GenerationDrawerEngine/types';
 import { usePlayerCharacterGenerator } from '../PlayerCharacterGeneratorProvider';
 import { derivePortraitPrompt } from '../generation/portraitPromptBuilder';
 import type { PortraitGalleryItem, PortraitMeta } from '../types/character.types';
@@ -109,6 +110,18 @@ const MODEL_OPTIONS = [
     { value: 'imagen4', label: "Imagen4 - Google's model, premium quality" },
     { value: 'openai', label: 'OpenAI GPT-Image-Mini - Fast, cost-effective' }
 ];
+
+/** Progress config for portrait image generation (reuses engine's ProgressPanel) */
+const PORTRAIT_PROGRESS_CONFIG: ProgressConfig = {
+    estimatedDurationMs: 25000, // ~25 seconds for image generation
+    milestones: [
+        { at: 10, message: 'Preparing prompt...' },
+        { at: 30, message: 'Generating portrait...' },
+        { at: 60, message: 'Refining details...' },
+        { at: 85, message: 'Finalizing image...' }
+    ],
+    color: 'violet'
+};
 
 export const PortraitGenerationTab: React.FC = () => {
     const { isLoggedIn, login } = useAuth();
@@ -621,8 +634,12 @@ export const PortraitGenerationTab: React.FC = () => {
                     </Button>
                 </Group>
 
-                {isGenerating && generationStartTime && (
-                    <ImageGenerationProgress model={selectedModel} startTime={generationStartTime} />
+                {isGenerating && (
+                    <ProgressPanel
+                        isGenerating={isGenerating}
+                        config={PORTRAIT_PROGRESS_CONFIG}
+                        persistedStartTime={generationStartTime}
+                    />
                 )}
 
                 <Collapse in={recipeOpen}>

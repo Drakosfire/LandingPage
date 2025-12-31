@@ -28,11 +28,11 @@ const PCGBuildDrawer: React.FC<PCGBuildDrawerProps> = ({
     opened,
     onClose,
 }) => {
-    const { 
-        character, 
-        ruleEngine, 
-        wizardStep, 
-        setWizardStep, 
+    const {
+        character,
+        ruleEngine,
+        wizardStep,
+        setWizardStep,
         resetCharacter
     } = usePlayerCharacterGenerator();
 

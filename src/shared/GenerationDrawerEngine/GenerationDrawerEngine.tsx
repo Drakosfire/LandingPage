@@ -237,8 +237,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
     // Drawer just closed
     if (wasOpened && !opened) {
-      // Always clear errors and progress when closing
+      // Always clear errors, progress, and close modal when closing
       generation.clearError();
+      setModalOpened(false); // Close any open modal when drawer closes
 
       if (resetOnClose) {
         // Reset all tab inputs to initial values
@@ -481,10 +482,22 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
   // Handle image selection from modal (url-based signature for ImageModal)
   const handleModalSelect = useCallback((url: string, index: number) => {
-    resolvedImageConfig?.onImageSelected?.(url, index);
+    console.log('🖼️ [Engine] handleModalSelect called:', {
+      url: url?.substring(0, 50) + '...',
+      index,
+      hasOnImageSelected: !!resolvedImageConfig?.onImageSelected
+    });
+    
+    if (resolvedImageConfig?.onImageSelected) {
+      resolvedImageConfig.onImageSelected(url, index);
+      console.log('✅ [Engine] onImageSelected callback invoked');
+    } else {
+      console.warn('⚠️ [Engine] No onImageSelected callback configured!');
+    }
+    
     setSelectedImageId(generatedImages[index]?.id || null);
     setModalOpened(false);
-  }, [imageConfig, generatedImages]);
+  }, [resolvedImageConfig, generatedImages]);
 
   const handleImageDelete = useCallback((imageId: string) => {
     setGeneratedImages(prev => prev.filter(img => img.id !== imageId));

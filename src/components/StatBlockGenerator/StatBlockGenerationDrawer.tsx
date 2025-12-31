@@ -2,15 +2,10 @@
  * StatBlockGenerationDrawer.tsx - Factory-based generation drawer
  * 
  * Uses the createServiceDrawer factory pattern for automatic context wiring.
- * Supports both the old GenerationDrawer and the new factory-based engine
- * via the USE_NEW_GENERATION_DRAWER feature flag.
  */
 
 import React from 'react';
-import { USE_NEW_GENERATION_DRAWER } from '../../config';
-import GenerationDrawer from './GenerationDrawer';
 import { useStatBlockGenerator, type StatBlockGeneratorContextType } from './StatBlockGeneratorProvider';
-import { TutorialMockImage } from './generationDrawerComponents/ImageGenerationTab';
 
 // Factory imports
 import { createServiceDrawer, type GeneratedImage } from '../../shared/GenerationDrawerEngine/factory';
@@ -81,7 +76,12 @@ const FactoryStatBlockGenerationDrawer = createServiceDrawer<
     },
     
     handleImageSelected: (ctx, url, index) => {
+        console.log('🎯 [StatBlock] handleImageSelected called:', {
+            url: url?.substring(0, 50) + '...',
+            index
+        });
         ctx.setSelectedCreatureImage(url, index);
+        console.log('✅ [StatBlock] setSelectedCreatureImage invoked');
     },
 
     // Handle image deletion from library - sync with provider's generatedContent
@@ -113,21 +113,20 @@ interface StatBlockGenerationDrawerProps {
     opened: boolean;
     onClose: () => void;
     initialTab?: 'text' | 'image';
-    initialPrompt?: string;
     isTutorialMode?: boolean;
-    isTutorialMockAuth?: boolean;
-    tutorialMockImages?: TutorialMockImage[];
     onGenerationComplete?: () => void;
 }
 
 // =============================================================================
-// WRAPPER COMPONENTS
+// EXPORTED COMPONENT
 // =============================================================================
 
 /**
- * Wrapper for the factory-based drawer to handle legacy props.
+ * StatBlockGenerationDrawer - Factory-based generation drawer
+ * 
+ * Uses the GenerationDrawerEngine with automatic context wiring.
  */
-const NewStatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = ({
+const StatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = ({
     opened,
     onClose,
     initialTab,
@@ -143,55 +142,6 @@ const NewStatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = (
             onGenerationComplete={onGenerationComplete}
         />
     );
-};
-
-/**
- * Old implementation using the legacy GenerationDrawer.
- * Will be removed once migration is complete.
- */
-const OldStatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = ({
-    opened,
-    onClose,
-    initialTab,
-    initialPrompt,
-    isTutorialMode,
-    isTutorialMockAuth,
-    tutorialMockImages,
-    onGenerationComplete
-}) => {
-    const { isGenerating } = useStatBlockGenerator();
-
-    return (
-        <GenerationDrawer
-            opened={opened}
-            onClose={onClose}
-            isGenerationInProgress={isGenerating}
-            initialTab={initialTab}
-            initialPrompt={initialPrompt}
-            isTutorialMode={isTutorialMode}
-            isTutorialMockAuth={isTutorialMockAuth}
-            tutorialMockImages={tutorialMockImages}
-            onGenerationComplete={onGenerationComplete}
-        />
-    );
-};
-
-// =============================================================================
-// EXPORTED COMPONENT
-// =============================================================================
-
-/**
- * StatBlockGenerationDrawer - Feature-flagged wrapper
- * 
- * Uses USE_NEW_GENERATION_DRAWER feature flag to switch between:
- * - New: Factory-based GenerationDrawerEngine (automatic context wiring)
- * - Old: GenerationDrawer (legacy implementation)
- */
-const StatBlockGenerationDrawer: React.FC<StatBlockGenerationDrawerProps> = (props) => {
-    if (USE_NEW_GENERATION_DRAWER) {
-        return <NewStatBlockGenerationDrawer {...props} />;
-    }
-    return <OldStatBlockGenerationDrawer {...props} />;
 };
 
 export default StatBlockGenerationDrawer;

@@ -57,21 +57,6 @@ export const DUNGEONMIND_API_URL = (() => {
 })();
 
 // =============================================================================
-// FEATURE FLAGS
-// =============================================================================
-
-/**
- * Feature flag: Use new GenerationDrawerEngine for StatBlockGenerator.
- * When true, uses the reusable engine. When false, uses the old GenerationDrawer.
- * Set via REACT_APP_USE_NEW_GENERATION_DRAWER env var, defaults to false.
- */
-export const USE_NEW_GENERATION_DRAWER = (() => {
-    const envValue = process.env.REACT_APP_USE_NEW_GENERATION_DRAWER;
-    // Explicit true/false check to avoid truthy string issues
-    return envValue === 'true';
-})();
-
-// =============================================================================
 // ASSET PATHS
 // =============================================================================
 

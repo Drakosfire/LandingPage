@@ -51,10 +51,10 @@ const FactoryPCGGenerationDrawer = createServiceDrawer<
     handleOutput: (ctx, output) => {
         // Clear current project to start fresh (new character)
         ctx.clearCurrentProject();
-        
+
         // Set the generated character
         ctx.setCharacter(output.character);
-        
+
         console.log('✅ [PCG Generate] Character set:', output.character?.name || '(unnamed)');
     },
 
@@ -65,7 +65,7 @@ const FactoryPCGGenerationDrawer = createServiceDrawer<
 
     // === Image Handling ===
     getSessionId: (ctx) => ctx.currentProject?.id || 'pcg-session',
-    
+
     getImagePrompt: (ctx) => {
         // Derive portrait prompt from the current character
         if (!ctx.character) return '';
@@ -89,7 +89,7 @@ const FactoryPCGGenerationDrawer = createServiceDrawer<
     handleImagesGenerated: (ctx, images) => {
         // Add generated images to character's portrait gallery
         if (!ctx.character) return;
-        
+
         const newGalleryItems = images.map((img) => ({
             id: img.id,
             url: img.url,
@@ -135,7 +135,7 @@ const FactoryPCGGenerationDrawer = createServiceDrawer<
     handleImageDeleted: (ctx, imageId, imageUrl) => {
         // Remove from portrait gallery
         if (!ctx.character?.portraitGallery) return;
-        
+
         const updatedGallery = ctx.character.portraitGallery.filter(
             img => img.id !== imageId && img.url !== imageUrl
         );

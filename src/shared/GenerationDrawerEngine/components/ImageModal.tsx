@@ -88,6 +88,7 @@ export function ImageModal({
       opened={opened}
       onClose={onClose}
       size="xl"
+      zIndex={500} // Above DrawerShell (400) so modal appears on top
       title={
         <Text size="sm" c="dimmed">
           {currentIndex + 1} / {images.length}

@@ -235,8 +235,17 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
 
         // Handle image selection
         const handleImageSelect = useCallback((url: string, index: number) => {
-            console.log(`🖼️ [${displayName}] Image selected:`, index);
-            handleImageSelected?.(ctx, url, index);
+            console.log(`🖼️ [${displayName}] handleImageSelect called:`, {
+                url: url?.substring(0, 50) + '...',
+                index,
+                hasHandler: !!handleImageSelected
+            });
+            if (handleImageSelected) {
+                handleImageSelected(ctx, url, index);
+                console.log(`✅ [${displayName}] handleImageSelected invoked`);
+            } else {
+                console.warn(`⚠️ [${displayName}] No handleImageSelected configured!`);
+            }
         }, [ctx]);
 
         // Handle image deletion from library - syncs with provider state

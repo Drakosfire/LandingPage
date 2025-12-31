@@ -102,22 +102,22 @@ export interface PlayerCharacterGeneratorContextType {
     wizardStep: number;
     /** Set wizard step directly */
     setWizardStep: (step: number) => void;
-    
+
     /** Is build drawer open (manual wizard) */
     isBuildDrawerOpen: boolean;
     /** Set build drawer open state */
     setBuildDrawerOpen: (open: boolean) => void;
-    
+
     /** Is generation drawer open (AI generation) */
     isGenerationDrawerOpen: boolean;
     /** Set generation drawer open state */
     setGenerationDrawerOpen: (open: boolean) => void;
-    
+
     /** @deprecated Use isBuildDrawerOpen instead - kept for backwards compatibility */
     isDrawerOpen: boolean;
     /** @deprecated Use setBuildDrawerOpen instead - kept for backwards compatibility */
     setDrawerOpen: (open: boolean) => void;
-    
+
     /** Open build drawer to a specific wizard step (convenience function for edit mode) */
     openDrawerToStep: (step: number) => void;
 
@@ -258,7 +258,7 @@ export const PlayerCharacterGeneratorProvider: React.FC<PlayerCharacterGenerator
     // Separate drawer states for Build and Generation
     const [isBuildDrawerOpen, setBuildDrawerOpen] = useState(false);
     const [isGenerationDrawerOpen, setGenerationDrawerOpen] = useState(false);
-    
+
     // Backwards compatibility aliases
     const isDrawerOpen = isBuildDrawerOpen;
     const setDrawerOpen = setBuildDrawerOpen;

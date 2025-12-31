@@ -347,9 +347,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
 
                 {/* Center Section: App Icon + Name - Hard Centered */}
                 {activeApp && (
-                    <Group 
-                        gap="xs" 
-                        style={{ 
+                    <Group
+                        gap="xs"
+                        style={{
                             position: 'absolute',
                             left: '50%',
                             transform: 'translateX(-50%)',
