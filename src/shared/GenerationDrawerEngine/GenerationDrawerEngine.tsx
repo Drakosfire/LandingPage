@@ -125,6 +125,8 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
+  // Track whether modal is showing library images or project gallery images
+  const [modalSource, setModalSource] = useState<'project' | 'library'>('project');
 
   // Recent uploads for feedback display
   const [recentUploads, setRecentUploads] = useState<Array<{
@@ -467,11 +469,57 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   );
 
   // Handle image gallery interactions
-  // Handle image click in gallery (opens modal)
+  // Handle image click in project gallery (opens modal)
   const handleImageClick = useCallback((image: GeneratedImage | { id: string; url: string; prompt: string; createdAt?: string; sessionId?: string; service?: string }, index: number) => {
+    setModalSource('project');
     setModalIndex(index);
     setModalOpened(true);
   }, []);
+
+  // Handle image click in library (opens modal with library images)
+  const handleLibraryImageClick = useCallback((image: { id: string; url: string; prompt?: string }, index: number) => {
+    console.log('📚 [Engine] Library image clicked:', { index, imageId: image.id });
+    setModalSource('library');
+    setModalIndex(index);
+    setModalOpened(true);
+  }, []);
+
+  // Handle add from library to project
+  const handleAddFromLibrary = useCallback((image: any) => {
+    console.log('📚 [Engine] handleAddFromLibrary called with:', {
+      imageId: image.id,
+      imageUrl: image.url?.substring(0, 50) + '...',
+      hasOnImageGenerated: !!resolvedImageConfig?.onImageGenerated
+    });
+    
+    const generatedImage: GeneratedImage = {
+      id: image.id,
+      url: image.url,
+      prompt: image.prompt,
+      createdAt: image.createdAt,
+      sessionId: image.sessionId || resolvedImageConfig?.sessionId || '',
+      service: image.service || config.id
+    };
+    
+    // Add to local drawer gallery
+    setGeneratedImages((prev) => {
+      const isDuplicate = prev.some(img => img.id === generatedImage.id || img.url === generatedImage.url);
+      if (isDuplicate) {
+        console.log('⚠️ [Engine] Image already in drawer gallery, skipping');
+        return prev;
+      }
+      console.log('✅ [Engine] Adding image to drawer gallery');
+      return [...prev, generatedImage];
+    });
+    
+    // Notify service (provider) to add to project state
+    if (resolvedImageConfig?.onImageGenerated) {
+      console.log('📤 [Engine] Calling onImageGenerated to sync with provider');
+      resolvedImageConfig.onImageGenerated([generatedImage]);
+    } else {
+      console.warn('⚠️ [Engine] No onImageGenerated callback - image not saved to project!');
+    }
+  }, [resolvedImageConfig, config.id]);
 
   // Handle image selection in gallery
   const handleImageSelect = useCallback((image: GeneratedImage | { id: string; url: string; prompt: string; createdAt?: string; sessionId?: string; service?: string }, index: number) => {
@@ -481,13 +529,27 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   }, [imageConfig]);
 
   // Handle image selection from modal (url-based signature for ImageModal)
+  // Behavior differs based on modal source:
+  // - Project gallery: select image for use in canvas
+  // - Library: add image to project AND select it
   const handleModalSelect = useCallback((url: string, index: number) => {
+    const images = modalSource === 'library' ? imageLibrary?.images : generatedImages;
+    const currentImage = images?.[index];
+    
     console.log('🖼️ [Engine] handleModalSelect called:', {
+      source: modalSource,
       url: url?.substring(0, 50) + '...',
       index,
       hasOnImageSelected: !!resolvedImageConfig?.onImageSelected
     });
     
+    if (modalSource === 'library' && currentImage) {
+      // Library source: Add to project first, then select
+      console.log('📚 [Engine] Adding library image to project:', currentImage.id);
+      handleAddFromLibrary(currentImage);
+    }
+    
+    // Select the image
     if (resolvedImageConfig?.onImageSelected) {
       resolvedImageConfig.onImageSelected(url, index);
       console.log('✅ [Engine] onImageSelected callback invoked');
@@ -495,9 +557,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       console.warn('⚠️ [Engine] No onImageSelected callback configured!');
     }
     
-    setSelectedImageId(generatedImages[index]?.id || null);
+    setSelectedImageId(currentImage?.id || null);
     setModalOpened(false);
-  }, [resolvedImageConfig, generatedImages]);
+  }, [modalSource, resolvedImageConfig, generatedImages, imageLibrary?.images, handleAddFromLibrary]);
 
   const handleImageDelete = useCallback((imageId: string) => {
     setGeneratedImages(prev => prev.filter(img => img.id !== imageId));
@@ -608,43 +670,6 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     console.error('❌ [GenerationDrawer] Upload validation error:', error);
     // Could show toast notification here
   }, []);
-
-  // Handle add from library to project
-  const handleAddFromLibrary = useCallback((image: any) => {
-    console.log('📚 [Engine] handleAddFromLibrary called with:', {
-      imageId: image.id,
-      imageUrl: image.url?.substring(0, 50) + '...',
-      hasOnImageGenerated: !!resolvedImageConfig?.onImageGenerated
-    });
-    
-    const generatedImage: GeneratedImage = {
-      id: image.id,
-      url: image.url,
-      prompt: image.prompt,
-      createdAt: image.createdAt,
-      sessionId: image.sessionId || resolvedImageConfig?.sessionId || '',
-      service: image.service || config.id
-    };
-    
-    // Add to local drawer gallery
-    setGeneratedImages((prev) => {
-      const isDuplicate = prev.some(img => img.id === generatedImage.id || img.url === generatedImage.url);
-      if (isDuplicate) {
-        console.log('⚠️ [Engine] Image already in drawer gallery, skipping');
-        return prev;
-      }
-      console.log('✅ [Engine] Adding image to drawer gallery');
-      return [...prev, generatedImage];
-    });
-    
-    // Notify service (provider) to add to project state
-    if (resolvedImageConfig?.onImageGenerated) {
-      console.log('📤 [Engine] Calling onImageGenerated to sync with provider');
-      resolvedImageConfig.onImageGenerated([generatedImage]);
-    } else {
-      console.warn('⚠️ [Engine] No onImageGenerated callback - image not saved to project!');
-    }
-  }, [resolvedImageConfig, config.id]);
 
   const handleModalNavigate = useCallback((newIndex: number) => {
     setModalIndex(newIndex);
@@ -822,6 +847,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     ) : imageLibrary ? (
                       <LibraryBrowser
                         images={imageLibrary.images}
+                        onImageClick={handleLibraryImageClick}
                         onAddToProject={handleAddFromLibrary}
                         onDelete={handleImageDelete}
                         isLoading={imageLibrary.isLoading}
@@ -850,11 +876,11 @@ export function GenerationDrawerEngine<TInput, TOutput>(
           ))}
         </Tabs>
 
-        {/* Image Modal (shared across all tabs) */}
+        {/* Image Modal (shared across all tabs - shows project or library images based on source) */}
         {imageConfig && (
           <ImageModal
             opened={modalOpened}
-            images={generatedImages}
+            images={modalSource === 'library' ? (imageLibrary?.images || []) : generatedImages}
             currentIndex={modalIndex}
             onClose={() => setModalOpened(false)}
             onSelect={handleModalSelect}

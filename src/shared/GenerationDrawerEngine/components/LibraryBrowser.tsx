@@ -12,6 +12,8 @@ import type { SessionImage } from './ProjectGallery';
 export interface LibraryBrowserProps {
     /** Library images to display */
     images: SessionImage[];
+    /** Callback when image is clicked (opens modal) */
+    onImageClick: (image: SessionImage, index: number) => void;
     /** Callback when image is added to project */
     onAddToProject: (image: SessionImage) => void;
     /** Callback when image is deleted */
@@ -31,6 +33,7 @@ export interface LibraryBrowserProps {
  */
 export const LibraryBrowser: React.FC<LibraryBrowserProps> = ({
     images,
+    onImageClick,
     onAddToProject,
     onDelete,
     isLoading,
@@ -73,7 +76,7 @@ export const LibraryBrowser: React.FC<LibraryBrowserProps> = ({
     return (
         <Stack gap="md" pb="xl">
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="md">
-                {images.map((image) => (
+                {images.map((image, index) => (
                     <Card
                         key={image.id}
                         shadow="sm"
@@ -82,6 +85,7 @@ export const LibraryBrowser: React.FC<LibraryBrowserProps> = ({
                         withBorder
                         style={{ position: 'relative', cursor: 'pointer' }}
                         data-testid={`library-image-${image.id}`}
+                        onClick={() => onImageClick(image, index)}
                     >
                         <Card.Section>
                             <Image
@@ -89,7 +93,6 @@ export const LibraryBrowser: React.FC<LibraryBrowserProps> = ({
                                 alt={image.prompt || `Image ${image.id}`}
                                 height={150}
                                 fit="cover"
-                                onClick={() => onAddToProject(image)}
                             />
                         </Card.Section>
 
