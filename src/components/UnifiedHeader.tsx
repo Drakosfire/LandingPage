@@ -566,7 +566,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                             title="Open Build Wizard"
                         >
                             <img
-                                src={buildIconUrl || 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/c71c3c8e-2acf-42a1-d5e0-2c8c26a49600/public'}
+                                src={buildIconUrl || 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/9374cc8b-66a8-4733-9369-550334eb8c00/public'}
                                 alt="Build"
                                 onError={handleImageError}
                                 style={{
