@@ -10,10 +10,10 @@ import { useStatBlockGenerator, type StatBlockGeneratorContextType } from './Sta
 // Factory imports
 import { createServiceDrawer, type GeneratedImage } from '../../shared/GenerationDrawerEngine/factory';
 import StatBlockInputForm from './StatBlockInputForm';
-import { 
-    statblockEngineConfig, 
-    type StatBlockInput, 
-    type StatBlockOutput 
+import {
+    statblockEngineConfig,
+    type StatBlockInput,
+    type StatBlockOutput
 } from './statblockEngineConfig';
 
 // =============================================================================
@@ -38,23 +38,23 @@ const FactoryStatBlockGenerationDrawer = createServiceDrawer<
     displayName: 'AI Generation',
     InputForm: StatBlockInputForm,
     engineConfig: statblockEngineConfig,
-    
+
     // === Context Wiring ===
     useContext: useStatBlockGenerator,
     getIsGeneratingSetter: (ctx) => ctx.setIsGenerating,
-    
+
     // === Output Handling ===
     handleOutput: (ctx, output) => {
         ctx.replaceCreatureDetails(output.statblock);
         // Always set imagePrompt (even if empty) to clear stale prompts from previous creatures
         ctx.setImagePrompt(output.imagePrompt || '');
     },
-    
+
     // === Image Handling ===
     getSessionId: (ctx) => ctx.currentProject?.id || 'statblock-session',
     getImagePrompt: (ctx) => ctx.imagePrompt,
-    
-    getInitialImages: (ctx): GeneratedImage[] => 
+
+    getInitialImages: (ctx): GeneratedImage[] =>
         ctx.generatedContent.images.map((img) => ({
             id: img.id,
             url: img.url,
@@ -63,7 +63,7 @@ const FactoryStatBlockGenerationDrawer = createServiceDrawer<
             sessionId: ctx.currentProject?.id || 'statblock-session',
             service: 'statblock'
         })),
-    
+
     handleImagesGenerated: (ctx, images) => {
         images.forEach((img) => {
             ctx.addGeneratedImage({
@@ -74,7 +74,7 @@ const FactoryStatBlockGenerationDrawer = createServiceDrawer<
             });
         });
     },
-    
+
     handleImageSelected: (ctx, url, index) => {
         console.log('🎯 [StatBlock] handleImageSelected called:', {
             url: url?.substring(0, 50) + '...',
@@ -96,7 +96,7 @@ const FactoryStatBlockGenerationDrawer = createServiceDrawer<
             ctx.removeGeneratedImage(imageInProject.id);
         }
     },
-    
+
     // === Tutorial Mode ===
     tutorialConfig: {
         isTutorialMode: (_ctx, props) => props.isTutorialMode ?? false,

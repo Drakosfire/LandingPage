@@ -957,19 +957,19 @@ export const StatBlockGeneratorProvider: React.FC<StatBlockGeneratorProviderProp
             const isDuplicate = prev.images.some(
                 existingImg => existingImg.id === image.id || existingImg.url === image.url
             );
-            
+
             if (isDuplicate) {
                 console.log('⚠️ [Provider] Image already in project, skipping duplicate:', image.id);
                 return prev; // No change - prevent duplicate
             }
-            
+
             console.log('📸 [Provider] Adding image to project:', image.id);
             return {
                 ...prev,
                 images: [...prev.images, image]
             };
         });
-        
+
         setSelectedAssets((prev: typeof selectedAssets) => {
             // Also check duplicates for selectedAssets
             if (prev.generatedImages.includes(image.url)) {

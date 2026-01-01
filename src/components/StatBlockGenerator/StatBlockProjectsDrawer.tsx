@@ -35,11 +35,11 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
     const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
     const [newProjectName, setNewProjectName] = useState('');
     const [newProjectDescription, setNewProjectDescription] = useState('');
-    
+
     // Loading state for individual project operations (load/delete)
     const [isLoadingProject, setIsLoadingProject] = useState(false);
     const [loadingProjectName, setLoadingProjectName] = useState<string>('');
-    
+
     // Ref to track if we're in the middle of loading a project (to skip refresh effects)
     const isLoadingProjectRef = useRef(false);
 
@@ -50,7 +50,7 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
             console.log('📁 [ProjectsDrawer] Skipping refresh - project load in progress');
             return;
         }
-        
+
         setIsLoadingProjects(true);
         try {
             const projectsList = await listProjects();
@@ -94,7 +94,7 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
             console.log('⚠️ [ProjectsDrawer] Already loading a project, ignoring click');
             return;
         }
-        
+
         try {
             // Phase 4 Task 5: Unsaved changes warning
             if (saveStatus === 'saving') {
@@ -109,17 +109,17 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
             // Find project name for loading modal
             const project = projects.find(p => p.id === projectId);
             setLoadingProjectName(project?.name || 'project');
-            
+
             // Set loading state (both state and ref)
             setIsLoadingProject(true);
             isLoadingProjectRef.current = true;
             console.log('🔒 [ProjectsDrawer] Loading project - locking UI:', projectId);
 
             await loadProject(projectId);
-            
+
             // Refresh list AFTER load completes (but before unlocking)
             await loadProjectsList();
-            
+
         } catch (err) {
             console.error('Failed to load project:', err);
         } finally {
@@ -216,7 +216,7 @@ const StatBlockProjectsDrawer: React.FC<StatBlockProjectsDrawerProps> = ({
             {/* Loading Modal - Blocks all interaction while loading a project */}
             <Modal
                 opened={isLoadingProject}
-                onClose={() => {}} // Cannot close
+                onClose={() => { }} // Cannot close
                 withCloseButton={false}
                 centered
                 size="sm"

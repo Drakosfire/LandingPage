@@ -491,7 +491,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       imageUrl: image.url?.substring(0, 50) + '...',
       hasOnImageGenerated: !!resolvedImageConfig?.onImageGenerated
     });
-    
+
     const generatedImage: GeneratedImage = {
       id: image.id,
       url: image.url,
@@ -500,7 +500,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       sessionId: image.sessionId || resolvedImageConfig?.sessionId || '',
       service: image.service || config.id
     };
-    
+
     // Add to local drawer gallery
     setGeneratedImages((prev) => {
       const isDuplicate = prev.some(img => img.id === generatedImage.id || img.url === generatedImage.url);
@@ -511,7 +511,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       console.log('✅ [Engine] Adding image to drawer gallery');
       return [...prev, generatedImage];
     });
-    
+
     // Notify service (provider) to add to project state
     if (resolvedImageConfig?.onImageGenerated) {
       console.log('📤 [Engine] Calling onImageGenerated to sync with provider');
@@ -535,20 +535,20 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   const handleModalSelect = useCallback((url: string, index: number) => {
     const images = modalSource === 'library' ? imageLibrary?.images : generatedImages;
     const currentImage = images?.[index];
-    
+
     console.log('🖼️ [Engine] handleModalSelect called:', {
       source: modalSource,
       url: url?.substring(0, 50) + '...',
       index,
       hasOnImageSelected: !!resolvedImageConfig?.onImageSelected
     });
-    
+
     if (modalSource === 'library' && currentImage) {
       // Library source: Add to project first, then select
       console.log('📚 [Engine] Adding library image to project:', currentImage.id);
       handleAddFromLibrary(currentImage);
     }
-    
+
     // Select the image
     if (resolvedImageConfig?.onImageSelected) {
       resolvedImageConfig.onImageSelected(url, index);
@@ -556,7 +556,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     } else {
       console.warn('⚠️ [Engine] No onImageSelected callback configured!');
     }
-    
+
     setSelectedImageId(currentImage?.id || null);
     setModalOpened(false);
   }, [modalSource, resolvedImageConfig, generatedImages, imageLibrary?.images, handleAddFromLibrary]);
@@ -772,9 +772,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                           // For image generation, validate the description/prompt field
                           const prompt = (inp as Record<string, unknown>)?.description as string || '';
                           if (!prompt || prompt.trim().length < 5) {
-                            return { 
-                              valid: false, 
-                              errors: { description: 'Image prompt must be at least 5 characters' } 
+                            return {
+                              valid: false,
+                              errors: { description: 'Image prompt must be at least 5 characters' }
                             };
                           }
                           return { valid: true };
