@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import './styles/mantineOverrides.css';  // Global Mantine component overrides
+import './styles/map-fonts.css';  // Fantasy fonts for map labels
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

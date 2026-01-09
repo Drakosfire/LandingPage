@@ -69,7 +69,8 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     imageConfig,
     examples,
     resetOnClose = false,
-    isTutorialMode: configTutorialMode
+    isTutorialMode: configTutorialMode,
+    useInputSlotForImage = false
   } = config;
 
   // Fetch image capabilities from backend if not provided in config
@@ -143,6 +144,27 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
   // Image generation options selected by user (model, style, numImages)
   const imageOptionsRef = useRef<ImageGenerationOptions>({});
+  const [persistedImageOptions, setPersistedImageOptions] = useState<ImageGenerationOptions | undefined>(undefined);
+  
+  // Load persisted options for map service on drawer open
+  useEffect(() => {
+    if (opened && config.id === 'map') {
+      // Dynamic import to avoid circular dependency
+      import('../../components/MapGenerator/utils/persistence').then(({ loadGenerationOptions }) => {
+        const savedOptions = loadGenerationOptions();
+        if (savedOptions) {
+          imageOptionsRef.current = savedOptions;
+          setPersistedImageOptions(savedOptions);
+          console.log('📦 [Engine] Restored generation options from localStorage:', savedOptions);
+        }
+      }).catch((err) => {
+        console.warn('⚠️ [Engine] Failed to load persisted options:', err);
+      });
+    } else {
+      // Clear persisted options when drawer closes or for non-map services
+      setPersistedImageOptions(undefined);
+    }
+  }, [opened, config.id]);
 
   // Determine if in tutorial mode (props takes precedence over config)
   const isTutorialMode = propsTutorialMode ?? configTutorialMode ?? Boolean(tutorialConfig);
@@ -313,7 +335,17 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   // Callback for GenerationPanel to report image option changes
   const handleImageOptionsChange = useCallback((options: ImageGenerationOptions) => {
     imageOptionsRef.current = options;
-  }, []);
+    
+    // Persist options for map service
+    if (config.id === 'map') {
+      // Dynamic import to avoid circular dependency
+      import('../../components/MapGenerator/utils/persistence').then(({ saveGenerationOptions }) => {
+        saveGenerationOptions(options);
+      }).catch((err) => {
+        console.warn('⚠️ [Engine] Failed to save generation options:', err);
+      });
+    }
+  }, [config.id]);
 
   // Build style suffix from selected style
   const getStyleSuffix = useCallback((styleId: string | undefined): string => {
@@ -328,13 +360,14 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       // Record start time for progress persistence
       generationStartTimeRef.current = Date.now();
 
-      onGenerationStart?.();
+      onGenerationStart?.(inputValue);
 
       try {
         // Use image endpoint and transform for image generation
         const isImageGeneration = activeGenerationType === GenerationType.IMAGE;
+        // Resolve imageGenerationEndpoint (string or function) - pass function through to useGeneration
         const endpointOverride = isImageGeneration && imageGenerationEndpoint
-          ? imageGenerationEndpoint
+          ? imageGenerationEndpoint  // Can be string or function - useGeneration will handle it
           : undefined;
 
         // For image generation, create a wrapper transform that includes selected options
@@ -711,25 +744,29 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               data-tutorial={`${tab.id}-panel`}
             >
               <Stack gap="md">
-                {/* Examples Bar - only show for TEXT generation (not image/upload/library) */}
-                {examples && examples.length > 0 && tab.generationType === GenerationType.TEXT && (
-                  <ExamplesBar
-                    examples={examples}
-                    onSelect={handleExampleSelect}
-                    isGenerating={generation.isGenerating}
-                  />
-                )}
+                {/* Examples Bar - show for TEXT generation, or IMAGE when useInputSlotForImage is enabled */}
+                {examples && examples.length > 0 && (
+                  tab.generationType === GenerationType.TEXT ||
+                  (tab.generationType === GenerationType.IMAGE && useInputSlotForImage)
+                ) && (
+                    <ExamplesBar
+                      examples={examples}
+                      onSelect={handleExampleSelect}
+                      isGenerating={generation.isGenerating}
+                    />
+                  )}
 
-                {/* Input Slot - only show for TEXT generation (image tab uses prompt from context) */}
-                {tab.generationType === GenerationType.TEXT && (
-                  <InputSlot
-                    value={input}
-                    onChange={handleInputChange}
-                    isGenerating={generation.isGenerating}
-                    isTutorialMode={isTutorialMode}
-                    errors={validationErrors}
-                  />
-                )}
+                {/* Input Slot - show for TEXT generation, or IMAGE when useInputSlotForImage is enabled */}
+                {(tab.generationType === GenerationType.TEXT ||
+                  (tab.generationType === GenerationType.IMAGE && useInputSlotForImage)) && (
+                    <InputSlot
+                      value={input}
+                      onChange={handleInputChange}
+                      isGenerating={generation.isGenerating}
+                      isTutorialMode={isTutorialMode}
+                      errors={validationErrors}
+                    />
+                  )}
 
                 {/* Generation Panel for TEXT generation (no auth required) */}
                 {tab.generationType === GenerationType.TEXT && (
@@ -743,6 +780,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     progressConfig={currentProgressConfig}
                     generationType={tab.generationType}
                     persistedStartTime={generationStartTimeRef.current}
+                    initialImageOptions={persistedImageOptions}
                     onImageOptionsChange={handleImageOptionsChange}
                   />
                 )}
@@ -754,31 +792,37 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     message="Login required to generate AI images."
                   >
                     <Stack gap="md">
-                      <Textarea
-                        label="Image Prompt"
-                        description="Describe the image you want to generate"
-                        placeholder="Enter a description for image generation..."
-                        value={(input as Record<string, unknown>)?.description as string || ''}
-                        onChange={(e) => handleInputChange({ description: e.target.value } as unknown as Partial<TInput>)}
-                        disabled={generation.isGenerating}
-                        minRows={3}
-                        maxRows={6}
-                        autosize
-                        data-tutorial="image-prompt-input"
-                      />
+                      {/* Default Textarea - only show when NOT using custom InputSlot */}
+                      {!useInputSlotForImage && (
+                        <Textarea
+                          label="Image Prompt"
+                          description="Describe the image you want to generate"
+                          placeholder="Enter a description for image generation..."
+                          value={(input as Record<string, unknown>)?.description as string || ''}
+                          onChange={(e) => handleInputChange({ description: e.target.value } as unknown as Partial<TInput>)}
+                          disabled={generation.isGenerating}
+                          minRows={3}
+                          maxRows={6}
+                          autosize
+                          data-tutorial="image-prompt-input"
+                        />
+                      )}
                       <GenerationPanel
                         input={input}
-                        validateInput={(inp) => {
-                          // For image generation, validate the description/prompt field
-                          const prompt = (inp as Record<string, unknown>)?.description as string || '';
-                          if (!prompt || prompt.trim().length < 5) {
-                            return {
-                              valid: false,
-                              errors: { description: 'Image prompt must be at least 5 characters' }
-                            };
-                          }
-                          return { valid: true };
-                        }}
+                        validateInput={useInputSlotForImage && validateInput
+                          ? validateInput
+                          : (inp) => {
+                            // Default validation for image generation - check description/prompt field
+                            const prompt = (inp as Record<string, unknown>)?.description as string ||
+                              (inp as Record<string, unknown>)?.prompt as string || '';
+                            if (!prompt || prompt.trim().length < 5) {
+                              return {
+                                valid: false,
+                                errors: { prompt: 'Prompt must be at least 5 characters' }
+                              };
+                            }
+                            return { valid: true };
+                          }}
                         onGenerate={handleGenerate}
                         isGenerating={generation.isGenerating}
                         error={generation.error}
@@ -792,6 +836,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                         defaultStyle={resolvedImageConfig?.defaultStyle}
                         maxImages={resolvedImageConfig?.maxImages}
                         defaultNumImages={resolvedImageConfig?.defaultNumImages}
+                        initialImageOptions={persistedImageOptions}
                         onImageOptionsChange={handleImageOptionsChange}
                       />
                     </Stack>
@@ -829,6 +874,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                       isUploading={imageLibrary?.isLoading || false}
                       recentUploads={recentUploads}
                       onClearUpload={handleClearUpload}
+                      maxSize={resolvedImageConfig?.maxUploadSize || 10 * 1024 * 1024} // Default 10MB
+                      acceptedTypes={resolvedImageConfig?.acceptedUploadTypes || ['image/png', 'image/jpeg', 'image/webp']}
+                      multiple={resolvedImageConfig?.allowMultipleUploads || false}
                     />
                   </AuthGate>
                 )}

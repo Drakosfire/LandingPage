@@ -200,13 +200,17 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
 
     // Save button handler
     const handleSaveClick = () => {
+        console.log('💾 [UnifiedHeader] Save button clicked', { isLoggedIn, saveStatus, hasOnSaveClick: !!onSaveClick });
         if (!isLoggedIn) {
+            console.log('⚠️ [UnifiedHeader] Not logged in - please log in to save');
             alert('Please log in to save your work');
             return;
         }
         if (saveStatus === 'saving') {
+            console.log('⏳ [UnifiedHeader] Already saving, ignoring click');
             return; // Already saving
         }
+        console.log('💾 [UnifiedHeader] Calling onSaveClick');
         onSaveClick?.();
     };
 

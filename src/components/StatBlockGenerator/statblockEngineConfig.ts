@@ -248,7 +248,7 @@ export const statblockEngineConfig: Omit<
         deleteEndpoint: '/api/images/delete',
         libraryEndpoint: '/api/images/library',
         // models, styles, maxImages fetched from backend /api/images/capabilities
-        defaultModel: 'flux-pro',
+        defaultModel: 'flux-2-pro',
         defaultStyle: 'classic_dnd'
     },
 

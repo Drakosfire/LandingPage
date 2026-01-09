@@ -24,7 +24,9 @@ export interface ImageCapabilities {
  */
 const DEFAULT_CAPABILITIES: ImageCapabilities = {
   models: [
-    { id: 'flux-pro', name: 'FLUX Pro', description: 'High quality, balanced speed', default: true }
+    { id: 'flux-2-pro', name: 'FLUX 2 Pro', description: 'High quality, balanced speed', default: true },
+    { id: 'nano-banana-pro', name: 'Nano Banana Pro', description: 'Ultra-fast generation', default: false },
+    { id: 'gpt-image-1.5', name: 'GPT Image 1.5', description: 'OpenAI powered', default: false }
   ],
   styles: [
     { id: 'classic_dnd', name: 'Classic D&D', suffix: 'in the style of classic Dungeons & Dragons art', default: true }

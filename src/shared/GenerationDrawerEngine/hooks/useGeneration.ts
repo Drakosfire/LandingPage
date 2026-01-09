@@ -10,9 +10,9 @@ import { DUNGEONMIND_API_URL } from '../../../config';
 import { ErrorCode, type GenerationError } from '../types';
 
 export interface UseGenerationConfig<TInput, TOutput> {
-  generationEndpoint: string;
-  /** Optional separate endpoint for image generation */
-  imageGenerationEndpoint?: string;
+  generationEndpoint: string | ((input: TInput) => string);
+  /** Optional separate endpoint for image generation - can be string or function */
+  imageGenerationEndpoint?: string | ((input: TInput) => string);
   transformInput: (input: TInput) => Record<string, unknown>;
   transformOutput: (response: unknown) => TOutput;
   timeout?: number;
@@ -24,9 +24,9 @@ export interface UseGenerationConfig<TInput, TOutput> {
   };
 }
 
-export interface GenerateOptions {
-  /** Override the default endpoint for this generation */
-  endpointOverride?: string;
+export interface GenerateOptions<TInput = any> {
+  /** Override the default endpoint for this generation - can be string or function */
+  endpointOverride?: string | ((input: TInput) => string);
   /** Override the transform function for this generation */
   transformOverride?: (input: unknown) => Record<string, unknown>;
   /** Skip transformOutput and return raw response (for image generation) */
@@ -166,8 +166,21 @@ export function useGeneration<TInput, TOutput>(
         const transformer = options?.transformOverride || config.transformInput;
         const requestBody = transformer(input);
 
-        // Make API call - use endpoint override if provided
-        const baseEndpoint = options?.endpointOverride || config.generationEndpoint;
+        // Make API call - use endpoint override if provided, otherwise resolve endpoint (string or function)
+        let baseEndpoint: string;
+        if (options?.endpointOverride) {
+          // endpointOverride can be a function (from imageGenerationEndpoint) or a string
+          const override = options.endpointOverride;
+          if (typeof override === 'function') {
+            baseEndpoint = override(input);
+          } else {
+            baseEndpoint = override;
+          }
+        } else if (typeof config.generationEndpoint === 'function') {
+          baseEndpoint = config.generationEndpoint(input);
+        } else {
+          baseEndpoint = config.generationEndpoint;
+        }
         const endpoint = baseEndpoint.startsWith('http')
           ? baseEndpoint
           : `${DUNGEONMIND_API_URL}${baseEndpoint}`;

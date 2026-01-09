@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { GenerationDrawerEngine } from './GenerationDrawerEngine';
 import type {
     GenerationDrawerConfig,
@@ -56,7 +56,7 @@ export interface ServiceDrawerFactoryConfig<TInput, TOutput, TContext> {
     getIsGeneratingSetter: (ctx: TContext) => (isGenerating: boolean) => void;
 
     /** Handle successful generation output - route to context methods */
-    handleOutput: (ctx: TContext, output: TOutput) => void;
+    handleOutput: (ctx: TContext, output: TOutput, input?: TInput) => void;
 
     /** Handle generation error (optional, default logs) */
     handleError?: (ctx: TContext, error: GenerationError) => void;
@@ -170,6 +170,10 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
         tutorialConfig
     } = factoryConfig;
 
+    // Extract onGenerationStart before type narrowing (it's omitted from engineConfig type)
+    // We need to cast to access it since it's explicitly omitted from the type
+    const originalOnGenerationStart = (engineConfig as GenerationDrawerConfig<TInput, TOutput>).onGenerationStart;
+
     // Create the service drawer component
     const ServiceDrawer: React.FC<ServiceDrawerProps> = (props) => {
         const {
@@ -194,12 +198,15 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
             tutorialConfig?.isTutorialMode?.(ctx, props) ??
             false;
 
+        // Capture last input for metadata saving
+        const lastInputRef = useRef<TInput | undefined>(undefined);
+
         // Handle generation complete - routes output to context
         const handleGenerationComplete = useCallback((output: TOutput) => {
             console.log(`✅ [${displayName}] Generation complete`);
 
-            // Route output to service context
-            handleOutput(ctx, output);
+            // Route output to service context with input metadata
+            handleOutput(ctx, output, lastInputRef.current);
 
             // Notify parent if callback provided
             propsOnComplete?.();
@@ -263,6 +270,12 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
             mockImages: tutorialConfig?.mockImages
         } : undefined;
 
+        // Wrap onGenerationStart to capture input for metadata
+        const wrappedOnGenerationStart = useCallback((input: TInput) => {
+            lastInputRef.current = input;
+            originalOnGenerationStart?.(input);
+        }, [originalOnGenerationStart]);
+
         // Build final engine config with all wiring
         const config = useMemo((): GenerationDrawerConfig<TInput, TOutput> => ({
             ...engineConfig,
@@ -270,6 +283,7 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
             title: displayName,
             InputSlot: InputForm,
             defaultTab: initialTab || engineConfig.defaultTab,
+            onGenerationStart: wrappedOnGenerationStart,
             onGenerationComplete: handleGenerationComplete,
             onGenerationError: handleGenerationError,
             tutorialConfig: tutorialEngineConfig,

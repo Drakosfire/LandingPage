@@ -387,10 +387,10 @@ export interface GenerationDrawerConfig<TInput, TOutput> {
     validateInput?: (input: TInput) => ValidationResult;
 
     // === Generation ===
-    /** API endpoint for text generation (POST) */
-    generationEndpoint: string;
-    /** API endpoint for image generation (POST) - defaults to generationEndpoint if not set */
-    imageGenerationEndpoint?: string;
+    /** API endpoint for text generation (POST) - can be string or function that takes input */
+    generationEndpoint: string | ((input: TInput) => string);
+    /** API endpoint for image generation (POST) - defaults to generationEndpoint if not set - can be string or function */
+    imageGenerationEndpoint?: string | ((input: TInput) => string);
     /** Transform input for API request body (text generation) */
     transformInput: (input: TInput) => Record<string, unknown>;
     /** Transform input for image generation API request body - defaults to transformInput if not set */
@@ -400,7 +400,7 @@ export interface GenerationDrawerConfig<TInput, TOutput> {
 
     // === Callbacks ===
     /** Called when generation starts */
-    onGenerationStart?: () => void;
+    onGenerationStart?: (input: TInput) => void;
     /** Called on successful generation */
     onGenerationComplete?: (output: TOutput) => void;
     /** Called on generation error */
@@ -437,6 +437,20 @@ export interface GenerationDrawerConfig<TInput, TOutput> {
     resetOnClose?: boolean;
     /** Tutorial mode - uses simulated generation with mock data */
     isTutorialMode?: boolean;
+
+    // === Custom Input for Image Tabs ===
+    /**
+     * When true, render the custom InputSlot component for IMAGE generation tabs
+     * instead of the default simple Textarea.
+     * 
+     * Use this when your service needs rich input controls for image generation
+     * (e.g., MapGenerator with style toggles, prompt tuning options).
+     * 
+     * Also enables the examples bar for IMAGE tabs.
+     * 
+     * @default false
+     */
+    useInputSlotForImage?: boolean;
 }
 
 // =============================================================================

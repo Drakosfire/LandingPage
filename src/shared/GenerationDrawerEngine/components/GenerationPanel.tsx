@@ -65,6 +65,8 @@ export interface GenerationPanelProps<TInput> {
   maxImages?: number;
   /** Default number of images */
   defaultNumImages?: number;
+  /** Initial image options (loaded from persistence) */
+  initialImageOptions?: ImageGenerationOptions;
   /** Callback when image options change */
   onImageOptionsChange?: (options: ImageGenerationOptions) => void;
 }
@@ -107,6 +109,7 @@ export function GenerationPanel<TInput>({
   defaultStyle,
   maxImages,
   defaultNumImages,
+  initialImageOptions,
   onImageOptionsChange
 }: GenerationPanelProps<TInput>) {
   const [validationErrors, setValidationErrors] = useState<Record<string, string> | undefined>();
@@ -115,14 +118,15 @@ export function GenerationPanel<TInput>({
   // Image generation options state (only relevant for IMAGE type)
   const isImageGeneration = generationType === GenType.IMAGE;
   
+  // Use initial options if provided, otherwise fall back to defaults
   const [selectedModel, setSelectedModel] = useState<string | undefined>(() => 
-    getDefaultOption(models, defaultModel)
+    initialImageOptions?.model ?? getDefaultOption(models, defaultModel)
   );
   const [selectedStyle, setSelectedStyle] = useState<string | undefined>(() =>
-    getDefaultOption(styles, defaultStyle)
+    initialImageOptions?.style ?? getDefaultOption(styles, defaultStyle)
   );
-  const [numImages, setNumImages] = useState<number>(
-    defaultNumImages ?? (maxImages && maxImages > 1 ? 4 : 1)
+  const [numImages, setNumImages] = useState<number>(() =>
+    initialImageOptions?.numImages ?? (defaultNumImages ?? (maxImages && maxImages > 1 ? 4 : 1))
   );
 
   // Update parent when image options change
