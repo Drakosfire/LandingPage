@@ -333,6 +333,11 @@ export interface ImageConfig<TOutput> {
     maxImages?: number;
     /** Default number of images to generate */
     defaultNumImages?: number;
+
+    // === Layout Options ===
+
+    /** Position of project gallery in IMAGE tabs (default: 'bottom') */
+    galleryPosition?: 'top' | 'bottom';
 }
 
 // =============================================================================

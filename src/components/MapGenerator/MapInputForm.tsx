@@ -2,9 +2,10 @@
  * Map Input Form - Input component for GenerationDrawerEngine
  * 
  * Provides the input form for map generation with prompt and style toggles.
+ * Persists prompt and style options to localStorage for recovery across sessions.
  */
 
-import React from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Stack, Textarea, Divider, Switch, Group, Button } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
 import type { MapGenerationInput } from './mapTypes';
@@ -13,6 +14,7 @@ import MapStyleToggles from './MapStyleToggles';
 import { MaskPreview } from './MaskPreview';
 import { useMapGenerator } from './MapGeneratorProvider';
 import { exportMaskToBase64 } from 'dungeonmind-canvas';
+import { saveMapInput } from './utils/persistence';
 
 /**
  * MapInputForm component for the GenerationDrawerEngine.
@@ -30,22 +32,62 @@ const MapInputForm: React.FC<InputSlotProps<MapGenerationInput>> = ({
   const { maskConfig, maskDrawingState, baseImageUrl, clearMask } = useMapGenerator();
   const [isApplyingMask, setIsApplyingMask] = React.useState(!!value.maskData);
 
+  // Auto-reset mask toggle when mask is cleared (e.g., after generation completes)
+  // This handles the case where handleGenerationComplete clears the mask
+  React.useEffect(() => {
+    if (isApplyingMask && maskDrawingState.strokes.length === 0 && !value.maskData) {
+      console.log('🎭 [MapInputForm] Auto-resetting mask toggle (mask was cleared)');
+      setIsApplyingMask(false);
+    }
+  }, [isApplyingMask, maskDrawingState.strokes.length, value.maskData]);
+
   // Debug: Log mask state to understand why toggle might not show
   React.useEffect(() => {
     console.log('🎭 [MapInputForm] Mask state:', {
       hasBaseImage: !!baseImageUrl,
       strokeCount: maskDrawingState.strokes.length,
       shouldShowToggle: baseImageUrl && maskDrawingState.strokes.length > 0,
+      isApplyingMask,
       baseImageUrl: baseImageUrl?.substring(0, 50) + '...',
     });
-  }, [baseImageUrl, maskDrawingState.strokes.length]);
+  }, [baseImageUrl, maskDrawingState.strokes.length, isApplyingMask]);
 
-  const handleStyleOptionsChange = (newStyleOptions: typeof value.styleOptions) => {
+  // Debounced save of prompt and style options to localStorage
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasInitializedRef = useRef(false);
+  
+  useEffect(() => {
+    // Skip the first render (initial load) to avoid overwriting loaded values
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      return;
+    }
+    
+    // Debounce saves to avoid excessive writes
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      saveMapInput({
+        prompt: value.prompt,
+        styleOptions: value.styleOptions,
+      });
+    }, 1000); // 1 second debounce
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [value.prompt, value.styleOptions]);
+
+  const handleStyleOptionsChange = useCallback((newStyleOptions: typeof value.styleOptions) => {
     onChange({
       ...value,
       styleOptions: newStyleOptions,
     });
-  };
+  }, [onChange, value]);
 
   /**
    * Convert image URL to base64 data URI format
@@ -226,13 +268,18 @@ const MapInputForm: React.FC<InputSlotProps<MapGenerationInput>> = ({
         data-testid="map-prompt-input"
       />
 
-      <Divider label="Style Options" labelPosition="center" />
+      {/* Style Options - HIDDEN in inpainting mode for simplified UX */}
+      {!(hasMaskReady && isApplyingMask) && (
+        <>
+          <Divider label="Style Options" labelPosition="center" />
 
-      {/* Style Toggles */}
-      <MapStyleToggles
-        value={value.styleOptions}
-        onChange={handleStyleOptionsChange}
-      />
+          {/* Style Toggles */}
+          <MapStyleToggles
+            value={value.styleOptions}
+            onChange={handleStyleOptionsChange}
+          />
+        </>
+      )}
 
       {/* Mask hint - Show when base image exists but no mask drawn yet */}
       {baseImageUrl && !hasMaskReady && (

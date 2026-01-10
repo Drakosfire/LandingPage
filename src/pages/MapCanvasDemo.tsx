@@ -89,6 +89,19 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
   { id: 'options-persistence', label: 'Generation options (model, style, numImages) persist across drawer sessions', category: 'Generation Options', taskId: 'Phase 2' },
   { id: 'options-restore', label: 'Generation options restore when reopening drawer', category: 'Generation Options', taskId: 'Phase 2' },
   { id: 'options-localstorage', label: 'Generation options persist across page refresh (localStorage)', category: 'Generation Options', taskId: 'Phase 2' },
+  
+  // Map Input Persistence
+  { id: 'prompt-persistence', label: 'Map description (prompt) persists across drawer sessions', category: 'Map Input Persistence', taskId: 'Input Persistence' },
+  { id: 'style-options-persistence', label: 'Style options (fantasy level, rendering, tone, etc.) persist', category: 'Map Input Persistence', taskId: 'Input Persistence' },
+  { id: 'input-restore', label: 'Map input restores when reopening drawer', category: 'Map Input Persistence', taskId: 'Input Persistence' },
+  { id: 'input-localstorage', label: 'Map input persists across page refresh (localStorage)', category: 'Map Input Persistence', taskId: 'Input Persistence' },
+
+  // Drawer UX Flow (Phase 6)
+  { id: 'gallery-top', label: 'Project Gallery appears at TOP of generation drawer', category: 'Drawer UX', taskId: 'Phase 6' },
+  { id: 'mask-toggle-auto-reset', label: 'Mask toggle auto-resets to OFF after generation completes', category: 'Drawer UX', taskId: 'Phase 6' },
+  { id: 'inpaint-mode-simplified', label: 'When mask toggle ON, style options are HIDDEN (simplified UI)', category: 'Drawer UX', taskId: 'Phase 6' },
+  { id: 'inpaint-prompt-label', label: 'Prompt label changes to "Describe what to generate in the masked region" in inpaint mode', category: 'Drawer UX', taskId: 'Phase 6' },
+  { id: 'inpaint-flow-complete', label: 'Full flow: draw mask → toggle on → generate → toggle auto-off → UI returns to full mode', category: 'Drawer UX', taskId: 'Phase 6' },
 
   // Upload & Inpainting Options
   { id: 'upload-checkbox', label: 'Upload checkbox controls image upload option visibility', category: 'Upload & Inpainting', taskId: 'New Feature' },
@@ -282,8 +295,51 @@ function ChecklistSection() {
 // State Viewer Component
 // =============================================================================
 
+// Load generation options from localStorage
+function loadGenerationOptionsFromStorage(): { model?: string; style?: string; numImages?: number } | null {
+  try {
+    const saved = localStorage.getItem('mapGenerator:generationOptions');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (err) {
+    console.warn('❌ [StateViewer] Failed to load generation options:', err);
+  }
+  return null;
+}
+
+// Load map input from localStorage
+function loadMapInputFromStorage(): { prompt?: string; styleOptions?: Record<string, unknown> } | null {
+  try {
+    const saved = localStorage.getItem('mapGenerator:mapInput');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (err) {
+    console.warn('❌ [StateViewer] Failed to load map input:', err);
+  }
+  return null;
+}
+
 function StateViewer() {
   const context = useMapGenerator();
+  const [generationOptions, setGenerationOptions] = useState<{ model?: string; style?: string; numImages?: number } | null>(null);
+  const [mapInput, setMapInput] = useState<{ prompt?: string; styleOptions?: Record<string, unknown> } | null>(null);
+
+  // Load generation options and map input, poll for updates
+  useEffect(() => {
+    const loadOptions = () => {
+      setGenerationOptions(loadGenerationOptionsFromStorage());
+      setMapInput(loadMapInputFromStorage());
+    };
+
+    // Initial load
+    loadOptions();
+
+    // Poll every 2 seconds to catch updates from drawer
+    const interval = setInterval(loadOptions, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Extract state for display
   const stateForDisplay = useMemo(() => {
@@ -309,6 +365,14 @@ function StateViewer() {
       projectsCount: context.projects?.length || 0,
       lastCompiledPrompt: context.lastCompiledPrompt,
       lastMapspec: context.lastMapspec,
+      // Generation options from localStorage
+      generationOptions: generationOptions,
+      // Map input from localStorage
+      mapInput: mapInput ? {
+        promptLength: mapInput.prompt?.length || 0,
+        promptPreview: mapInput.prompt?.substring(0, 50) + (mapInput.prompt && mapInput.prompt.length > 50 ? '...' : ''),
+        styleOptions: mapInput.styleOptions,
+      } : null,
       // Mask state
       maskConfig: context.maskConfig,
       maskDrawingState: {
@@ -319,7 +383,7 @@ function StateViewer() {
         isDrawing: context.maskDrawingState?.isDrawing,
       },
     };
-  }, [context]);
+  }, [context, generationOptions, mapInput]);
 
   if (!stateForDisplay || !context) {
     return (
@@ -367,6 +431,44 @@ function StateViewer() {
           </Text>
         </Group>
       </div>
+
+      {/* Generation Options (from localStorage) */}
+      {stateForDisplay.generationOptions && (
+        <div>
+          <Text size="sm" fw={500} mb="xs">Generation Options (Persisted)</Text>
+          <Group gap="md">
+            <Text size="xs" c="dimmed">
+              Model: <strong>{stateForDisplay.generationOptions.model || 'default'}</strong>
+            </Text>
+            <Text size="xs" c="dimmed">
+              Style: <strong>{stateForDisplay.generationOptions.style || 'default'}</strong>
+            </Text>
+            <Text size="xs" c="dimmed">
+              Num Images: <strong>{stateForDisplay.generationOptions.numImages || 1}</strong>
+            </Text>
+          </Group>
+        </div>
+      )}
+
+      {/* Map Input (from localStorage) */}
+      {stateForDisplay.mapInput && (
+        <div>
+          <Text size="sm" fw={500} mb="xs">Map Input (Persisted)</Text>
+          <Group gap="md">
+            <Text size="xs" c="dimmed">
+              Prompt Length: <strong>{stateForDisplay.mapInput.promptLength} chars</strong>
+            </Text>
+            <Text size="xs" c="dimmed">
+              Preview: <strong>{stateForDisplay.mapInput.promptPreview || '(empty)'}</strong>
+            </Text>
+          </Group>
+          {stateForDisplay.mapInput.styleOptions && (
+            <Text size="xs" c="dimmed" mt="xs">
+              Style Options: <strong>{Object.entries(stateForDisplay.mapInput.styleOptions).map(([k, v]) => `${k}:${v}`).join(', ')}</strong>
+            </Text>
+          )}
+        </div>
+      )}
 
       {/* Compiled Prompt Display */}
       {stateForDisplay.lastCompiledPrompt && (

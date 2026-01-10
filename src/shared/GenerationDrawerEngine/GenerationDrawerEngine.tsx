@@ -150,12 +150,34 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   useEffect(() => {
     if (opened && config.id === 'map') {
       // Dynamic import to avoid circular dependency
-      import('../../components/MapGenerator/utils/persistence').then(({ loadGenerationOptions }) => {
+      import('../../components/MapGenerator/utils/persistence').then(({ loadGenerationOptions, loadMapInput }) => {
+        // Load generation options (model, style, numImages)
         const savedOptions = loadGenerationOptions();
         if (savedOptions) {
           imageOptionsRef.current = savedOptions;
           setPersistedImageOptions(savedOptions);
           console.log('📦 [Engine] Restored generation options from localStorage:', savedOptions);
+        }
+        
+        // Load map input (prompt, styleOptions)
+        const savedMapInput = loadMapInput();
+        if (savedMapInput) {
+          // Find the image tab for map generation
+          const imageTab = tabs.find(tab => tab.generationType === GenerationType.IMAGE);
+          if (imageTab) {
+            setInputsByTab(prev => ({
+              ...prev,
+              [imageTab.id]: {
+                ...prev[imageTab.id],
+                prompt: savedMapInput.prompt || (prev[imageTab.id] as { prompt?: string })?.prompt || '',
+                styleOptions: savedMapInput.styleOptions || (prev[imageTab.id] as { styleOptions?: unknown })?.styleOptions,
+              } as TInput
+            }));
+            console.log('📦 [Engine] Restored map input from localStorage:', {
+              promptLength: savedMapInput.prompt?.length || 0,
+              hasStyleOptions: !!savedMapInput.styleOptions
+            });
+          }
         }
       }).catch((err) => {
         console.warn('⚠️ [Engine] Failed to load persisted options:', err);
@@ -164,7 +186,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       // Clear persisted options when drawer closes or for non-map services
       setPersistedImageOptions(undefined);
     }
-  }, [opened, config.id]);
+  }, [opened, config.id, tabs]);
 
   // Determine if in tutorial mode (props takes precedence over config)
   const isTutorialMode = propsTutorialMode ?? configTutorialMode ?? Boolean(tutorialConfig);
@@ -792,6 +814,28 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     message="Login required to generate AI images."
                   >
                     <Stack gap="md">
+                      {/* Project Gallery at TOP (when galleryPosition === 'top') */}
+                      {resolvedImageConfig?.galleryPosition === 'top' && (
+                        <>
+                          <Divider label="Project Gallery" labelPosition="center" />
+                          {generatedImages.length > 0 ? (
+                            <ProjectGallery
+                              images={generatedImages}
+                              selectedImageId={selectedImageId}
+                              onImageClick={handleImageClick}
+                              onImageSelect={handleImageSelect}
+                            />
+                          ) : (
+                            <Paper p="md" withBorder style={{ textAlign: 'center' }}>
+                              <Stack gap="xs" align="center">
+                                <Text c="dimmed" size="sm">No images yet</Text>
+                                <Text c="dimmed" size="xs">Generate or upload images to see them here</Text>
+                              </Stack>
+                            </Paper>
+                          )}
+                        </>
+                      )}
+
                       {/* Default Textarea - only show when NOT using custom InputSlot */}
                       {!useInputSlotForImage && (
                         <Textarea
@@ -843,8 +887,8 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                   </AuthGate>
                 )}
 
-                {/* Image Gallery (for image generation tabs - always show, with empty state) */}
-                {tab.generationType === GenerationType.IMAGE && (
+                {/* Image Gallery at BOTTOM (default, when galleryPosition !== 'top') */}
+                {tab.generationType === GenerationType.IMAGE && resolvedImageConfig?.galleryPosition !== 'top' && (
                   <>
                     <Divider label="Project Gallery" labelPosition="center" />
                     {generatedImages.length > 0 ? (

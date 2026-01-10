@@ -196,6 +196,8 @@ export const mapEngineConfig: GenerationDrawerConfig<MapGenerationInput, MapGene
     maxUploadSize: 10 * 1024 * 1024, // 10MB in bytes
     acceptedUploadTypes: ['image/png', 'image/jpeg', 'image/webp'],
     allowMultipleUploads: false,
+    // Show gallery at top for easy before/after comparison during inpainting
+    galleryPosition: 'top',
   },
 };
 

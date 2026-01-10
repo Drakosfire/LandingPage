@@ -129,6 +129,61 @@ export function GenerationPanel<TInput>({
     initialImageOptions?.numImages ?? (defaultNumImages ?? (maxImages && maxImages > 1 ? 4 : 1))
   );
 
+  // Track if we've applied initial options (to avoid re-applying on every change)
+  const hasAppliedInitialOptions = useRef(false);
+
+  // Apply persisted options when they become available
+  // This handles the async loading case where initialImageOptions arrives after mount
+  useEffect(() => {
+    if (!initialImageOptions) {
+      // Reset the flag when options are cleared (drawer closed)
+      hasAppliedInitialOptions.current = false;
+      return;
+    }
+    
+    // Only apply once per drawer open
+    if (hasAppliedInitialOptions.current) {
+      return;
+    }
+    
+    // Wait for models to be available before trying to apply persisted model
+    // Otherwise we'd set the flag to true before we could actually apply values
+    const modelsReady = models && models.length > 0;
+    const stylesReady = styles && styles.length > 0;
+    
+    if (!modelsReady && !stylesReady) {
+      console.log('⏳ [GenerationPanel] Waiting for models/styles to load before applying persisted options');
+      return; // Don't set the flag yet - wait for options to be available
+    }
+    
+    let appliedAny = false;
+    
+    // Apply persisted values if they're valid in current options
+    if (initialImageOptions.model && modelsReady && models.some(m => m.id === initialImageOptions.model)) {
+      setSelectedModel(initialImageOptions.model);
+      console.log('📦 [GenerationPanel] Applied persisted model:', initialImageOptions.model);
+      appliedAny = true;
+    }
+    if (initialImageOptions.style && stylesReady && styles.some(s => s.id === initialImageOptions.style)) {
+      setSelectedStyle(initialImageOptions.style);
+      console.log('📦 [GenerationPanel] Applied persisted style:', initialImageOptions.style);
+      appliedAny = true;
+    }
+    if (initialImageOptions.numImages !== undefined) {
+      setNumImages(initialImageOptions.numImages);
+      console.log('📦 [GenerationPanel] Applied persisted numImages:', initialImageOptions.numImages);
+      appliedAny = true;
+    }
+    
+    // Only mark as applied if models/styles are ready (so we don't skip valid options)
+    if (modelsReady || stylesReady) {
+      hasAppliedInitialOptions.current = true;
+      if (appliedAny) {
+        console.log('✅ [GenerationPanel] Finished applying persisted options');
+      }
+    }
+  }, [initialImageOptions, models, styles]);
+
   // Update parent when image options change
   useEffect(() => {
     if (isImageGeneration && onImageOptionsChange) {
@@ -141,13 +196,32 @@ export function GenerationPanel<TInput>({
   }, [isImageGeneration, selectedModel, selectedStyle, numImages, onImageOptionsChange]);
 
   // Update defaults when models/styles change (e.g., config changes)
+  // BUT only if we don't already have a valid selection AND no persisted option to apply
   useEffect(() => {
+    // Skip if we have a persisted model waiting to be applied
+    if (initialImageOptions?.model && models?.some(m => m.id === initialImageOptions.model)) {
+      return;
+    }
+    // Skip if we already have a valid model selection
+    if (selectedModel && models?.some(m => m.id === selectedModel)) {
+      return;
+    }
+    // Reset to default if current selection is invalid
     setSelectedModel(getDefaultOption(models, defaultModel));
-  }, [models, defaultModel]);
+  }, [models, defaultModel, selectedModel, initialImageOptions?.model]);
   
   useEffect(() => {
+    // Skip if we have a persisted style waiting to be applied
+    if (initialImageOptions?.style && styles?.some(s => s.id === initialImageOptions.style)) {
+      return;
+    }
+    // Skip if we already have a valid style selection
+    if (selectedStyle && styles?.some(s => s.id === selectedStyle)) {
+      return;
+    }
+    // Reset to default if current selection is invalid
     setSelectedStyle(getDefaultOption(styles, defaultStyle));
-  }, [styles, defaultStyle]);
+  }, [styles, defaultStyle, selectedStyle, initialImageOptions?.style]);
 
   // Handle generate button click
   const handleGenerate = useCallback(async () => {
