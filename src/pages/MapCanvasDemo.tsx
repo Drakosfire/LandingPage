@@ -89,7 +89,7 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
   { id: 'options-persistence', label: 'Generation options (model, style, numImages) persist across drawer sessions', category: 'Generation Options', taskId: 'Phase 2' },
   { id: 'options-restore', label: 'Generation options restore when reopening drawer', category: 'Generation Options', taskId: 'Phase 2' },
   { id: 'options-localstorage', label: 'Generation options persist across page refresh (localStorage)', category: 'Generation Options', taskId: 'Phase 2' },
-  
+
   // Map Input Persistence
   { id: 'prompt-persistence', label: 'Map description (prompt) persists across drawer sessions', category: 'Map Input Persistence', taskId: 'Input Persistence' },
   { id: 'style-options-persistence', label: 'Style options (fantasy level, rendering, tone, etc.) persist', category: 'Map Input Persistence', taskId: 'Input Persistence' },
@@ -103,10 +103,23 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
   { id: 'inpaint-prompt-label', label: 'Prompt label changes to "Describe what to generate in the masked region" in inpaint mode', category: 'Drawer UX', taskId: 'Phase 6' },
   { id: 'inpaint-flow-complete', label: 'Full flow: draw mask → toggle on → generate → toggle auto-off → UI returns to full mode', category: 'Drawer UX', taskId: 'Phase 6' },
 
-  // Upload & Inpainting Options
-  { id: 'upload-checkbox', label: 'Upload checkbox controls image upload option visibility', category: 'Upload & Inpainting', taskId: 'New Feature' },
-  { id: 'inpainting-checkbox', label: 'Inpainting checkbox controls inpainting mode', category: 'Upload & Inpainting', taskId: 'New Feature' },
-  { id: 'dynamic-generation', label: 'Generation mode automatically detects inpainting vs standard generation', category: 'Upload & Inpainting', taskId: 'New Feature' },
+  // Upload Persistence (Test 1 from Export Verification)
+  { id: 'upload-prereq-logged-in', label: 'Prerequisite: User is logged in', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-prereq-project-exists', label: 'Prerequisite: A project exists (create or load a project first)', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-image-file', label: 'Upload an image file via Upload tab in generation drawer', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-console-logs-uploading', label: 'Check console logs: 📤 [Engine] Uploading file: filename', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-console-logs-complete', label: 'Check console logs: ✅ [Engine] Upload complete: imageUrl', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-console-logs-handled', label: 'Check console logs: 📸 [MapGenerator] handleImagesGenerated: 1 images', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-console-logs-added', label: 'Check console logs: 📸 [MapGenerator] Adding generated image to project: [id]', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-console-logs-saving', label: 'Check console logs: 💾 [MapGenerator] Saving project: [projectId] with X images', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-console-logs-saved', label: 'Check console logs: ✅ [MapGenerator] Project saved', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-gallery-immediate', label: 'Verify image appears in Project Gallery immediately', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-wait-autosave', label: 'Wait 2-3 seconds for auto-save to complete', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-refresh-page', label: 'Refresh page', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-console-logs-hydrating', label: 'After refresh, check console logs: 🔄 [MapGenerator] Hydrating current project on load: [projectId]', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-console-logs-loaded', label: 'After refresh, check console logs: 📸 [MapGenerator] Loaded X generated images from project', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-persists-backend', label: 'Verify uploaded image persists (loads from backend)', category: 'Upload Persistence', taskId: 'Test 1' },
+  { id: 'upload-gallery-after-refresh', label: 'Verify uploaded image appears in Project Gallery after refresh', category: 'Upload Persistence', taskId: 'Test 1' },
 
   // Default Texture
   { id: 'default-texture', label: 'New projects start with default papyrus texture', category: 'Default Texture', taskId: 'New Feature' },

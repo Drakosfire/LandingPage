@@ -750,10 +750,12 @@ export function GenerationDrawerEngine<TInput, TOutput>(
           // Real upload via library hook
           const result = await imageLibrary.uploadFile(file);
           if (result) {
+            // Ensure image has an ID - generate one if missing
+            const imageId = result.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             uploadedImage = {
-              id: result.id,
+              id: imageId,
               url: result.url,
-              prompt: result.prompt,
+              prompt: result.prompt || '',
               createdAt: result.createdAt || new Date().toISOString(),
               sessionId: result.sessionId || '',
               service: result.service || config.id

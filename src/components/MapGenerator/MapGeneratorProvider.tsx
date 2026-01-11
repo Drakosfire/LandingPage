@@ -255,15 +255,26 @@ export function MapGeneratorProvider({
 
   // Add a generated image to the project gallery
   const addGeneratedImage = useCallback((image: ProjectGeneratedImage) => {
-    console.log('📸 [MapGenerator] Adding generated image to project:', image.id);
+    // Ensure image has an ID - generate one if missing
+    const imageId = image.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const imageWithId: ProjectGeneratedImage = {
+      ...image,
+      id: imageId,
+      prompt: image.prompt || '',
+      createdAt: image.createdAt || new Date().toISOString(),
+      sessionId: image.sessionId || '',
+      service: image.service || 'map',
+    };
+    
+    console.log('📸 [MapGenerator] Adding generated image to project:', imageWithId.id);
     setGeneratedImages((prev) => {
       // Avoid duplicates
-      if (prev.some(img => img.id === image.id || img.url === image.url)) {
+      if (prev.some(img => img.id === imageWithId.id || img.url === imageWithId.url)) {
         return prev;
       }
       // Request immediate persistence after state updates
       immediateSaveRequestedRef.current = true;
-      return [...prev, image];
+      return [...prev, imageWithId];
     });
   }, []);
 
@@ -635,19 +646,30 @@ export function MapGeneratorProvider({
           grid_config: mapCanvas.gridConfig,
           labels: mapCanvas.labels,
           scale_metadata: scaleMetadata,
-          generated_images: generatedImages.map(img => ({
-            id: img.id,
-            url: img.url,
-            prompt: img.prompt,
-            created_at: img.createdAt,
-            session_id: img.sessionId,
-            service: img.service,
-          })),
+          generated_images: generatedImages
+            .filter(img => img.id && img.url) // Filter out any images missing required fields
+            .map(img => ({
+              id: img.id!,
+              url: img.url,
+              prompt: img.prompt || '',
+              created_at: img.createdAt || '',
+              session_id: img.sessionId || '',
+              service: img.service || 'map',
+            })),
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Save failed: ${response.statusText}`);
+        let errorMessage = `Save failed: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            errorMessage = `Save failed: ${JSON.stringify(errorData.detail)}`;
+          }
+        } catch (e) {
+          // If response is not JSON, use status text
+        }
+        throw new Error(errorMessage);
       }
 
       console.log('✅ [MapGenerator] Project saved');

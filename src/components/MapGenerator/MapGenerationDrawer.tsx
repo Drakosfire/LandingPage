@@ -81,13 +81,15 @@ const FactoryMapGenerationDrawer = createServiceDrawer<
     // Add generated images to the project
     console.log(`📸 [MapGenerator] handleImagesGenerated: ${images.length} images`);
     images.forEach((img: GeneratedImage) => {
+      // Ensure image has an ID - generate one if missing
+      const imageId = img.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       ctx.addGeneratedImage({
-        id: img.id,
+        id: imageId,
         url: img.url,
-        prompt: img.prompt,
-        createdAt: img.createdAt,
-        sessionId: img.sessionId,
-        service: img.service,
+        prompt: img.prompt || '',
+        createdAt: img.createdAt || new Date().toISOString(),
+        sessionId: img.sessionId || '',
+        service: img.service || 'map',
       });
     });
   },
