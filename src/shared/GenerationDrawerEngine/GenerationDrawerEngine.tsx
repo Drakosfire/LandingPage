@@ -139,11 +139,32 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     return generatedImages;
   }, [isTutorialMode, initialImages, generatedImages]);
 
+  // Track previous initialImages to detect project switches
+  const prevInitialImagesRef = useRef<GeneratedImage[] | undefined>(undefined);
+
   // Keep the local gallery in sync with provider/project images.
-  // `initialImages` can change after mount (e.g., project loads, images added from elsewhere).
+  // When project changes (initialImages array identity changes), REPLACE local state.
+  // When images are added to the same project, MERGE them in.
   useEffect(() => {
     if (!opened) return;
     if (isTutorialMode) return;
+
+    const prevImages = prevInitialImagesRef.current;
+    prevInitialImagesRef.current = initialImages;
+
+    // Detect project switch: initialImages array reference changed AND content differs
+    const isProjectSwitch = prevImages !== undefined && initialImages !== prevImages;
+    
+    if (isProjectSwitch) {
+      // Project switched - replace local state entirely with new project's images
+      const newImages = initialImages || [];
+      console.log('🔄 [Engine] Project switched - resetting gallery:', { count: newImages.length });
+      setGeneratedImages(newImages);
+      setSelectedImageId(null);
+      return;
+    }
+
+    // Same project - merge any missing images
     if (!initialImages || initialImages.length === 0) return;
 
     setGeneratedImages((prev) => {

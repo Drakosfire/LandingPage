@@ -412,6 +412,10 @@ export function MapGeneratorProvider({
         mapCanvas.setLabels(result.labels);
       }
 
+      // New project starts with empty gallery
+      setGeneratedImages([]);
+      console.log('📁 [MapGenerator] New project - cleared generated images');
+
       // Refresh projects list
       await listProjects();
 
