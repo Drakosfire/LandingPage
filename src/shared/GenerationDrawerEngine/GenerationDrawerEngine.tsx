@@ -5,7 +5,7 @@
  * This is the main entry point for services to use the generation drawer.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Stack, Tabs, Text, Divider, Paper, Textarea } from '@mantine/core';
 import type { GenerationDrawerEngineProps } from './types';
 import { DrawerShell } from './components/DrawerShell';
@@ -78,7 +78,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   const hasImageTab = tabs.some(tab => tab.generationType === GenerationType.IMAGE);
   const needsCapabilities = hasImageTab && (!imageConfig?.models || imageConfig.models.length === 0);
 
-  const { capabilities, isLoading: capabilitiesLoading } = useImageCapabilities({
+  const { capabilities } = useImageCapabilities({
     skip: !needsCapabilities || propsTutorialMode
   });
 
@@ -123,6 +123,46 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     }
     return [];
   });
+
+  // Determine if in tutorial mode (props takes precedence over config)
+  const isTutorialMode = propsTutorialMode ?? configTutorialMode ?? Boolean(tutorialConfig);
+
+  // Prefer provider/project images (initialImages) as the source of truth for the Project Gallery
+  // when available, so the gallery doesn't go blank when a project has images.
+  const projectGalleryImages = useMemo<GeneratedImage[]>(() => {
+    if (isTutorialMode) {
+      return generatedImages;
+    }
+    if (initialImages && initialImages.length > 0) {
+      return initialImages;
+    }
+    return generatedImages;
+  }, [isTutorialMode, initialImages, generatedImages]);
+
+  // Keep the local gallery in sync with provider/project images.
+  // `initialImages` can change after mount (e.g., project loads, images added from elsewhere).
+  useEffect(() => {
+    if (!opened) return;
+    if (isTutorialMode) return;
+    if (!initialImages || initialImages.length === 0) return;
+
+    setGeneratedImages((prev) => {
+      if (prev.length === 0) {
+        return initialImages;
+      }
+
+      const missing = initialImages.filter(
+        (img) => !prev.some((p) => p.id === img.id || p.url === img.url)
+      );
+
+      if (missing.length === 0) {
+        return prev;
+      }
+
+      console.log('🔄 [Engine] Syncing gallery from project state:', { added: missing.length });
+      return [...prev, ...missing];
+    });
+  }, [opened, initialImages, isTutorialMode]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
@@ -145,7 +185,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   // Image generation options selected by user (model, style, numImages)
   const imageOptionsRef = useRef<ImageGenerationOptions>({});
   const [persistedImageOptions, setPersistedImageOptions] = useState<ImageGenerationOptions | undefined>(undefined);
-  
+
   // Load persisted options for map service on drawer open
   useEffect(() => {
     if (opened && config.id === 'map') {
@@ -158,7 +198,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
           setPersistedImageOptions(savedOptions);
           console.log('📦 [Engine] Restored generation options from localStorage:', savedOptions);
         }
-        
+
         // Load map input (prompt, styleOptions)
         const savedMapInput = loadMapInput();
         if (savedMapInput) {
@@ -179,6 +219,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
             });
           }
         }
+
+        // Note: Generated images are now loaded from the project via getInitialImages,
+        // not from localStorage. This ensures proper backend persistence.
       }).catch((err) => {
         console.warn('⚠️ [Engine] Failed to load persisted options:', err);
       });
@@ -187,9 +230,6 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       setPersistedImageOptions(undefined);
     }
   }, [opened, config.id, tabs]);
-
-  // Determine if in tutorial mode (props takes precedence over config)
-  const isTutorialMode = propsTutorialMode ?? configTutorialMode ?? Boolean(tutorialConfig);
 
   // Combined onGenerationComplete - calls both props and config callbacks
   const onGenerationComplete = useCallback((output: TOutput) => {
@@ -357,7 +397,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   // Callback for GenerationPanel to report image option changes
   const handleImageOptionsChange = useCallback((options: ImageGenerationOptions) => {
     imageOptionsRef.current = options;
-    
+
     // Persist options for map service
     if (config.id === 'map') {
       // Dynamic import to avoid circular dependency
@@ -501,7 +541,33 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               resolvedImageConfig?.onImageGenerated?.(newImages);
               console.log('📸 [Live] Images normalized and added to gallery:', newImages.length);
             } else {
-              console.warn('📸 [Live] Invalid API response format:', apiResponse);
+              // Fallback: Check if response has imageUrl field (e.g., Map Generator format)
+              const responseObj = output as Record<string, unknown>;
+              const imageUrl = responseObj?.imageUrl as string || responseObj?.image_url as string;
+
+              if (imageUrl) {
+                console.log('📸 [Live] Found imageUrl in response, creating gallery image');
+                const inputObj = inputValue as Record<string, unknown>;
+                const prompt = (inputObj?.prompt as string) || (inputObj?.description as string) || 'Generated image';
+
+                const newImage: GeneratedImage = {
+                  id: `gen-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                  url: imageUrl,
+                  prompt: prompt,
+                  createdAt: new Date().toISOString(),
+                  sessionId: resolvedImageConfig?.sessionId || '',
+                  service: config.id
+                };
+
+                // Add to project gallery
+                setGeneratedImages((prev) => [...prev, newImage]);
+                // Add to library as well
+                imageLibrary.addImages([newImage]);
+                resolvedImageConfig?.onImageGenerated?.([newImage]);
+                console.log('📸 [Live] Image added to gallery from imageUrl:', newImage.url.substring(0, 50));
+              } else {
+                console.warn('📸 [Live] Invalid API response format - no images array or imageUrl:', apiResponse);
+              }
             }
           }
         }
@@ -588,7 +654,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
   // - Project gallery: select image for use in canvas
   // - Library: add image to project AND select it
   const handleModalSelect = useCallback((url: string, index: number) => {
-    const images = modalSource === 'library' ? imageLibrary?.images : generatedImages;
+    const images = modalSource === 'library' ? imageLibrary?.images : projectGalleryImages;
     const currentImage = images?.[index];
 
     console.log('🖼️ [Engine] handleModalSelect called:', {
@@ -614,7 +680,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
 
     setSelectedImageId(currentImage?.id || null);
     setModalOpened(false);
-  }, [modalSource, resolvedImageConfig, generatedImages, imageLibrary?.images, handleAddFromLibrary]);
+  }, [modalSource, resolvedImageConfig, projectGalleryImages, imageLibrary?.images, handleAddFromLibrary]);
 
   const handleImageDelete = useCallback((imageId: string) => {
     setGeneratedImages(prev => prev.filter(img => img.id !== imageId));
@@ -766,29 +832,25 @@ export function GenerationDrawerEngine<TInput, TOutput>(
               data-tutorial={`${tab.id}-panel`}
             >
               <Stack gap="md">
-                {/* Examples Bar - show for TEXT generation, or IMAGE when useInputSlotForImage is enabled */}
-                {examples && examples.length > 0 && (
-                  tab.generationType === GenerationType.TEXT ||
-                  (tab.generationType === GenerationType.IMAGE && useInputSlotForImage)
-                ) && (
-                    <ExamplesBar
-                      examples={examples}
-                      onSelect={handleExampleSelect}
-                      isGenerating={generation.isGenerating}
-                    />
-                  )}
+                {/* Examples Bar - show for TEXT generation only here (IMAGE with useInputSlotForImage is inside AuthGate) */}
+                {examples && examples.length > 0 && tab.generationType === GenerationType.TEXT && (
+                  <ExamplesBar
+                    examples={examples}
+                    onSelect={handleExampleSelect}
+                    isGenerating={generation.isGenerating}
+                  />
+                )}
 
-                {/* Input Slot - show for TEXT generation, or IMAGE when useInputSlotForImage is enabled */}
-                {(tab.generationType === GenerationType.TEXT ||
-                  (tab.generationType === GenerationType.IMAGE && useInputSlotForImage)) && (
-                    <InputSlot
-                      value={input}
-                      onChange={handleInputChange}
-                      isGenerating={generation.isGenerating}
-                      isTutorialMode={isTutorialMode}
-                      errors={validationErrors}
-                    />
-                  )}
+                {/* Input Slot - show for TEXT generation only here (IMAGE with useInputSlotForImage is inside AuthGate) */}
+                {tab.generationType === GenerationType.TEXT && (
+                  <InputSlot
+                    value={input}
+                    onChange={handleInputChange}
+                    isGenerating={generation.isGenerating}
+                    isTutorialMode={isTutorialMode}
+                    errors={validationErrors}
+                  />
+                )}
 
                 {/* Generation Panel for TEXT generation (no auth required) */}
                 {tab.generationType === GenerationType.TEXT && (
@@ -818,9 +880,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                       {resolvedImageConfig?.galleryPosition === 'top' && (
                         <>
                           <Divider label="Project Gallery" labelPosition="center" />
-                          {generatedImages.length > 0 ? (
+                          {projectGalleryImages.length > 0 ? (
                             <ProjectGallery
-                              images={generatedImages}
+                              images={projectGalleryImages}
                               selectedImageId={selectedImageId}
                               onImageClick={handleImageClick}
                               onImageSelect={handleImageSelect}
@@ -834,6 +896,26 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                             </Paper>
                           )}
                         </>
+                      )}
+
+                      {/* Examples Bar for IMAGE tabs with useInputSlotForImage (inside AuthGate) */}
+                      {examples && examples.length > 0 && useInputSlotForImage && (
+                        <ExamplesBar
+                          examples={examples}
+                          onSelect={handleExampleSelect}
+                          isGenerating={generation.isGenerating}
+                        />
+                      )}
+
+                      {/* Custom InputSlot for IMAGE tabs with useInputSlotForImage (inside AuthGate) */}
+                      {useInputSlotForImage && (
+                        <InputSlot
+                          value={input}
+                          onChange={handleInputChange}
+                          isGenerating={generation.isGenerating}
+                          isTutorialMode={isTutorialMode}
+                          errors={validationErrors}
+                        />
                       )}
 
                       {/* Default Textarea - only show when NOT using custom InputSlot */}
@@ -891,9 +973,9 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                 {tab.generationType === GenerationType.IMAGE && resolvedImageConfig?.galleryPosition !== 'top' && (
                   <>
                     <Divider label="Project Gallery" labelPosition="center" />
-                    {generatedImages.length > 0 ? (
+                    {projectGalleryImages.length > 0 ? (
                       <ProjectGallery
-                        images={generatedImages}
+                        images={projectGalleryImages}
                         selectedImageId={selectedImageId}
                         onImageClick={handleImageClick}
                         onImageSelect={handleImageSelect}
@@ -931,7 +1013,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     {isTutorialMode ? (
                       // In tutorial mode, show project gallery as the "library"
                       <ProjectGallery
-                        images={generatedImages}
+                        images={projectGalleryImages}
                         selectedImageId={selectedImageId}
                         onImageClick={handleImageClick}
                         onImageSelect={handleImageSelect}
@@ -952,11 +1034,11 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                 )}
 
                 {/* Show Project Gallery below upload zone when there are images */}
-                {tab.id === 'upload' && generatedImages.length > 0 && (
+                {tab.id === 'upload' && projectGalleryImages.length > 0 && (
                   <Stack gap="md" mt="md">
                     <Text size="sm" fw={500}>Uploaded Images</Text>
                     <ProjectGallery
-                      images={generatedImages}
+                      images={projectGalleryImages}
                       selectedImageId={selectedImageId}
                       onImageClick={handleImageClick}
                       onImageSelect={handleImageSelect}
@@ -972,7 +1054,7 @@ export function GenerationDrawerEngine<TInput, TOutput>(
         {imageConfig && (
           <ImageModal
             opened={modalOpened}
-            images={modalSource === 'library' ? (imageLibrary?.images || []) : generatedImages}
+            images={modalSource === 'library' ? (imageLibrary?.images || []) : projectGalleryImages}
             currentIndex={modalIndex}
             onClose={() => setModalOpened(false)}
             onSelect={handleModalSelect}

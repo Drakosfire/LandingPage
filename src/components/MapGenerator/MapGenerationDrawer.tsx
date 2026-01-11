@@ -11,7 +11,8 @@ import { useMapGenerator, type MapGeneratorContextValue } from './MapGeneratorPr
 import { createServiceDrawer } from '../../shared/GenerationDrawerEngine/factory';
 import MapInputForm from './MapInputForm';
 import { mapEngineConfig } from './mapEngineConfig';
-import type { MapGenerationInput, MapGenerationOutput } from './mapTypes';
+import type { MapGenerationInput, MapGenerationOutput, ProjectGeneratedImage } from './mapTypes';
+import type { GeneratedImage } from '../../shared/GenerationDrawerEngine';
 
 // =============================================================================
 // FACTORY-BASED DRAWER
@@ -47,6 +48,8 @@ const FactoryMapGenerationDrawer = createServiceDrawer<
   // === Output Handling ===
   handleOutput: (ctx, output, input) => {
     console.log('🎉 [MapGenerator] Generation output received:', output);
+
+    // Call the original handler
     ctx.handleGenerationComplete({
       imageUrl: output.imageUrl,
       compiledPrompt: output.compiledPrompt,
@@ -62,19 +65,31 @@ const FactoryMapGenerationDrawer = createServiceDrawer<
   getSessionId: (ctx) => ctx.projectId || 'map-session',
   getImagePrompt: (ctx) => '', // Maps don't have separate image prompts
 
-  getInitialImages: (ctx): never[] => {
-    // Maps don't have an image gallery yet
-    return [];
+  getInitialImages: (ctx): GeneratedImage[] => {
+    // Return project's generated images for the gallery
+    return ctx.generatedImages.map((img: ProjectGeneratedImage) => ({
+      id: img.id,
+      url: img.url,
+      prompt: img.prompt,
+      createdAt: img.createdAt,
+      sessionId: img.sessionId,
+      service: img.service,
+    }));
   },
 
   handleImagesGenerated: (ctx, images) => {
-    // For maps, image generation is handled via handleOutput
-    // This is for the image tab's "Add from Library" feature
-    if (images.length > 0) {
-      ctx.handleGenerationComplete({
-        imageUrl: images[0].url,
+    // Add generated images to the project
+    console.log(`📸 [MapGenerator] handleImagesGenerated: ${images.length} images`);
+    images.forEach((img: GeneratedImage) => {
+      ctx.addGeneratedImage({
+        id: img.id,
+        url: img.url,
+        prompt: img.prompt,
+        createdAt: img.createdAt,
+        sessionId: img.sessionId,
+        service: img.service,
       });
-    }
+    });
   },
 
   handleImageSelected: (ctx, url, index) => {

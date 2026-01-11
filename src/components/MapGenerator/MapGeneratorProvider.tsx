@@ -11,7 +11,7 @@ import { GridConfig, MapLabel, DEFAULT_GRID_CONFIG, MapProjectSummary, ScaleMeta
 import type { MaskTool, MaskStroke, MaskDrawingState } from 'dungeonmind-canvas';
 import { DUNGEONMIND_API_URL } from '../../config';
 import { useAuth } from '../../context/AuthContext';
-import { MaskConfig, DEFAULT_MASK_CONFIG } from './mapTypes';
+import { MaskConfig, DEFAULT_MASK_CONFIG, ProjectGeneratedImage } from './mapTypes';
 
 // =============================================================================
 // Types
@@ -46,6 +46,9 @@ export interface MapGeneratorContextValue extends UseMapCanvasResult {
   projects: MapProjectSummary[];
   isLoadingProjects: boolean;
   isLoadingProject: boolean; // True when loading a specific project
+  
+  // Generated images (project gallery)
+  generatedImages: ProjectGeneratedImage[];
 
   // Drawer state
   generationDrawerOpen: boolean;
@@ -115,6 +118,10 @@ export interface MapGeneratorContextValue extends UseMapCanvasResult {
   // Save operations
   saveNow: () => Promise<void>;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  
+  // Generated images actions
+  addGeneratedImage: (image: ProjectGeneratedImage) => void;
+  setGeneratedImages: (images: ProjectGeneratedImage[]) => void;
 }
 
 // =============================================================================
@@ -161,6 +168,16 @@ export function MapGeneratorProvider({
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  
+  // Generated images (project gallery)
+  const [generatedImages, setGeneratedImages] = useState<ProjectGeneratedImage[]>([]);
+
+  // If true, the next autosave effect should persist immediately (no debounce).
+  // Used for image additions where users may refresh quickly.
+  const immediateSaveRequestedRef = useRef(false);
+
+  // Prevent repeated hydration loops on mount/refresh
+  const lastHydratedProjectIdRef = useRef<string | null>(null);
 
   // Drawer state
   const [generationDrawerOpen, setGenerationDrawerOpen] = useState(false);
@@ -235,6 +252,20 @@ export function MapGeneratorProvider({
     }));
     console.log('🗑️ [MapGenerator] Mask cleared');
   }, [maskDrawing.actions]);
+
+  // Add a generated image to the project gallery
+  const addGeneratedImage = useCallback((image: ProjectGeneratedImage) => {
+    console.log('📸 [MapGenerator] Adding generated image to project:', image.id);
+    setGeneratedImages((prev) => {
+      // Avoid duplicates
+      if (prev.some(img => img.id === image.id || img.url === image.url)) {
+        return prev;
+      }
+      // Request immediate persistence after state updates
+      immediateSaveRequestedRef.current = true;
+      return [...prev, image];
+    });
+  }, []);
 
   // Auto-save refs
   const debouncedSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -432,6 +463,11 @@ export function MapGeneratorProvider({
       }
       // Replace all labels (or clear if none in project)
       mapCanvas.setLabels(result.labels || []);
+      
+      // Load generated images from project
+      const projectImages = result.generatedImages || [];
+      console.log(`📸 [MapGenerator] Loaded ${projectImages.length} generated images from project`);
+      setGeneratedImages(projectImages);
 
       setError(null);
     } catch (err) {
@@ -442,6 +478,27 @@ export function MapGeneratorProvider({
       setIsLoadingProject(false);
     }
   }, [isLoggedIn, userId, mapCanvas]);
+
+  // On page load/refresh: if we already have a projectId (e.g. restored from localStorage),
+  // hydrate full project state (including generatedImages) from backend so Project Gallery isn't blank.
+  useEffect(() => {
+    if (!isLoggedIn || !userId) return;
+    if (!projectId) return;
+    if (isLoadingProject) return;
+    if (lastHydratedProjectIdRef.current === projectId) return;
+
+    console.log('🔄 [MapGenerator] Hydrating current project on load:', projectId);
+
+    (async () => {
+      try {
+        await loadProject(projectId);
+        lastHydratedProjectIdRef.current = projectId;
+        console.log('✅ [MapGenerator] Project hydration complete:', projectId);
+      } catch (err) {
+        console.warn('⚠️ [MapGenerator] Project hydration failed:', err);
+      }
+    })();
+  }, [isLoggedIn, userId, projectId, isLoadingProject, loadProject]);
 
   const deleteProject = useCallback(async (projectIdToDelete: string): Promise<void> => {
     if (!isLoggedIn || !userId) {
@@ -552,6 +609,7 @@ export function MapGeneratorProvider({
       gridConfig: mapCanvas.gridConfig,
       labels: mapCanvas.labels,
       scaleMetadata,
+      generatedImages: generatedImages.map(img => img.id), // Only use IDs for hash
     });
 
     if (contentToHash === lastSavedContentHashRef.current) {
@@ -559,7 +617,7 @@ export function MapGeneratorProvider({
       return;
     }
 
-    console.log('💾 [MapGenerator] Saving project:', projectId);
+    console.log('💾 [MapGenerator] Saving project:', projectId, `with ${generatedImages.length} images`);
     setSaveStatus('saving');
 
     try {
@@ -573,6 +631,14 @@ export function MapGeneratorProvider({
           grid_config: mapCanvas.gridConfig,
           labels: mapCanvas.labels,
           scale_metadata: scaleMetadata,
+          generated_images: generatedImages.map(img => ({
+            id: img.id,
+            url: img.url,
+            prompt: img.prompt,
+            created_at: img.createdAt,
+            session_id: img.sessionId,
+            service: img.service,
+          })),
         }),
       });
 
@@ -592,7 +658,7 @@ export function MapGeneratorProvider({
       setError(err instanceof Error ? err.message : 'Failed to save project');
       setTimeout(() => setSaveStatus('idle'), 2000);
     }
-  }, [isLoggedIn, userId, projectId, baseImageUrl, projectName, mapCanvas, scaleMetadata]);
+  }, [isLoggedIn, userId, projectId, baseImageUrl, projectName, mapCanvas, scaleMetadata, generatedImages]);
 
   // Auto-save effect (debounced)
   useEffect(() => {
@@ -605,6 +671,13 @@ export function MapGeneratorProvider({
       clearTimeout(debouncedSaveTimerRef.current);
     }
 
+    // If an image was just added, persist immediately (users often refresh right after)
+    if (immediateSaveRequestedRef.current) {
+      immediateSaveRequestedRef.current = false;
+      void saveNow();
+      return;
+    }
+
     // Set new timer (3 second debounce)
     debouncedSaveTimerRef.current = setTimeout(() => {
       saveNow();
@@ -615,7 +688,7 @@ export function MapGeneratorProvider({
         clearTimeout(debouncedSaveTimerRef.current);
       }
     };
-  }, [isLoggedIn, userId, projectId, baseImageUrl, mapCanvas.gridConfig, mapCanvas.labels, scaleMetadata, saveNow]);
+  }, [isLoggedIn, userId, projectId, baseImageUrl, mapCanvas.gridConfig, mapCanvas.labels, scaleMetadata, generatedImages, saveNow]);
 
   // Load projects when drawer opens
   useEffect(() => {
@@ -771,6 +844,9 @@ export function MapGeneratorProvider({
     projects,
     isLoadingProjects,
     isLoadingProject,
+    
+    // Generated images (project gallery)
+    generatedImages,
 
     // Drawer state
     generationDrawerOpen,
@@ -835,6 +911,10 @@ export function MapGeneratorProvider({
     // Save operations
     saveNow,
     saveStatus,
+    
+    // Generated images actions
+    addGeneratedImage,
+    setGeneratedImages,
   };
 
   return (
