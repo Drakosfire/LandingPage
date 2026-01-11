@@ -5,6 +5,31 @@
  * Extracted to break circular dependencies.
  */
 
+// =============================================================================
+// Default Texture Constants
+// =============================================================================
+
+/**
+ * Default papyrus texture URL (Cloudflare CDN)
+ * Used as the base image for new projects before generation
+ */
+export const DEFAULT_PAPYRUS_TEXTURE_URL = 
+  'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/bbce8d22-822b-479a-ca08-8640fd220600/Full';
+
+/**
+ * Check if a URL is the default papyrus texture
+ * @param url - The URL to check
+ * @returns true if the URL matches the default papyrus texture
+ */
+export function isDefaultTexture(url: string | null | undefined): boolean {
+  if (!url) return false;
+  return url === DEFAULT_PAPYRUS_TEXTURE_URL;
+}
+
+// =============================================================================
+// Style Options
+// =============================================================================
+
 export interface MapStyleOptions {
   // Primary (always visible)
   fantasyLevel: 'low' | 'medium' | 'high';
@@ -99,3 +124,16 @@ export const DEFAULT_MASK_CONFIG: MaskConfig = {
   tool: 'brush',
   maskData: null,
 };
+
+/**
+ * Generated image stored with a project
+ * Matches backend ProjectGeneratedImage model
+ */
+export interface ProjectGeneratedImage {
+  id: string;
+  url: string;
+  prompt: string;
+  createdAt: string;
+  sessionId: string;
+  service: string;
+}

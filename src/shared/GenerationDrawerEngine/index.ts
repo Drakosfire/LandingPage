@@ -26,7 +26,12 @@ export type {
   // API response contracts (for typed backend communication)
   ApiGeneratedImage,
   ApiImageGenerationInfo,
-  ApiImageGenerationResponse
+  ApiImageGenerationResponse,
+  // Mode selector types
+  ModeSelectorConfig,
+  ModeOption,
+  ModeGalleryConfig,
+  MaskImage
 } from './types';
 
 export { GenerationType, ErrorCode, normalizeApiImage } from './types';

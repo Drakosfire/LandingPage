@@ -6,12 +6,12 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from 'react';
-import { useMapCanvas, UseMapCanvasResult, useMaskDrawing } from 'dungeonmind-canvas';
+import { useMapCanvas, UseMapCanvasResult, useMaskDrawing, exportMaskToBase64 } from 'dungeonmind-canvas';
 import { GridConfig, MapLabel, DEFAULT_GRID_CONFIG, MapProjectSummary, ScaleMetadata, DEFAULT_SCALE_METADATA } from 'dungeonmind-canvas';
 import type { MaskTool, MaskStroke, MaskDrawingState } from 'dungeonmind-canvas';
 import { DUNGEONMIND_API_URL } from '../../config';
 import { useAuth } from '../../context/AuthContext';
-import { MaskConfig, DEFAULT_MASK_CONFIG, ProjectGeneratedImage } from './mapTypes';
+import { MaskConfig, DEFAULT_MASK_CONFIG, ProjectGeneratedImage, DEFAULT_PAPYRUS_TEXTURE_URL, isDefaultTexture } from './mapTypes';
 
 // =============================================================================
 // Types
@@ -41,6 +41,16 @@ export interface MapGeneratorContextValue extends UseMapCanvasResult {
   lastCompiledPrompt: string | null;
   lastMapspec: any | null;
   lastGenerationInput: { prompt: string; styleOptions: any } | null;
+  
+  /** True if current baseImageUrl is the default papyrus texture */
+  isUsingDefaultTexture: boolean;
+  
+  /** URL to persisted mask image in R2 (null if no mask saved) */
+  maskImageUrl: string | null;
+
+  /** Current generation mode ('generate' | 'generate-from-mask' | 'edit') */
+  generationMode: 'generate' | 'generate-from-mask' | 'edit';
+  setGenerationMode: (mode: 'generate' | 'generate-from-mask' | 'edit') => void;
 
   // Projects state
   projects: MapProjectSummary[];
@@ -88,6 +98,8 @@ export interface MapGeneratorContextValue extends UseMapCanvasResult {
   setMaskTool: (tool: MaskTool) => void;
   setMaskData: (data: string | null) => void;
   clearMask: () => void;
+  setMaskImageUrl: (url: string | null) => void;
+  uploadAndSaveMask: () => Promise<void>;
 
   // Mask drawing actions (from useMaskDrawing hook)
   startMaskStroke: (x: number, y: number) => void;
@@ -153,7 +165,8 @@ export function MapGeneratorProvider({
   });
 
   // Additional local state
-  const [baseImageUrl, setBaseImageUrl] = useState(initialImageUrl);
+  // Use default papyrus texture if no initial image provided
+  const [baseImageUrl, setBaseImageUrl] = useState(initialImageUrl || DEFAULT_PAPYRUS_TEXTURE_URL);
   const [projectName, setProjectName] = useState('Untitled Map');
   const [projectId, setProjectId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -171,6 +184,12 @@ export function MapGeneratorProvider({
   
   // Generated images (project gallery)
   const [generatedImages, setGeneratedImages] = useState<ProjectGeneratedImage[]>([]);
+  
+  // Mask image URL (persisted to R2)
+  const [maskImageUrl, setMaskImageUrl] = useState<string | null>(null);
+
+  // Generation mode state ('generate' | 'generate-from-mask' | 'edit')
+  const [generationMode, setGenerationMode] = useState<'generate' | 'generate-from-mask' | 'edit'>('generate');
 
   // If true, the next autosave effect should persist immediately (no debounce).
   // Used for image additions where users may refresh quickly.
@@ -250,8 +269,88 @@ export function MapGeneratorProvider({
       ...prev,
       maskData: null,
     }));
+    setMaskImageUrl(null);
     console.log('🗑️ [MapGenerator] Mask cleared');
   }, [maskDrawing.actions]);
+
+  // Internal: Upload mask to R2 with captured strokes (used when we need to save before clearing)
+  const uploadAndSaveMaskWithStrokes = useCallback(async (capturedStrokes: typeof maskDrawing.state.strokes) => {
+    if (!isLoggedIn || !userId || !projectId) {
+      console.log('⏭️ [MapGenerator] Skipping mask upload - not logged in or no project');
+      return;
+    }
+
+    if (capturedStrokes.length === 0) {
+      console.log('⏭️ [MapGenerator] Skipping mask upload - no mask strokes');
+      setMaskImageUrl(null);
+      return;
+    }
+
+    console.log('🎭 [MapGenerator] Uploading mask to R2...');
+
+    try {
+      // Get base image dimensions for mask export
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => reject(new Error('Failed to load base image for dimensions'));
+        img.src = baseImageUrl;
+      });
+
+      // Export mask to base64
+      const maskExport = await exportMaskToBase64({
+        width: dimensions.width,
+        height: dimensions.height,
+        strokes: capturedStrokes,
+      });
+
+      // Convert base64 to Blob
+      const base64Data = maskExport.base64.split(',')[1] || maskExport.base64;
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/png' });
+      
+      // Create File object
+      const maskFile = new File([blob], `mask_${projectId}_${Date.now()}.png`, { type: 'image/png' });
+
+      // Upload to R2 via API
+      const formData = new FormData();
+      formData.append('file', maskFile);
+      formData.append('service', 'map');
+
+      const response = await fetch(`${DUNGEONMIND_API_URL}/api/images/upload`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Mask upload failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const maskUrl = result.url || result.image_url;
+
+      console.log('✅ [MapGenerator] Mask uploaded:', maskUrl);
+      setMaskImageUrl(maskUrl);
+
+      // Request immediate save to persist the mask URL
+      immediateSaveRequestedRef.current = true;
+    } catch (err) {
+      console.error('❌ [MapGenerator] Failed to upload mask:', err);
+    }
+  }, [isLoggedIn, userId, projectId, baseImageUrl]);
+
+  // Public: Upload current mask strokes to R2 and save the URL
+  const uploadAndSaveMask = useCallback(async () => {
+    await uploadAndSaveMaskWithStrokes(maskDrawing.state.strokes);
+  }, [uploadAndSaveMaskWithStrokes, maskDrawing.state.strokes]);
 
   // Add a generated image to the project gallery
   const addGeneratedImage = useCallback((image: ProjectGeneratedImage) => {
@@ -310,7 +409,7 @@ export function MapGeneratorProvider({
   }, []);
 
   // Handle generation completion
-  const handleGenerationComplete = useCallback((result: { 
+  const handleGenerationComplete = useCallback(async (result: { 
     imageUrl: string; 
     compiledPrompt?: string; 
     mapspec?: any;
@@ -327,9 +426,28 @@ export function MapGeneratorProvider({
     setGenerationDrawerOpen(false);
     setError(null);
     
-    // If this was a masked generation (mapspec is null), clear the mask and switch to view mode
+    // If this was a masked generation (mapspec is null), save the mask BEFORE clearing it
     if (result.mapspec === null) {
-      console.log('🎭 [MapGenerator] Masked generation complete - clearing mask and switching to view mode');
+      console.log('🎭 [MapGenerator] Masked generation complete - saving mask before clearing');
+      
+      // CAPTURE strokes before clearing - this is critical
+      const capturedStrokes = [...maskDrawing.state.strokes];
+      
+      // Save the mask to R2 before clearing (fire and forget, don't block the UI)
+      if (capturedStrokes.length > 0) {
+        // Use an IIFE to handle the async operation without blocking
+        (async () => {
+          try {
+            await uploadAndSaveMaskWithStrokes(capturedStrokes);
+            console.log('✅ [MapGenerator] Mask saved after masked generation');
+          } catch (err) {
+            console.error('❌ [MapGenerator] Failed to save mask after generation:', err);
+          }
+        })();
+      }
+      
+      // Clear the mask and switch to view mode
+      console.log('🎭 [MapGenerator] Clearing mask and switching to view mode');
       maskDrawing.actions.clear();
       setMaskConfig((prev) => ({
         ...prev,
@@ -337,7 +455,7 @@ export function MapGeneratorProvider({
       }));
       mapCanvas.setMode('view');
     }
-  }, [maskDrawing.actions, mapCanvas]);
+  }, [maskDrawing.actions, maskDrawing.state.strokes, mapCanvas, uploadAndSaveMaskWithStrokes]);
 
   // =============================================================================
   // Project CRUD Operations
@@ -389,15 +507,18 @@ export function MapGeneratorProvider({
     lastSavedContentHashRef.current = '';
 
     try {
+      // NEW projects always start with the default papyrus texture (fresh slate)
+      const newProjectBaseImageUrl = DEFAULT_PAPYRUS_TEXTURE_URL;
+      
       const response = await fetch(`${DUNGEONMIND_API_URL}/api/mapgenerator/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           name,
-          base_image_url: baseImageUrl || '',
-          grid_config: mapCanvas.gridConfig,
-          scale_metadata: scaleMetadata,
+          base_image_url: newProjectBaseImageUrl,
+          grid_config: DEFAULT_GRID_CONFIG, // Fresh grid config for new project
+          scale_metadata: null, // Fresh scale metadata
         }),
       });
 
@@ -408,24 +529,37 @@ export function MapGeneratorProvider({
       const result = await response.json();
       console.log('📁 [MapGenerator] Project created:', result.id);
 
-      // Update state (backend returns camelCase)
+      // Reset ALL state for new project (fresh slate)
       setProjectId(result.id);
       setProjectName(result.name || name);
-      setBaseImageUrl(result.baseImageUrl || baseImageUrl);
+      setBaseImageUrl(result.baseImageUrl || newProjectBaseImageUrl);
+      
+      // Reset grid to defaults (or use backend response if provided)
       if (result.gridConfig) {
         mapCanvas.setGridConfig(result.gridConfig);
+      } else {
+        mapCanvas.setGridConfig(DEFAULT_GRID_CONFIG);
       }
+      
+      // Reset scale metadata
       if (result.scaleMetadata) {
         setScaleMetadata(result.scaleMetadata);
+      } else {
+        setScaleMetadata(null);
       }
-      if (result.labels) {
-        // Replace all labels at once
-        mapCanvas.setLabels(result.labels);
-      }
+      
+      // Clear all labels for new project
+      mapCanvas.setLabels(result.labels || []);
 
       // New project starts with empty gallery
       setGeneratedImages([]);
-      console.log('📁 [MapGenerator] New project - cleared generated images');
+      
+      // Clear mask for new project
+      setMaskImageUrl(null);
+      maskDrawing.actions.clear();
+      setMaskConfig(DEFAULT_MASK_CONFIG);
+      
+      console.log('📁 [MapGenerator] New project - reset to default papyrus texture and cleared state');
 
       // Refresh projects list
       await listProjects();
@@ -436,7 +570,7 @@ export function MapGeneratorProvider({
       setError(err instanceof Error ? err.message : 'Failed to create project');
       throw err;
     }
-  }, [isLoggedIn, userId, baseImageUrl, mapCanvas, scaleMetadata, listProjects]);
+  }, [isLoggedIn, userId, mapCanvas, listProjects, maskDrawing.actions]);
 
   const loadProject = useCallback(async (projectId: string): Promise<void> => {
     if (!isLoggedIn || !userId) {
@@ -465,9 +599,10 @@ export function MapGeneratorProvider({
       console.log('📁 [MapGenerator] Project loaded:', result.name);
 
       // Update all state from loaded project (backend returns camelCase)
+      // Use default papyrus texture if project has no base image
       setProjectId(result.id);
       setProjectName(result.name);
-      setBaseImageUrl(result.baseImageUrl || '');
+      setBaseImageUrl(result.baseImageUrl || DEFAULT_PAPYRUS_TEXTURE_URL);
       if (result.gridConfig) {
         mapCanvas.setGridConfig(result.gridConfig);
       }
@@ -483,6 +618,12 @@ export function MapGeneratorProvider({
       const projectImages = result.generatedImages || [];
       console.log(`📸 [MapGenerator] Loaded ${projectImages.length} generated images from project`);
       setGeneratedImages(projectImages);
+      
+      // Load mask image URL from project
+      setMaskImageUrl(result.maskImageUrl || null);
+      if (result.maskImageUrl) {
+        console.log('🎭 [MapGenerator] Loaded mask image URL from project');
+      }
 
       setError(null);
     } catch (err) {
@@ -625,6 +766,7 @@ export function MapGeneratorProvider({
       labels: mapCanvas.labels,
       scaleMetadata,
       generatedImages: generatedImages.map(img => img.id), // Only use IDs for hash
+      maskImageUrl,
     });
 
     if (contentToHash === lastSavedContentHashRef.current) {
@@ -656,6 +798,7 @@ export function MapGeneratorProvider({
               session_id: img.sessionId || '',
               service: img.service || 'map',
             })),
+          mask_image_url: maskImageUrl,
         }),
       });
 
@@ -684,7 +827,7 @@ export function MapGeneratorProvider({
       setError(err instanceof Error ? err.message : 'Failed to save project');
       setTimeout(() => setSaveStatus('idle'), 2000);
     }
-  }, [isLoggedIn, userId, projectId, baseImageUrl, projectName, mapCanvas, scaleMetadata, generatedImages]);
+  }, [isLoggedIn, userId, projectId, baseImageUrl, projectName, mapCanvas, scaleMetadata, generatedImages, maskImageUrl]);
 
   // Auto-save effect (debounced)
   useEffect(() => {
@@ -714,7 +857,7 @@ export function MapGeneratorProvider({
         clearTimeout(debouncedSaveTimerRef.current);
       }
     };
-  }, [isLoggedIn, userId, projectId, baseImageUrl, mapCanvas.gridConfig, mapCanvas.labels, scaleMetadata, generatedImages, saveNow]);
+  }, [isLoggedIn, userId, projectId, baseImageUrl, mapCanvas.gridConfig, mapCanvas.labels, scaleMetadata, generatedImages, maskImageUrl, saveNow]);
 
   // Load projects when drawer opens
   useEffect(() => {
@@ -864,7 +1007,17 @@ export function MapGeneratorProvider({
     scaleMetadata,
     lastCompiledPrompt,
     lastMapspec,
-        lastGenerationInput,
+    lastGenerationInput,
+    
+    // Default texture detection
+    isUsingDefaultTexture: isDefaultTexture(baseImageUrl),
+    
+    // Mask image URL (persisted to R2)
+    maskImageUrl,
+
+    // Generation mode
+    generationMode,
+    setGenerationMode,
 
     // Projects state
     projects,
@@ -912,6 +1065,8 @@ export function MapGeneratorProvider({
     setMaskTool,
     setMaskData,
     clearMask,
+    setMaskImageUrl,
+    uploadAndSaveMask,
 
     // Mask drawing actions
     startMaskStroke: maskDrawing.actions.startStroke,

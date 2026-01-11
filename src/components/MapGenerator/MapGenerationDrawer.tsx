@@ -5,14 +5,16 @@
  */
 
 import React from 'react';
+import { IconWand, IconMask, IconEdit } from '@tabler/icons-react';
 import { useMapGenerator, type MapGeneratorContextValue } from './MapGeneratorProvider';
 
 // Factory imports
 import { createServiceDrawer } from '../../shared/GenerationDrawerEngine/factory';
 import MapInputForm from './MapInputForm';
 import { mapEngineConfig } from './mapEngineConfig';
+import { MaskLibraryTab } from './MaskLibraryTab';
 import type { MapGenerationInput, MapGenerationOutput, ProjectGeneratedImage } from './mapTypes';
-import type { GeneratedImage } from '../../shared/GenerationDrawerEngine';
+import type { GeneratedImage, ModeSelectorConfig, ModeGalleryConfig, MaskImage } from '../../shared/GenerationDrawerEngine';
 
 // =============================================================================
 // FACTORY-BASED DRAWER
@@ -104,6 +106,54 @@ const FactoryMapGenerationDrawer = createServiceDrawer<
     isTutorialMode: (_ctx, props) => props.isTutorialMode ?? false,
     mockAuthState: true,
     simulatedDurationMs: 7000
+  },
+
+  // === Custom Tab Slots ===
+  getCustomTabSlots: (ctx) => ({
+    masks: (
+      <MaskLibraryTab
+        currentProjectId={ctx.projectId}
+        onImportMask={(maskUrl, projectName) => {
+          console.log('🎭 [MapGenerator] Importing mask from:', projectName);
+          ctx.setMaskImageUrl(maskUrl);
+        }}
+      />
+    )
+  }),
+
+  // === Mode Selection ===
+  getModeConfig: (ctx): ModeSelectorConfig => ({
+    currentMode: ctx.generationMode,
+    onModeChange: (mode) => ctx.setGenerationMode(mode as 'generate' | 'generate-from-mask' | 'edit'),
+    modes: [
+      { value: 'generate', label: 'Generate', icon: <IconWand size={16} /> },
+      { value: 'generate-from-mask', label: 'From Mask', icon: <IconMask size={16} /> },
+      { value: 'edit', label: 'Edit', icon: <IconEdit size={16} /> },
+    ],
+  }),
+
+  getModeGalleries: (): ModeGalleryConfig[] => [
+    { mode: 'generate', galleryType: 'images', label: 'Generated Images' },
+    { mode: 'generate-from-mask', galleryType: 'masks', label: 'Project Masks' },
+    { mode: 'edit', galleryType: 'both', label: 'Images & Masks' },
+  ],
+
+  getMaskImages: (ctx): MaskImage[] => {
+    // Return the current project's mask if it exists
+    if (ctx.maskImageUrl) {
+      return [{
+        id: 'current-mask',
+        url: ctx.maskImageUrl,
+        projectName: ctx.projectName || 'Current Project',
+        updatedAt: new Date().toISOString(),
+      }];
+    }
+    return [];
+  },
+
+  handleMaskSelect: (ctx, maskUrl) => {
+    console.log('🎭 [MapGenerator] Mask selected from gallery:', maskUrl);
+    ctx.setMaskImageUrl(maskUrl);
   }
 });
 
@@ -114,7 +164,7 @@ const FactoryMapGenerationDrawer = createServiceDrawer<
 interface MapGenerationDrawerProps {
   opened: boolean;
   onClose: () => void;
-  initialTab?: 'image' | 'upload' | 'library';
+  initialTab?: 'image' | 'upload' | 'library' | 'masks';
   isTutorialMode?: boolean;
   onGenerationComplete?: () => void;
 }

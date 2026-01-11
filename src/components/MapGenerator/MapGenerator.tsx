@@ -86,6 +86,7 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
     clearMask,
     canUndoMask,
     canRedoMask,
+    uploadAndSaveMask,
   } = useMapGenerator();
 
   const { isLoggedIn } = useAuth();
@@ -99,6 +100,25 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
   // Inline editing state
   const [editingInfo, setEditingInfo] = useState<LabelEditInfo | null>(null);
   const [editText, setEditText] = useState('');
+
+  // Mask saving state
+  const [isSavingMask, setIsSavingMask] = useState(false);
+  const canSaveMask = isLoggedIn && !!projectId && maskDrawingState.strokes.length > 0;
+
+  // Handle saving mask manually
+  const handleSaveMask = useCallback(async () => {
+    if (!canSaveMask) return;
+    
+    setIsSavingMask(true);
+    try {
+      await uploadAndSaveMask();
+      console.log('✅ [MapGenerator] Mask saved manually');
+    } catch (err) {
+      console.error('❌ [MapGenerator] Failed to save mask:', err);
+    } finally {
+      setIsSavingMask(false);
+    }
+  }, [canSaveMask, uploadAndSaveMask]);
 
   // Handle starting inline edit
   const handleStartEditing = useCallback((info: LabelEditInfo) => {
@@ -170,6 +190,51 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
       img.src = baseImageUrl;
     }
   }, [baseImageUrl, viewportSize.width, viewportSize.height, fitToViewport]);
+
+  // Global mouse tracking for mask drawing (allows drawing outside canvas bounds)
+  useEffect(() => {
+    // Only track when in mask mode and actively drawing
+    if (mode !== 'mask' || !maskDrawingState.isDrawing) {
+      return;
+    }
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!viewportRef.current) return;
+
+      const containerRect = viewportRef.current.getBoundingClientRect();
+      
+      // Convert screen coordinates to container-relative coordinates
+      let relativeX = e.clientX - containerRect.left;
+      let relativeY = e.clientY - containerRect.top;
+
+      // Clamp coordinates to container bounds (so we can draw to edges even when outside)
+      // This allows drawing to continue smoothly when mouse leaves the canvas
+      relativeX = Math.max(0, Math.min(containerRect.width, relativeX));
+      relativeY = Math.max(0, Math.min(containerRect.height, relativeY));
+
+      // Convert container-relative coordinates to canvas coordinates
+      // Account for pan and zoom from the view state
+      const canvasX = (relativeX - view.panX) / view.zoom;
+      const canvasY = (relativeY - view.panY) / view.zoom;
+
+      // Continue stroke with transformed coordinates
+      continueMaskStroke(canvasX, canvasY);
+    };
+
+    const handleGlobalMouseUp = () => {
+      // End the stroke when mouse is released anywhere
+      endMaskStroke();
+    };
+
+    // Add document-level listeners to track mouse even when outside canvas
+    document.addEventListener('mousemove', handleGlobalMouseMove, { passive: true });
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [mode, maskDrawingState.isDrawing, view.panX, view.panY, view.zoom, continueMaskStroke, endMaskStroke]);
 
   // Handle label placement (click-to-place)
   const handleLabelPlace = useCallback(
@@ -315,6 +380,32 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
                 backgroundColor: '#f5f5f5',
                 cursor: isPlacingLabel ? 'crosshair' : 'default',
               }}
+              onMouseMove={
+                mode === 'mask' && maskDrawingState.isDrawing
+                  ? (e: React.MouseEvent<HTMLDivElement>) => {
+                      // Continue stroke when mouse moves over container (even outside canvas)
+                      if (!viewportRef.current) return;
+                      const rect = viewportRef.current.getBoundingClientRect();
+                      const relativeX = e.clientX - rect.left;
+                      const relativeY = e.clientY - rect.top;
+                      // Clamp to container bounds
+                      const clampedX = Math.max(0, Math.min(rect.width, relativeX));
+                      const clampedY = Math.max(0, Math.min(rect.height, relativeY));
+                      // Convert to canvas coordinates (accounting for pan/zoom)
+                      const canvasX = (clampedX - view.panX) / view.zoom;
+                      const canvasY = (clampedY - view.panY) / view.zoom;
+                      continueMaskStroke(canvasX, canvasY);
+                    }
+                  : undefined
+              }
+              onMouseUp={
+                mode === 'mask' && maskDrawingState.isDrawing
+                  ? () => {
+                      // End stroke when mouse is released
+                      endMaskStroke();
+                    }
+                  : undefined
+              }
             >
               {baseImageUrl ? (
                 <>
@@ -455,11 +546,14 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
                     brushSize={maskConfig.brushSize}
                     canUndo={canUndoMask}
                     canRedo={canRedoMask}
+                    canSave={canSaveMask}
+                    isSaving={isSavingMask}
                     onToolChange={setMaskTool}
                     onBrushSizeChange={setMaskBrushSize}
                     onUndo={undoMask}
                     onRedo={redoMask}
                     onClear={clearMask}
+                    onSaveMask={handleSaveMask}
                   />
                 )}
 

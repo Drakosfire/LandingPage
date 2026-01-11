@@ -15,6 +15,7 @@ import {
   IconArrowBackUp,
   IconArrowForwardUp,
   IconTrash,
+  IconDeviceFloppy,
 } from '@tabler/icons-react';
 
 export type MaskTool = 'brush' | 'eraser' | 'rect' | 'circle';
@@ -28,6 +29,10 @@ export interface MaskControlsProps {
   canUndo: boolean;
   /** Whether redo is available */
   canRedo: boolean;
+  /** Whether save is available (has strokes and logged in) */
+  canSave?: boolean;
+  /** Whether save is in progress */
+  isSaving?: boolean;
   /** Callback when tool changes */
   onToolChange: (tool: MaskTool) => void;
   /** Callback when brush size changes */
@@ -38,6 +43,8 @@ export interface MaskControlsProps {
   onRedo: () => void;
   /** Callback for clear action */
   onClear: () => void;
+  /** Callback for save mask action */
+  onSaveMask?: () => void;
 }
 
 interface ToolButtonProps {
@@ -68,11 +75,14 @@ export const MaskControls: React.FC<MaskControlsProps> = ({
   brushSize,
   canUndo,
   canRedo,
+  canSave = false,
+  isSaving = false,
   onToolChange,
   onBrushSizeChange,
   onUndo,
   onRedo,
   onClear,
+  onSaveMask,
 }) => {
   return (
     <Stack gap="sm" p="xs">
@@ -157,6 +167,21 @@ export const MaskControls: React.FC<MaskControlsProps> = ({
             <IconTrash size={18} />
           </ActionIcon>
         </Tooltip>
+        {onSaveMask && (
+          <Tooltip label={canSave ? "Save mask to project" : "Draw a mask first"}>
+            <ActionIcon
+              variant={canSave ? "filled" : "default"}
+              color={canSave ? "green" : "gray"}
+              size="lg"
+              onClick={onSaveMask}
+              disabled={!canSave}
+              loading={isSaving}
+              aria-label="Save mask"
+            >
+              <IconDeviceFloppy size={18} />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Group>
     </Stack>
   );

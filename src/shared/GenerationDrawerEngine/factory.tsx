@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { GenerationDrawerEngine } from './GenerationDrawerEngine';
 import type {
     GenerationDrawerConfig,
@@ -94,6 +94,27 @@ export interface ServiceDrawerFactoryConfig<TInput, TOutput, TContext> {
         /** Callback when tutorial generation completes */
         onTutorialComplete?: (ctx: TContext) => void;
     };
+
+    /** 
+     * Get custom tab slot renderers from context.
+     * Returns a map of tab.id to React elements.
+     * Example: { masks: <MaskLibraryTab {...props} /> }
+     */
+    getCustomTabSlots?: (ctx: TContext) => Record<string, React.ReactNode>;
+
+    // === Mode Selection (Optional) ===
+
+    /** Get mode selector configuration from context */
+    getModeConfig?: (ctx: TContext) => import('./types').ModeSelectorConfig | undefined;
+
+    /** Get mode-based gallery configurations */
+    getModeGalleries?: (ctx: TContext) => import('./types').ModeGalleryConfig[] | undefined;
+
+    /** Get mask images for mask gallery */
+    getMaskImages?: (ctx: TContext) => import('./types').MaskImage[] | undefined;
+
+    /** Handle mask selection */
+    handleMaskSelect?: (ctx: TContext, maskUrl: string, maskId?: string) => void;
 }
 
 /**
@@ -167,7 +188,12 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
         handleImageDeleted,
         getSessionId,
         getImagePrompt,
-        tutorialConfig
+        tutorialConfig,
+        getCustomTabSlots,
+        getModeConfig,
+        getModeGalleries,
+        getMaskImages,
+        handleMaskSelect
     } = factoryConfig;
 
     // Extract onGenerationStart before type narrowing (it's omitted from engineConfig type)
@@ -192,6 +218,25 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
         const sessionId = getSessionId?.(ctx) || `${serviceId}-session`;
         const initialImages = getInitialImages?.(ctx) || [];
         const imagePrompt = getImagePrompt?.(ctx) || '';
+        
+        // Get custom tab slots
+        const customTabSlots = getCustomTabSlots?.(ctx) || {};
+
+        // Get mode-related values
+        const modeConfig = getModeConfig?.(ctx);
+        const modeGalleries = getModeGalleries?.(ctx);
+        const maskImages = getMaskImages?.(ctx);
+        const onMaskSelect = handleMaskSelect 
+          ? (maskUrl: string, maskId?: string) => handleMaskSelect(ctx, maskUrl, maskId)
+          : undefined;
+        
+        // Debug: Log custom tab slots on first render
+        useEffect(() => {
+          console.log(`🔧 [${serviceId}] Factory customTabSlots:`, {
+            hasGetter: !!getCustomTabSlots,
+            slotKeys: Object.keys(customTabSlots),
+          });
+        }, [opened]);
 
         // Determine tutorial mode (props override, then context check, then false)
         const isTutorialMode = propsTutorialMode ??
@@ -238,7 +283,7 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
             } else {
                 console.warn(`⚠️ [${displayName}] No handleImagesGenerated configured!`);
             }
-        }, [ctx]);
+        }, [ctx, handleImagesGenerated, displayName]);
 
         // Handle image selection
         const handleImageSelect = useCallback((url: string, index: number) => {
@@ -314,6 +359,11 @@ export function createServiceDrawer<TInput, TOutput, TContext>(
                 initialImages={initialImages}
                 onGeneratingChange={setIsGenerating}
                 imageTabPrompt={imagePrompt}
+                customTabSlots={customTabSlots}
+                modeConfig={modeConfig}
+                modeGalleries={modeGalleries}
+                maskImages={maskImages}
+                onMaskSelect={onMaskSelect}
             />
         );
     };

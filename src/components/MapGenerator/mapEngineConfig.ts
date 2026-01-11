@@ -179,6 +179,7 @@ export const mapEngineConfig: GenerationDrawerConfig<MapGenerationInput, MapGene
   // Image-only mode (no text generation for maps)
   tabs: [
     { id: 'image', label: 'Generate', generationType: GenerationType.IMAGE },
+    { id: 'masks', label: 'Masks', contentType: 'masks' },
     { id: 'upload', label: 'Upload', contentType: 'upload' },
     { id: 'library', label: 'Library', contentType: 'library' },
   ] as TabConfig[],

@@ -29,3 +29,8 @@ export type { ImageModalProps } from './ImageModal';
 export { ExamplesBar } from './ExamplesBar';
 export type { ExamplesBarProps } from './ExamplesBar';
 
+export { ModeSelector } from './ModeSelector';
+export type { ModeSelectorProps } from './ModeSelector';
+
+export { MaskGallery } from './MaskGallery';
+export type { MaskGalleryProps } from './MaskGallery';

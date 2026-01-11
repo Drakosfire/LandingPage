@@ -81,8 +81,8 @@ export interface TabConfig {
     disabled?: boolean;
     /** Badge content (e.g., image count) */
     badge?: string | number;
-    /** Content type for special tabs (e.g., 'upload', 'library') */
-    contentType?: 'upload' | 'library';
+    /** Content type for special tabs (e.g., 'upload', 'library', 'masks') */
+    contentType?: 'upload' | 'library' | 'masks';
 }
 
 /**
@@ -494,5 +494,95 @@ export interface GenerationDrawerEngineProps<TInput, TOutput> {
      * Typically sourced from context after text generation completes.
      */
     imageTabPrompt?: string;
+    /**
+     * Custom tab slot renderers for service-specific tabs.
+     * Maps tab.id to a React element to render in that tab's panel.
+     * Example: { masks: <MaskLibraryTab {...props} /> }
+     */
+    customTabSlots?: Record<string, React.ReactNode>;
+
+    // === Mode Selection (Optional) ===
+
+    /**
+     * Mode selector configuration for services with multiple generation modes.
+     * When provided, renders a mode selector at the top of the drawer.
+     */
+    modeConfig?: ModeSelectorConfig;
+
+    /**
+     * Mode-based gallery configurations.
+     * Defines which gallery to show for each mode.
+     */
+    modeGalleries?: ModeGalleryConfig[];
+
+    /**
+     * Mask images for the mask gallery (when mode requires mask display).
+     * Services provide this array for mask-based modes.
+     */
+    maskImages?: MaskImage[];
+
+    /**
+     * Callback when a mask is selected from the gallery.
+     */
+    onMaskSelect?: (maskUrl: string, maskId?: string) => void;
 }
 
+/**
+ * Mask image for display in mask gallery.
+ */
+export interface MaskImage {
+    /** Unique ID for the mask */
+    id?: string;
+    /** Mask image URL */
+    url: string;
+    /** Project name (for display) */
+    projectName?: string;
+    /** When the mask was saved */
+    updatedAt?: string;
+}
+
+// =============================================================================
+// MODE SELECTOR TYPES
+// =============================================================================
+
+/**
+ * Configuration for the optional mode selector at the top of the drawer.
+ * Services can provide different modes (e.g., Generate, From Mask, Edit).
+ */
+export interface ModeSelectorConfig {
+    /** Current mode value */
+    currentMode: string;
+    /** Callback when mode changes */
+    onModeChange: (mode: string) => void;
+    /** Available modes */
+    modes: ModeOption[];
+    /** Whether the selector is disabled */
+    disabled?: boolean;
+}
+
+/**
+ * Individual mode option for the mode selector.
+ */
+export interface ModeOption {
+    /** Mode value (used for comparison) */
+    value: string;
+    /** Display label */
+    label: string;
+    /** Optional icon */
+    icon?: ReactNode;
+}
+
+/**
+ * Configuration for mode-dependent gallery rendering.
+ * Services can specify which gallery to show for each mode.
+ */
+export interface ModeGalleryConfig {
+    /** Mode value this config applies to */
+    mode: string;
+    /** Type of gallery to show: 'images', 'masks', 'both', or 'custom' */
+    galleryType: 'images' | 'masks' | 'both' | 'custom';
+    /** Custom gallery component (when galleryType is 'custom') */
+    customGallery?: ReactNode;
+    /** Gallery title/label (optional) */
+    label?: string;
+}

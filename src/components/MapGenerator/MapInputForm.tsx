@@ -29,28 +29,41 @@ const MapInputForm: React.FC<InputSlotProps<MapGenerationInput>> = ({
   isGenerating,
   errors
 }) => {
-  const { maskConfig, maskDrawingState, baseImageUrl, clearMask } = useMapGenerator();
+  const { maskConfig, maskDrawingState, baseImageUrl, clearMask, maskImageUrl } = useMapGenerator();
   const [isApplyingMask, setIsApplyingMask] = React.useState(!!value.maskData);
+  const [isViewingSavedMask, setIsViewingSavedMask] = React.useState(false);
 
-  // Auto-reset mask toggle when mask is cleared (e.g., after generation completes)
-  // This handles the case where handleGenerationComplete clears the mask
+  // Auto-reset mask toggle when mask strokes are cleared AND no saved mask exists
+  // This handles the case where handleGenerationComplete clears the mask from the canvas
   React.useEffect(() => {
-    if (isApplyingMask && maskDrawingState.strokes.length === 0 && !value.maskData) {
-      console.log('🎭 [MapInputForm] Auto-resetting mask toggle (mask was cleared)');
+    // If mask was being applied but strokes are now cleared and no saved mask, reset everything
+    // (If saved mask exists, user can still use it)
+    if (isApplyingMask && maskDrawingState.strokes.length === 0 && !maskImageUrl) {
+      console.log('🎭 [MapInputForm] Auto-resetting mask toggle (strokes were cleared, no saved mask)');
       setIsApplyingMask(false);
+      // Also clear the input's mask data to complete the reset
+      if (value.maskData) {
+        onChange({
+          ...value,
+          maskData: null,
+          baseImageData: null,
+        });
+      }
     }
-  }, [isApplyingMask, maskDrawingState.strokes.length, value.maskData]);
+  }, [isApplyingMask, maskDrawingState.strokes.length, value.maskData, value, onChange, maskImageUrl]);
 
   // Debug: Log mask state to understand why toggle might not show
   React.useEffect(() => {
     console.log('🎭 [MapInputForm] Mask state:', {
       hasBaseImage: !!baseImageUrl,
       strokeCount: maskDrawingState.strokes.length,
-      shouldShowToggle: baseImageUrl && maskDrawingState.strokes.length > 0,
+      hasSavedMask: !!maskImageUrl,
+      savedMaskUrl: maskImageUrl?.substring(0, 50) || null,
       isApplyingMask,
+      isViewingSavedMask,
       baseImageUrl: baseImageUrl?.substring(0, 50) + '...',
     });
-  }, [baseImageUrl, maskDrawingState.strokes.length, isApplyingMask]);
+  }, [baseImageUrl, maskDrawingState.strokes.length, isApplyingMask, maskImageUrl, isViewingSavedMask]);
 
   // Debounced save of prompt and style options to localStorage
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -162,9 +175,10 @@ const MapInputForm: React.FC<InputSlotProps<MapGenerationInput>> = ({
     setIsApplyingMask(checked);
     
     if (checked) {
-      // Export mask and base image to base64
+      // Priority 1: Fresh strokes on canvas
       if (maskDrawingState.strokes.length > 0 && baseImageUrl) {
         try {
+          console.log('🎭 [MapInputForm] Using fresh strokes for mask');
           // Get actual image dimensions
           const dimensions = await getImageDimensions(baseImageUrl);
           
@@ -189,8 +203,29 @@ const MapInputForm: React.FC<InputSlotProps<MapGenerationInput>> = ({
           console.error('❌ [MapInputForm] Failed to export mask:', err);
           setIsApplyingMask(false);
         }
-      } else {
-        // No mask drawn or no base image
+      }
+      // Priority 2: Saved mask from project
+      else if (maskImageUrl && baseImageUrl) {
+        try {
+          console.log('🎭 [MapInputForm] Using saved mask from project:', maskImageUrl);
+          // Convert saved mask URL to base64
+          const savedMaskData = await imageUrlToDataUri(maskImageUrl);
+          // Convert base image URL to base64 data URI
+          const baseImageData = await imageUrlToDataUri(baseImageUrl);
+
+          onChange({
+            ...value,
+            maskData: savedMaskData,
+            baseImageData: baseImageData,
+          });
+        } catch (err) {
+          console.error('❌ [MapInputForm] Failed to load saved mask:', err);
+          setIsApplyingMask(false);
+        }
+      }
+      // No mask available
+      else {
+        console.log('🎭 [MapInputForm] No mask available');
         setIsApplyingMask(false);
       }
     } else {
@@ -204,63 +239,115 @@ const MapInputForm: React.FC<InputSlotProps<MapGenerationInput>> = ({
   };
 
   // Check if mask is ready to apply (strokes drawn on base image)
-  const hasMaskReady = baseImageUrl && maskDrawingState.strokes.length > 0;
+  const hasFreshStrokes = baseImageUrl && maskDrawingState.strokes.length > 0;
+  // Check if saved mask exists from project
+  const hasSavedMask = !!maskImageUrl;
+  // Either fresh strokes or saved mask can be used
+  const hasMaskReady = hasFreshStrokes || hasSavedMask;
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INPAINT MODE - Drastically simplified UI when mask is active
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (hasMaskReady && isApplyingMask) {
+    return (
+      <Stack gap="md">
+        {/* Inpaint Mode Header */}
+        <Group justify="space-between" align="center" p="sm" style={{ 
+          backgroundColor: 'var(--mantine-color-blue-1)', 
+          borderRadius: 'var(--mantine-radius-md)',
+          border: '2px solid var(--mantine-color-blue-6)'
+        }}>
+          <Stack gap={4}>
+            <Group gap="xs">
+              <span style={{ fontSize: '1.1rem' }}>🎭</span>
+              <span style={{ fontWeight: 600, color: 'var(--mantine-color-blue-7)' }}>Inpaint Mode</span>
+            </Group>
+            <span style={{ fontSize: '0.8rem', color: 'var(--mantine-color-dimmed)' }}>
+              Generating only within the masked region
+            </span>
+          </Stack>
+          <Button
+            size="xs"
+            variant="light"
+            color="gray"
+            onClick={() => handleApplyMaskToggle(false)}
+            disabled={isGenerating}
+          >
+            Exit Inpaint Mode
+          </Button>
+        </Group>
+
+        {/* Mask Preview with Delete */}
+        {value.maskData && (
+          <Group justify="center" gap="md" p="sm" style={{
+            backgroundColor: 'var(--mantine-color-gray-0)',
+            borderRadius: 'var(--mantine-radius-md)'
+          }}>
+            <MaskPreview
+              maskData={value.maskData}
+              onDelete={handleDeleteMask}
+            />
+            <Button
+              size="xs"
+              variant="subtle"
+              color="red"
+              leftSection={<IconTrash size={14} />}
+              onClick={handleDeleteMask}
+            >
+              Clear Mask
+            </Button>
+          </Group>
+        )}
+
+        {/* Inpaint Prompt - Simplified, focused input */}
+        <Textarea
+          label="What should appear in the masked area?"
+          placeholder="Describe what to add... (e.g., 'a small campfire with bedrolls', 'dense forest undergrowth', 'a stone bridge')"
+          value={value.prompt}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            onChange({ ...value, prompt: e.target.value })
+          }
+          minRows={2}
+          maxRows={4}
+          disabled={isGenerating}
+          required
+          error={errors?.prompt}
+          data-testid="map-prompt-input"
+          styles={{
+            input: {
+              backgroundColor: 'var(--mantine-color-white)',
+              border: '2px solid var(--mantine-color-blue-3)',
+            }
+          }}
+        />
+
+        {/* Note about inpaint generation */}
+        <span style={{ 
+          fontSize: '0.75rem', 
+          color: 'var(--mantine-color-dimmed)',
+          textAlign: 'center',
+          fontStyle: 'italic'
+        }}>
+          Style options are inherited from the base image. Only the masked region will be regenerated.
+        </span>
+      </Stack>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NORMAL MODE - Full generation form
+  // ═══════════════════════════════════════════════════════════════════════════
   return (
     <Stack gap="md">
-      {/* Apply Mask - PROMINENT at top when mask is ready */}
-      {hasMaskReady && (
-        <>
-          <Group justify="space-between" align="flex-start" p="sm" style={{ 
-            backgroundColor: 'var(--mantine-color-blue-light)', 
-            borderRadius: 'var(--mantine-radius-md)',
-            border: '2px solid var(--mantine-color-blue-6)'
-          }}>
-            <Stack gap="xs" style={{ flex: 1 }}>
-              <Switch
-                label="Apply Mask to Generation"
-                description="Generate content only within the masked region using GPT Image 1.5"
-                checked={isApplyingMask}
-                onChange={(e) => handleApplyMaskToggle(e.currentTarget.checked)}
-                disabled={isGenerating}
-                size="md"
-                data-testid="apply-mask-toggle"
-              />
-            </Stack>
-            {value.maskData && (
-              <Stack gap="xs" align="flex-end">
-                <MaskPreview
-                  maskData={value.maskData}
-                  onDelete={handleDeleteMask}
-                />
-                <Button
-                  size="xs"
-                  variant="subtle"
-                  color="red"
-                  leftSection={<IconTrash size={14} />}
-                  onClick={handleDeleteMask}
-                >
-                  Delete Mask
-                </Button>
-              </Stack>
-            )}
-          </Group>
-          <Divider />
-        </>
-      )}
-
       {/* Main Prompt Input */}
       <Textarea
-        label={hasMaskReady && isApplyingMask ? "Describe what to generate in the masked region" : "Map Description"}
-        placeholder={hasMaskReady && isApplyingMask 
-          ? "Describe what to add... (e.g., 'a small campfire with bedrolls')"
-          : "Describe your battle map... (e.g., 'A forest clearing at the moment of transition, where settled ground loosens into rising roots and layered undergrowth')"
-        }
+        label="Map Description"
+        placeholder="Describe your battle map... (e.g., 'A forest clearing at the moment of transition, where settled ground loosens into rising roots and layered undergrowth')"
         value={value.prompt}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
           onChange({ ...value, prompt: e.target.value })
         }
-        minRows={hasMaskReady && isApplyingMask ? 2 : 4}
+        minRows={4}
         maxRows={8}
         disabled={isGenerating}
         required
@@ -268,37 +355,92 @@ const MapInputForm: React.FC<InputSlotProps<MapGenerationInput>> = ({
         data-testid="map-prompt-input"
       />
 
-      {/* Style Options - HIDDEN in inpainting mode for simplified UX */}
-      {!(hasMaskReady && isApplyingMask) && (
-        <>
-          <Divider label="Style Options" labelPosition="center" />
+      <Divider label="Style Options" labelPosition="center" />
 
-          {/* Style Toggles */}
-          <MapStyleToggles
-            value={value.styleOptions}
-            onChange={handleStyleOptionsChange}
+      {/* Style Toggles */}
+      <MapStyleToggles
+        value={value.styleOptions}
+        onChange={handleStyleOptionsChange}
+      />
+
+      {/* Mask / Inpaint Section - Always visible */}
+      <Divider label="Inpaint Options" labelPosition="center" />
+      
+      {/* Saved Mask Preview - Show when saved mask exists */}
+      {hasSavedMask && !hasFreshStrokes && (
+        <Group justify="space-between" align="center" p="sm" style={{
+          backgroundColor: 'var(--mantine-color-grape-0)',
+          borderRadius: 'var(--mantine-radius-md)',
+          border: '1px solid var(--mantine-color-grape-3)'
+        }}>
+          <Group gap="sm">
+            <MaskPreview maskData={maskImageUrl} />
+            <Stack gap={2}>
+              <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>Saved Mask</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--mantine-color-dimmed)' }}>
+                From project • Can be used for inpainting
+              </span>
+            </Stack>
+          </Group>
+          <Button
+            size="xs"
+            variant="light"
+            color="grape"
+            onClick={() => setIsViewingSavedMask(!isViewingSavedMask)}
+          >
+            {isViewingSavedMask ? 'Hide' : 'Preview'}
+          </Button>
+        </Group>
+      )}
+      
+      {/* Saved Mask Full Preview - Expandable */}
+      {isViewingSavedMask && hasSavedMask && (
+        <Group justify="center" p="md" style={{
+          backgroundColor: 'var(--mantine-color-dark-9)',
+          borderRadius: 'var(--mantine-radius-md)'
+        }}>
+          <img 
+            src={maskImageUrl!} 
+            alt="Saved mask preview" 
+            style={{ 
+              maxWidth: '100%', 
+              maxHeight: '200px',
+              borderRadius: 'var(--mantine-radius-sm)',
+              border: '2px solid var(--mantine-color-grape-5)'
+            }} 
           />
-        </>
+        </Group>
       )}
 
-      {/* Mask hint - Show when base image exists but no mask drawn yet */}
-      {baseImageUrl && !hasMaskReady && (
-        <>
-          <Divider label="Mask Options" labelPosition="center" />
-          <Stack gap="xs" p="sm" style={{ 
-            backgroundColor: 'var(--mantine-color-gray-light)',
-            borderRadius: 'var(--mantine-radius-md)'
-          }}>
-            <Switch
-              label="Apply Mask"
-              description="Draw a mask on the map first, then enable this toggle"
-              checked={false}
-              disabled
-              data-testid="apply-mask-toggle-disabled"
-            />
-          </Stack>
-        </>
-      )}
+      {/* Mask Toggle */}
+      <Stack gap="xs" p="sm" style={{ 
+        backgroundColor: hasMaskReady 
+          ? 'var(--mantine-color-blue-light)' 
+          : 'var(--mantine-color-gray-light)',
+        borderRadius: 'var(--mantine-radius-md)',
+        border: hasMaskReady ? '2px solid var(--mantine-color-blue-6)' : 'none'
+      }}>
+        <Switch
+          label="Apply Mask to Generation"
+          description={
+            hasFreshStrokes 
+              ? "Use drawn mask for inpainting - generate only within the masked region"
+              : hasSavedMask 
+                ? "Use saved mask for inpainting - generate only within the masked region"
+                : "Draw a mask on the map first, then enable this toggle"
+          }
+          checked={isApplyingMask}
+          onChange={(e) => handleApplyMaskToggle(e.currentTarget.checked)}
+          disabled={isGenerating || !hasMaskReady}
+          size="md"
+          data-testid="apply-mask-toggle"
+        />
+        {hasFreshStrokes && hasSavedMask && (
+          <span style={{ fontSize: '0.75rem', color: 'var(--mantine-color-blue-7)', fontStyle: 'italic' }}>
+            Using new mask strokes (overwrites saved mask)
+          </span>
+        )}
+      </Stack>
     </Stack>
   );
 };

@@ -12,6 +12,8 @@ import { DrawerShell } from './components/DrawerShell';
 import { TabsContainer } from './components/TabsContainer';
 import { GenerationPanel, type ImageGenerationOptions } from './components/GenerationPanel';
 import { ProjectGallery } from './components/ProjectGallery';
+import { MaskGallery } from './components/MaskGallery';
+import { ModeSelector } from './components/ModeSelector';
 import { ImageModal } from './components/ImageModal';
 import { UploadZone } from './components/UploadZone';
 import { LibraryBrowser } from './components/LibraryBrowser';
@@ -48,7 +50,12 @@ export function GenerationDrawerEngine<TInput, TOutput>(
     initialImages,
     onGenerationComplete: propsOnGenerationComplete,
     onGeneratingChange,
-    imageTabPrompt
+    imageTabPrompt,
+    customTabSlots,
+    modeConfig,
+    modeGalleries,
+    maskImages,
+    onMaskSelect
   } = props;
   const {
     tabs,
@@ -841,9 +848,65 @@ export function GenerationDrawerEngine<TInput, TOutput>(
       ? progressConfig[activeGenerationType]
       : undefined;
 
+  // Get current mode gallery config
+  const currentModeGallery = useMemo(() => {
+    if (!modeConfig || !modeGalleries) return null;
+    return modeGalleries.find(g => g.mode === modeConfig.currentMode) || null;
+  }, [modeConfig, modeGalleries]);
+
   return (
     <DrawerShell opened={opened} onClose={onClose} title={config.title}>
       <Stack gap="md" h="100%">
+        {/* Mode Selector (when provided) */}
+        {modeConfig && (
+          <ModeSelector
+            currentMode={modeConfig.currentMode}
+            onModeChange={modeConfig.onModeChange}
+            modes={modeConfig.modes}
+            disabled={modeConfig.disabled || generation.isGenerating}
+          />
+        )}
+
+        {/* Mode-Based Gallery (when mode config and galleries are provided) */}
+        {currentModeGallery && (
+          <>
+            <Divider label={currentModeGallery.label || 'Gallery'} labelPosition="center" />
+            {currentModeGallery.galleryType === 'images' && (
+              <ProjectGallery
+                images={projectGalleryImages}
+                selectedImageId={selectedImageId}
+                onImageClick={handleImageClick}
+                onImageSelect={handleImageSelect}
+              />
+            )}
+            {currentModeGallery.galleryType === 'masks' && (
+              <MaskGallery
+                masks={maskImages || []}
+                selectedMaskUrl={null}
+                onMaskSelect={(mask) => onMaskSelect?.(mask.url, mask.id)}
+              />
+            )}
+            {currentModeGallery.galleryType === 'both' && (
+              <Stack gap="sm">
+                <Text size="xs" fw={500} c="dimmed">Images</Text>
+                <ProjectGallery
+                  images={projectGalleryImages}
+                  selectedImageId={selectedImageId}
+                  onImageClick={handleImageClick}
+                  onImageSelect={handleImageSelect}
+                />
+                <Text size="xs" fw={500} c="dimmed">Masks</Text>
+                <MaskGallery
+                  masks={maskImages || []}
+                  selectedMaskUrl={null}
+                  onMaskSelect={(mask) => onMaskSelect?.(mask.url, mask.id)}
+                />
+              </Stack>
+            )}
+            {currentModeGallery.galleryType === 'custom' && currentModeGallery.customGallery}
+          </>
+        )}
+
         <Tabs value={activeTab} onChange={(val) => setActiveTab(val || '')}>
           <TabsContainer ref={tabsListRef} tabs={tabs} isGenerating={generation.isGenerating} />
 
@@ -1055,6 +1118,23 @@ export function GenerationDrawerEngine<TInput, TOutput>(
                     ) : null}
                   </AuthGate>
                 )}
+
+                {/* Custom Tab Slots - service-specific tabs (e.g., masks) */}
+                {(() => {
+                  const hasCustomSlot = !!customTabSlots?.[tab.id];
+                  if (tab.contentType === 'masks') {
+                    console.log('🎭 [Engine] Masks tab render check:', {
+                      tabId: tab.id,
+                      hasCustomSlot,
+                      customTabSlotsKeys: customTabSlots ? Object.keys(customTabSlots) : [],
+                    });
+                  }
+                  return hasCustomSlot ? (
+                    <AuthGate isTutorialMode={isTutorialMode}>
+                      {customTabSlots![tab.id]}
+                    </AuthGate>
+                  ) : null;
+                })()}
 
                 {/* Show Project Gallery below upload zone when there are images */}
                 {tab.id === 'upload' && projectGalleryImages.length > 0 && (

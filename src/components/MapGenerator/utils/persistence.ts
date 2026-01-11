@@ -4,6 +4,9 @@
  * Handles localStorage persistence for user preferences:
  * - Generation options (model, style, numImages)
  * - Map input (prompt text, style options)
+ * 
+ * Note: Generated images are persisted via the backend (Firestore) as part of the project,
+ * not in localStorage. See MapGeneratorProvider.tsx for project persistence.
  */
 
 import type { ImageGenerationOptions } from '../../../shared/GenerationDrawerEngine';

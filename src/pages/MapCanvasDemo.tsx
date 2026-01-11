@@ -15,7 +15,8 @@
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Container, Stack, Group, Paper, Title, Text, Code, Divider, Tabs, Checkbox, Badge, Modal, Button } from '@mantine/core';
+import { Container, Stack, Group, Paper, Title, Text, Code, Divider, Tabs, Checkbox, Badge, Modal, Button, Accordion, ThemeIcon } from '@mantine/core';
+import { IconCheck } from '@tabler/icons-react';
 import { MapGeneratorProvider, useMapGenerator } from '../components/MapGenerator/MapGeneratorProvider';
 import { MapGeneratorContent } from '../components/MapGenerator/MapGenerator';
 import { UnifiedHeader } from '../components/UnifiedHeader';
@@ -75,6 +76,11 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
   { id: 'mask-undo', label: 'Undo mask stroke', category: 'Mask Drawing', taskId: 'T153' },
   { id: 'mask-redo', label: 'Redo mask stroke', category: 'Mask Drawing', taskId: 'T153' },
   { id: 'mask-clear', label: 'Clear all mask strokes', category: 'Mask Drawing', taskId: 'T154' },
+  { id: 'mask-save-button', label: 'Save mask button appears (green floppy disk icon)', category: 'Mask Drawing', taskId: 'Mask Save' },
+  { id: 'mask-save-disabled', label: 'Save button disabled when no strokes or not logged in', category: 'Mask Drawing', taskId: 'Mask Save' },
+  { id: 'mask-save-enabled', label: 'Save button enabled (green) when strokes exist and logged in', category: 'Mask Drawing', taskId: 'Mask Save' },
+  { id: 'mask-save-click', label: 'Clicking save uploads mask to R2 and shows loading state', category: 'Mask Drawing', taskId: 'Mask Save' },
+  { id: 'mask-save-console', label: 'Console shows: ✅ [MapGenerator] Mask saved manually', category: 'Mask Drawing', taskId: 'Mask Save' },
   { id: 'mask-preview', label: 'See semi-transparent mask overlay when not in mask mode', category: 'Mask Drawing', taskId: 'T208' },
 
   // Mask Generation (Phase 1)
@@ -84,6 +90,65 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
   { id: 'mask-generate', label: 'Generate map with mask applied (uses /generate-masked endpoint)', category: 'Mask Generation', taskId: 'T205' },
   { id: 'mask-boundary', label: 'Generated content respects mask boundaries', category: 'Mask Generation', taskId: 'T205' },
   { id: 'mask-format-fix', label: 'Mask/base image format normalized to data URI (no validation errors)', category: 'Mask Generation', taskId: 'Phase 1' },
+
+  // Mask Persistence (New Feature)
+  { id: 'mask-persist-prereq-logged-in', label: 'Prerequisite: User is logged in with a project loaded', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-draw', label: 'Draw mask strokes on the canvas', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-upload', label: 'Call uploadAndSaveMask() via context (or trigger auto-save)', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-console-upload', label: 'Check console: 🎭 [MapGenerator] Uploading mask to R2...', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-console-success', label: 'Check console: ✅ [MapGenerator] Mask uploaded: [url]', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-state-url', label: 'Check Internal State: maskImageUrl contains Cloudflare URL', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-refresh', label: 'Refresh page, wait for project hydration', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-console-loaded', label: 'Check console: 🎭 [MapGenerator] Loaded mask image URL from project', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-restored', label: 'Verify maskImageUrl is restored after refresh', category: 'Mask Persistence', taskId: 'Mask Persist' },
+  { id: 'mask-persist-new-project', label: 'Creating new project clears maskImageUrl and mask strokes', category: 'Mask Persistence', taskId: 'Mask Persist' },
+
+  // Mask Auto-Save on Generation (Critical Path)
+  { id: 'mask-autosave-draw', label: 'Draw a mask on the canvas (9+ strokes)', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-toggle', label: 'Toggle "Apply Mask" ON in generation drawer', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-generate', label: 'Click Generate (masked generation)', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-console-saving', label: 'Console: 🎭 [MapGenerator] Masked generation complete - saving mask before clearing', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-console-uploading', label: 'Console: 🎭 [MapGenerator] Uploading mask to R2...', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-console-uploaded', label: 'Console: ✅ [MapGenerator] Mask uploaded: [cloudflare url]', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-console-saved', label: 'Console: ✅ [MapGenerator] Mask saved after masked generation', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-strokes-cleared', label: 'Mask strokes are cleared from canvas after generation', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-state-url', label: 'Check Internal State: maskImageUrl now contains Cloudflare URL', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-saved-preview', label: 'Saved mask preview card appears in generation drawer', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-refresh', label: 'Refresh page and reload project', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+  { id: 'mask-autosave-persisted', label: 'Saved mask is still available after refresh (maskImageUrl restored)', category: 'Mask Auto-Save', taskId: 'Mask Auto-Save' },
+
+  // Inpaint Toggle UI (Always Visible)
+  { id: 'inpaint-toggle-always-visible', label: 'Inpaint toggle is always visible at bottom of MapInputForm', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+  { id: 'inpaint-toggle-disabled-no-mask', label: 'Toggle is disabled when no mask drawn and no saved mask', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+  { id: 'inpaint-toggle-enabled-fresh', label: 'Toggle is enabled when fresh mask strokes are drawn', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+  { id: 'inpaint-toggle-enabled-saved', label: 'Toggle is enabled when saved mask exists (even without fresh strokes)', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+  { id: 'inpaint-toggle-description-fresh', label: 'Description says "Use drawn mask" when fresh strokes exist', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+  { id: 'inpaint-toggle-description-saved', label: 'Description says "Use saved mask" when only saved mask exists', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+  { id: 'inpaint-toggle-description-none', label: 'Description says "Draw a mask first" when no mask available', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+  { id: 'inpaint-fresh-priority', label: 'Fresh strokes take priority over saved mask when both exist', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+  { id: 'inpaint-overwrite-note', label: 'Shows "Using new mask strokes (overwrites saved mask)" when both exist', category: 'Inpaint Toggle UI', taskId: 'Inpaint UI' },
+
+  // Saved Mask Viewing
+  { id: 'saved-mask-preview-card', label: 'Saved mask preview card appears when maskImageUrl exists (no fresh strokes)', category: 'Saved Mask Viewing', taskId: 'Saved Mask' },
+  { id: 'saved-mask-preview-button', label: 'Preview/Hide button toggles full mask view', category: 'Saved Mask Viewing', taskId: 'Saved Mask' },
+  { id: 'saved-mask-preview-expanded', label: 'Full mask preview shows larger image on dark background', category: 'Saved Mask Viewing', taskId: 'Saved Mask' },
+  { id: 'saved-mask-toggle-applies', label: 'Toggling on with saved mask applies it to generation', category: 'Saved Mask Viewing', taskId: 'Saved Mask' },
+  { id: 'saved-mask-console-log', label: 'Console shows "Using saved mask from project: [url]" when applied', category: 'Saved Mask Viewing', taskId: 'Saved Mask' },
+  { id: 'saved-mask-hides-with-fresh', label: 'Saved mask preview hides when fresh strokes are drawn', category: 'Saved Mask Viewing', taskId: 'Saved Mask' },
+
+  // Mask Library Tab (Cross-Project Masks)
+  { id: 'mask-library-tab-visible', label: 'Masks tab appears in Generation Drawer (4th tab)', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-auth-gate', label: 'Masks tab shows login prompt when not authenticated', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-fetches', label: 'Console shows "🎭 [MaskLibrary] Fetching masks from all projects..."', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-displays', label: 'Saved masks from other projects appear as thumbnails', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-project-name', label: 'Each mask shows originating project name', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-excludes-current', label: 'Current project mask is NOT shown in library (filtered out)', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-import-button', label: '"Use" button appears on each mask card', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-import-click', label: 'Clicking "Use" imports mask to current project', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-import-console', label: 'Console shows "🎭 [MapGenerator] Importing mask from: [projectName]"', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-state-updated', label: 'maskImageUrl state updates after import', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-empty-state', label: 'Shows "No saved masks found" when no masks exist', category: 'Mask Library Tab', taskId: 'Mask Library' },
+  { id: 'mask-library-refresh-button', label: 'Refresh button reloads mask list', category: 'Mask Library Tab', taskId: 'Mask Library' },
 
   // Generation Options Persistence
   { id: 'options-persistence', label: 'Generation options (model, style, numImages) persist across drawer sessions', category: 'Generation Options', taskId: 'Phase 2' },
@@ -121,9 +186,31 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
   { id: 'upload-persists-backend', label: 'Verify uploaded image persists (loads from backend)', category: 'Upload Persistence', taskId: 'Test 1' },
   { id: 'upload-gallery-after-refresh', label: 'Verify uploaded image appears in Project Gallery after refresh', category: 'Upload Persistence', taskId: 'Test 1' },
 
-  // Default Texture
-  { id: 'default-texture', label: 'New projects start with default papyrus texture', category: 'Default Texture', taskId: 'New Feature' },
-  { id: 'texture-detection', label: 'System detects if base image is default texture vs generated/uploaded', category: 'Default Texture', taskId: 'New Feature' },
+  // Default Texture - Basic
+  { id: 'default-texture-loads', label: 'Canvas displays papyrus texture on initial load (not blank)', category: 'Default Texture', taskId: 'Phase 1' },
+  { id: 'default-texture-visible', label: 'Papyrus texture is visually correct (parchment/paper appearance)', category: 'Default Texture', taskId: 'Phase 1' },
+  { id: 'default-texture-state', label: 'Check Internal State: baseImageUrl contains imagedelivery.net URL', category: 'Default Texture', taskId: 'Phase 1' },
+  { id: 'default-texture-detection', label: 'Check Internal State: isUsingDefaultTexture is true on fresh load', category: 'Default Texture', taskId: 'Phase 3' },
+  
+  // Default Texture - Mask Drawing
+  { id: 'default-mask-mode', label: 'Can switch to Mask mode on default texture', category: 'Default Texture Masking', taskId: 'Phase 4' },
+  { id: 'default-mask-draw', label: 'Can draw mask strokes on default texture', category: 'Default Texture Masking', taskId: 'Phase 4' },
+  { id: 'default-mask-shapes', label: 'Can draw rect/circle shapes on default texture', category: 'Default Texture Masking', taskId: 'Phase 4' },
+  { id: 'default-mask-preview', label: 'Mask preview visible when switching away from mask mode', category: 'Default Texture Masking', taskId: 'Phase 4' },
+  { id: 'default-mask-undo-redo', label: 'Undo/redo works for mask on default texture', category: 'Default Texture Masking', taskId: 'Phase 4' },
+  
+  // Default Texture - Generation
+  { id: 'default-gen-full', label: 'Full generation (no mask) on default texture works', category: 'Default Texture Generation', taskId: 'Phase 4' },
+  { id: 'default-gen-replaces', label: 'After generation, baseImageUrl changes to generated image URL', category: 'Default Texture Generation', taskId: 'Phase 4' },
+  { id: 'default-gen-detection-off', label: 'After generation, isUsingDefaultTexture becomes false', category: 'Default Texture Generation', taskId: 'Phase 4' },
+  { id: 'default-mask-gen', label: 'Masked generation (inpaint) on default texture works', category: 'Default Texture Generation', taskId: 'Phase 4' },
+  { id: 'default-mask-gen-quality', label: 'Masked generation result looks good (content in masked area)', category: 'Default Texture Generation', taskId: 'Phase 4' },
+  
+  // Default Texture - Export
+  { id: 'default-export-works', label: 'Export button works with default texture as base', category: 'Default Texture Export', taskId: 'Phase 4' },
+  { id: 'default-export-includes-texture', label: 'Exported image includes papyrus texture', category: 'Default Texture Export', taskId: 'Phase 4' },
+  { id: 'default-export-with-labels', label: 'Export includes labels drawn on default texture', category: 'Default Texture Export', taskId: 'Phase 4' },
+  { id: 'default-export-with-grid', label: 'Export includes grid overlay on default texture', category: 'Default Texture Export', taskId: 'Phase 4' },
 
   // Export Functionality
   { id: 'export-button', label: 'Click Export button', category: 'Export', taskId: 'T111' },
@@ -167,6 +254,50 @@ function ChecklistSection() {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(() => loadChecklistFromStorage());
   const [clearModalOpened, setClearModalOpened] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Track which accordion panels are open (multiple can be open)
+  const [openPanels, setOpenPanels] = useState<string[]>([]);
+
+  // Group items by category
+  const itemsByCategory = useMemo(() => {
+    const grouped: Record<string, ChecklistItem[]> = {};
+    CHECKLIST_ITEMS.forEach((item) => {
+      if (!grouped[item.category]) {
+        grouped[item.category] = [];
+      }
+      grouped[item.category].push(item);
+    });
+    return grouped;
+  }, []);
+
+  // Calculate completion status per category
+  const categoryStatus = useMemo(() => {
+    const status: Record<string, { checked: number; total: number; complete: boolean }> = {};
+    Object.entries(itemsByCategory).forEach(([category, items]) => {
+      const checked = items.filter(item => checkedItems.has(item.id)).length;
+      status[category] = {
+        checked,
+        total: items.length,
+        complete: checked === items.length,
+      };
+    });
+    return status;
+  }, [itemsByCategory, checkedItems]);
+
+  // Initialize open panels to incomplete categories on first load
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    // Get all incomplete categories
+    const incompleteCategories = Object.entries(categoryStatus)
+      .filter(([, status]) => !status.complete)
+      .map(([category]) => category);
+    
+    // If this is initial load and we have no panels open, open first incomplete
+    if (openPanels.length === 0 && incompleteCategories.length > 0) {
+      setOpenPanels([incompleteCategories[0]]);
+    }
+  }, [isInitialized, categoryStatus, openPanels.length]);
 
   // Mark as initialized after first render
   useEffect(() => {
@@ -185,7 +316,7 @@ function ChecklistSection() {
     }
   }, [checkedItems, isInitialized]);
 
-  const toggleItem = (id: string) => {
+  const toggleItem = (id: string, category: string) => {
     setCheckedItems((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -193,6 +324,20 @@ function ChecklistSection() {
       } else {
         next.add(id);
       }
+      
+      // Check if this completes the category (auto-collapse)
+      const categoryItems = itemsByCategory[category];
+      const willBeComplete = categoryItems.every(item => 
+        item.id === id ? !prev.has(id) : next.has(item.id)
+      );
+      
+      if (willBeComplete) {
+        // Auto-collapse this category after a brief delay
+        setTimeout(() => {
+          setOpenPanels(panels => panels.filter(p => p !== category));
+        }, 300);
+      }
+      
       return next;
     });
   };
@@ -200,23 +345,17 @@ function ChecklistSection() {
   const handleClearAll = () => {
     setCheckedItems(new Set());
     setClearModalOpened(false);
+    // Open all panels when clearing
+    setOpenPanels(Object.keys(itemsByCategory));
   };
-
-  // Group items by category
-  const itemsByCategory = useMemo(() => {
-    const grouped: Record<string, ChecklistItem[]> = {};
-    CHECKLIST_ITEMS.forEach((item) => {
-      if (!grouped[item.category]) {
-        grouped[item.category] = [];
-      }
-      grouped[item.category].push(item);
-    });
-    return grouped;
-  }, []);
 
   const totalChecked = checkedItems.size;
   const totalItems = CHECKLIST_ITEMS.length;
   const progressPercent = totalItems > 0 ? Math.round((totalChecked / totalItems) * 100) : 0;
+
+  // Expand/collapse all
+  const expandAll = () => setOpenPanels(Object.keys(itemsByCategory));
+  const collapseAll = () => setOpenPanels([]);
 
   return (
     <Paper p="lg" withBorder>
@@ -225,51 +364,97 @@ function ChecklistSection() {
           <div>
             <Title order={3}>Feature Verification Checklist</Title>
             <Text size="sm" c="dimmed" mt={4}>
-              Interactive checklist with persistent state. Check items as you verify features.
+              Interactive checklist with persistent state. Categories auto-collapse when complete.
             </Text>
           </div>
           <Group gap="sm">
             <Badge size="lg" variant="light" color={progressPercent === 100 ? 'green' : 'blue'}>
               {totalChecked} / {totalItems} ({progressPercent}%)
             </Badge>
-            <Text
-              size="xs"
-              c="dimmed"
-              style={{ cursor: 'pointer', textDecoration: 'underline' }}
-              onClick={() => setClearModalOpened(true)}
-            >
-              Clear All
-            </Text>
           </Group>
+        </Group>
+
+        <Group gap="xs">
+          <Text
+            size="xs"
+            c="dimmed"
+            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={expandAll}
+          >
+            Expand All
+          </Text>
+          <Text size="xs" c="dimmed">|</Text>
+          <Text
+            size="xs"
+            c="dimmed"
+            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={collapseAll}
+          >
+            Collapse All
+          </Text>
+          <Text size="xs" c="dimmed">|</Text>
+          <Text
+            size="xs"
+            c="red"
+            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={() => setClearModalOpened(true)}
+          >
+            Clear All
+          </Text>
         </Group>
 
         <Divider />
 
-        <Stack gap="lg">
-          {Object.entries(itemsByCategory).map(([category, items]) => (
-            <div key={category}>
-              <Text fw={600} size="sm" mb="sm">
-                {category}
-                {items[0].taskId && (
-                  <Badge size="xs" variant="dot" ml="xs" color="gray">
-                    {items[0].taskId}
-                  </Badge>
-                )}
-              </Text>
-              <Stack gap="xs">
-                {items.map((item) => (
-                  <Checkbox
-                    key={item.id}
-                    label={item.label}
-                    checked={checkedItems.has(item.id)}
-                    onChange={() => toggleItem(item.id)}
-                    size="sm"
-                  />
-                ))}
-              </Stack>
-            </div>
-          ))}
-        </Stack>
+        <Accordion 
+          multiple 
+          value={openPanels} 
+          onChange={setOpenPanels}
+          variant="separated"
+        >
+          {Object.entries(itemsByCategory).map(([category, items]) => {
+            const status = categoryStatus[category];
+            const isComplete = status.complete;
+            
+            return (
+              <Accordion.Item key={category} value={category}>
+                <Accordion.Control>
+                  <Group justify="space-between" pr="md">
+                    <Group gap="sm">
+                      {isComplete && (
+                        <ThemeIcon size="sm" color="green" variant="light" radius="xl">
+                          <IconCheck size={12} />
+                        </ThemeIcon>
+                      )}
+                      <Text fw={600} size="sm" c={isComplete ? 'dimmed' : undefined}>
+                        {category}
+                      </Text>
+                    </Group>
+                    <Badge 
+                      size="sm" 
+                      variant="light" 
+                      color={isComplete ? 'green' : 'gray'}
+                    >
+                      {status.checked}/{status.total}
+                    </Badge>
+                  </Group>
+                </Accordion.Control>
+                <Accordion.Panel>
+                  <Stack gap="xs">
+                    {items.map((item) => (
+                      <Checkbox
+                        key={item.id}
+                        label={item.label}
+                        checked={checkedItems.has(item.id)}
+                        onChange={() => toggleItem(item.id, category)}
+                        size="sm"
+                      />
+                    ))}
+                  </Stack>
+                </Accordion.Panel>
+              </Accordion.Item>
+            );
+          })}
+        </Accordion>
 
         {progressPercent === 100 && (
           <Paper p="md" bg="green.0" withBorder>
@@ -360,6 +545,8 @@ function StateViewer() {
 
     return {
       baseImageUrl: context.baseImageUrl,
+      isUsingDefaultTexture: context.isUsingDefaultTexture,
+      maskImageUrl: context.maskImageUrl,
       projectId: context.projectId,
       projectName: context.projectName,
       gridConfig: context.gridConfig,
@@ -437,7 +624,17 @@ function StateViewer() {
             Save Status: <strong>{stateForDisplay.saveStatus}</strong>
           </Text>
           <Text size="xs" c="dimmed">
+            Default Texture: <strong style={{ color: stateForDisplay.isUsingDefaultTexture ? '#10b981' : '#6b7280' }}>
+              {stateForDisplay.isUsingDefaultTexture ? 'Yes' : 'No'}
+            </strong>
+          </Text>
+          <Text size="xs" c="dimmed">
             Mask Strokes: <strong>{stateForDisplay.maskDrawingState.strokes}</strong>
+          </Text>
+          <Text size="xs" c="dimmed">
+            Mask Saved: <strong style={{ color: stateForDisplay.maskImageUrl ? '#10b981' : '#6b7280' }}>
+              {stateForDisplay.maskImageUrl ? 'Yes' : 'No'}
+            </strong>
           </Text>
           <Text size="xs" c="dimmed">
             Mask Tool: <strong>{stateForDisplay.maskDrawingState.activeTool || 'none'}</strong>
