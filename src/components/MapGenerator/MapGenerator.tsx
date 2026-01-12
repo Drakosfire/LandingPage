@@ -120,6 +120,23 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
     }
   }, [canSaveMask, uploadAndSaveMask]);
 
+  // Toggle handlers for navbar buttons - close if already open, open if closed
+  const handleGenerationToggle = useCallback(() => {
+    if (generationDrawerOpen) {
+      closeGenerationDrawer();
+    } else {
+      openGenerationDrawer();
+    }
+  }, [generationDrawerOpen, closeGenerationDrawer, openGenerationDrawer]);
+
+  const handleProjectsToggle = useCallback(() => {
+    if (projectsDrawerOpen) {
+      closeProjectsDrawer();
+    } else {
+      openProjectsDrawer();
+    }
+  }, [projectsDrawerOpen, closeProjectsDrawer, openProjectsDrawer]);
+
   // Handle starting inline edit
   const handleStartEditing = useCallback((info: LabelEditInfo) => {
     setEditingInfo(info);
@@ -335,9 +352,9 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
             icon: MAP_GENERATOR_ICON_URL,
           }}
           showGeneration={true}
-          onGenerationClick={openGenerationDrawer}
+          onGenerationClick={handleGenerationToggle}
           showProjects={true}
-          onProjectsClick={openProjectsDrawer}
+          onProjectsClick={handleProjectsToggle}
           showAuth={true}
           saveStatus={saveStatus}
           onSaveClick={handleSaveClick}
@@ -380,32 +397,6 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
                 backgroundColor: '#f5f5f5',
                 cursor: isPlacingLabel ? 'crosshair' : 'default',
               }}
-              onMouseMove={
-                mode === 'mask' && maskDrawingState.isDrawing
-                  ? (e: React.MouseEvent<HTMLDivElement>) => {
-                      // Continue stroke when mouse moves over container (even outside canvas)
-                      if (!viewportRef.current) return;
-                      const rect = viewportRef.current.getBoundingClientRect();
-                      const relativeX = e.clientX - rect.left;
-                      const relativeY = e.clientY - rect.top;
-                      // Clamp to container bounds
-                      const clampedX = Math.max(0, Math.min(rect.width, relativeX));
-                      const clampedY = Math.max(0, Math.min(rect.height, relativeY));
-                      // Convert to canvas coordinates (accounting for pan/zoom)
-                      const canvasX = (clampedX - view.panX) / view.zoom;
-                      const canvasY = (clampedY - view.panY) / view.zoom;
-                      continueMaskStroke(canvasX, canvasY);
-                    }
-                  : undefined
-              }
-              onMouseUp={
-                mode === 'mask' && maskDrawingState.isDrawing
-                  ? () => {
-                      // End stroke when mouse is released
-                      endMaskStroke();
-                    }
-                  : undefined
-              }
             >
               {baseImageUrl ? (
                 <>
@@ -435,7 +426,8 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
                     maskBrushSize={maskDrawingState.brushSize}
                     maskIsDrawing={maskDrawingState.isDrawing}
                     onMaskStrokeStart={startMaskStroke}
-                    onMaskStrokeContinue={continueMaskStroke}
+                    // Note: onMaskStrokeContinue is NOT passed - document listener handles all continue events
+                    // This prevents duplicate calls causing squiggly lines
                     onMaskStrokeEnd={endMaskStroke}
                     onMaskShapeAdd={addMaskShape}
                   />
