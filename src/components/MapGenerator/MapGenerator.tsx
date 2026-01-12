@@ -7,7 +7,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Container, Stack, Group, Button, Text, Paper, Title } from '@mantine/core';
-import { IconTypography, IconWand, IconGridDots, IconBrush } from '@tabler/icons-react';
+import { IconTypography, IconWand, IconGridDots, IconBrush, IconZoomIn, IconZoomOut, IconZoomReset } from '@tabler/icons-react';
 import { MapViewport, DEFAULT_GRID_CONFIG, LabelEditInfo } from 'dungeonmind-canvas';
 import { MapGeneratorProvider, useMapGenerator } from './MapGeneratorProvider';
 import { useAuth } from '../../context/AuthContext';
@@ -104,6 +104,11 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
   // Mask saving state
   const [isSavingMask, setIsSavingMask] = useState(false);
   const canSaveMask = isLoggedIn && !!projectId && maskDrawingState.strokes.length > 0;
+
+  // Refs to track mask drawing state for document-level listeners
+  // Using refs avoids stale closure issues - handlers always see current values
+  const maskDrawingStateRef = useRef(maskDrawingState);
+  maskDrawingStateRef.current = maskDrawingState;
 
   // Handle saving mask manually
   const handleSaveMask = useCallback(async () => {
@@ -209,14 +214,18 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
   }, [baseImageUrl, viewportSize.width, viewportSize.height, fitToViewport]);
 
   // Global mouse tracking for mask drawing (allows drawing outside canvas bounds)
+  // IMPORTANT: Listeners are set up whenever mode === 'mask', not just when isDrawing.
+  // This avoids race conditions where the mouse leaves canvas before React re-renders.
+  // Uses refs to always see current state without stale closures.
   useEffect(() => {
-    // Only track when in mask mode and actively drawing
-    if (mode !== 'mask' || !maskDrawingState.isDrawing) {
+    // Only set up listeners when in mask mode
+    if (mode !== 'mask') {
       return;
     }
 
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!viewportRef.current) return;
+    // Get canvas coordinates from screen coordinates
+    const getCanvasCoords = (e: MouseEvent) => {
+      if (!viewportRef.current) return { x: 0, y: 0 };
 
       const containerRect = viewportRef.current.getBoundingClientRect();
 
@@ -225,25 +234,103 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
       let relativeY = e.clientY - containerRect.top;
 
       // Clamp coordinates to container bounds (so we can draw to edges even when outside)
-      // This allows drawing to continue smoothly when mouse leaves the canvas
       relativeX = Math.max(0, Math.min(containerRect.width, relativeX));
       relativeY = Math.max(0, Math.min(containerRect.height, relativeY));
 
       // Convert container-relative coordinates to canvas coordinates
-      // Account for pan and zoom from the view state
       const canvasX = (relativeX - view.panX) / view.zoom;
       const canvasY = (relativeY - view.panY) / view.zoom;
 
-      // Continue stroke with transformed coordinates
-      continueMaskStroke(canvasX, canvasY);
+      return { x: canvasX, y: canvasY };
     };
 
-    const handleGlobalMouseUp = () => {
-      // End the stroke when mouse is released anywhere
-      endMaskStroke();
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      // Use ref to get current state (avoids stale closure)
+      const state = maskDrawingStateRef.current;
+
+      // Only handle if we're actively drawing
+      if (!state.isDrawing) return;
+
+      const isShapeTool = state.activeTool === 'rect' || state.activeTool === 'circle';
+
+      // For brush/eraser: continue adding points
+      if (!isShapeTool) {
+        const { x, y } = getCanvasCoords(e);
+        continueMaskStroke(x, y);
+      }
+      // For shapes: preview is handled by MaskDrawingLayer internally
+      // (won't update when outside canvas, but that's acceptable)
     };
 
-    // Add document-level listeners to track mouse even when outside canvas
+    const handleGlobalMouseUp = (e: MouseEvent) => {
+      // Use ref to get current state (avoids stale closure)
+      const state = maskDrawingStateRef.current;
+      
+      console.log(`🎨 [MapGenerator] Document mouseup: isDrawing=${state.isDrawing}, activeTool=${state.activeTool}, hasCurrentStroke=${!!state.currentStroke}`);
+
+      // Only handle if we're actively drawing
+      if (!state.isDrawing) {
+        console.log(`🎨 [MapGenerator] Document mouseup: SKIPPED (not drawing)`);
+        return;
+      }
+      if (!viewportRef.current) return;
+
+      const isShapeTool = state.activeTool === 'rect' || state.activeTool === 'circle';
+
+      // Check if mouseup is inside the canvas
+      const containerRect = viewportRef.current.getBoundingClientRect();
+      const isInsideCanvas =
+        e.clientX >= containerRect.left &&
+        e.clientX <= containerRect.right &&
+        e.clientY >= containerRect.top &&
+        e.clientY <= containerRect.bottom;
+      
+      console.log(`🎨 [MapGenerator] Document mouseup: isInsideCanvas=${isInsideCanvas}, isShapeTool=${isShapeTool}`);
+
+      // For BRUSH/ERASER: If inside canvas, MaskDrawingLayer handles it
+      // For SHAPES: Document listener ALWAYS handles (Konva loses pointer tracking when mouse leaves/returns)
+      if (isInsideCanvas && !isShapeTool) {
+        console.log(`🎨 [MapGenerator] Document mouseup: SKIPPED (inside canvas, brush/eraser handled by MaskDrawingLayer)`);
+        return;
+      }
+
+      // Handle mouseup (inside or outside canvas for shapes, outside only for brush/eraser)
+      if (isShapeTool) {
+        // For shapes: calculate bounds and add the shape
+        // addMaskShape also resets isDrawing state, so no need to call endMaskStroke
+        const currentStroke = state.currentStroke;
+        if (currentStroke && currentStroke.points.length >= 2) {
+          const startX = currentStroke.points[0];
+          const startY = currentStroke.points[1];
+          const { x: endX, y: endY } = getCanvasCoords(e);
+
+          const bounds = {
+            x: Math.min(startX, endX),
+            y: Math.min(startY, endY),
+            width: Math.abs(endX - startX),
+            height: Math.abs(endY - startY),
+          };
+
+          // Only add shape if it has non-zero dimensions
+          if (bounds.width > 0 && bounds.height > 0) {
+            console.log(`🎨 [MapGenerator] Adding ${state.activeTool} shape via document listener:`, bounds);
+            addMaskShape(bounds);
+          } else {
+            // Shape too small, just reset state
+            endMaskStroke();
+          }
+        } else {
+          // No valid stroke to create shape from, just reset state
+          endMaskStroke();
+        }
+      } else {
+        // For brush/eraser: end the stroke to finalize and reset isDrawing state
+        endMaskStroke();
+      }
+    };
+
+    // Add document-level listeners - ALWAYS active in mask mode
+    // Handlers use refs to always see current state
     document.addEventListener('mousemove', handleGlobalMouseMove, { passive: true });
     document.addEventListener('mouseup', handleGlobalMouseUp);
 
@@ -251,7 +338,7 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [mode, maskDrawingState.isDrawing, view.panX, view.panY, view.zoom, continueMaskStroke, endMaskStroke]);
+  }, [mode, view.panX, view.panY, view.zoom, continueMaskStroke, endMaskStroke, addMaskShape]);
 
   // Handle label placement (click-to-place)
   const handleLabelPlace = useCallback(
@@ -306,6 +393,35 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
     },
     [setGridConfig]
   );
+
+  // ========== Zoom Controls ==========
+  const ZOOM_STEP = 0.25; // 25% per click
+  const MIN_ZOOM = 0.1;
+  const MAX_ZOOM = 5;
+
+  const handleZoomIn = useCallback(() => {
+    const newZoom = Math.min(MAX_ZOOM, view.zoom + ZOOM_STEP);
+    setView({ ...view, zoom: newZoom });
+  }, [view, setView]);
+
+  const handleZoomOut = useCallback(() => {
+    const newZoom = Math.max(MIN_ZOOM, view.zoom - ZOOM_STEP);
+    setView({ ...view, zoom: newZoom });
+  }, [view, setView]);
+
+  const handleZoomReset = useCallback(() => {
+    // Reset to fit viewport if we have an image
+    if (baseImageUrl) {
+      const img = new Image();
+      img.onload = () => {
+        fitToViewport(img.width, img.height, viewportSize.width, viewportSize.height);
+      };
+      img.src = baseImageUrl;
+    } else {
+      // Just reset to 100% zoom centered
+      setView({ zoom: 1, panX: 0, panY: 0 });
+    }
+  }, [baseImageUrl, viewportSize.width, viewportSize.height, fitToViewport, setView]);
 
   // Keyboard shortcuts for label management
   useEffect(() => {
@@ -382,6 +498,8 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
           {/* Main content area */}
           <Group align="flex-start" gap="md" wrap="nowrap">
             {/* Canvas area */}
+            {/* position: relative allows the expanded Stage to position absolutely within this container */}
+            {/* overflow: hidden clips the Stage buffer area that extends beyond the visible viewport */}
             <Paper
               ref={viewportRef}
               shadow="sm"
@@ -391,9 +509,7 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
                 flex: 1,
                 minHeight: 600,
                 overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                position: 'relative',
                 backgroundColor: '#f5f5f5',
                 cursor: isPlacingLabel ? 'crosshair' : 'default',
               }}
@@ -494,6 +610,43 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
             >
               <Stack gap="md">
                 <Title order={4}>Controls</Title>
+
+                {/* Zoom controls */}
+                {baseImageUrl && (
+                  <Stack gap="xs">
+                    <Text size="sm" fw={500}>
+                      Zoom ({Math.round(view.zoom * 100)}%)
+                    </Text>
+                    <Group gap="xs">
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={handleZoomOut}
+                        disabled={view.zoom <= MIN_ZOOM}
+                        title="Zoom Out"
+                      >
+                        <IconZoomOut size={16} />
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={handleZoomReset}
+                        title="Fit to Viewport"
+                      >
+                        <IconZoomReset size={16} />
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={handleZoomIn}
+                        disabled={view.zoom >= MAX_ZOOM}
+                        title="Zoom In"
+                      >
+                        <IconZoomIn size={16} />
+                      </Button>
+                    </Group>
+                  </Stack>
+                )}
 
                 {/* Mode toggles - Grid or Labels */}
                 <Stack gap="xs">

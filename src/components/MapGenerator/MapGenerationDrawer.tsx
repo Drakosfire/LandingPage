@@ -223,6 +223,12 @@ export function MapGenerationDrawer({
 
         payload.mask_base64 = maskData;
         payload.base_image_base64 = baseImageData;
+
+        // Set mode for different prompting:
+        // - "inpaint": Mask defines structure, fill ENTIRE image (papyrus → complete map)
+        // - "edit": Traditional inpainting, modify only masked region
+        payload.mode = generationMode === 'inpaint' ? 'inpaint' : 'edit';
+        console.log(`🎭 [MapGenerationDrawer] Using masked generation mode: ${payload.mode}`);
       }
 
       // Progress simulation

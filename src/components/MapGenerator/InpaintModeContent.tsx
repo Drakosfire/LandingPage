@@ -26,6 +26,7 @@ import { useMapGenerator } from './MapGeneratorProvider';
 import { ProjectGallery } from '../../shared/GenerationDrawerEngine/components/ProjectGallery';
 import { MaskGallery } from '../../shared/GenerationDrawerEngine/components/MaskGallery';
 import { MaskPreview } from './MaskPreview';
+import { DEFAULT_PAPYRUS_TEXTURE_URL } from './mapTypes';
 
 interface InpaintModeContentProps {
   prompt: string;
@@ -149,13 +150,13 @@ export function InpaintModeContent({
   // Build mask images for gallery from project's saved mask
   const savedMasks = hasSavedMask
     ? [
-        {
-          id: 'current-mask',
-          url: maskImageUrl!,
-          projectName: 'Current Project',
-          updatedAt: new Date().toISOString(),
-        },
-      ]
+      {
+        id: 'current-mask',
+        url: maskImageUrl!,
+        projectName: 'Current Project',
+        updatedAt: new Date().toISOString(),
+      },
+    ]
     : [];
 
   return (
@@ -228,7 +229,7 @@ export function InpaintModeContent({
                   {hasSavedMask && !hasDrawnMask && <Badge color="green" variant="light">Saved</Badge>}
                 </Group>
                 <Text size="xs" c="dimmed">
-                  Content will generate only in white/masked areas
+                  Mask defines map structure. Entire image will be filled.
                 </Text>
                 <Group gap="xs">
                   <Button
@@ -275,14 +276,15 @@ export function InpaintModeContent({
 
       {/* Inpaint Prompt */}
       <Textarea
-        label="What should appear in the masked area?"
-        placeholder="a campfire with bedrolls, dense forest undergrowth, a stone bridge..."
+        label="Describe your map (mask defines the structure)"
+        placeholder="a natural cave system with multiple chambers, a dungeon with stone corridors, a forest clearing..."
         value={prompt}
         onChange={(e) => onPromptChange(e.target.value)}
         disabled={isGenerating}
         minRows={2}
         maxRows={4}
         required
+        description="The mask shape defines your map's structure. The entire image will be filled - no white space."
         data-testid="inpaint-prompt-input"
       />
 
@@ -309,22 +311,26 @@ export function InpaintModeContent({
 
       {/* Base Images Gallery */}
       <Divider label="Base Image (select to mask)" labelPosition="center" />
-      {generatedImages.length > 0 ? (
-        <ScrollArea h={100}>
-          <ProjectGallery
-            images={generatedImages}
-            selectedImageId={null}
-            onImageClick={handleBaseImageSelect}
-            onImageSelect={handleBaseImageSelect}
-          />
-        </ScrollArea>
-      ) : (
-        <Paper p="sm" withBorder style={{ textAlign: 'center' }}>
-          <Text size="xs" c="dimmed">
-            No images. Generate a map first in the Generate tab.
-          </Text>
-        </Paper>
-      )}
+      <ScrollArea h={100}>
+        <ProjectGallery
+          images={[
+            // Always include blank papyrus as first option
+            {
+              id: 'blank-papyrus',
+              url: DEFAULT_PAPYRUS_TEXTURE_URL,
+              prompt: 'Blank Papyrus',
+              createdAt: '',
+              sessionId: '',
+              service: 'map',
+            },
+            // Then include generated images
+            ...generatedImages,
+          ]}
+          selectedImageId={baseImageUrl === DEFAULT_PAPYRUS_TEXTURE_URL ? 'blank-papyrus' : null}
+          onImageClick={handleBaseImageSelect}
+          onImageSelect={handleBaseImageSelect}
+        />
+      </ScrollArea>
     </Stack>
   );
 }
