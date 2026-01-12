@@ -2,14 +2,14 @@
  * Map Mode Selector Component
  * 
  * Minimal mode selector for Map Generator drawer.
- * Three modes: Generate, Generate from Mask, Edit
+ * Four modes: Generate, Inpaint, Edit, SVG (coming soon)
  */
 
 import React from 'react';
-import { SegmentedControl } from '@mantine/core';
-import { IconWand, IconMask, IconEdit } from '@tabler/icons-react';
+import { SegmentedControl, Group } from '@mantine/core';
+import { IconWand, IconMask, IconEdit, IconVectorSpline } from '@tabler/icons-react';
 
-export type MapMode = 'generate' | 'generate-from-mask' | 'edit';
+export type MapMode = 'generate' | 'inpaint' | 'edit' | 'svg';
 
 export interface MapModeSelectorProps {
   /** Current selected mode */
@@ -34,28 +34,38 @@ export const MapModeSelector: React.FC<MapModeSelectorProps> = ({
         {
           value: 'generate',
           label: (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Group gap={6} wrap="nowrap">
               <IconWand size={16} />
               <span>Generate</span>
-            </div>
+            </Group>
           ),
         },
         {
-          value: 'generate-from-mask',
+          value: 'inpaint',
           label: (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Group gap={6} wrap="nowrap">
               <IconMask size={16} />
-              <span>From Mask</span>
-            </div>
+              <span>Inpaint</span>
+            </Group>
           ),
         },
         {
           value: 'edit',
           label: (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Group gap={6} wrap="nowrap">
               <IconEdit size={16} />
               <span>Edit</span>
-            </div>
+            </Group>
+          ),
+        },
+        {
+          value: 'svg',
+          disabled: true,
+          label: (
+            <Group gap={6} wrap="nowrap">
+              <IconVectorSpline size={16} />
+              <span>SVG</span>
+            </Group>
           ),
         },
       ]}

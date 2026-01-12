@@ -48,9 +48,9 @@ export interface MapGeneratorContextValue extends UseMapCanvasResult {
   /** URL to persisted mask image in R2 (null if no mask saved) */
   maskImageUrl: string | null;
 
-  /** Current generation mode ('generate' | 'generate-from-mask' | 'edit') */
-  generationMode: 'generate' | 'generate-from-mask' | 'edit';
-  setGenerationMode: (mode: 'generate' | 'generate-from-mask' | 'edit') => void;
+  /** Current generation mode ('generate' | 'inpaint' | 'edit' | 'svg') */
+  generationMode: 'generate' | 'inpaint' | 'edit' | 'svg';
+  setGenerationMode: (mode: 'generate' | 'inpaint' | 'edit' | 'svg') => void;
 
   // Projects state
   projects: MapProjectSummary[];
@@ -188,8 +188,8 @@ export function MapGeneratorProvider({
   // Mask image URL (persisted to R2)
   const [maskImageUrl, setMaskImageUrl] = useState<string | null>(null);
 
-  // Generation mode state ('generate' | 'generate-from-mask' | 'edit')
-  const [generationMode, setGenerationMode] = useState<'generate' | 'generate-from-mask' | 'edit'>('generate');
+  // Generation mode state ('generate' | 'inpaint' | 'edit' | 'svg')
+  const [generationMode, setGenerationMode] = useState<'generate' | 'inpaint' | 'edit' | 'svg'>('generate');
 
   // If true, the next autosave effect should persist immediately (no debounce).
   // Used for image additions where users may refresh quickly.

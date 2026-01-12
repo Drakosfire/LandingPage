@@ -108,7 +108,7 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
   // Handle saving mask manually
   const handleSaveMask = useCallback(async () => {
     if (!canSaveMask) return;
-    
+
     setIsSavingMask(true);
     try {
       await uploadAndSaveMask();
@@ -219,7 +219,7 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
       if (!viewportRef.current) return;
 
       const containerRect = viewportRef.current.getBoundingClientRect();
-      
+
       // Convert screen coordinates to container-relative coordinates
       let relativeX = e.clientX - containerRect.left;
       let relativeY = e.clientY - containerRect.top;
@@ -426,9 +426,8 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
                     maskBrushSize={maskDrawingState.brushSize}
                     maskIsDrawing={maskDrawingState.isDrawing}
                     onMaskStrokeStart={startMaskStroke}
-                    // Note: onMaskStrokeContinue is NOT passed - document listener handles all continue events
-                    // This prevents duplicate calls causing squiggly lines
-                    onMaskStrokeEnd={endMaskStroke}
+                    // Note: onMaskStrokeContinue and onMaskStrokeEnd are NOT passed
+                    // Document listener handles all continue/end events to allow drawing outside canvas
                     onMaskShapeAdd={addMaskShape}
                   />
                   {/* Inline text editing overlay */}
