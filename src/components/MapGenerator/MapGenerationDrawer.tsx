@@ -231,11 +231,12 @@ export function MapGenerationDrawer({
         console.log(`🎭 [MapGenerationDrawer] Using masked generation mode: ${payload.mode}`);
       }
 
-      // Progress simulation
+      // Progress simulation (~45 seconds to reach 90%)
+      // 90 ticks at 500ms = 45s, so ~1% per tick
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 90) return prev;
-          const increment = Math.random() * 5 + 2;
+          const increment = Math.random() * 0.5 + 0.75; // ~0.75-1.25% per tick
           return Math.min(prev + increment, 90);
         });
       }, 500);

@@ -287,14 +287,12 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
       
       console.log(`🎨 [MapGenerator] Document mouseup: isInsideCanvas=${isInsideCanvas}, isShapeTool=${isShapeTool}`);
 
-      // For BRUSH/ERASER: If inside canvas, MaskDrawingLayer handles it
-      // For SHAPES: Document listener ALWAYS handles (Konva loses pointer tracking when mouse leaves/returns)
-      if (isInsideCanvas && !isShapeTool) {
-        console.log(`🎨 [MapGenerator] Document mouseup: SKIPPED (inside canvas, brush/eraser handled by MaskDrawingLayer)`);
-        return;
-      }
+      // Document listener ALWAYS handles mouseup for all tools
+      // - For shapes: Konva loses pointer tracking when mouse leaves/returns
+      // - For brush/eraser: onMaskStrokeEnd is not passed to MapViewport, so document listener handles it
+      // Note: We log but don't early-return for brush/eraser inside canvas
 
-      // Handle mouseup (inside or outside canvas for shapes, outside only for brush/eraser)
+      // Handle mouseup for all tools (both inside and outside canvas)
       if (isShapeTool) {
         // For shapes: calculate bounds and add the shape
         // addMaskShape also resets isDrawing state, so no need to call endMaskStroke
