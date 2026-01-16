@@ -22,6 +22,7 @@ import PlayerCharacterGenerator from './components/PlayerCharacterGenerator/Play
 import UnifiedHeaderTest from './pages/UnifiedHeaderTest';
 import GenerationDrawerDemo from './pages/GenerationDrawerDemo';
 import MapCanvasDemo from './pages/MapCanvasDemo';
+import { MapGenerator } from './components/MapGenerator';
 import { UnifiedHeader } from './components/UnifiedHeader';
 
 // DungeonMind Logo URL for home page header
@@ -85,6 +86,7 @@ const App: React.FC = () => {
                     <Route path="/playercharactergenerator" element={<PlayerCharacterGenerator />} />
                     <Route path="/test-unified-header" element={<UnifiedHeaderTest />} />
                     <Route path="/generation-drawer-demo" element={<GenerationDrawerDemo />} />
+                    <Route path="/map-generator" element={<MapGenerator />} />
                     <Route path="/map-demo" element={<MapCanvasDemo />} />
                   </Routes>
                 </MainContent>

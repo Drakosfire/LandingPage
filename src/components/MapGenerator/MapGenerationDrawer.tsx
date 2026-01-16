@@ -1,11 +1,10 @@
 /**
  * MapGenerationDrawer - Mode-based generation drawer
  * 
- * New simplified drawer with 4 modes:
+ * New simplified drawer with 3 modes:
  * - Generate: Create new maps from text prompts
  * - Inpaint: Generate content within masked regions
  * - Edit: Modify existing maps with optional masking
- * - SVG Mask: Generate procedural masks (coming soon)
  * 
  * Features:
  * - Single mode selector (no conflicting tabs)
@@ -33,7 +32,6 @@ import {
   IconWand,
   IconMask,
   IconEdit,
-  IconVectorSpline,
   IconPlayerPlay,
   IconAlertCircle,
 } from '@tabler/icons-react';
@@ -41,7 +39,6 @@ import { useMapGenerator } from './MapGeneratorProvider';
 import { GenerateModeContent } from './GenerateModeContent';
 import { InpaintModeContent } from './InpaintModeContent';
 import { EditModeContent } from './EditModeContent';
-import { SvgModeContent } from './SvgModeContent';
 import { DEFAULT_STYLE_OPTIONS, type MapGenerationInput, type MapStyleOptions } from './mapTypes';
 import { exportMaskToBase64 } from 'dungeonmind-canvas';
 import { DUNGEONMIND_API_URL } from '../../config';
@@ -92,6 +89,7 @@ export function MapGenerationDrawer({
   const [progressMessage, setProgressMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [generationStartTime, setGenerationStartTime] = useState<number | null>(null);
+  const GENERATION_TIMEOUT_MS = 240000; // 4 minutes
 
   // Handle input changes
   const handleInputChange = useCallback((changes: Partial<MapGenerationInput>) => {
@@ -111,9 +109,9 @@ export function MapGenerationDrawer({
   // Determine if generate button should be enabled
   const canGenerate = (() => {
     if (isGenerating) return false;
-    if (generationMode === 'svg') return false;
     if (generationMode === 'inpaint' && !hasMask) return false;
     if (!input.prompt || input.prompt.trim().length < 10) return false;
+    if (input.prompt.length > 8000) return false; // Enforce 8000 char limit
     return true;
   })();
 
@@ -167,6 +165,10 @@ export function MapGenerationDrawer({
     setProgress(0);
     setProgressMessage('Starting generation...');
     setGenerationStartTime(Date.now());
+
+    let progressInterval: NodeJS.Timeout | null = null;
+    let messageInterval: NodeJS.Timeout | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     try {
       // Build request payload based on mode
@@ -233,7 +235,7 @@ export function MapGenerationDrawer({
 
       // Progress simulation (~45 seconds to reach 90%)
       // 90 ticks at 500ms = 45s, so ~1% per tick
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 90) return prev;
           const increment = Math.random() * 0.5 + 0.75; // ~0.75-1.25% per tick
@@ -242,7 +244,7 @@ export function MapGenerationDrawer({
       }, 500);
 
       // Messages based on progress
-      const messageInterval = setInterval(() => {
+      messageInterval = setInterval(() => {
         setProgress((current) => {
           if (current < 20) {
             setProgressMessage('Analyzing prompt...');
@@ -260,18 +262,29 @@ export function MapGenerationDrawer({
       }, 2000);
 
       // Make API request
+      const abortController = new AbortController();
+      timeoutId = setTimeout(() => {
+        abortController.abort();
+      }, GENERATION_TIMEOUT_MS);
+
       const response = await fetch(`${DUNGEONMIND_API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        signal: abortController.signal,
         body: JSON.stringify(payload),
       });
 
-      clearInterval(progressInterval);
-      clearInterval(messageInterval);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        if (response.status === 504) {
+          throw new Error('GATEWAY_TIMEOUT');
+        }
         throw new Error(errorData.detail || `Generation failed: ${response.statusText}`);
       }
 
@@ -315,10 +328,30 @@ export function MapGenerationDrawer({
       }, 1000);
     } catch (err) {
       console.error('❌ [MapGenerationDrawer] Generation error:', err);
-      setError(err instanceof Error ? err.message : 'Generation failed');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError(
+          'Generation timed out. The server may still be working — wait a moment and check your project images, or try again.'
+        );
+      } else if (err instanceof Error && err.message === 'GATEWAY_TIMEOUT') {
+        setError(
+          'Gateway timeout. The server took too long to respond — it may still finish. Check your images in a moment or retry.'
+        );
+      } else {
+        setError(err instanceof Error ? err.message : 'Generation failed');
+      }
       setIsGenerating(false);
       setProgress(0);
       setGenerationStartTime(null);
+    } finally {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      if (messageInterval) {
+        clearInterval(messageInterval);
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   };
 
@@ -395,16 +428,6 @@ export function MapGenerationDrawer({
                   </Group>
                 ),
               },
-              {
-                value: 'svg',
-                disabled: true,
-                label: (
-                  <Group gap={6} wrap="nowrap">
-                    <IconVectorSpline size={16} />
-                    <span>SVG</span>
-                  </Group>
-                ),
-              },
             ]}
           />
         </Box>
@@ -473,7 +496,6 @@ export function MapGenerationDrawer({
             />
           )}
 
-          {generationMode === 'svg' && <SvgModeContent />}
         </ScrollArea>
 
         {/* Fixed Footer */}
@@ -500,7 +522,7 @@ export function MapGenerationDrawer({
                   },
                 })
               }
-              disabled={isGenerating || generationMode === 'svg'}
+              disabled={isGenerating}
               w={160}
               allowDeselect={false}
             />

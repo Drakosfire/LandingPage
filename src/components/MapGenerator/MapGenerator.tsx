@@ -18,6 +18,7 @@ import { GridControls } from './GridControls';
 import { LabelEditor } from './LabelEditor';
 import { ExportButton } from './ExportButton';
 import { MaskControls } from './MaskControls';
+import { DUNGEONMIND_API_URL } from '../../config';
 
 // Map Generator icon URL
 const MAP_GENERATOR_ICON_URL = 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/08bd0df7-2c6b-4a96-028e-b91bf1935c00/public';
@@ -100,6 +101,10 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
   // Inline editing state
   const [editingInfo, setEditingInfo] = useState<LabelEditInfo | null>(null);
   const [editText, setEditText] = useState('');
+
+  // Display URL for base image (may use proxy fallback if direct load fails)
+  const [displayImageUrl, setDisplayImageUrl] = useState(baseImageUrl);
+  const triedProxyRef = useRef(false);
 
   // Mask saving state
   const [isSavingMask, setIsSavingMask] = useState(false);
@@ -194,8 +199,16 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
 
   // Fit to viewport when image loads
   useEffect(() => {
-    if (baseImageUrl && baseImageUrl !== previousImageUrlRef.current) {
+    if (baseImageUrl) {
       previousImageUrlRef.current = baseImageUrl;
+      setDisplayImageUrl(baseImageUrl);
+      triedProxyRef.current = false;
+    }
+  }, [baseImageUrl]);
+
+  useEffect(() => {
+    if (displayImageUrl && displayImageUrl !== previousImageUrlRef.current) {
+      previousImageUrlRef.current = displayImageUrl;
 
       // Load image to get dimensions
       const img = new Image();
@@ -207,11 +220,21 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
         fitToViewport(img.width, img.height, viewportSize.width, viewportSize.height);
       };
       img.onerror = () => {
-        console.error('❌ [MapGenerator] Failed to load image:', baseImageUrl);
+        console.error('❌ [MapGenerator] Failed to load image:', displayImageUrl);
+        // Only try proxy fallback for remote URLs, not blob URLs (which are browser-local)
+        const isBlobUrl = baseImageUrl?.startsWith('blob:');
+        if (!triedProxyRef.current && baseImageUrl && !isBlobUrl) {
+          triedProxyRef.current = true;
+          const proxyUrl = `${DUNGEONMIND_API_URL}/api/mapgenerator/download?url=${encodeURIComponent(baseImageUrl)}`;
+          console.warn('🛡️ [MapGenerator] Falling back to proxy image URL');
+          setDisplayImageUrl(proxyUrl);
+        } else if (isBlobUrl) {
+          console.warn('⚠️ [MapGenerator] Blob URL failed to load - this may indicate the file was not properly uploaded');
+        }
       };
-      img.src = baseImageUrl;
+      img.src = displayImageUrl;
     }
-  }, [baseImageUrl, viewportSize.width, viewportSize.height, fitToViewport]);
+  }, [baseImageUrl, displayImageUrl, viewportSize.width, viewportSize.height, fitToViewport]);
 
   // Global mouse tracking for mask drawing (allows drawing outside canvas bounds)
   // IMPORTANT: Listeners are set up whenever mode === 'mask', not just when isDrawing.
@@ -265,7 +288,7 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
     const handleGlobalMouseUp = (e: MouseEvent) => {
       // Use ref to get current state (avoids stale closure)
       const state = maskDrawingStateRef.current;
-      
+
       console.log(`🎨 [MapGenerator] Document mouseup: isDrawing=${state.isDrawing}, activeTool=${state.activeTool}, hasCurrentStroke=${!!state.currentStroke}`);
 
       // Only handle if we're actively drawing
@@ -284,7 +307,7 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
         e.clientX <= containerRect.right &&
         e.clientY >= containerRect.top &&
         e.clientY <= containerRect.bottom;
-      
+
       console.log(`🎨 [MapGenerator] Document mouseup: isInsideCanvas=${isInsideCanvas}, isShapeTool=${isShapeTool}`);
 
       // Document listener ALWAYS handles mouseup for all tools
@@ -517,7 +540,7 @@ export function MapGeneratorContent({ hideHeader = false }: MapGeneratorContentP
                   <MapViewport
                     width={viewportSize.width}
                     height={viewportSize.height}
-                    baseImageUrl={baseImageUrl}
+                    baseImageUrl={displayImageUrl}
                     gridConfig={gridConfig}
                     labels={labelsVisible ? labels : []}
                     selectedLabelId={labelsVisible ? selectedLabelId : null}

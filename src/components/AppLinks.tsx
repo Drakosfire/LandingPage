@@ -45,6 +45,13 @@ const AppLinks: React.FC = () => {
                     className="app-logo"
                 />
             </Link>
+            <Link to="/map-generator" className="app-card">
+                <img
+                    src="https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/0c87245f-9d10-4554-fbec-42b228055300/Full"
+                    alt="Map Generator"
+                    className="app-logo"
+                />
+            </Link>
         </div>
     );
 };

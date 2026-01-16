@@ -20,32 +20,15 @@ const AboutDungeonMind: React.FC = () => {
                     About DungeonMind
                 </Title>
                 <Text mb="md" style={{ lineHeight: 1.7 }}>
-                    DungeonMind is a collection of tools for tabletop roleplaying game world building powered by multimodal generative AI.
-                    This project was inspired by my initial generative AI skepticism and my desire to understand more about how the technology works.
+                    DungeonMind is a growing ecosystem of tools for tabletop roleplaying worldbuilding, powered by multimodal generative AI and an insistence on understanding how things actually work. It began with skepticism. I didn't trust the magic, so I pulled it apart to see what was inside.
                 </Text>
                 <Text mb="md" style={{ lineHeight: 1.7 }}>
-                    I started with generating images locally on my PC, which led to fine tuning Stable Diffusion models and experimenting with custom training sets.
-                    This led to building on HuggingFace with Gradio and Docker Containers, learning about deployment, and eventually building a custom UI framework
-                    with JavaScript and a Python backend running on FastAPI.
+                    That curiosity started locally, generating images on my own machine, then spiraled into fine-tuning Stable Diffusion models, building custom training sets, and experimenting with inference pipelines. From there came HuggingFace, Gradio, Dockerized deployments, and the realization that tooling matters just as much as models.
                 </Text>
                 <Text mb="lg" style={{ lineHeight: 1.7 }}>
-                    Now I'm using TypeScript and React to build a polished, unified experience for all DungeonMind tools.
+                    Today, DungeonMind is evolving into a unified, polished platform. I'm using TypeScript and React on the frontend, with a Python FastAPI backend, to bring these tools together into a cohesive experience. What began as experimentation is now deliberate engineering: systems built to be explored, extended, and occasionally pushed a little too far.
                 </Text>
 
-                <Title order={4} mb="sm" style={{ fontFamily: 'Balgruf, serif' }}>
-                    Available Tools
-                </Title>
-                <List
-                    spacing="xs"
-                    size="md"
-                    icon={<IconCheck size={16} style={{ color: 'var(--mantine-color-blue-4)' }} />}
-                >
-                    <List.Item>Statblock Generator - Create custom D&D monster statblocks with AI</List.Item>
-                    <List.Item>Character Sheet Generator - Build complete player character sheets</List.Item>
-                    <List.Item>Item Card Generator - Design magic items with stunning visuals</List.Item>
-                    <List.Item>Rules Lawyer - AI-powered D&D rules assistant</List.Item>
-                    <List.Item>Store Generator - Generate fantasy shops with inventory</List.Item>
-                </List>
             </Paper>
         </Container>
     );

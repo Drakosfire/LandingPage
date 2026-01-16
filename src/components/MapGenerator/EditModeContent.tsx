@@ -197,8 +197,11 @@ export function EditModeContent({
         disabled={isGenerating}
         minRows={2}
         maxRows={4}
+        maxLength={8000}
         required
         data-testid="edit-prompt-input"
+        description={`${prompt.length}/8000 characters`}
+        error={prompt.length > 8000 ? 'Prompt exceeds maximum length of 8000 characters' : undefined}
       />
 
       {/* Mask Toggle */}

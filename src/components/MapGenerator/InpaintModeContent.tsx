@@ -283,9 +283,11 @@ export function InpaintModeContent({
         disabled={isGenerating}
         minRows={2}
         maxRows={4}
+        maxLength={8000}
         required
-        description="The mask shape defines your map's structure. The entire image will be filled - no white space."
+        description={`The mask shape defines your map's structure. The entire image will be filled - no white space. (${prompt.length}/8000 characters)`}
         data-testid="inpaint-prompt-input"
+        error={prompt.length > 8000 ? 'Prompt exceeds maximum length of 8000 characters' : undefined}
       />
 
       {/* Saved Masks Gallery */}

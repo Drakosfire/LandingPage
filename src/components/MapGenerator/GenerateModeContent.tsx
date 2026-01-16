@@ -158,8 +158,11 @@ export function GenerateModeContent({
         disabled={isGenerating}
         minRows={3}
         maxRows={5}
+        maxLength={8000}
         required
         data-testid="map-prompt-input"
+        description={`${input.prompt.length}/8000 characters`}
+        error={input.prompt.length > 8000 ? 'Prompt exceeds maximum length of 8000 characters' : undefined}
       />
 
       {/* Compact Style Options */}
