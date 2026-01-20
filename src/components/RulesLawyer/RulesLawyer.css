@@ -1,10 +1,11 @@
 /* RulesLawyer.css - Updated with Mantine theme tokens */
+/* Uses generator-layout pattern from CardGeneratorLayout.css */
 
-.rules-lawyer-container {
+/* Content area below UnifiedHeader */
+.rules-lawyer-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: calc(100vh - 60px); /* Account for header */
     padding: 20px;
     flex-grow: 1;
     overflow-y: auto;
@@ -76,10 +77,10 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .rules-lawyer-container {
+    .rules-lawyer-content {
         padding: 12px;
     }
-    
+
     .chat-container {
         padding: 12px;
     }
@@ -141,6 +142,9 @@
 /* RulesLawyer layout */
 .ruleslawyer-view {
     width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 20px;
 }
 
 .ruleslawyer-view__container {
@@ -172,5 +176,9 @@
 
     .ruleslawyer-chat__actions {
         justify-content: stretch;
+    }
+
+    .ruleslawyer-view {
+        padding: 12px;
     }
 }

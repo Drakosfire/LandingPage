@@ -15,6 +15,7 @@ import {
     TextInput,
     Title,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconBook, IconEdit, IconTrash } from '@tabler/icons-react';
 import DeleteConfirmationModal from '../CardGenerator/DeleteConfirmationModal';
 import { SavedRule, UpdateSavedRulePayload, useChatContext } from '../../context/ChatContext';
@@ -41,6 +42,17 @@ const SavedRulesDrawer: React.FC<SavedRulesDrawerProps> = ({
     const [editTags, setEditTags] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    // Responsive breakpoints matching UnifiedHeader
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const isTablet = useMediaQuery('(max-width: 1024px)');
+
+    // Responsive header height: Desktop: 88px, Tablet: 82px, Mobile: 60px
+    const headerHeight = isMobile ? 60 : isTablet ? 82 : 88;
+
+    // Responsive modal offset based on header height
+    // Desktop: 88px header → 90px offset, Tablet: 82px → 84px, Mobile: fullScreen
+    const modalYOffset = isMobile ? '0px' : isTablet ? '84px' : '90px';
 
     useEffect(() => {
         if (!opened) return;
@@ -151,16 +163,16 @@ const SavedRulesDrawer: React.FC<SavedRulesDrawerProps> = ({
                 overlayProps={{ opacity: 0.3, blur: 2 }}
                 styles={{
                     inner: {
-                        top: '88px',
-                        height: 'calc(100vh - 88px)',
+                        top: `${headerHeight}px`,
+                        height: `calc(100vh - ${headerHeight}px)`,
                     },
                     content: {
                         height: '100%',
                         maxHeight: '100%',
                     },
                     body: {
-                        height: 'calc(100vh - 88px - 60px)',
-                        maxHeight: 'calc(100vh - 88px - 60px)',
+                        height: `calc(100vh - ${headerHeight}px - 60px)`,
+                        maxHeight: `calc(100vh - ${headerHeight}px - 60px)`,
                         overflow: 'auto',
                     },
                 }}
@@ -255,9 +267,43 @@ const SavedRulesDrawer: React.FC<SavedRulesDrawerProps> = ({
             <Modal
                 opened={!!activeRule}
                 onClose={handleCloseRuleModal}
-                title="Edit saved rule"
                 size="lg"
                 centered
+                fullScreen={isMobile}
+                yOffset={modalYOffset}
+                withCloseButton
+                closeButtonProps={{ 'aria-label': 'Close edit rule modal' }}
+                styles={{
+                    header: {
+                        padding: 0,
+                        margin: 0,
+                        minHeight: 0,
+                        background: 'transparent',
+                        border: 'none',
+                        position: 'absolute',
+                        top: 12,
+                        right: 12,
+                        width: 'auto',
+                        zIndex: 2,
+                    },
+                    title: {
+                        display: 'none',
+                    },
+                    close: {
+                        marginLeft: 0,
+                        background: 'var(--mantine-color-dark-6)',
+                        color: 'var(--mantine-color-white)',
+                        borderRadius: 8,
+                        width: 32,
+                        height: 32,
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+                    },
+                    body: {
+                        maxHeight: isMobile ? 'calc(100vh - 60px)' : undefined,
+                        overflow: isMobile ? 'auto' : undefined,
+                        paddingTop: 20,
+                    },
+                }}
             >
                 {activeRule && (
                     <Stack gap="md">
@@ -271,7 +317,8 @@ const SavedRulesDrawer: React.FC<SavedRulesDrawerProps> = ({
                             label="Answer"
                             value={editResponseText}
                             onChange={(event) => setEditResponseText(event.currentTarget.value)}
-                            minRows={6}
+                            minRows={isMobile ? 4 : 6}
+                            maxRows={isMobile ? 16 : undefined}
                             autosize
                         />
                         <TextInput
@@ -298,16 +345,17 @@ const SavedRulesDrawer: React.FC<SavedRulesDrawerProps> = ({
                                 )}
                             </Group>
                         </Stack>
-                        <Group justify="space-between">
+                        <Group justify="space-between" wrap="wrap" gap="sm">
                             <Button
                                 variant="outline"
                                 color="red"
                                 leftSection={<IconTrash size={16} />}
                                 onClick={() => setIsDeleteModalOpen(true)}
+                                fullWidth={isMobile}
                             >
                                 Delete
                             </Button>
-                            <Group>
+                            <Group gap="sm" grow={isMobile} style={{ flex: isMobile ? 1 : undefined }}>
                                 <Button variant="default" onClick={handleCloseRuleModal}>
                                     Cancel
                                 </Button>

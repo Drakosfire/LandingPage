@@ -1,8 +1,10 @@
 // RulesLawyer/index.tsx - Updated with UnifiedHeader
+// Uses generator-layout pattern matching StatBlockGenerator/PlayerCharacterGenerator
 import React, { useCallback, useState } from 'react';
 import { ChatProvider, useChatContext } from '../../context/ChatContext';
 import { UnifiedHeader } from '../UnifiedHeader';
 import { createRulesLawyerToolboxSections } from './rulesLawyerToolboxConfig';
+import '../../styles/CardGeneratorLayout.css'; // Use shared generator layout
 import './RulesLawyer.css';
 import RulesLawyerView from './RulesLawyerView';
 
@@ -33,7 +35,7 @@ const RulesLawyerContent: React.FC = () => {
     });
 
     return (
-        <>
+        <div className="generator-layout">
             <UnifiedHeader
                 app={{ id: 'rules-lawyer', name: 'Rules Lawyer', icon: RULES_LAWYER_ICON_URL }}
                 toolboxSections={toolboxSections}
@@ -42,13 +44,13 @@ const RulesLawyerContent: React.FC = () => {
                 onSavedRulesClick={handleOpenSavedRules}
                 savedRulesIconUrl={SAVED_RULES_ICON_URL}
             />
-            <div className="rules-lawyer-container">
+            <div className="rules-lawyer-content">
                 <RulesLawyerView
                     savedRulesOpen={savedRulesOpen}
                     onCloseSavedRules={handleCloseSavedRules}
                 />
             </div>
-        </>
+        </div>
     );
 };
 
