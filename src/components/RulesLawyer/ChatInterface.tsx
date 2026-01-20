@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useChatContext } from '../../context/ChatContext';
+import { getRulebookPrompts } from './promptSets';
 import './ChatInterface.css';
 
 const ChatInterface: React.FC = () => {
@@ -9,16 +10,19 @@ const ChatInterface: React.FC = () => {
     const {
         chatHistory,
         sendMessage,
+        currentEmbedding,
         embeddingsLoaded,
         isLoadingEmbeddings
     } = useChatContext();
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const shouldAutoScrollRef = useRef(true);
     const [isLoading, setIsLoading] = useState(false);
     const [renderKey, setRenderKey] = useState(0);
-    
+
     // Memoize remarkPlugins to avoid recreating on every render
     const remarkPlugins = useMemo(() => [remarkGfm], []);
-    
+
     // Force re-render of markdown when streaming completes
     useEffect(() => {
         if (!isLoading) {
@@ -30,12 +34,10 @@ const ChatInterface: React.FC = () => {
         }
     }, [isLoading]);
 
-    // Add example prompts
-    const examplePrompts = [
-        "What level can a wizard learn fireball?",
-        "What roll would a bard use to seduce a dragon?",
-        "What do I roll to run away from an angry dragon?"
-    ];
+    const examplePrompts = useMemo(
+        () => getRulebookPrompts({ id: currentEmbedding }),
+        [currentEmbedding]
+    );
 
     // Add handler for prompt clicks
     const handlePromptClick = (prompt: string) => {
@@ -44,23 +46,28 @@ const ChatInterface: React.FC = () => {
 
     // Chat history updates handled by component state
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+    useEffect(() => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        const handleScroll = () => {
+            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+            shouldAutoScrollRef.current = distanceFromBottom <= 60;
+        };
+
+        container.addEventListener('scroll', handleScroll);
+        handleScroll();
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, []);
 
     useEffect(() => {
-        const chatMessagesElement = document.querySelector('.chat-messages');
-        if (chatMessagesElement) {
-            const isNearBottom = chatMessagesElement.scrollHeight - chatMessagesElement.scrollTop <= chatMessagesElement.clientHeight + 50;
-            if (isNearBottom) {
-                scrollToBottom();
-            }
-        }
-    }, [chatHistory]);
+        const container = messagesContainerRef.current;
+        if (!container) return;
+        if (chatHistory.length === 0) return;
+        if (!shouldAutoScrollRef.current) return;
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [chatHistory]);
+        container.scrollTo({ top: container.scrollHeight, behavior: isLoading ? 'auto' : 'smooth' });
+    }, [chatHistory, isLoading]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -77,15 +84,15 @@ const ChatInterface: React.FC = () => {
 
         <div className="chat-container">
 
-            <div className="chat-messages">
+            <div className="chat-messages" ref={messagesContainerRef}>
                 {chatHistory.map((msg, index) => {
                     const isAssistant = msg.role === 'assistant';
                     const isLastMessage = index === chatHistory.length - 1;
                     // Only force re-render on the last message when streaming completes
-                    const markdownKey = isAssistant && isLastMessage 
-                        ? `assistant-${index}-${renderKey}` 
+                    const markdownKey = isAssistant && isLastMessage
+                        ? `assistant-${index}-${renderKey}`
                         : `assistant-${index}`;
-                    
+
                     return (
                         <div key={index} className={`message ${msg.role}`}>
                             {isAssistant && (
@@ -94,7 +101,7 @@ const ChatInterface: React.FC = () => {
                                 </div>
                             )}
                             {isAssistant ? (
-                                <ReactMarkdown 
+                                <ReactMarkdown
                                     key={markdownKey}
                                     className="message-content markdown"
                                     remarkPlugins={remarkPlugins}

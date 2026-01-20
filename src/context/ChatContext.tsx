@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { DUNGEONMIND_API_URL } from '../config';
+import { trackGenerationTime } from '../shared/GenerationDrawerEngine/hooks';
+import { useAuth } from './AuthContext';
 
 interface Message {
     role: 'user' | 'assistant' | 'error';
@@ -11,10 +13,15 @@ interface ChatContextType {
     currentEmbedding: string;
     embeddingsLoaded: boolean;
     isLoadingEmbeddings: boolean;
+    progressEvents: RetrievalProgress[];
+    debugState: DebugState | null;
+    savedRules: SavedRule[];
     sendMessage: (message: string) => Promise<void>;
     setCurrentEmbedding: (embedding: string) => void;
     loadEmbedding: (embeddingId: string) => Promise<void>;
     clearMessages: () => void;
+    saveRule: (payload: SaveRulePayload) => Promise<void>;
+    loadSavedRules: () => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -22,11 +29,133 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 // Default embedding to load on page access
 const DEFAULT_EMBEDDING = 'DnD_PHB_55';
 
+const normalizeErrorDetail = (detail: unknown, response: Response) => {
+    if (typeof detail === 'string' && detail.trim()) return detail;
+    if (Array.isArray(detail)) {
+        const messages = detail
+            .map((item) => {
+                if (typeof item === 'string') return item;
+                if (item && typeof item === 'object') {
+                    const maybeMessage = (item as { msg?: string; detail?: string }).msg || (item as { detail?: string }).detail;
+                    return maybeMessage || JSON.stringify(item);
+                }
+                return String(item);
+            })
+            .filter(Boolean);
+        if (messages.length > 0) return messages.join('; ');
+    }
+    if (detail && typeof detail === 'object') {
+        return JSON.stringify(detail);
+    }
+    return `HTTP ${response.status}: ${response.statusText}`;
+};
+
+const getErrorMessageFromResponse = async (response: Response) => {
+    try {
+        const data = await response.json();
+        if (data && typeof data === 'object' && 'detail' in data) {
+            return normalizeErrorDetail((data as { detail?: unknown }).detail, response);
+        }
+        return normalizeErrorDetail(data, response);
+    } catch (error) {
+        try {
+            const text = await response.text();
+            if (text.trim()) return text;
+        } catch {
+            // Ignore nested parse errors.
+        }
+        return normalizeErrorDetail(undefined, response);
+    }
+};
+
+interface RetrievalProgress {
+    stage: 'embedding' | 'search' | 'rerank' | 'context' | 'generation' | 'complete';
+    message: string;
+    metadata?: {
+        chunksSearched?: number;
+        matchesFound?: number;
+        topSimilarity?: number;
+        processingTimeMs?: number;
+        tokensUsed?: number;
+        query?: string;
+        rulebookId?: string | null;
+        systemPrompt?: string;
+        prompt?: string;
+        chunks?: DebugChunk[];
+        timings?: DebugTimings;
+        sizes?: DebugSizes;
+        tokenCount?: number;
+        yieldedCount?: number;
+    };
+}
+
+interface DebugChunk {
+    page?: number | string;
+    content: string;
+    source?: string;
+    section?: string;
+    score?: number;
+    lexicalScore?: number;
+    semanticScore?: number;
+}
+
+interface DebugTimings {
+    searchMs?: number;
+    contextMs?: number;
+    promptMs?: number;
+    openaiMs?: number;
+    totalMs?: number;
+    timeToFirstTokenMs?: number | null;
+}
+
+interface DebugSizes {
+    systemPromptChars?: number;
+    promptChars?: number;
+    totalPromptChars?: number;
+    contextChars?: number;
+    chunkCount?: number;
+    responseChars?: number;
+}
+
+interface DebugState {
+    query?: string;
+    rulebookId?: string | null;
+    systemPrompt?: string;
+    prompt?: string;
+    chunks?: DebugChunk[];
+    timings?: DebugTimings;
+    sizes?: DebugSizes;
+    tokenCount?: number;
+    yieldedCount?: number;
+}
+
+interface SavedRule {
+    id: string;
+    rulebookId: string;
+    queryText: string;
+    responseText: string;
+    citations: Array<{ page: number; source?: string; section?: string; link?: string }>;
+    tags: string[];
+    createdAt?: string;
+}
+
+interface SaveRulePayload {
+    rulebookId: string;
+    queryText: string;
+    responseText: string;
+    citations: Array<{ page: number; source?: string; section?: string; link?: string }>;
+    tags?: string[];
+}
+
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { isLoggedIn } = useAuth();
     const [chatHistory, setChatHistory] = useState<Message[]>([]);
     const [currentEmbedding, setCurrentEmbedding] = useState<string>(DEFAULT_EMBEDDING);
     const [embeddingsLoaded, setEmbeddingsLoaded] = useState<boolean>(false);
     const [isLoadingEmbeddings, setIsLoadingEmbeddings] = useState<boolean>(false);
+    const [progressEvents, setProgressEvents] = useState<RetrievalProgress[]>([]);
+    const [debugState, setDebugState] = useState<DebugState | null>(null);
+    const [savedRules, setSavedRules] = useState<SavedRule[]>([]);
 
     // Check embedding status on mount
     useEffect(() => {
@@ -39,8 +168,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.embeddings_loaded) {
+                    if (data.embeddingsLoaded) {
                         setEmbeddingsLoaded(true);
+                        if (data.activeRulebookId) {
+                            setCurrentEmbedding(data.activeRulebookId);
+                        }
                         console.log('✅ [RulesLawyer] Embeddings already loaded');
                         return;
                     }
@@ -81,8 +213,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ detail: 'Failed to load embeddings' }));
-                throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+                const errorMessage = await getErrorMessageFromResponse(response);
+                throw new Error(errorMessage || `HTTP ${response.status}: ${response.statusText}`);
             }
 
             setCurrentEmbedding(embeddingId);
@@ -102,28 +234,67 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setChatHistory([]);
     };
 
-    const sendMessage = async (message: string) => {
-        // Convert chatHistory from Message[] format to backend's tuple format: [(user_msg, assistant_msg), ...]
-        // Filter out error messages and pair up user/assistant messages
-        const chatHistoryTuples: [string, string][] = [];
-        let currentUserMsg: string | null = null;
-
-        for (const msg of chatHistory) {
-            if (msg.role === 'user') {
-                currentUserMsg = msg.content;
-            } else if (msg.role === 'assistant' && currentUserMsg !== null) {
-                chatHistoryTuples.push([currentUserMsg, msg.content]);
-                currentUserMsg = null;
+    const loadSavedRules = async () => {
+        if (!isLoggedIn) {
+            const saved = localStorage.getItem('ruleslawyer_saved_rules');
+            if (saved) {
+                setSavedRules(JSON.parse(saved));
             }
+            return;
         }
 
+        const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/saved-rules`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            setSavedRules(data.rules || []);
+        }
+    };
+
+    const saveRule = async (payload: SaveRulePayload) => {
+        if (!isLoggedIn) {
+            const next = [{ id: `local-${Date.now()}`, ...payload, tags: payload.tags || [] }, ...savedRules];
+            setSavedRules(next);
+            localStorage.setItem('ruleslawyer_saved_rules', JSON.stringify(next));
+            return;
+        }
+
+        const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/saved-rules`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ ...payload, tags: payload.tags || [] })
+        });
+
+        if (response.ok) {
+            const saved = await response.json();
+            setSavedRules((prev) => [saved, ...prev]);
+        } else {
+            throw new Error('Failed to save rule');
+        }
+    };
+
+    useEffect(() => {
+        loadSavedRules();
+    }, [isLoggedIn]);
+
+    const sendMessage = async (message: string) => {
+        setProgressEvents([]);
         // Add user message to UI immediately
         setChatHistory(prev => [...prev, { role: 'user', content: message }]);
+        setDebugState((prev) => ({
+            ...prev,
+            query: message,
+            rulebookId: currentEmbedding
+        }));
 
         const requestStartTime = performance.now();
         console.log('🚀 [RulesLawyer] Starting query request:', {
             messageLength: message.length,
-            chatHistoryLength: chatHistoryTuples.length,
+            chatHistoryLength: chatHistory.length,
             timestamp: new Date().toISOString()
         });
 
@@ -136,8 +307,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 },
                 credentials: 'include', // Include session cookies
                 body: JSON.stringify({
-                    message: message,
-                    chat_history: chatHistoryTuples
+                    message,
+                    rulebookId: currentEmbedding,
+                    chatHistory: chatHistory
+                        .filter((msg) => msg.role !== 'error')
+                        .map((msg) => ({ role: msg.role, content: msg.content }))
                 }),
             });
 
@@ -240,18 +414,72 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     }
 
                     // Parse JSON-encoded content (backend sends json.dumps(content) to preserve newlines)
-                    let parsedContent: string;
+                    let parsedContent: string | { type?: string; stage?: string; message?: string; metadata?: RetrievalProgress['metadata'] };
                     try {
                         parsedContent = JSON.parse(dataContent);
-                        console.log(`✅ [RulesLawyer] JSON decoded: length=${parsedContent.length}, has_newlines=${parsedContent.includes('\n')}, newline_count=${(parsedContent.match(/\n/g) || []).length}`);
+                        if (typeof parsedContent === 'string') {
+                            console.log(`✅ [RulesLawyer] JSON decoded: length=${parsedContent.length}, has_newlines=${parsedContent.includes('\n')}, newline_count=${(parsedContent.match(/\n/g) || []).length}`);
+                        }
                     } catch {
                         // Fallback for non-JSON data (shouldn't happen with fixed backend)
                         console.warn(`⚠️ [RulesLawyer] Failed to parse JSON, using raw: ${dataContent.substring(0, 50)}`);
                         parsedContent = dataContent;
                     }
 
+                    if (typeof parsedContent !== 'string' && parsedContent.type === 'progress') {
+                        const progress = {
+                            stage: parsedContent.stage || 'search',
+                            message: parsedContent.message || 'Working...',
+                            metadata: parsedContent.metadata
+                        } as RetrievalProgress;
+                        setProgressEvents((prev) => [...prev, progress]);
+                        if (progress.metadata) {
+                            const metadata = progress.metadata;
+                            setDebugState((prev) => ({
+                                ...prev,
+                                query: metadata.query ?? prev?.query,
+                                rulebookId: metadata.rulebookId ?? prev?.rulebookId,
+                                systemPrompt: metadata.systemPrompt ?? prev?.systemPrompt,
+                                prompt: metadata.prompt ?? prev?.prompt,
+                                chunks: metadata.chunks ?? prev?.chunks,
+                                timings: { ...prev?.timings, ...metadata.timings },
+                                sizes: { ...prev?.sizes, ...metadata.sizes },
+                                tokenCount: metadata.tokenCount ?? prev?.tokenCount,
+                                yieldedCount: metadata.yieldedCount ?? prev?.yieldedCount,
+                            }));
+                        }
+                        if (progress.stage === 'complete' && progress.metadata?.timings?.totalMs) {
+                            const timingMetadata: Record<string, string | number> = {
+                                rulebookId: progress.metadata.rulebookId || '',
+                                searchMs: progress.metadata.timings.searchMs ?? 0,
+                                contextMs: progress.metadata.timings.contextMs ?? 0,
+                                promptMs: progress.metadata.timings.promptMs ?? 0,
+                                openaiMs: progress.metadata.timings.openaiMs ?? 0,
+                                totalMs: progress.metadata.timings.totalMs ?? 0,
+                                timeToFirstTokenMs: progress.metadata.timings.timeToFirstTokenMs ?? 0,
+                                promptChars: progress.metadata.sizes?.promptChars ?? 0,
+                                systemPromptChars: progress.metadata.sizes?.systemPromptChars ?? 0,
+                                totalPromptChars: progress.metadata.sizes?.totalPromptChars ?? 0,
+                                contextChars: progress.metadata.sizes?.contextChars ?? 0,
+                                responseChars: progress.metadata.sizes?.responseChars ?? 0,
+                                chunkCount: progress.metadata.sizes?.chunkCount ?? 0,
+                                tokenCount: progress.metadata.tokenCount ?? 0,
+                                yieldedCount: progress.metadata.yieldedCount ?? 0,
+                            };
+
+                            trackGenerationTime(
+                                'ruleslawyer',
+                                'text',
+                                progress.metadata.timings.totalMs,
+                                timingMetadata
+                            );
+                        }
+                        continue;
+                    }
+
+                    const messageDelta = typeof parsedContent === 'string' ? parsedContent : dataContent;
                     // Append token to message (newlines now preserved via JSON encoding!)
-                    assistantMessage += parsedContent;
+                    assistantMessage += messageDelta;
                     console.log(`✏️ [RulesLawyer] Updated message: total_length=${assistantMessage.length}, newline_count=${(assistantMessage.match(/\n/g) || []).length}`);
 
                     // Debug: Log full message content every 50 tokens or on first token
@@ -296,10 +524,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             currentEmbedding,
             embeddingsLoaded,
             isLoadingEmbeddings,
+            progressEvents,
+            debugState,
+            savedRules,
             sendMessage,
             setCurrentEmbedding,
             loadEmbedding,
             clearMessages,
+            saveRule,
+            loadSavedRules,
         }}>
             {children}
         </ChatContext.Provider>

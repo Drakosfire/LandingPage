@@ -84,3 +84,93 @@
         padding: 12px;
     }
 }
+
+/* New RulesLawyerChat styles */
+.ruleslawyer-chat__messages {
+    background-color: var(--mantine-color-parchment-1);
+    height: min(45vh, 420px);
+    overflow-y: auto;
+}
+
+.ruleslawyer-chat__message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    line-height: 1.6;
+}
+
+.ruleslawyer-chat__message--user {
+    background-color: var(--mantine-color-blue-1);
+    border-left: 3px solid var(--mantine-color-blue-4);
+}
+
+.ruleslawyer-chat__message--assistant {
+    background-color: var(--mantine-color-parchment-2);
+    border-left: 3px solid var(--mantine-color-green-4);
+}
+
+.ruleslawyer-chat__message-header {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mantine-color-gray-7);
+    margin-bottom: 6px;
+}
+
+.ruleslawyer-chat__message-content.markdown h2,
+.ruleslawyer-chat__message-content.markdown h3 {
+    margin-top: 12px;
+}
+
+.ruleslawyer-chat__message-content.markdown ul {
+    padding-left: 20px;
+}
+
+.ruleslawyer-chat__input textarea {
+    border-color: var(--mantine-color-blue-3);
+}
+
+.ruleslawyer-chat__progress {
+    background-color: var(--mantine-color-gray-0);
+    border-left: 3px solid var(--mantine-color-blue-4);
+}
+
+.ruleslawyer-chat__loading {
+    display: flex;
+    justify-content: center;
+}
+
+/* RulesLawyer layout */
+.ruleslawyer-view {
+    width: 100%;
+}
+
+.ruleslawyer-view__container {
+    width: 100%;
+}
+
+.ruleslawyer-panel {
+    background-color: var(--mantine-color-parchment-1);
+}
+
+.ruleslawyer-layout {
+    margin-top: var(--space-4);
+}
+
+@media (max-width: 768px) {
+    .ruleslawyer-panel {
+        padding: 12px;
+    }
+
+    .ruleslawyer-layout {
+        gap: 12px;
+        margin-top: var(--space-3);
+    }
+
+    .ruleslawyer-chat__prompt-button,
+    .ruleslawyer-chat__send {
+        width: 100%;
+    }
+
+    .ruleslawyer-chat__actions {
+        justify-content: stretch;
+    }
+}

@@ -99,6 +99,9 @@ function saveRecords(service: string, generationType: 'text' | 'image', records:
     const key = getStorageKey(service, generationType);
     localStorage.setItem(key, JSON.stringify(records));
     console.log(`💾 [TimeTracking] Saved ${records.length} records for ${service}/${generationType}`);
+    window.dispatchEvent(new CustomEvent('generation-time-recorded', {
+      detail: { service, generationType }
+    }));
   } catch (err) {
     console.warn('❌ [TimeTracking] Failed to save records:', err);
   }
@@ -179,6 +182,18 @@ export function useGenerationTimeTracking(
   const [records, setRecords] = useState<GenerationTimeRecord[]>(() => 
     loadRecords(service, generationType)
   );
+
+  useEffect(() => {
+    const handleUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ service: string; generationType: 'text' | 'image' }>;
+      if (!customEvent.detail) return;
+      if (customEvent.detail.service !== service || customEvent.detail.generationType !== generationType) return;
+      setRecords(loadRecords(service, generationType));
+    };
+
+    window.addEventListener('generation-time-recorded', handleUpdate);
+    return () => window.removeEventListener('generation-time-recorded', handleUpdate);
+  }, [service, generationType]);
 
   // Calculate stats from records
   const stats = useMemo(() => {

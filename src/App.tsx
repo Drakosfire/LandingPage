@@ -22,6 +22,7 @@ import PlayerCharacterGenerator from './components/PlayerCharacterGenerator/Play
 import UnifiedHeaderTest from './pages/UnifiedHeaderTest';
 import GenerationDrawerDemo from './pages/GenerationDrawerDemo';
 import MapCanvasDemo from './pages/MapCanvasDemo';
+import RulesLawyerDemo from './pages/RulesLawyerDemo';
 import { MapGenerator } from './components/MapGenerator';
 import { UnifiedHeader } from './components/UnifiedHeader';
 
@@ -81,6 +82,7 @@ const App: React.FC = () => {
                     <Route path="/blog" element={<BlogList />} />
                     <Route path="/blog/:id" element={<BlogPost />} />
                     <Route path="/ruleslawyer" element={<RulesLawyer />} />
+                    <Route path="/ruleslawyer-demo" element={<RulesLawyerDemo />} />
                     <Route path="/cardgenerator" element={<CardGenerator />} />
                     <Route path="/statblockgenerator" element={<StatBlockGenerator />} />
                     <Route path="/playercharactergenerator" element={<PlayerCharacterGenerator />} />

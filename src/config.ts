@@ -78,3 +78,8 @@ export const DND_CSS_BASE_URL = (() => {
     return '/dnd-static';
 })();
 
+// Base URL for RulesLawyer assets (animations, icons, etc.)
+export const RULESLAWYER_ASSET_BASE_URL = (() => {
+    const envUrl = process.env.REACT_APP_RULESLAWYER_ASSET_BASE_URL?.replace(/\/$/, '');
+    if (envUrl) return envUrl;    return '/ruleslawyer-assets';
+})();
