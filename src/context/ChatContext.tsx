@@ -22,6 +22,8 @@ interface ChatContextType {
     clearMessages: () => void;
     saveRule: (payload: SaveRulePayload) => Promise<void>;
     loadSavedRules: () => Promise<void>;
+    updateSavedRule: (ruleId: string, payload: UpdateSavedRulePayload) => Promise<void>;
+    deleteSavedRule: (ruleId: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -129,7 +131,7 @@ interface DebugState {
     yieldedCount?: number;
 }
 
-interface SavedRule {
+export interface SavedRule {
     id: string;
     rulebookId: string;
     queryText: string;
@@ -139,11 +141,18 @@ interface SavedRule {
     createdAt?: string;
 }
 
-interface SaveRulePayload {
+export interface SaveRulePayload {
     rulebookId: string;
     queryText: string;
     responseText: string;
     citations: Array<{ page: number; source?: string; section?: string; link?: string }>;
+    tags?: string[];
+}
+
+export interface UpdateSavedRulePayload {
+    queryText?: string;
+    responseText?: string;
+    citations?: Array<{ page: number; source?: string; section?: string; link?: string }>;
     tags?: string[];
 }
 
@@ -255,8 +264,28 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const saveRule = async (payload: SaveRulePayload) => {
+        const rulebookId = payload.rulebookId?.trim();
+        const queryText = payload.queryText?.trim();
+        const responseText = payload.responseText?.trim();
+        const citations = (payload.citations || []).filter(
+            (citation) => Number.isFinite(citation.page) && citation.page >= 1
+        );
+        const tags = payload.tags || [];
+
+        if (!rulebookId || !queryText || !responseText) {
+            console.warn('⚠️ [RulesLawyer] Save rule skipped - missing required fields', {
+                rulebookId,
+                queryTextLength: queryText?.length ?? 0,
+                responseTextLength: responseText?.length ?? 0,
+            });
+            throw new Error('Missing required fields to save rule.');
+        }
+
         if (!isLoggedIn) {
-            const next = [{ id: `local-${Date.now()}`, ...payload, tags: payload.tags || [] }, ...savedRules];
+            const next = [
+                { id: `local-${Date.now()}`, rulebookId, queryText, responseText, citations, tags },
+                ...savedRules,
+            ];
             setSavedRules(next);
             localStorage.setItem('ruleslawyer_saved_rules', JSON.stringify(next));
             return;
@@ -266,15 +295,70 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ ...payload, tags: payload.tags || [] })
+            body: JSON.stringify({ rulebookId, queryText, responseText, citations, tags })
         });
 
         if (response.ok) {
             const saved = await response.json();
             setSavedRules((prev) => [saved, ...prev]);
         } else {
-            throw new Error('Failed to save rule');
+            const errorMessage = await getErrorMessageFromResponse(response);
+            throw new Error(errorMessage || 'Failed to save rule');
         }
+    };
+
+    const updateSavedRule = async (ruleId: string, payload: UpdateSavedRulePayload) => {
+        if (!isLoggedIn) {
+            const next = savedRules.map((rule) =>
+                rule.id === ruleId
+                    ? {
+                          ...rule,
+                          ...payload,
+                          tags: payload.tags ?? rule.tags,
+                          citations: payload.citations ?? rule.citations,
+                      }
+                    : rule
+            );
+            setSavedRules(next);
+            localStorage.setItem('ruleslawyer_saved_rules', JSON.stringify(next));
+            return;
+        }
+
+        const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/saved-rules/${ruleId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorMessage = await getErrorMessageFromResponse(response);
+            throw new Error(errorMessage || 'Failed to update saved rule');
+        }
+
+        const updated = await response.json();
+        setSavedRules((prev) => prev.map((rule) => (rule.id === ruleId ? updated : rule)));
+    };
+
+    const deleteSavedRule = async (ruleId: string) => {
+        if (!isLoggedIn) {
+            const next = savedRules.filter((rule) => rule.id !== ruleId);
+            setSavedRules(next);
+            localStorage.setItem('ruleslawyer_saved_rules', JSON.stringify(next));
+            return;
+        }
+
+        const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/saved-rules/${ruleId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            const errorMessage = await getErrorMessageFromResponse(response);
+            throw new Error(errorMessage || 'Failed to delete saved rule');
+        }
+
+        setSavedRules((prev) => prev.filter((rule) => rule.id !== ruleId));
     };
 
     useEffect(() => {
@@ -533,6 +617,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             clearMessages,
             saveRule,
             loadSavedRules,
+            updateSavedRule,
+            deleteSavedRule,
         }}>
             {children}
         </ChatContext.Provider>

@@ -32,6 +32,8 @@ import {
 
 const RULES_LAWYER_ICON_URL =
     'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/0ed83976-6007-4b56-7943-1c08d3117e00/public';
+const SAVED_RULES_ICON_URL =
+    'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/f825f833-5a96-44ba-f9c3-5908ce8c5000/Full';
 
 interface ChecklistItem {
     id: string;
@@ -317,7 +319,7 @@ function StateViewer() {
     );
 }
 
-function DemoHeader() {
+function DemoHeader({ onOpenSavedRules }: { onOpenSavedRules: () => void }) {
     const { clearMessages } = useChatContext();
 
     const handleClearChat = useCallback(() => {
@@ -342,11 +344,20 @@ function DemoHeader() {
             showProjects={false}
             showSaveButton={false}
             saveStatus="idle"
+            showSavedRules={true}
+            onSavedRulesClick={onOpenSavedRules}
+            savedRulesIconUrl={SAVED_RULES_ICON_URL}
         />
     );
 }
 
-function RulesLawyerDemoContent() {
+function RulesLawyerDemoContent({
+    savedRulesOpen,
+    onCloseSavedRules,
+}: {
+    savedRulesOpen: boolean;
+    onCloseSavedRules: () => void;
+}) {
     const textTimeTracking = useTextGenerationTimeTracking();
     const imageTimeTracking = useImageGenerationTimeTracking();
     return (
@@ -376,7 +387,10 @@ function RulesLawyerDemoContent() {
                     </Tabs.List>
 
                     <Tabs.Panel value="demo" pt="md">
-                        <RulesLawyerView />
+                        <RulesLawyerView
+                            savedRulesOpen={savedRulesOpen}
+                            onCloseSavedRules={onCloseSavedRules}
+                        />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="state" pt="md">
@@ -398,10 +412,15 @@ function RulesLawyerDemoContent() {
 }
 
 export default function RulesLawyerDemo() {
+    const [savedRulesOpen, setSavedRulesOpen] = useState(false);
+
     return (
         <ChatProvider>
-            <DemoHeader />
-            <RulesLawyerDemoContent />
+            <DemoHeader onOpenSavedRules={() => setSavedRulesOpen(true)} />
+            <RulesLawyerDemoContent
+                savedRulesOpen={savedRulesOpen}
+                onCloseSavedRules={() => setSavedRulesOpen(false)}
+            />
         </ChatProvider>
     );
 }

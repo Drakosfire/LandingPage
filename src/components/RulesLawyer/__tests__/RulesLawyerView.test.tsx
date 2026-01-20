@@ -62,7 +62,12 @@ describe('RulesLawyerView', () => {
     });
 
     it('renders the responsive layout containers', async () => {
-        renderWithProviders(<RulesLawyerView />);
+        renderWithProviders(
+            <RulesLawyerView
+                savedRulesOpen={false}
+                onCloseSavedRules={jest.fn()}
+            />
+        );
 
         await waitFor(() => {
             expect(screen.getByText('Rulebook')).toBeInTheDocument();
@@ -70,16 +75,18 @@ describe('RulesLawyerView', () => {
 
         expect(screen.getByTestId('ruleslawyer-layout')).toBeInTheDocument();
         expect(screen.getByTestId('ruleslawyer-chat-panel')).toBeInTheDocument();
-        expect(screen.getByTestId('ruleslawyer-saved-panel')).toBeInTheDocument();
     });
 
-    it('shows the chat input and saved rules heading', async () => {
-        renderWithProviders(<RulesLawyerView />);
+    it('shows the chat input', async () => {
+        renderWithProviders(
+            <RulesLawyerView
+                savedRulesOpen={false}
+                onCloseSavedRules={jest.fn()}
+            />
+        );
 
         await waitFor(() => {
             expect(screen.getByPlaceholderText('Ask a rules question...')).toBeInTheDocument();
         });
-
-        expect(screen.getByText('Saved Rules')).toBeInTheDocument();
     });
 });

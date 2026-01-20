@@ -1,13 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Container, Paper, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Alert, Container, Paper, SimpleGrid, Stack } from '@mantine/core';
 import { DUNGEONMIND_API_URL } from '../../config';
 import { useChatContext } from '../../context/ChatContext';
 import LoadingModal from './LoadingModal';
 import RulesLawyerChat from './RulesLawyerChat';
 import RulesetSelector, { RulebookOption } from './RulesetSelector';
-import SavedRulesPanel from './SavedRulesPanel';
+import SavedRulesDrawer from './SavedRulesDrawer';
 
-const RulesLawyerView: React.FC = () => {
+interface RulesLawyerViewProps {
+    savedRulesOpen: boolean;
+    onCloseSavedRules: () => void;
+}
+
+const RulesLawyerView: React.FC<RulesLawyerViewProps> = ({
+    savedRulesOpen,
+    onCloseSavedRules,
+}) => {
     const { isLoadingEmbeddings, currentEmbedding } = useChatContext();
     const [rulebooks, setRulebooks] = useState<RulebookOption[]>([]);
     const [isLoadingRulebooks, setIsLoadingRulebooks] = useState(false);
@@ -46,7 +54,6 @@ const RulesLawyerView: React.FC = () => {
     );
 
     const showMissingData = !isLoadingRulebooks && !rulebooksError && rulebooks.length === 0;
-
     return (
         <Stack gap="lg" className="ruleslawyer-view">
             <LoadingModal isOpen={isLoadingEmbeddings} message="Loading rulebook embeddings..." />
@@ -70,7 +77,7 @@ const RulesLawyerView: React.FC = () => {
                 </Paper>
 
                 <SimpleGrid
-                    cols={{ base: 1, md: 2 }}
+                    cols={{ base: 1, md: 1 }}
                     spacing="lg"
                     className="ruleslawyer-layout"
                     data-testid="ruleslawyer-layout"
@@ -78,15 +85,15 @@ const RulesLawyerView: React.FC = () => {
                     <Stack gap="md" data-testid="ruleslawyer-chat-panel">
                         <RulesLawyerChat rulebookTitle={activeRulebook?.title} />
                     </Stack>
-
-                    <Paper withBorder p="md" className="ruleslawyer-panel" data-testid="ruleslawyer-saved-panel">
-                        <Stack gap="xs">
-                            <Text size="sm" fw={600}>Saved Rules</Text>
-                            <SavedRulesPanel />
-                        </Stack>
-                    </Paper>
                 </SimpleGrid>
             </Container>
+
+            <SavedRulesDrawer
+                opened={savedRulesOpen}
+                onClose={onCloseSavedRules}
+                rulebooks={rulebooks}
+                defaultRulebookId={currentEmbedding}
+            />
         </Stack>
     );
 };

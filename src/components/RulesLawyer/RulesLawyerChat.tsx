@@ -78,11 +78,10 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
     const extractCitations = (content: string) => {
         const match = content.match(/Citations:\s*([^\n]+)/i);
         if (!match) return [];
-        return match[1]
-            .split(',')
-            .map((part) => part.trim().replace(/[^\d]/g, ''))
-            .filter(Boolean)
-            .map((page) => ({ page: Number(page) }));
+        const pages = match[1].match(/\d+/g) || [];
+        return pages
+            .map((page) => ({ page: Number(page) }))
+            .filter((citation) => Number.isFinite(citation.page) && citation.page >= 1);
     };
 
     const handleLoadingError = () => {
@@ -100,45 +99,55 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                     {chatHistory.map((msg, index) => {
                         const isAssistant = msg.role === 'assistant';
                         const previousUser = isAssistant ? chatHistory[index - 1] : null;
-                        const canSave = isAssistant && previousUser?.role === 'user';
+                        const canSave = Boolean(
+                            isAssistant &&
+                            previousUser?.role === 'user' &&
+                            currentEmbedding?.trim() &&
+                            previousUser?.content?.trim() &&
+                            msg.content?.trim()
+                        );
 
                         return (
-                        <div
-                            key={`${msg.role}-${index}`}
-                            className={`ruleslawyer-chat__message ruleslawyer-chat__message--${msg.role}`}
-                        >
-                            {isAssistant && (
-                                <Group justify="space-between" align="center" mb="xs">
-                                    <Text size="xs" fw={600} className="ruleslawyer-chat__message-header">
-                                        Rules Lawyer
-                                    </Text>
-                                    {canSave && (
-                                        <Button
-                                            size="xs"
-                                            variant="light"
-                                            onClick={() => saveRule({
-                                                rulebookId: currentEmbedding,
-                                                queryText: previousUser?.content || '',
-                                                responseText: msg.content,
-                                                citations: extractCitations(msg.content)
-                                            })}
+                            <div
+                                key={`${msg.role}-${index}`}
+                                className={`ruleslawyer-chat__message ruleslawyer-chat__message--${msg.role}`}
+                            >
+                                {isAssistant && (
+                                    <Group justify="space-between" align="center" mb="xs">
+                                        <Text size="xs" fw={600} className="ruleslawyer-chat__message-header">
+                                            Rules Lawyer
+                                        </Text>
+                                    </Group>
+                                )}
+                                {isAssistant ? (
+                                    <>
+                                        <ReactMarkdown
+                                            className="ruleslawyer-chat__message-content markdown"
+                                            remarkPlugins={remarkPlugins}
                                         >
-                                            Save Rule
-                                        </Button>
-                                    )}
-                                </Group>
-                            )}
-                            {isAssistant ? (
-                                <ReactMarkdown
-                                    className="ruleslawyer-chat__message-content markdown"
-                                    remarkPlugins={remarkPlugins}
-                                >
-                                    {msg.content}
-                                </ReactMarkdown>
-                            ) : (
-                                <Text size="sm">{msg.content}</Text>
-                            )}
-                        </div>
+                                            {msg.content}
+                                        </ReactMarkdown>
+                                        {canSave && (
+                                            <Group justify="flex-end" mt="xs">
+                                                <Button
+                                                    size="xs"
+                                                    variant="light"
+                                                    onClick={() => saveRule({
+                                                        rulebookId: currentEmbedding,
+                                                        queryText: previousUser?.content || '',
+                                                        responseText: msg.content,
+                                                        citations: extractCitations(msg.content)
+                                                    })}
+                                                >
+                                                    Save Rule
+                                                </Button>
+                                            </Group>
+                                        )}
+                                    </>
+                                ) : (
+                                    <Text size="sm">{msg.content}</Text>
+                                )}
+                            </div>
                         );
                     })}
                     <div ref={messagesEndRef} />

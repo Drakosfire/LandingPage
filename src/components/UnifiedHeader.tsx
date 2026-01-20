@@ -41,6 +41,11 @@ export interface UnifiedHeaderProps {
     onProjectsClick?: () => void;       // Projects button click handler
     projectsIconUrl?: string;           // Custom projects icon URL
 
+    // Saved Rules Button (optional)
+    showSavedRules?: boolean;           // Show saved rules button (default: false)
+    onSavedRulesClick?: () => void;     // Saved rules button click handler
+    savedRulesIconUrl?: string;         // Custom saved rules icon URL
+
     // Generation Button (optional)
     showGeneration?: boolean;           // Show generation button (default: false)
     onGenerationClick?: () => void;     // Generation button click handler
@@ -128,6 +133,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
     showProjects = false,
     onProjectsClick,
     projectsIconUrl,
+    showSavedRules = false,
+    onSavedRulesClick,
+    savedRulesIconUrl,
     showGeneration = false,
     onGenerationClick,
     generationIconUrl,
@@ -516,6 +524,34 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                             <img
                                 src={projectsIconUrl || 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/6290ebea-258f-40b1-9b9b-10c29796c900/public'}
                                 alt="Projects"
+                                onError={handleImageError}
+                                style={{
+                                    height: iconSize,
+                                    objectFit: 'contain',
+                                    cursor: 'pointer'
+                                }}
+                            />
+                        </Box>
+                    )}
+
+                    {/* Saved Rules Button (if enabled) */}
+                    {showSavedRules && onSavedRulesClick && (
+                        <Box
+                            onClick={onSavedRulesClick}
+                            data-tutorial="saved-rules-button"
+                            style={{
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'opacity 0.2s ease, filter 0.2s ease'
+                            }}
+                            aria-label="Saved Rules"
+                            title="Open Saved Rules"
+                        >
+                            <img
+                                src={savedRulesIconUrl}
+                                alt="Saved Rules"
                                 onError={handleImageError}
                                 style={{
                                     height: iconSize,

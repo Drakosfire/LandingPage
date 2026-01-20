@@ -2,7 +2,7 @@
 // Centralizes toolbox section definitions for UnifiedHeader integration
 
 import React from 'react';
-import { IconTrash, IconHelp, IconBook } from '@tabler/icons-react';
+import { IconTrash, IconHelp } from '@tabler/icons-react';
 import { ToolboxSection } from '../AppToolbox';
 
 /**
