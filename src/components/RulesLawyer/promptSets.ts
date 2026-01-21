@@ -15,14 +15,45 @@ const PF2E_PROMPTS = [
     'What is the DC for a level-5 skill check?',
 ];
 
+const PF1E_PROMPTS = [
+    'How does attack of opportunity work in Pathfinder?',
+    'How many skill ranks do I get each level?',
+    'How do combat maneuvers and CMD work?',
+];
+
 const OSR_PROMPTS = [
     'How do surprise checks work?',
     'When do I check for morale?',
     'How does reaction roll affect NPC behavior?',
 ];
 
+const SWN_PROMPTS = [
+    'How does ship combat work?',
+    'What are the rules for spike drill travel?',
+    'How do I resolve a skill check in SWN?',
+];
+
 const PROMPT_MATCHERS: Array<{ keywords: string[]; prompts: string[] }> = [
-    { keywords: ['pf2', 'pathfinder 2', 'pathfinder2'], prompts: PF2E_PROMPTS },
+    {
+        keywords: [
+            'swon',
+            'swn',
+            'stars without number',
+            'stars without numbers',
+        ],
+        prompts: SWN_PROMPTS
+    },
+    {
+        keywords: [
+            'pf1',
+            'pathfinder 1',
+            'pathfinder 1e',
+            'pathfinder 1st',
+            'pathfinder first',
+        ],
+        prompts: PF1E_PROMPTS
+    },
+    { keywords: ['pf2', 'pathfinder 2', 'pathfinder2', 'pathgm'], prompts: PF2E_PROMPTS },
     {
         keywords: [
             'osr',

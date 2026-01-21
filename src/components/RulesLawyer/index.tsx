@@ -2,6 +2,7 @@
 // Uses generator-layout pattern matching StatBlockGenerator/PlayerCharacterGenerator
 import React, { useCallback, useState } from 'react';
 import { ChatProvider, useChatContext } from '../../context/ChatContext';
+import { useAuth } from '../../context/AuthContext';
 import { UnifiedHeader } from '../UnifiedHeader';
 import { createRulesLawyerToolboxSections } from './rulesLawyerToolboxConfig';
 import '../../styles/CardGeneratorLayout.css'; // Use shared generator layout
@@ -14,6 +15,7 @@ const SAVED_RULES_ICON_URL = 'https://imagedelivery.net/SahcvrNe_-ej4lTB6vsAZA/f
 
 const RulesLawyerContent: React.FC = () => {
     const { clearMessages } = useChatContext();
+    const { isLoggedIn } = useAuth();
     const [savedRulesOpen, setSavedRulesOpen] = useState(false);
 
     const handleClearChat = useCallback(() => {
@@ -22,8 +24,12 @@ const RulesLawyerContent: React.FC = () => {
     }, [clearMessages]);
 
     const handleOpenSavedRules = useCallback(() => {
+        if (!isLoggedIn) {
+            alert('Please log in to access saved rules.');
+            return;
+        }
         setSavedRulesOpen(true);
-    }, []);
+    }, [isLoggedIn]);
 
     const handleCloseSavedRules = useCallback(() => {
         setSavedRulesOpen(false);

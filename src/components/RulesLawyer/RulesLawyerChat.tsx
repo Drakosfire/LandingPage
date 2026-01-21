@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Button, Group, Paper, Stack, Text, Textarea } from '@mantine/core';
 import { RULESLAWYER_ASSET_BASE_URL } from '../../config';
 import { useChatContext } from '../../context/ChatContext';
+import { useAuth } from '../../context/AuthContext';
 import { getRulebookPrompts } from './promptSets';
 import './RulesLawyer.css';
 
@@ -23,6 +24,7 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
     const shouldAutoScrollRef = useRef(true);
     const remarkPlugins = useMemo(() => [remarkGfm], []);
 
+    const { isLoggedIn } = useAuth();
     const {
         chatHistory,
         sendMessage,
@@ -92,6 +94,18 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
         }
     };
 
+    const handleSaveRule = async (payload: Parameters<typeof saveRule>[0]) => {
+        if (!isLoggedIn) {
+            alert('Please log in to save rules.');
+            return;
+        }
+        try {
+            await saveRule(payload);
+        } catch (error) {
+            console.error('❌ [RulesLawyer] Failed to save rule:', error);
+        }
+    };
+
     return (
         <Stack gap="md" className="ruleslawyer-chat">
             <Paper withBorder p="md" className="ruleslawyer-chat__messages" ref={messagesContainerRef}>
@@ -132,7 +146,7 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                                                 <Button
                                                     size="xs"
                                                     variant="light"
-                                                    onClick={() => saveRule({
+                                                    onClick={() => handleSaveRule({
                                                         rulebookId: currentEmbedding,
                                                         queryText: previousUser?.content || '',
                                                         responseText: msg.content,
