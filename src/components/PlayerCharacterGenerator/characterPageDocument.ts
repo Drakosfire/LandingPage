@@ -12,7 +12,7 @@ import type {
     ComponentDataSource,
     TemplateConfig,
     PageVariables,
-} from 'dungeonmind-canvas';
+} from 'dungeonmind-canvas/layout';
 import type { Character } from './types/character.types';
 import { DEFAULT_CHARACTER_TEMPLATE } from './characterTemplates';
 

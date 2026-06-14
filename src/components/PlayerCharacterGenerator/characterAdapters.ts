@@ -15,14 +15,13 @@ import type {
     CanvasAdapters,
     ComponentDataSource,
     ComponentDataReference as BaseComponentDataReference,
-} from 'dungeonmind-canvas';
+} from 'dungeonmind-canvas/layout';
 
 // Extended ComponentDataReference type that includes 'character' type
-// This will be available in dungeonmind-canvas after rebuild, but we define it locally for now
 type ComponentDataReference =
     | BaseComponentDataReference
     | { type: 'character'; path: string; sourceId?: string };
-import { createDefaultAdapters } from 'dungeonmind-canvas';
+import { createDefaultAdapters } from 'dungeonmind-canvas/layout';
 import type { DnD5eCharacter, DnD5eFeature } from './types/dnd5e/character.types';
 import type { DnD5eEquipmentItem, DnD5eWeapon } from './types/dnd5e/equipment.types';
 import type { Character } from './types/character.types';

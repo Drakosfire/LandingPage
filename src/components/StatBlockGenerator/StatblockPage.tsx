@@ -19,12 +19,12 @@ import type {
     MeasurementRecord,
     CanvasConfig,
     FrameConfig,
-} from 'dungeonmind-canvas';
-import { CanvasLayoutProvider } from 'dungeonmind-canvas';
-import { useCanvasLayout } from 'dungeonmind-canvas';
-import { CanvasPage } from 'dungeonmind-canvas';
-import { MeasurementCoordinator, MeasurementPortal } from 'dungeonmind-canvas';
-import { COMPONENT_VERTICAL_SPACING_PX, isComponentDebugEnabled, isRegionHeightDebugEnabled } from 'dungeonmind-canvas';
+} from 'dungeonmind-canvas/layout';
+import { CanvasLayoutProvider } from 'dungeonmind-canvas/layout';
+import { useCanvasLayout } from 'dungeonmind-canvas/layout';
+import { CanvasPage } from 'dungeonmind-canvas/layout';
+import { MeasurementCoordinator, MeasurementPortal } from 'dungeonmind-canvas/layout';
+import { COMPONENT_VERTICAL_SPACING_PX, isComponentDebugEnabled, isRegionHeightDebugEnabled } from 'dungeonmind-canvas/layout';
 import { createStatblockAdapters } from './canvasAdapters';
 import {
     REGION_HEIGHT_MIN_ABS_DIFF_PX,

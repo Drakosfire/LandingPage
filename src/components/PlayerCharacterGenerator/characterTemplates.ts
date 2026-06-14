@@ -7,7 +7,7 @@
  * @module PlayerCharacterGenerator/characterTemplates
  */
 
-import type { TemplateConfig, PageVariables } from 'dungeonmind-canvas';
+import type { TemplateConfig, PageVariables } from 'dungeonmind-canvas/layout';
 
 /**
  * Default page variables for character sheets

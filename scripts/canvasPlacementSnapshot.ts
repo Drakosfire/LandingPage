@@ -10,14 +10,14 @@ import type {
     MeasurementRecord,
     PageVariables,
     TemplateConfig as CanvasTemplateConfig,
-} from 'dungeonmind-canvas';
+} from 'dungeonmind-canvas/layout';
 import {
     buildBuckets,
     buildPageDocument,
     COMPONENT_VERTICAL_SPACING_PX,
     computeBasePageDimensions,
     paginate,
-} from 'dungeonmind-canvas';
+} from 'dungeonmind-canvas/layout';
 
 import { demoTemplate } from '../src/fixtures/statblockTemplates';
 import { DEMO_STATBLOCKS } from '../src/fixtures/demoStatblocks';

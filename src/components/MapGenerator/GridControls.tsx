@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Stack, Switch, Slider, Select, Text, Group, SegmentedControl, Button, Divider, NumberInput } from '@mantine/core';
-import { GridType, ScaleMetadata, DEFAULT_SCALE_METADATA } from 'dungeonmind-canvas';
+import { GridType, ScaleMetadata, DEFAULT_SCALE_METADATA } from 'dungeonmind-canvas/map';
 import { useMapGenerator } from './MapGeneratorProvider';
 
 /**

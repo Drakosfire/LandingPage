@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import type { ComponentRegistryEntry, CanvasComponentProps, ComponentDataSource } from 'dungeonmind-canvas';
+import type { ComponentRegistryEntry, CanvasComponentProps, ComponentDataSource } from 'dungeonmind-canvas/layout';
 import type { Character } from '../types/character.types';
 import type { DnD5eCharacter, DnD5eFeature } from '../types/dnd5e/character.types';
 import type { AbilityName, AbilityScores } from '../engine/RuleEngine.types';

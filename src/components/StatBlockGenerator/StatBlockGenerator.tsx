@@ -13,8 +13,8 @@ import { useStatBlockGenerator } from './StatBlockGeneratorProvider';
 import { useAuth } from '../../context/AuthContext';
 import { STATBLOCK_APP } from '../../context/AppContext';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../fixtures/templates';
-import { buildPageDocument, extractCustomData, exportPageToHTMLFile } from 'dungeonmind-canvas';
-import type { TemplateConfig as BaseTemplateConfig } from 'dungeonmind-canvas';
+import { buildPageDocument, extractCustomData, exportPageToHTMLFile } from 'dungeonmind-canvas/layout';
+import type { TemplateConfig as BaseTemplateConfig } from 'dungeonmind-canvas/layout';
 import { createStatblockAdapters } from './canvasAdapters';
 
 // Import components

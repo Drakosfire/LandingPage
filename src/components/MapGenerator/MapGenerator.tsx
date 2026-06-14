@@ -8,7 +8,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Container, Stack, Group, Button, Text, Paper, Title } from '@mantine/core';
 import { IconTypography, IconWand, IconGridDots, IconBrush, IconZoomIn, IconZoomOut, IconZoomReset } from '@tabler/icons-react';
-import { MapViewport, DEFAULT_GRID_CONFIG, LabelEditInfo } from 'dungeonmind-canvas';
+import { MapViewport, DEFAULT_GRID_CONFIG, LabelEditInfo } from 'dungeonmind-canvas/map';
 import { MapGeneratorProvider, useMapGenerator } from './MapGeneratorProvider';
 import { useAuth } from '../../context/AuthContext';
 import { UnifiedHeader } from '../UnifiedHeader';

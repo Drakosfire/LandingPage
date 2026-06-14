@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Group, Text, TextInput, Modal } from '@mantine/core';
 import { IconDownload, IconCheck } from '@tabler/icons-react';
-import { useMapExport } from 'dungeonmind-canvas';
+import { useMapExport } from 'dungeonmind-canvas/map';
 import { useMapGenerator } from './MapGeneratorProvider';
 import { DUNGEONMIND_API_URL } from '../../config';
 

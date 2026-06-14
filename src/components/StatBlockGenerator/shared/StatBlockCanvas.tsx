@@ -5,8 +5,8 @@ import { useStatBlockGenerator } from '../StatBlockGeneratorProvider';
 import StatblockPage from '../StatblockPage';
 import { getTemplate, DEFAULT_TEMPLATE } from '../../../fixtures/templates';
 import { CANVAS_COMPONENT_REGISTRY } from '../canvasComponents/componentRegistry';
-import { buildPageDocument, extractCustomData } from 'dungeonmind-canvas';
-import type { TemplateConfig as BaseTemplateConfig } from 'dungeonmind-canvas';
+import { buildPageDocument, extractCustomData } from 'dungeonmind-canvas/layout';
+import type { TemplateConfig as BaseTemplateConfig } from 'dungeonmind-canvas/layout';
 import type { StatblockPageDocument, ComponentRegistryEntry, TemplateConfig } from '../../../types/statblockCanvas.types';
 
 const StatBlockCanvas: React.FC = () => {

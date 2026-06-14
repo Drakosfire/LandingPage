@@ -34,7 +34,7 @@ import {
   IconCheck,
   IconX,
 } from '@tabler/icons-react';
-import { MapProjectSummary } from 'dungeonmind-canvas';
+import { MapProjectSummary } from 'dungeonmind-canvas/map';
 import DeleteConfirmationModal from '../CardGenerator/DeleteConfirmationModal';
 
 interface MapProjectsDrawerProps {

@@ -18,7 +18,7 @@ import React from 'react';
 import { Stack, Select, Text, Button, Group, Paper, Divider, Switch, Accordion, Slider } from '@mantine/core';
 import { IconTrash, IconPlus, IconClearAll } from '@tabler/icons-react';
 import { useMapGenerator } from './MapGeneratorProvider';
-import { FONT_OPTIONS, FontFamily } from 'dungeonmind-canvas';
+import { FONT_OPTIONS, FontFamily } from 'dungeonmind-canvas/map';
 
 /**
  * LabelEditor provides UI controls for editing the selected label.

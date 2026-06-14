@@ -14,8 +14,8 @@ import type {
     CanvasAdapters,
     ComponentDataSource,
     ComponentDataReference,
-} from 'dungeonmind-canvas';
-import { createDefaultAdapters } from 'dungeonmind-canvas';
+} from 'dungeonmind-canvas/layout';
+import { createDefaultAdapters } from 'dungeonmind-canvas/layout';
 import type { StatBlockDetails, Action } from '../../types/statblock.types';
 
 // =============================================================================

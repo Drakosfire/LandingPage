@@ -19,7 +19,7 @@ jest.mock('../../../context/AuthContext', () => ({
 }));
 
 // Mock the canvas package
-jest.mock('dungeonmind-canvas', () => ({
+jest.mock('dungeonmind-canvas/map', () => ({
   MapViewport: ({ baseImageUrl }: { baseImageUrl: string }) => (
     <div data-testid="map-viewport">
       {baseImageUrl ? <img src={baseImageUrl} alt="Map" /> : 'No image'}

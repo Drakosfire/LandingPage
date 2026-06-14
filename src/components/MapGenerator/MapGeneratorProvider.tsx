@@ -6,9 +6,9 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from 'react';
-import { useMapCanvas, UseMapCanvasResult, useMaskDrawing, exportMaskToBase64 } from 'dungeonmind-canvas';
-import { GridConfig, MapLabel, DEFAULT_GRID_CONFIG, MapProjectSummary, ScaleMetadata, DEFAULT_SCALE_METADATA } from 'dungeonmind-canvas';
-import type { MaskTool, MaskStroke, MaskDrawingState } from 'dungeonmind-canvas';
+import { useMapCanvas, UseMapCanvasResult, useMaskDrawing, exportMaskToBase64 } from 'dungeonmind-canvas/map';
+import { GridConfig, MapLabel, DEFAULT_GRID_CONFIG, MapProjectSummary, ScaleMetadata, DEFAULT_SCALE_METADATA } from 'dungeonmind-canvas/map';
+import type { MaskTool, MaskStroke, MaskDrawingState } from 'dungeonmind-canvas/map';
 import { DUNGEONMIND_API_URL } from '../../config';
 import { useAuth } from '../../context/AuthContext';
 import { MaskConfig, DEFAULT_MASK_CONFIG, ProjectGeneratedImage, DEFAULT_PAPYRUS_TEXTURE_URL, isDefaultTexture } from './mapTypes';

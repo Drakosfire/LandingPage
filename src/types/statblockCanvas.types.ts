@@ -17,7 +17,7 @@ import type {
     TemplateConfig as BaseTemplateConfig,
     PageDocument as BasePageDocument,
     CanvasComponentProps as BaseCanvasComponentProps,
-} from 'dungeonmind-canvas';
+} from 'dungeonmind-canvas/layout';
 
 export type { PageMode, PageDimensions, ColumnConfig, PaginationConfig, PageVariables, TemplateSlot, TemplateComponentPlacement };
 
