@@ -19,19 +19,16 @@
 ### Completed Fix (1/4)
 - ✅ **Frontend validation prioritizes subrace check** - No longer shows generic "invalid race" for subrace-requiring races
 
-### Remaining Fixes ❌
-- ⬜ **Fix 2/4: Backend catalog missing subraces** - Only has base races (dwarf, elf, halfling), not subraces
+### What's NOT Working ❌
+- **Backend catalog missing subraces** - Only has base races (dwarf, elf, halfling), not subraces
   - `DungeonMindServer/playercharactergenerator/rule_engine/catalogs/dnd5e_v0/catalog.py:15-21`
   - Causes backend to accept "dwarf" when frontend requires "hill-dwarf" or "mountain-dwarf"
-  - **Action:** Add subrace entries mirroring frontend `races.ts` data
-- ⬜ **Fix 3/4: Prompt builder doesn't mention subraces** - AI generation prompt doesn't include subrace info
+- **Prompt builder doesn't mention subraces** - AI generation prompt doesn't include subrace info
   - `LandingPage/src/components/PlayerCharacterGenerator/generation/promptBuilder.ts:69-101`
   - Shows only `**Race:** ${constraints.race.name}` - no subrace guidance
-  - **Action:** Include subrace in prompt when base race has subraces
-- ⬜ **Fix 4/4: Backend constraint building doesn't handle subraceId** - get_constraints() only uses race_id
+- **Backend constraint building doesn't handle subraceId** - get_constraints() only uses race_id
   - `DungeonMindServer/playercharactergenerator/rule_engine/pcg_rule_engine.py:43-62`
   - No logic to look up subrace from subrace_id
-  - **Action:** Add subrace lookup in constraint building
 
 ### Suspected Causes
 1. **Data model mismatch**: Frontend expects subraces (hill-dwarf, mountain-dwarf), backend only has base races (dwarf)

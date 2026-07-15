@@ -1,9 +1,10 @@
 # Tasks: PlayerCharacterGenerator
 
-**Generated**: November 30, 2025  
-**Updated**: December 15, 2025 (Phase 8 Deployed — Polish Needed)  
-**Source**: spec.md + plan.md  
-**Status**: ✅ Phase 8 Complete — Phase 9 (Polish & Reflection) in progress
+**Generated**: November 30, 2025
+**Updated**: December 14, 2025 (V1 Feature Complete — Ready for Deploy)
+**Source**: spec.md + plan.md
+**Status**: Phase 8 (Deploy & Verify) is next
+**Archive note (2026-07-15):** Completed `HANDOFF-*.md` packets live under [`archive/2026-07-15/handoffs/`](archive/2026-07-15/handoffs/).
 
 ---
 
@@ -20,10 +21,9 @@ The Player Character Generator V1 is **feature complete**. All core functionalit
 - ✅ Mobile responsiveness
 - ✅ PDF export (Print → Save as PDF)
 
-**Status:**
-1. ✅ **Phase 8**: Deployed to production (2025-12-15)
-2. 🔄 **Phase 9**: Polish and reflection in progress
-3. ⬜ **Subrace handling fixes**: System-wide subrace handling needs work
+**Next Steps:**
+1. **Phase 8**: Deploy to production and verify
+2. **Phase 9**: Reflection and learnings capture
 
 ---
 
@@ -286,8 +286,8 @@ The Player Character Generator V1 is **feature complete**. All core functionalit
 | Phase | Description | Status |
 |-------|-------------|--------|
 | **Phase 7** | US6 - PDF Export | ✅ Complete |
-| **Phase 8** | Deploy & Verify | ✅ Complete (2025-12-15) |
-| **Phase 9** | Reflection & Learnings | 🔄 In Progress |
+| **Phase 8** | Deploy & Verify | 🔜 Next |
+| **Phase 9** | Reflection & Learnings | ⏳ After Deploy |
 
 ### 📦 Backlog (Post-V1)
 
@@ -298,8 +298,7 @@ The Player Character Generator V1 is **feature complete**. All core functionalit
 | **Phase 3.9** | Homebrew Mode | ⬜ Backlog |
 | **US5** | Character Leveling | ⬜ Backlog |
 | **US6** | JSON Export (PDF complete) | ⬜ Backlog |
-| **Polish** | Subrace handling fixes | 🔄 Active (see HANDOFF-Subrace-Handling-Fixes.md) |
-| **Polish** | Additional UI/UX polish | ⬜ Backlog |
+| **Polish** | Final polish pass | ⬜ Backlog |
 
 ---
 
@@ -997,18 +996,15 @@ The StatblockGenerator already has working PDF export. Key files to reference:
 
 | Task | Description | Status |
 |------|-------------|--------|
-| **T115** | Merge all PCG changes to main branch | ✅ Complete |
-| **T116** | Deploy to production environment | ✅ Complete (2025-12-15) |
-| **T117** | Smoke test: Create character via wizard → verify sheet renders | ✅ Verified |
-| **T118** | Smoke test: AI generation → verify character hydrates | ⚠️ Partial (subrace issue found) |
-| **T119** | Smoke test: Portrait generation/upload → verify on sheet | ⬜ Pending |
-| **T120** | Smoke test: Save/Load (logged in) → verify persistence | ⬜ Pending |
-| **T121** | Smoke test: PDF export → verify all 4 pages | ⬜ Pending |
-| **T122** | Smoke test: Mobile viewport → verify responsive layout | ⬜ Pending |
-| **T123** | Fix any deploy-specific issues discovered | 🔄 In Progress |
-| **T123a** | Fix route mismatch (charactergenerator → playercharactergenerator) | ✅ Complete |
-| **T123b** | Improve subrace validation error message | ✅ Complete |
-| **T123c** | Fix subrace handling system-wide | 🔄 Active (see HANDOFF-Subrace-Handling-Fixes.md) |
+| **T115** | Merge all PCG changes to main branch | ⬜ |
+| **T116** | Deploy to production environment | ⬜ |
+| **T117** | Smoke test: Create character via wizard → verify sheet renders | ⬜ |
+| **T118** | Smoke test: AI generation → verify character hydrates | ⬜ |
+| **T119** | Smoke test: Portrait generation/upload → verify on sheet | ⬜ |
+| **T120** | Smoke test: Save/Load (logged in) → verify persistence | ⬜ |
+| **T121** | Smoke test: PDF export → verify all 4 pages | ⬜ |
+| **T122** | Smoke test: Mobile viewport → verify responsive layout | ⬜ |
+| **T123** | Fix any deploy-specific issues discovered | ⬜ |
 
 ---
 
