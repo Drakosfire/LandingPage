@@ -74,3 +74,41 @@ It correctly identifies current questions:
 - shared auth/theme/header contracts without forced repo/build consolidation.
 
 Implementation should arrive later through bounded owner-repository handoffs after DungeonOverMind stewardship settles the cross-repository architecture.
+
+
+## Final active documentation shape
+
+At closeout:
+
+```text
+101 files under Docs/
+95 historical files under Docs/Archive/
+6 active central documentation files
+```
+
+Active central files:
+
+- `Docs/README.md`
+- `Docs/Plans/README.md`
+- `Docs/Plans/ANCHOR-dungeonmind-net-platform-refresh.md`
+- `Docs/Design/CARDGENERATOR-PERSISTENCE.md`
+- `Docs/Design/AUDIT-dungeonmind-web-current-debt.md`
+- `Docs/Reports/REPORT-document-authority-audit-2026-09-25.md`
+
+Current module-local READMEs remain colocated with CardGenerator, its shared image helpers, PlayerCharacterGenerator, and public font assets.
+
+## Additional authority cleanup
+
+The active `.cursorrules` file was rewritten because it was materially obsolete: it called the removed fixed `NavBar` sacred, required an 80px sidebar margin, prescribed `FloatingHeader`, and advertised a nonexistent Storybook command.
+
+The current rules now match `UnifiedHeader`, current ownership boundaries, CRA reality, and the platform-refresh guardrail.
+
+Tracked 2025 PCG debug logs/snapshots and `debug-component-10.js` were removed from `main`; `/pcg_run_logs/` is now ignored.
+
+## Executable structural check
+
+`npm run check:docs` executes `scripts/checkDocumentationAuthority.js`.
+
+It asserts current authority files exist and fails if retired active-root namespaces/paths reappear.
+
+LandingPage currently has no GitHub Actions workflow, so this check is available for local/future-CI use but was not represented as CI evidence in this audit.
