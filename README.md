@@ -75,9 +75,10 @@ npm install
 npm start
 npm test
 npm run build
+npm run check:docs
 ```
 
-The repository currently uses `react-scripts`; there is no Vite implementation yet.
+The repository currently uses `react-scripts`; there is no Vite implementation yet. `npm run check:docs` verifies the active documentation-authority shape.
 
 ## Ownership boundary
 
