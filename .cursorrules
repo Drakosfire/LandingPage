@@ -1,246 +1,130 @@
-# DungeonMind LandingPage Cursor Rules
+# DungeonMind Web Agent Rules
 
-## Project Overview
-This is a React/TypeScript project for the DungeonMind platform, featuring multiple D&D tools including CardGenerator, RulesLawyer, StoreGenerator, and more. The project uses Mantine UI components with custom CSS design system.
+## Repository role
 
-## Navigation Architecture (CRITICAL)
+This repository is **DungeonMind Web**, the public/authenticated React frontend for dungeonmind.net.
 
-### Primary Navigation Rules
-- **NavBar.tsx is SACRED**: Never override the main site navigation
-- **Fixed Positioning**: NavBar is fixed left sidebar (80px width, z-index: 1000)
-- **Layout Margin**: Main content uses `margin-left: 80px` on desktop (handled by App.css)
-- **Always Visible**: Main navigation must be visible on every page
+It owns frontend routes, presentation, interaction, shared auth/header/theme, and frontend product state.
 
-### Secondary Navigation Guidelines
-- **Integrate, Don't Replace**: Secondary navigation should integrate into existing headers
-- **FloatingHeader Pattern**: Use floating headers for tool-specific navigation
-- **Z-index Hierarchy**: Main nav (1000) > Secondary nav (500) > Content (100)
-- **Mobile Responsive**: Secondary navigation should collapse/scroll on mobile
+It does **not** own:
 
-### Navigation Integration Checklist
-- [ ] Does the component respect the 80px left margin?
-- [ ] Is the z-index hierarchy maintained?
-- [ ] Does main navigation remain visible and functional?
-- [ ] Does secondary navigation integrate into existing headers?
-- [ ] Is mobile responsiveness maintained?
+- backend/API behavior → DungeonMindServer;
+- reusable inference execution → GenerationEngine;
+- durable world-knowledge internals → DungeonMind;
+- DungeonBuddy product semantics → DungeonMindBuddy;
+- cross-repository architecture/sequencing → DungeonOverMind.
 
-## Component Architecture
+Start from `README.md` and `Docs/README.md`. Do not preload historical `Docs/Archive/` material.
 
-### Mantine UI Framework (PRIMARY)
-- **Mantine Exclusive**: We are migrating to Mantine UI exclusively - prioritize Mantine components over custom CSS
-- **Migration Opportunities**: Always look for opportunities to replace custom CSS/components with Mantine equivalents
-- **Theme System**: Use Mantine's theme system (`dungeonMindTheme.ts`) instead of CSS variables where possible
-- **Component Priority**: 
-  1. Use existing Mantine components (Button, Card, Grid, Stack, etc.)
-  2. Extend Mantine components with custom styling if needed
-  3. Create custom components only when Mantine doesn't provide equivalent
-- **Layout System**: Use Mantine's Grid, Container, Stack, Group for all layouts
-- **Form Components**: Replace custom form elements with Mantine's form components
-- **Icons**: Use @tabler/icons-react for consistent iconography
+## Current application architecture
 
-### Design System Migration Strategy
-- **Phase-by-Phase**: Migrate existing custom CSS components to Mantine incrementally
-- **Theme Mapping**: Map existing CSS variables to Mantine theme tokens
-- **Backward Compatibility**: Maintain visual consistency during migration
-- **Component Consolidation**: Replace similar custom components with unified Mantine versions
+Current shell is defined by `src/App.tsx`.
 
-### CardGenerator Specific Rules
-- **Step Navigation**: Always integrate step tabs into FloatingHeader
-- **State Management**: Use centralized state in main CardGenerator component
-- **API Integration**: Follow established patterns in existing step components
-- **Layout Patterns**: Use Mantine Grid/Container instead of custom step-card containers
-- **Sidebar Integration**: Use Mantine Drawer for any additional panels (e.g., MyProjectsSidebar)
+The shared composition is:
 
-## Mantine Migration Patterns
-
-### Component Replacement Priority
-1. **Layout Components**: Replace custom grids/containers with Mantine Grid/Container/Stack
-2. **Form Elements**: Replace custom inputs with Mantine TextInput/Textarea/Select/Button
-3. **Navigation**: Replace custom modals/drawers with Mantine Drawer/Modal
-4. **Content Cards**: Replace custom card containers with Mantine Card component
-5. **Loading States**: Use Mantine LoadingOverlay/Skeleton instead of custom spinners
-
-### Migration Checklist (Apply when touching existing code)
-- [ ] Can this custom CSS class be replaced with Mantine component?
-- [ ] Are we using inline styles that could be Mantine props?
-- [ ] Can this layout be simplified with Stack/Group/Grid?
-- [ ] Are we using custom buttons that could be Mantine Button?
-- [ ] Can this modal/popup be a Mantine Modal/Drawer?
-
-### Mantine Best Practices
-- **Responsive Design**: Use Mantine's responsive props (`span`, `visibleFrom`, `hiddenFrom`)
-- **Theme Integration**: Access theme values with `useMantalneTheme()` hook when needed
-- **Style Overrides**: Use `styles` prop instead of external CSS when possible
-- **Icon Usage**: Import only needed icons from `@tabler/icons-react`
-- **Provider Context**: Ensure all Mantine components are within MantineProvider scope
-
-### Code Transformation Examples
-```jsx
-// ❌ Old Pattern (Custom CSS)
-<div className="custom-grid">
-  <div className="custom-card">
-    <button className="custom-btn">Click me</button>
-  </div>
-</div>
-
-// ✅ New Pattern (Mantine)
-<Grid>
-  <Grid.Col span={6}>
-    <Card withBorder>
-      <Button>Click me</Button>
-    </Card>
-  </Grid.Col>
-</Grid>
+```text
+MantineProvider
+→ AuthProvider
+→ AppProvider
+→ BrowserRouter
+→ StatBlockGeneratorProvider
+→ route surfaces
 ```
 
-## Code Quality Standards
+### Navigation
 
-### TypeScript
-- **Strict Mode**: Always use TypeScript strict mode
-- **Interface Definitions**: Define clear interfaces for all props
-- **Type Safety**: Avoid `any` types, use proper typing
+`UnifiedHeader` + `NavigationDrawer` are the current shared navigation pattern.
 
-### React Patterns
-- **Functional Components**: Use functional components with hooks
-- **Custom Hooks**: Extract reusable logic into custom hooks
-- **Event Handlers**: Use descriptive handler names (handleStepClick, handleImageSelect)
-- **State Management**: Use useState for local state, context for shared state
+Do **not** restore or design around:
 
-### CSS Guidelines (Mantine-First Approach)
-- **Mantine Theme First**: Use Mantine theme tokens before CSS variables
-- **CSS Override Pattern**: Use Mantine's `styles` prop for component customization
-- **Legacy CSS**: Only use existing CSS variables for components not yet migrated
-- **Mobile First**: Leverage Mantine's responsive props (`span={{ base: 12, md: 6 }}`)
-- **Z-index Management**: Follow established z-index hierarchy (Main nav: 1000, Drawer: 600, etc.)
-- **Component Scoping**: Prefer Mantine styling props over external CSS files
+- the removed fixed `NavBar` sidebar;
+- an 80px global left margin;
+- `FloatingHeader` as the site navigation pattern.
 
-## File Organization
+Tool-specific drawers/state belong to the owning product component. Keep `UnifiedHeader` primarily presentational/composable; do not centralize unrelated product state into it.
 
-### Component Structure
+## Styling
+
+Mantine 7 and `src/config/mantineTheme.ts` are current shared UI foundations.
+
+Use current code/design tokens before inventing new global styling rules.
+
+Existing product-specific CSS is allowed. Do not perform broad CSS→Mantine rewrites unless the task independently requires them.
+
+Avoid global selectors that can change Canvas/print layouts unintentionally.
+
+## API and auth
+
+Use `DUNGEONMIND_API_URL` from `src/config.ts`; do not hard-code backend origins.
+
+Use `AuthContext` for browser authentication state.
+
+Authenticated backend calls should follow current cookie/credentials patterns.
+
+Do not copy backend schemas/policy into frontend code when the API contract can own them.
+
+## Shared packages
+
+`dungeonmind-canvas` is the Canvas repository's public package.
+
+Treat Canvas internals as external-library authority. Frontend adapters/projections belong here; reusable Canvas mechanics belong in Canvas.
+
+## Product-local authority
+
+For current behavior:
+
+```text
+current code/tests
+→ current component/design docs
+→ merged commit/PR evidence
+→ Docs/Archive / Git history
 ```
-components/
-  ├── ComponentName/
-  │   ├── ComponentName.tsx       # Main component
-  │   ├── subcomponents/          # Related subcomponents
-  │   └── index.tsx              # Barrel export
-  └── shared/                    # Shared components
-```
 
-### Style Organization
-```
-styles/
-  ├── DesignSystem.css           # Global design system
-  ├── App.css                    # Main layout styles
-  └── ComponentName.module.css   # Component-specific styles
-```
+Old specs/handoffs are historical even if they contain unchecked boxes or say READY.
 
-## API Integration
+Open/staged work is proposed behavior, not `main` authority.
 
-### Backend Communication
-- **Base URL**: Use `DUNGEONMIND_API_URL` from config
-- **Error Handling**: Always implement proper error handling
-- **Loading States**: Show loading indicators for async operations
-- **Type Safety**: Define interfaces for API responses
+## TypeScript / React
 
-### Image Handling
-- **Cloudflare Integration**: Use established Cloudflare R2 patterns
-- **Image Optimization**: Implement proper image loading and error handling
-- **Upload Patterns**: Follow existing upload component patterns
+- Prefer typed functional components and hooks.
+- Avoid new `any` unless crossing an untyped boundary that is documented locally.
+- Keep shared state in the narrowest appropriate context/provider.
+- Clean up event listeners/timers/subscriptions.
+- Preserve current route and auth behavior unless the task explicitly changes them.
+- Add/adjust focused tests for behavioral changes when practical.
 
-## Performance Considerations
+## Async / performance
 
-### Optimization Guidelines
-- **Lazy Loading**: Implement lazy loading for large components
-- **Image Optimization**: Use proper image formats and sizes
-- **Bundle Splitting**: Avoid importing entire libraries when only using small parts
-- **Memory Management**: Clean up event listeners and subscriptions
+Frontend network operations are naturally async. Do not introduce worker/thread abstractions for ordinary HTTP I/O.
 
-### Caching Strategy
-- **API Caching**: Implement appropriate caching for API responses
-- **Image Caching**: Leverage browser caching for static assets
-- **State Persistence**: Use localStorage for user preferences
+Avoid unbounded fan-out and duplicate fetches.
 
-## Testing Guidelines
+Do not optimize by intuition alone; preserve correctness and measure before adding caching/concurrency machinery.
 
-### Component Testing
-- **Unit Tests**: Test individual component functionality
-- **Integration Tests**: Test component interactions
-- **Accessibility Testing**: Ensure ARIA compliance and keyboard navigation
+## Development commands
 
-### User Experience Testing
-- **Mobile Testing**: Test on various mobile devices
-- **Navigation Testing**: Verify navigation flows work correctly
-- **Error State Testing**: Test error scenarios and recovery
+Current build system is Create React App / `react-scripts`.
 
-## Common Pitfalls to Avoid
-
-### Navigation Issues
-- ❌ Never create independent navigation that conflicts with main nav
-- ❌ Don't override main layout margins in child components
-- ❌ Avoid creating multiple navigation elements in the same z-index range
-
-### CSS Issues
-- ❌ Don't hardcode colors or spacing values - use theme tokens
-- ❌ Avoid !important unless absolutely necessary
-- ❌ Don't create conflicting position: fixed elements
-- ❌ Don't write custom CSS when Mantine component exists
-- ❌ Don't use external CSS files for styling Mantine components (use `styles` prop)
-
-### React Issues
-- ❌ Don't mutate props directly
-- ❌ Avoid inline functions in render methods (use useCallback)
-- ❌ Don't forget to handle loading and error states
-- ❌ Don't render Mantine components outside of MantineProvider
-- ❌ Don't override Mantine component styles with external CSS classes
-- ❌ Don't use multiple MantineProvider instances in same component tree
-
-## Deployment Considerations
-
-### Build Process
-- **Environment Variables**: Use proper environment variable patterns
-- **Asset Optimization**: Ensure proper asset bundling and optimization
-- **Production Testing**: Test builds in production-like environment
-
-### Security
-- **Input Validation**: Validate all user inputs
-- **API Security**: Use proper authentication patterns
-- **XSS Prevention**: Sanitize user-generated content
-
-## Documentation Standards
-
-### Code Documentation
-- **Component Documentation**: Document complex components with JSDoc
-- **README Updates**: Keep README files current with project changes
-- **API Documentation**: Document custom hooks and utility functions
-
-### Change Documentation
-- **Git Commits**: Use descriptive commit messages
-- **Pull Requests**: Include thorough PR descriptions
-- **Breaking Changes**: Document any breaking changes clearly
-
----
-
-## Quick Reference Commands
-
-### Development
 ```bash
-npm start                 # Start development server
-npm run build            # Build for production
-npm test                 # Run tests
-npm run storybook        # Start Storybook (if configured)
+npm start
+npm test
+npm run build
 ```
 
-### Debugging
-- Check browser console for errors
-- Verify network tab for API calls
-- Use React Developer Tools for component inspection
-- Test navigation flows on mobile
+The repository currently contains both npm and pnpm lockfiles. Do not silently normalize package managers or rewrite dependency locks as incidental cleanup; the platform-refresh lane should settle that deliberately.
 
----
+There is no configured Storybook script.
 
-## Migration Status
-**Current Phase**: Actively migrating to Mantine UI framework
-**Completed**: CardGenerator sidebar, Step1 & Step2 layouts
-**Next Priority**: Remaining step components, form elements, and navigation components
+## Documentation
 
-*This file should be updated as the project evolves and new Mantine patterns emerge.* 
+Active repository documentation starts at `Docs/README.md`.
+
+Create/update owner docs only when they capture current frontend truth that must survive independently of code/tests.
+
+Completed implementation plans, exploratory research, debug logs, and one-off creative briefs belong in Archive or Git history.
+
+## Platform refresh
+
+`Docs/Plans/ANCHOR-dungeonmind-net-platform-refresh.md` is context only. It authorizes no frontend modernization by itself.
+
+CRA→Vite, product-shell restructuring, Buddy integration, package-manager normalization, and auth/theme sharing should arrive through bounded implementation handoffs after DungeonOverMind stewardship settles the target architecture.
