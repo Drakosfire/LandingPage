@@ -59,3 +59,18 @@ If an archived idea becomes relevant:
 2. re-read the historical artifact only for context;
 3. write/update current owner documentation only if the concept still survives;
 4. do not move old plans back into active context merely for discoverability.
+
+
+## Root miscellany and generated artifact cleanup
+
+Archived one-off root documents:
+
+- `CardGenerator_Next_Steps.md` — obsolete backlog referencing removed UI/files;
+- `CHARACTER_GENERATOR_ICON_DESCRIPTION.md` — historical creative brief.
+
+Removed tracked generated/debug artifacts from active source control:
+
+- dated `pcg_run_logs/**` outputs and HTML print snapshot;
+- `debug-component-10.js`.
+
+The PCG log directory is now ignored. Git history remains the archive for generated debug output.
