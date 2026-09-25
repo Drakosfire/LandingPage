@@ -41,7 +41,8 @@
     "build:dev": "export NODE_ENV=development && export REACT_APP_DUNGEONMIND_API_URL=https://dev.dungeonmind.net && react-scripts build",
     "benchmark:images": "tsx scripts/benchmarkImageGeneration.ts",
     "canvas-debug": "node scripts/canvasDebug.js",
-    "canvas:snapshot": "ts-node --project tsconfig.scripts.json scripts/canvasPlacementSnapshot.ts"
+    "canvas:snapshot": "ts-node --project tsconfig.scripts.json scripts/canvasPlacementSnapshot.ts",
+    "check:docs": "node scripts/checkDocumentationAuthority.js"
   },
   "eslintConfig": {
     "extends": [
