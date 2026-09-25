@@ -9,6 +9,8 @@ Cross-repository architecture, ownership, and sequencing belong in DungeonOverMi
 - [../README.md](../README.md) — repository role, runtime, and ownership boundary.
 - [Plans/ANCHOR-dungeonmind-net-platform-refresh.md](Plans/ANCHOR-dungeonmind-net-platform-refresh.md) — local anchor for the cross-repository platform-refresh stewardship lane.
 - [Design/CARDGENERATOR-PERSISTENCE.md](Design/CARDGENERATOR-PERSISTENCE.md) — current CardGenerator persistence behavior.
+- [Design/AUDIT-dungeonmind-web-current-debt.md](Design/AUDIT-dungeonmind-web-current-debt.md) — verified current frontend/platform pressure.
+- [Reports/REPORT-document-authority-audit-2026-09-25.md](Reports/REPORT-document-authority-audit-2026-09-25.md) — cleanup/placement evidence.
 - component-local READMEs under `src/components/` when they still describe current implementation.
 
 ## Directory roles
@@ -49,3 +51,14 @@ An old spec or handoff that says “READY” does not become current authority m
 ## Historical project corpus
 
 The 2025 visual-refresh and PlayerCharacterGenerator specification/research trees were archived during the 2026-09-25 authority cleanup. They are useful implementation history, not current product authority.
+
+
+## Structural verification
+
+Run:
+
+```bash
+npm run check:docs
+```
+
+The check asserts the current authority paths exist and historical/debug namespaces do not reappear at the active root. This repository currently has no GitHub Actions workflow, so the check is not CI-enforced yet.
