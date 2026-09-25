@@ -1,46 +1,92 @@
-# Getting Started with Create React App
+# DungeonMind Web
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+LandingPage is the **public frontend application for dungeonmind.net**.
 
-## Available Scripts
+Despite the repository name, this is no longer merely a landing page. It is the React application shell for DungeonMind's public/authenticated web experience and currently owns:
 
-In the project directory, you can run:
+- public home and blog routes;
+- Google-auth frontend state;
+- shared navigation/header/theme;
+- Card Generator;
+- Statblock Generator;
+- Player Character Generator;
+- Rules Lawyer frontend;
+- Map Generator/demo surfaces;
+- frontend product state and interaction.
 
-### `npm start`
+It consumes DungeonMindServer as the public Web API/BFF.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Runtime shape
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Current frontend stack:
 
-### `npm test`
+- React 18;
+- TypeScript 4.9;
+- React Router 6;
+- Mantine 7;
+- Create React App / `react-scripts`;
+- shared `dungeonmind-canvas` package from the Canvas repository.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+CRA is current implementation truth, not a long-term architecture commitment. The active DungeonMind.net platform-refresh stewardship lane is explicitly evaluating whether migration to Vite is worth doing before Buddy launch.
 
-### `npm run build`
+## Application shell
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+`src/App.tsx` owns the current route composition and shared providers:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```text
+MantineProvider
+→ AuthProvider
+→ AppProvider
+→ BrowserRouter
+→ StatBlockGeneratorProvider
+→ route surfaces
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Current routes include home, blog, Rules Lawyer, Card Generator, Statblock Generator, Player Character Generator, Map Generator, and development/demo routes.
 
-### `npm run eject`
+`UnifiedHeader` is the shared navigation/header pattern across product surfaces.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Authentication / API
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Frontend auth authority is `src/context/AuthContext.tsx`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+API origin resolution is `src/config.ts`:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- explicit `REACT_APP_DUNGEONMIND_API_URL` wins;
+- local development defaults to `http://localhost:7860`;
+- production uses `https://www.dungeonmind.net`.
 
-## Learn More
+Authentication uses DungeonMindServer OAuth/session endpoints with browser credentials.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Documentation
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Start at [Docs/README.md](Docs/README.md).
+
+Current cross-repository platform-refresh context:
+
+- [Docs/Plans/ANCHOR-dungeonmind-net-platform-refresh.md](Docs/Plans/ANCHOR-dungeonmind-net-platform-refresh.md)
+
+Cross-repository architecture and sequencing belong in DungeonOverMind. Frontend implementation/design belongs here.
+
+## Development
+
+```bash
+npm install
+npm start
+npm test
+npm run build
+```
+
+The repository currently uses `react-scripts`; there is no Vite implementation yet.
+
+## Ownership boundary
+
+```text
+DungeonMind Web frontend implementation → this repository
+Public Web API/backend              → DungeonMindServer
+Reusable Canvas internals           → Canvas
+Reusable inference execution        → GenerationEngine
+Durable world knowledge             → DungeonMind
+DungeonBuddy product semantics      → DungeonMindBuddy
+Cross-repo architecture/sequencing  → DungeonOverMind
+```
