@@ -17,7 +17,7 @@ OverMind owns the cross-repository platform-refresh architecture and sequencing.
 
 ## Questions the steward will resolve
 
-- Is this repository productively reframed/renamed conceptually as DungeonMind Web?
+- The repository is now documented conceptually as **DungeonMind Web** while retaining its physical repository name for now.
 - Should Create React App / `react-scripts` move to Vite before Buddy launch?
 - What public/authenticated navigation should exist?
 - What does a World-oriented product home look like?
@@ -25,6 +25,7 @@ OverMind owns the cross-repository platform-refresh architecture and sequencing.
 - Should Buddy remain an independent SPA under the same origin, mount through this shell, or eventually consolidate?
 - What auth/theme/header contracts should be shared without coupling the repositories?
 - Does standalone Canvas remain a useful shared frontend dependency in this future?
+- Which package manager/lockfile should be authoritative? Both `package-lock.json` and `pnpm-lock.yaml` are currently committed.
 
 ## Working direction — not yet implementation authority
 
