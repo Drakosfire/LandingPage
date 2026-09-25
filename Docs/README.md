@@ -61,4 +61,4 @@ Run:
 npm run check:docs
 ```
 
-The check asserts the current authority paths exist and historical/debug namespaces do not reappear at the active root. This repository currently has no GitHub Actions workflow, so the check is not CI-enforced yet.
+The check asserts the current authority paths exist and historical/debug namespaces do not reappear at the active root. `.github/workflows/documentation-authority.yml` runs the same zero-dependency check on pushes to `main` and pull requests.
