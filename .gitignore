@@ -28,3 +28,6 @@ yarn-error.log*
 benchmark-*.json
 # Temporary debug scripts
 debug-component-*.js
+
+# Generated PCG debug/print snapshots
+/pcg_run_logs/
