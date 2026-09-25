@@ -111,4 +111,4 @@ Tracked 2025 PCG debug logs/snapshots and `debug-component-10.js` were removed f
 
 It asserts current authority files exist and fails if retired active-root namespaces/paths reappear.
 
-LandingPage currently has no GitHub Actions workflow, so this check is available for local/future-CI use but was not represented as CI evidence in this audit.
+The repository now has a dedicated `.github/workflows/documentation-authority.yml` workflow that runs the same zero-dependency authority check on pushes to `main` and pull requests.
