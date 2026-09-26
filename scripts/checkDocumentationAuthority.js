@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '..');
 
 const required = [
   'README.md',
-  '.cursorrules',
+  'AGENTS.md',
   'Docs/README.md',
   'Docs/Plans/README.md',
   'Docs/Plans/ANCHOR-dungeonmind-net-platform-refresh.md',
@@ -17,6 +17,7 @@ const required = [
 ];
 
 const forbidden = [
+  '.cursorrules',
   'specs',
   'docs',
   'HANDOFF-Page-Centering-Investigation.md',
