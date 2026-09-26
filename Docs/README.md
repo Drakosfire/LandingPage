@@ -6,6 +6,7 @@ Cross-repository architecture, ownership, and sequencing belong in DungeonOverMi
 
 ## Start here
 
+- [../AGENTS.md](../AGENTS.md) — current repository operating policy for agents.
 - [../README.md](../README.md) — repository role, runtime, and ownership boundary.
 - [Plans/ANCHOR-dungeonmind-net-platform-refresh.md](Plans/ANCHOR-dungeonmind-net-platform-refresh.md) — local anchor for the cross-repository platform-refresh stewardship lane.
 - [Design/CARDGENERATOR-PERSISTENCE.md](Design/CARDGENERATOR-PERSISTENCE.md) — current CardGenerator persistence behavior.
