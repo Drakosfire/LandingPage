@@ -44,12 +44,14 @@ const statblockDataResolver: DataResolver = {
             if (source && typeof source.payload === 'object' && source.payload !== null) {
                 const statblock = source.payload as StatBlockDetails;
                 // Access statblock fields using path
+                if (dataRef.path === undefined) return undefined;
                 return (statblock as any)[dataRef.path] as T | undefined;
             }
         } else if (dataRef.type === 'custom') {
             const source = dataSources.find((s) => s.type === 'custom');
             if (source && typeof source.payload === 'object' && source.payload !== null) {
                 const payload = source.payload as Record<string, unknown>;
+                if (dataRef.key === undefined) return undefined;
                 return payload[dataRef.key] as T | undefined;
             }
         }

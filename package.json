@@ -16,7 +16,7 @@
     "@types/react-dom": "^18.3.0",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.7.7",
-    "dungeonmind-canvas": "git+https://github.com/Drakosfire/Canvas.git",
+    "dungeonmind-canvas": "https://codeload.github.com/Drakosfire/Canvas/tar.gz/4bfd3c424dac6db0832ff2d4e57e595edb56ec76",
     "html2pdf.js": "^0.12.1",
     "js-cookie": "^3.0.5",
     "konva": "^9.3.22",
