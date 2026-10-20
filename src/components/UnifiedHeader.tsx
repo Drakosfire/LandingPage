@@ -1,7 +1,7 @@
 // src/components/UnifiedHeader.tsx
 // Unified horizontal navigation header for all DungeonMind apps
 import React, { useState, useEffect, ReactNode } from 'react';
-import { Group, ActionIcon, Box, Badge, Title, Tooltip, Loader } from '@mantine/core';
+import { Group, ActionIcon, Box, Badge, Title, Tooltip, Loader, Alert } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { IconHelp, IconEye, IconCheck, IconAlertTriangle } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
@@ -153,7 +153,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
     elevated = true
 }) => {
     const { currentApp } = useAppContext();
-    const { isLoggedIn, login, logout } = useAuth();
+    const { isLoggedIn, login, logout, authState, clearError } = useAuth();
     const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
     const [isScrolled, setIsScrolled] = useState(false);
 
@@ -651,6 +651,21 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                     )}
                 </Group>
             </Group>
+            {authState.error && (
+                <Alert
+                    color="red"
+                    icon={<IconAlertTriangle size={16} />}
+                    title="Authentication issue"
+                    role="alert"
+                    withCloseButton
+                    closeButtonLabel="Dismiss authentication message"
+                    onClose={clearError}
+                    mx="xs"
+                    mt="xs"
+                >
+                    {authState.error}
+                </Alert>
+            )}
         </>
     );
 };
