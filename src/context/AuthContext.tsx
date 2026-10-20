@@ -73,9 +73,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
             setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
-            // Call logout endpoint
+            // Clear the server session with the CSRF-protected logout contract.
             const response = await fetch(`${DUNGEONMIND_API_URL}/api/auth/logout`, {
-                method: 'GET',
+                method: 'POST',
                 credentials: 'include',
             });
 
@@ -94,18 +94,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setAuthState(prev => ({
                 ...prev,
                 isLoading: false,
-                error: 'Logout failed'
+                error: 'Logout could not be confirmed. Select Logout to try again.'
             }));
-
-            // Force clear local state even if server call failed
-            setTimeout(() => {
-                setAuthState({
-                    isAuthenticated: false,
-                    user: null,
-                    isLoading: false,
-                    error: null
-                });
-            }, 1000);
         }
     };
 
