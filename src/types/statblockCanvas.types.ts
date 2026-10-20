@@ -53,8 +53,8 @@ export type CanvasComponentType =
 
 export type ComponentLayoutConfig = BaseComponentLayoutConfig;
 
-type BaseStatblockDataRef = Extract<BaseComponentDataReference, { type: 'statblock' }>;
-type BaseCustomDataRef = Extract<BaseComponentDataReference, { type: 'custom' }>;
+type BaseStatblockDataRef = BaseComponentDataReference & { type: 'statblock' };
+type BaseCustomDataRef = BaseComponentDataReference & { type: 'custom' };
 
 // Define 'character' type directly until Canvas package is rebuilt with native support
 // This mirrors the type that exists in Canvas/src/types/canvas.types.ts

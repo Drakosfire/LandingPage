@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "dungeonmind-canvas": ["node_modules/dungeonmind-canvas/dist/index.d.ts"],
+      "dungeonmind-canvas/layout": ["node_modules/dungeonmind-canvas/dist/layout/index.d.ts"],
+      "dungeonmind-canvas/map": ["node_modules/dungeonmind-canvas/dist/map/index.d.ts"]
+    },
     "target": "es5",
     "lib": [
       "dom",

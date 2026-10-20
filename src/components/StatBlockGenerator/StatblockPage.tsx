@@ -26,6 +26,7 @@ import { CanvasPage } from 'dungeonmind-canvas/layout';
 import { MeasurementCoordinator, MeasurementPortal } from 'dungeonmind-canvas/layout';
 import { COMPONENT_VERTICAL_SPACING_PX, isComponentDebugEnabled, isRegionHeightDebugEnabled } from 'dungeonmind-canvas/layout';
 import { createStatblockAdapters } from './canvasAdapters';
+import { isStatblockComponentDataReference } from './statblockCanvasDataRef';
 import {
     REGION_HEIGHT_MIN_ABS_DIFF_PX,
     shouldSkipRegionHeightUpdate,
@@ -97,6 +98,12 @@ const renderEntry = (
 ) => {
     const registryEntry = registry[entry.instance.type];
     if (!registryEntry) {
+        return null;
+    }
+
+    // Canvas intentionally exposes a generic reference type. Statblock components
+    // require one of the app's supported source types before they can render.
+    if (!isStatblockComponentDataReference(entry.instance.dataRef)) {
         return null;
     }
 
