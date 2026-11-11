@@ -3,7 +3,9 @@
 **Status:** ACTIVE REFERENCE / NO IMPLEMENTATION DISPATCH  
 **Created:** 2026-09-25  
 **Cross-repository authority:** `Drakosfire/DungeonOverMind/Docs/roadmaps/ROADMAP-dungeonmind-net-platform-refresh.md`  
-**Steward handoff:** `Drakosfire/DungeonOverMind/Docs/Plans/STEWARDS-HANDOFF-dungeonmind-net-platform-refresh.md`
+**Platform handoff:** `Drakosfire/DungeonOverMind/Docs/Plans/STEWARDS-HANDOFF-dungeonmind-net-platform-refresh.md`
+
+The named platform task has only its explicitly assigned scope. The legacy handoff filename remains a link target, not a standing role or new authority. Independent review and existing merge, runtime, data, model-allocation, and deployment limits remain unchanged.
 
 ## Why this exists
 
@@ -15,7 +17,7 @@ This repository remains the owner of public web presentation, routes, interactio
 
 OverMind owns the cross-repository platform-refresh architecture and sequencing.
 
-## Questions the steward will resolve
+## Questions for the assigned platform-refresh owner
 
 - The repository is now documented conceptually as **DungeonMind Web** while retaining its physical repository name for now.
 - Should Create React App / `react-scripts` move to Vite before Buddy launch?
@@ -43,4 +45,4 @@ This anchor authorizes no frontend redesign or migration.
 
 The separate Buddy UI pause/re-entry decision remains independent.
 
-Any platform-refresh frontend implementation must arrive as a bounded handoff after the OverMind steward completes the target architecture and sequencing.
+Any platform-refresh frontend implementation must arrive as a bounded handoff after the assigned OverMind owner completes the target architecture and sequencing.
