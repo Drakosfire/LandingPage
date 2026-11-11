@@ -141,4 +141,4 @@ Completed implementation plans, exploratory research, debug logs, and one-off cr
 
 `Docs/Plans/ANCHOR-dungeonmind-net-platform-refresh.md` is context only. It authorizes no frontend modernization by itself.
 
-CRA→Vite, product-shell restructuring, Buddy integration, package-manager normalization, and auth/theme sharing should arrive through bounded implementation handoffs after DungeonOverMind stewardship settles the target architecture.
+CRA→Vite, product-shell restructuring, Buddy integration, package-manager normalization, and auth/theme sharing should arrive through bounded implementation handoffs after the assigned DungeonOverMind owner settles the target architecture.

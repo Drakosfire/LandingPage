@@ -27,7 +27,7 @@ Current frontend stack:
 - Create React App / `react-scripts`;
 - shared `dungeonmind-canvas` package from the Canvas repository.
 
-CRA is current implementation truth, not a long-term architecture commitment. The active DungeonMind.net platform-refresh stewardship lane is explicitly evaluating whether migration to Vite is worth doing before Buddy launch.
+CRA is current implementation truth, not a long-term architecture commitment. The active DungeonMind.net platform-refresh workstream is explicitly evaluating whether migration to Vite is worth doing before Buddy launch.
 
 ## Application shell
 

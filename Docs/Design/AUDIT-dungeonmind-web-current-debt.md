@@ -10,7 +10,7 @@
    Physical repo name is `LandingPage`, but it is the full DungeonMind Web application shell. Documentation now uses the conceptual name without requiring a rename.
 
 2. **Create React App is still the build system.**
-   `react-scripts@5` remains current. The platform-refresh steward is evaluating Vite, but no migration exists yet.
+   `react-scripts@5` remains current. The assigned platform-refresh owner is evaluating Vite, but no migration exists yet.
 
 3. **Two package-manager lockfiles are committed.**
    Both `package-lock.json` and `pnpm-lock.yaml` exist. Do not guess which is canonical during unrelated work; normalize only through an explicit tooling slice.
