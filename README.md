@@ -1,5 +1,7 @@
 # DungeonMind Web
 
+Start with [AGENTS.md](AGENTS.md) and the [documentation index](Docs/README.md).
+
 LandingPage is the **public frontend application for dungeonmind.net**.
 
 Despite the repository name, this is no longer merely a landing page. It is the React application shell for DungeonMind's public/authenticated web experience and currently owns:
