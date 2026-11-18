@@ -25,6 +25,7 @@ import MapCanvasDemo from './pages/MapCanvasDemo';
 import RulesLawyerDemo from './pages/RulesLawyerDemo';
 import { MapGenerator } from './components/MapGenerator';
 import { UnifiedHeader } from './components/UnifiedHeader';
+import { BuddyEntryLink } from './components/BuddyEntryLink';
 
 // DungeonMind Logo URL for home page header
 const DM_LOGO_URL = `${process.env.PUBLIC_URL}/images/DungeonMindLogo2.png`;
@@ -66,6 +67,7 @@ const App: React.FC = () => {
                       <>
                         <UnifiedHeader
                           app={{ id: 'home', name: 'DungeonMind', icon: DM_LOGO_URL }}
+                          rightControls={[<BuddyEntryLink key="buddy" />]}
                           showAuth={true}
                         />
                         <section id="app-links">
