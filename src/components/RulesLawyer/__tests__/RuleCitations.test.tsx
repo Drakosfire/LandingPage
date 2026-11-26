@@ -3,6 +3,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
 import { formatRuleCitations, groupRuleCitations, RuleCitation } from '../RuleCitations';
 
+jest.mock('react-markdown', () => ({ __esModule: true, default: ({ children }: { children: string }) => <div>{children}</div> }));
+jest.mock('remark-gfm', () => ({ __esModule: true, default: () => null }));
+
 it('uses a single inline marker per page while preserving its distinct passages', () => {
     const sources = groupRuleCitations([
         { page: 16, sourceId: 'physician' },
@@ -63,4 +66,13 @@ it('opens on focus, loads every distinct full passage as text, and closes on Esc
         global.ResizeObserver = savedObserver;
         fetchPassage.mockRestore();
     }
+});
+
+it('shows a useful fallback for empty legacy metadata', async () => {
+    render(<MantineProvider env="test">
+        <RuleCitation number={3} page="215" sources={[{ page: 215, section: '[]' }]} />
+    </MantineProvider>);
+    fireEvent.focus(screen.getByRole('button', { name: 'Source 3, printed page 215' }));
+    expect(await screen.findByText('No source preview is available for this citation.')).toBeInTheDocument();
+    expect(screen.queryByText('[]')).not.toBeInTheDocument();
 });

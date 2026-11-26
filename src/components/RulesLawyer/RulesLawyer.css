@@ -228,3 +228,13 @@
 }
 .ruleslawyer-citation-preview__page { color: var(--mantine-color-violet-light-color); }
 .ruleslawyer-citation-preview a { color: var(--mantine-color-text); font-size: .86rem; text-underline-offset: .2em; }
+
+.ruleslawyer-citation-preview__text table {
+    border-collapse: collapse;
+    white-space: normal;
+}
+.ruleslawyer-citation-preview__text :is(th, td) {
+    border: 1px solid var(--mantine-color-default-border);
+    padding: .25rem .5rem;
+    text-align: start;
+}

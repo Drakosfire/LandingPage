@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Popover, Stack, Text } from '@mantine/core';
 import { DUNGEONMIND_API_URL } from '../../config';
 import type { RuleEvidenceCitation } from '../../context/ChatContext';
@@ -33,6 +35,30 @@ export function formatRuleCitations(content: string, pages: Map<string, RuleEvid
 ${remaining.map(page => `[source](#rules-source-${page})`).join(' ')}` : answer;
 }
 
+function citationTitle(section?: string): string {
+    if (section?.trim().startsWith('[')) {
+        try {
+            const parts: unknown = JSON.parse(section);
+            if (Array.isArray(parts)) {
+                return parts.filter(part => typeof part === 'string' && part.trim()).join(' / ') || 'Source passage';
+            }
+        } catch {
+            return 'Source passage';
+        }
+    }
+    return section?.trim() || 'Source passage';
+}
+
+function passageText(text: string) {
+    const hasTable = /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/m.test(text);
+    if (!hasTable) return text;
+    return (
+        <ReactMarkdown remarkPlugins={[remarkGfm]} disallowedElements={['a', 'img']} unwrapDisallowed>
+            {text}
+        </ReactMarkdown>
+    );
+}
+
 function CitationPassage({ href, label }: { href: string; label: string }) {
     const [passage, setPassage] = useState<string>();
     const [failed, setFailed] = useState(false);
@@ -45,7 +71,7 @@ function CitationPassage({ href, label }: { href: string; label: string }) {
                 if (!response.ok) throw new Error('Could not load citation evidence');
                 const document = new DOMParser().parseFromString(await response.text(), 'text/html');
                 const text = document.querySelector('main > pre')?.textContent;
-                if (!text?.trim()) throw new Error('Missing citation evidence');
+                if (!text?.trim() || /^\[\s*\]$/.test(text.trim())) throw new Error('Missing citation evidence');
                 if (!controller.signal.aborted) setPassage(text);
             } catch {
                 if (!controller.signal.aborted) setFailed(true);
@@ -59,7 +85,7 @@ function CitationPassage({ href, label }: { href: string; label: string }) {
         <section className="ruleslawyer-citation-preview__passage">
             <a href={href} target="_blank" rel="noreferrer">{label} ↗</a>
             {passage ? (
-                <div className="ruleslawyer-citation-preview__text">{passage}</div>
+                <div className="ruleslawyer-citation-preview__text">{passageText(passage)}</div>
             ) : (
                 <Text size="xs" role="status">{failed ? 'Preview unavailable. Open the source to read it.' : 'Loading passage…'}</Text>
             )}
@@ -136,12 +162,14 @@ export function RuleCitation({ number, page, sources }: {
                         Printed page {page}{sources[0]?.pdfPage ? ` · PDF page ${sources[0].pdfPage}` : ''}
                     </Text>
                     {sources.map((source, index) => {
-                        const title = source.section || 'Source passage';
-                        const label = sources.filter(other => other.section === source.section).length > 1
+                        const title = citationTitle(source.section);
+                        const label = sources.filter(other => citationTitle(other.section) === title).length > 1
                             ? `${title} · passage ${index + 1}` : title;
                         return source.link && /^\/api\/ruleslawyer\/evidence\/[\w-]+\/[a-f0-9]{64}$/.test(source.link)
                             ? <CitationPassage key={source.link} href={`${DUNGEONMIND_API_URL}${source.link}`} label={label} />
-                            : <Text key={index} size="sm">{label}</Text>;
+                            : <Text key={index} size="sm">{label === 'Source passage'
+                                ? 'No source preview is available for this citation.'
+                                : `${label} · Preview unavailable`}</Text>;
                     })}
                 </Stack>
             </Popover.Dropdown>
