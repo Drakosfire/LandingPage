@@ -37,7 +37,7 @@ it('opens on focus, loads every distinct full passage as text, and closes on Esc
         ok: true,
         text: async () => String(input).endsWith(link)
             ? '<main><pre>First line.\nThe complete first treatment passage. &lt;b&gt;Literal text.&lt;/b&gt;</pre></main>'
-            : '<main><pre>A distinct passage on healer benefits.</pre></main>',
+            : '<main><pre>| Club | 1d4 |\n| Dagger | 1d4 |</pre></main>',
     } as Response));
     const savedObserver = global.ResizeObserver;
     global.ResizeObserver = class {
@@ -58,7 +58,8 @@ it('opens on focus, loads every distinct full passage as text, and closes on Esc
         expect(await screen.findByText('Printed page 80 · PDF page 83')).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Healers ↗' })).toHaveAttribute('href', expect.stringContaining(link));
         expect(await screen.findByText(/The complete first treatment passage/)).toHaveTextContent('<b>Literal text.</b>');
-        expect(await screen.findByText('A distinct passage on healer benefits.')).toBeInTheDocument();
+        expect(await screen.findByRole('table', { name: 'Source table continuation' })).toBeInTheDocument();
+        expect(screen.getByRole('cell', { name: 'Dagger' })).toBeInTheDocument();
         expect(fetchPassage).toHaveBeenCalledTimes(2);
         fireEvent.keyDown(marker, { key: 'Escape' });
         expect(marker).toHaveAttribute('aria-expanded', 'false');

@@ -51,7 +51,17 @@ function citationTitle(section?: string): string {
 
 function passageText(text: string) {
     const hasTable = /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/m.test(text);
-    if (!hasTable) return text;
+    if (!hasTable) {
+        const lines = text.trim().split(/\r?\n/).map(line => line.trim());
+        if (lines.length < 2 || !lines.every(line => /^\|.*\|$/.test(line))) return text;
+        const rows = lines.map(line => line.slice(1, -1).split('|').map(cell => cell.trim()));
+        if (rows[0].length < 2 || !rows.every(row => row.length === rows[0].length)) return text;
+        return <table aria-label="Source table continuation"><tbody>
+            {rows.map((row, index) => <tr key={index}>
+                {row.map((cell, column) => <td key={column}>{cell}</td>)}
+            </tr>)}
+        </tbody></table>;
+    }
     return (
         <ReactMarkdown remarkPlugins={[remarkGfm]} disallowedElements={['a', 'img']} unwrapDisallowed>
             {text}
