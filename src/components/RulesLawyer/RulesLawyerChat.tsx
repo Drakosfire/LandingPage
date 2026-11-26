@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button, Group, Paper, Stack, Text, Textarea } from '@mantine/core';
-import { DUNGEONMIND_API_URL, RULESLAWYER_ASSET_BASE_URL } from '../../config';
+import { RULESLAWYER_ASSET_BASE_URL } from '../../config';
 import { useChatContext } from '../../context/ChatContext';
 import { useAuth } from '../../context/AuthContext';
 import { getRulebookPrompts } from './promptSets';
+import { formatRuleCitations, groupRuleCitations, RuleCitation } from './RuleCitations';
 import './RulesLawyer.css';
 
 const LOADING_ANIMATION_CDN =
@@ -112,6 +113,8 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                 <Stack gap="sm">
                     {chatHistory.map((msg, index) => {
                         const isAssistant = msg.role === 'assistant';
+                        const sources = groupRuleCitations(msg.citations);
+                        const pages = Array.from(sources.keys());
                         const previousUser = isAssistant ? chatHistory[index - 1] : null;
                         const canSave = Boolean(
                             isAssistant &&
@@ -138,21 +141,16 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                                         <ReactMarkdown
                                             className="ruleslawyer-chat__message-content markdown"
                                             remarkPlugins={remarkPlugins}
+                                            components={{ a: ({ node, href, children, ...props }) => {
+                                                const page = href?.match(/^#rules-source-(\d+)$/)?.[1];
+                                                const citations = page && sources.get(page);
+                                                return page && citations
+                                                    ? <RuleCitation number={pages.indexOf(page) + 1} page={page} sources={citations} />
+                                                    : <a href={href} {...props}>{children}</a>;
+                                            } }}
                                         >
-                                            {msg.content}
+                                            {formatRuleCitations(msg.content, sources)}
                                         </ReactMarkdown>
-                                        {Boolean(msg.citations?.length) && (
-                                            <Group gap="xs" mt="xs" aria-label="Source citations">
-                                                {msg.citations?.map((citation, citationIndex) => {
-                                                    const label = `p. ${citation.page}${citation.section ? ` · ${citation.section}` : ''}`;
-                                                    const link = citation.link?.startsWith('/api/ruleslawyer/evidence/')
-                                                        ? `${DUNGEONMIND_API_URL}${citation.link}` : undefined;
-                                                    return link ? (
-                                                        <a key={citationIndex} href={link} target="_blank" rel="noreferrer">{label}</a>
-                                                    ) : <Text key={citationIndex} size="xs">{label}</Text>;
-                                                })}
-                                            </Group>
-                                        )}
                                         {canSave && (
                                             <Group justify="flex-end" mt="xs">
                                                 <Button
@@ -162,7 +160,10 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                                                         rulebookId: msg.rulebookId || currentEmbedding,
                                                         queryText: previousUser?.content || '',
                                                         responseText: msg.content,
-                                                        citations: extractCitations(msg.content)
+                                                        citations: msg.citations?.length ? msg.citations.flatMap(citation => {
+                                                            const page = Number(citation.page);
+                                                            return Number.isInteger(page) && page > 0 ? [{ ...citation, page }] : [];
+                                                        }) : extractCitations(msg.content)
                                                     })}
                                                 >
                                                     Save Rule
