@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Container, Paper, SimpleGrid, Stack } from '@mantine/core';
+import { Alert, Container, Paper, Stack } from '@mantine/core';
 import { DUNGEONMIND_API_URL } from '../../config';
 import { useChatContext } from '../../context/ChatContext';
 import LoadingModal from './LoadingModal';
 import RulesLawyerChat from './RulesLawyerChat';
 import RulesetSelector, { RulebookOption } from './RulesetSelector';
 import SavedRulesDrawer from './SavedRulesDrawer';
+import './RulesLawyerLayout.css';
 
 interface RulesLawyerViewProps {
     savedRulesOpen: boolean;
@@ -83,16 +84,11 @@ const RulesLawyerView: React.FC<RulesLawyerViewProps> = ({
                     </Stack>
                 </Paper>
 
-                <SimpleGrid
-                    cols={{ base: 1, md: 1 }}
-                    spacing="lg"
-                    className="ruleslawyer-layout"
-                    data-testid="ruleslawyer-layout"
-                >
+                <div className="ruleslawyer-layout" data-testid="ruleslawyer-layout">
                     <Stack gap="md" data-testid="ruleslawyer-chat-panel">
                         <RulesLawyerChat rulebookTitle={activeRulebook?.title} />
                     </Stack>
-                </SimpleGrid>
+                </div>
             </Container>
 
             <SavedRulesDrawer

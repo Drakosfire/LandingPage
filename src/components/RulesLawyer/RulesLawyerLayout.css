@@ -1,0 +1,45 @@
+.ruleslawyer-view {
+    align-items: center;
+    min-inline-size: 0;
+    padding: clamp(.5rem, 2vw, 1.25rem);
+}
+
+.ruleslawyer-view :is(.ruleslawyer-view__container, .ruleslawyer-layout, .ruleslawyer-chat,
+.ruleslawyer-chat__messages, .ruleslawyer-chat__message, .ruleslawyer-chat__input) {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+.ruleslawyer-view .ruleslawyer-chat__messages {
+    height: clamp(9rem, 48dvh, 44rem);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.ruleslawyer-chat__message-content {
+    overflow-wrap: anywhere;
+}
+
+.ruleslawyer-chat__message-content pre,
+.ruleslawyer-chat__table {
+    max-inline-size: 100%;
+    overflow-x: auto;
+}
+
+.ruleslawyer-chat__table table {
+    width: max-content;
+    min-width: 100%;
+}
+
+.ruleslawyer-view .ruleslawyer-chat__prompt-button {
+    max-inline-size: 100%;
+    height: auto;
+    min-height: 1.875rem;
+    padding-block: .25rem;
+}
+
+.ruleslawyer-chat__prompt-button .mantine-Button-label {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: start;
+}

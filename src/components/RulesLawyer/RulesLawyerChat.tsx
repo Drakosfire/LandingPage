@@ -146,7 +146,13 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                                         <ReactMarkdown
                                             className="ruleslawyer-chat__message-content markdown"
                                             remarkPlugins={remarkPlugins}
-                                            components={{ a: ({ node, href, children, ...props }) => {
+                                            components={{
+                                                table: ({ node, ...props }) => (
+                                                    <div className="ruleslawyer-chat__table" tabIndex={0} aria-label="Scrollable answer table">
+                                                        <table {...props} />
+                                                    </div>
+                                                ),
+                                                a: ({ node, href, children, ...props }) => {
                                                 const page = href?.match(/^#rules-source-(\d+)$/)?.[1];
                                                 const citations = page && sources.get(page);
                                                 return page && citations
@@ -240,6 +246,7 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                     }}
                     placeholder={embeddingsLoaded ? 'Ask a rules question...' : 'Select a ruleset to query...'}
                     minRows={3}
+                    maxRows={8}
                     autosize
                     disabled={isSending}
                 />
