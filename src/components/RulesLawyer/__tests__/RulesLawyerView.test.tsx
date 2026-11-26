@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
 import { AuthProvider } from '../../../context/AuthContext';
 import { ChatProvider } from '../../../context/ChatContext';
@@ -35,6 +35,11 @@ describe('RulesLawyerView', () => {
                     ok: false,
                     status: 401
                 } as Response);
+            }
+
+            if (url.includes('/api/ruleslawyer/query')) {
+                const read = jest.fn().mockResolvedValue({ done: true });
+                return Promise.resolve({ ok: true, body: { getReader: () => ({ read }) } } as unknown as Response);
             }
 
             if (url.includes('/api/ruleslawyer/rulebooks')) {
@@ -87,5 +92,21 @@ describe('RulesLawyerView', () => {
             expect(screen.getByPlaceholderText('Ask a rules question...')).toBeInTheDocument();
             expect((global.fetch as jest.Mock).mock.calls.some(([url]) => String(url).includes('/loadembeddings'))).toBe(false);
         });
+    });
+    it('submits on Enter and leaves Shift+Enter and composition alone', async () => {
+        renderWithProviders(<RulesLawyerView savedRulesOpen={false} onCloseSavedRules={jest.fn()} />);
+        const input = await screen.findByPlaceholderText('Ask a rules question...');
+        fireEvent.change(input, { target: { value: 'Tell me about the physician' } });
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled());
+
+        const queries = () => (global.fetch as jest.Mock).mock.calls
+            .filter(([url]) => String(url).endsWith('/api/ruleslawyer/query'));
+        expect(fireEvent.keyDown(input, { key: 'Enter', shiftKey: true })).toBe(true);
+        expect(fireEvent.keyDown(input, { key: 'Enter', isComposing: true })).toBe(true);
+        expect(queries()).toHaveLength(0);
+
+        fireEvent.keyDown(input, { key: 'Enter' });
+        await waitFor(() => expect(queries()).toHaveLength(1));
+        expect(JSON.parse(queries()[0][1].body).message).toBe('Tell me about the physician');
     });
 });

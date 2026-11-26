@@ -68,14 +68,19 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
         scrollToBottom(isSending ? 'auto' : 'smooth');
     }, [chatHistory, isSending]);
 
+    const canSend = embeddingsLoaded && !isLoadingEmbeddings && !isSending && Boolean(message.trim());
+
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        if (!message.trim()) return;
+        if (!canSend) return;
 
         setIsSending(true);
-        await sendMessage(message.trim());
-        setMessage('');
-        setIsSending(false);
+        try {
+            await sendMessage(message.trim());
+            setMessage('');
+        } finally {
+            setIsSending(false);
+        }
     };
 
     const extractCitations = (content: string) => {
@@ -228,6 +233,11 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                 <Textarea
                     value={message}
                     onChange={(event) => setMessage(event.currentTarget.value)}
+                    onKeyDown={event => {
+                        if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+                        event.preventDefault();
+                        if (canSend && !event.repeat) event.currentTarget.form?.requestSubmit();
+                    }}
                     placeholder={embeddingsLoaded ? 'Ask a rules question...' : 'Select a ruleset to query...'}
                     minRows={3}
                     autosize
@@ -236,7 +246,7 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                 <Group justify="flex-end" mt="sm" className="ruleslawyer-chat__actions">
                     <Button
                         type="submit"
-                        disabled={!embeddingsLoaded || isLoadingEmbeddings || isSending || !message.trim()}
+                        disabled={!canSend}
                         className="ruleslawyer-chat__send"
                     >
                         Send
