@@ -16,7 +16,7 @@ const RulesLawyerView: React.FC<RulesLawyerViewProps> = ({
     savedRulesOpen,
     onCloseSavedRules,
 }) => {
-    const { isLoadingEmbeddings, currentEmbedding } = useChatContext();
+    const { isLoadingEmbeddings, currentEmbedding, loadEmbedding } = useChatContext();
     const [rulebooks, setRulebooks] = useState<RulebookOption[]>([]);
     const [isLoadingRulebooks, setIsLoadingRulebooks] = useState(false);
     const [rulebooksError, setRulebooksError] = useState<string | null>(null);
@@ -47,6 +47,13 @@ const RulesLawyerView: React.FC<RulesLawyerViewProps> = ({
     useEffect(() => {
         fetchRulebooks();
     }, []);
+
+    useEffect(() => {
+        if (!rulebooks.length || rulebooks.some(book => book.id === currentEmbedding && book.availabilityStatus === 'available')) return;
+        const available = rulebooks.filter(book => book.availabilityStatus === 'available');
+        const initial = available.find(book => book.id === 'DnD_PHB_55') ?? available[0];
+        if (initial) void loadEmbedding(initial.id);
+    }, [rulebooks, currentEmbedding, loadEmbedding]);
 
     const activeRulebook = useMemo(
         () => rulebooks.find((rulebook) => rulebook.id === currentEmbedding),

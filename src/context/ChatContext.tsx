@@ -1,11 +1,21 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
 import { DUNGEONMIND_API_URL } from '../config';
 import { trackGenerationTime } from '../shared/GenerationDrawerEngine/hooks';
 import { useAuth } from './AuthContext';
 
+export interface RuleEvidenceCitation {
+    page: number | string;
+    pdfPage?: number;
+    sourceId?: string;
+    section?: string;
+    link?: string;
+}
+
 interface Message {
     role: 'user' | 'assistant' | 'error';
     content: string;
+    citations?: RuleEvidenceCitation[];
+    rulebookId?: string;
 }
 
 interface ChatContextType {
@@ -27,9 +37,6 @@ interface ChatContextType {
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
-
-// Default embedding to load on page access
-const DEFAULT_EMBEDDING = 'DnD_PHB_55';
 
 const normalizeErrorDetail = (detail: unknown, response: Response) => {
     if (typeof detail === 'string' && detail.trim()) return detail;
@@ -88,6 +95,7 @@ interface RetrievalProgress {
         sizes?: DebugSizes;
         tokenCount?: number;
         yieldedCount?: number;
+        citations?: RuleEvidenceCitation[];
     };
 }
 
@@ -159,86 +167,25 @@ export interface UpdateSavedRulePayload {
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isLoggedIn } = useAuth();
     const [chatHistory, setChatHistory] = useState<Message[]>([]);
-    const [currentEmbedding, setCurrentEmbedding] = useState<string>(DEFAULT_EMBEDDING);
-    const [embeddingsLoaded, setEmbeddingsLoaded] = useState<boolean>(false);
-    const [isLoadingEmbeddings, setIsLoadingEmbeddings] = useState<boolean>(false);
+    const [currentEmbedding, setCurrentEmbedding] = useState<string>("");
+    const embeddingsLoaded = Boolean(currentEmbedding);
+    const isLoadingEmbeddings = false;
+    const activeQuery = useRef<AbortController | null>(null);
+    useEffect(() => () => activeQuery.current?.abort(), []);
     const [progressEvents, setProgressEvents] = useState<RetrievalProgress[]>([]);
     const [debugState, setDebugState] = useState<DebugState | null>(null);
     const [savedRules, setSavedRules] = useState<SavedRule[]>([]);
 
-    // Check embedding status on mount
-    useEffect(() => {
-        const checkEmbeddingStatus = async () => {
-            try {
-                const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/status`, {
-                    method: 'GET',
-                    credentials: 'include',
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.embeddingsLoaded) {
-                        setEmbeddingsLoaded(true);
-                        if (data.activeRulebookId) {
-                            setCurrentEmbedding(data.activeRulebookId);
-                        }
-                        console.log('✅ [RulesLawyer] Embeddings already loaded');
-                        return;
-                    }
-                }
-
-                // Embeddings not loaded, auto-load default
-                console.log(`🔄 [RulesLawyer] Embeddings not loaded, auto-loading ${DEFAULT_EMBEDDING}...`);
-                await loadEmbedding(DEFAULT_EMBEDDING);
-            } catch (error) {
-                console.error('❌ [RulesLawyer] Error checking embedding status:', error);
-                // Don't block UI if status check fails, but try to load anyway
-                try {
-                    await loadEmbedding(DEFAULT_EMBEDDING);
-                } catch (loadError) {
-                    console.error('❌ [RulesLawyer] Failed to auto-load embeddings:', loadError);
-                }
-            }
-        };
-
-        checkEmbeddingStatus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Run only once on mount
-
-    const loadEmbedding = async (embeddingId: string) => {
-        setIsLoadingEmbeddings(true);
-        try {
-            const response = await fetch(`${DUNGEONMIND_API_URL}/api/ruleslawyer/loadembeddings`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    embedding: embeddingId,
-                    embeddings_file_path: `${embeddingId}_embeddings.csv`,
-                    enhanced_json_path: `${embeddingId}.json`
-                }),
-            });
-
-            if (!response.ok) {
-                const errorMessage = await getErrorMessageFromResponse(response);
-                throw new Error(errorMessage || `HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            setCurrentEmbedding(embeddingId);
-            setEmbeddingsLoaded(true);
-            console.log(`✅ [RulesLawyer] Successfully loaded embedding: ${embeddingId}`);
-        } catch (error) {
-            console.error('❌ [RulesLawyer] Error loading embeddings:', error);
-            setEmbeddingsLoaded(false);
-            throw error;
-        } finally {
-            setIsLoadingEmbeddings(false);
-        }
-    };
+    const loadEmbedding = useCallback(async (embeddingId: string) => {
+        activeQuery.current?.abort();
+        setCurrentEmbedding(embeddingId);
+        setChatHistory([]);
+        setProgressEvents([]);
+        setDebugState(null);
+    }, []);
 
     const clearMessages = () => {
+        activeQuery.current?.abort();
         console.log('🗑️ [RulesLawyer] Clearing chat history');
         setChatHistory([]);
     };
@@ -366,13 +313,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [isLoggedIn]);
 
     const sendMessage = async (message: string) => {
+        if (!currentEmbedding) return;
+        activeQuery.current?.abort();
+        const request = new AbortController();
+        activeQuery.current = request;
+        const rulebookId = currentEmbedding;
         setProgressEvents([]);
         // Add user message to UI immediately
         setChatHistory(prev => [...prev, { role: 'user', content: message }]);
         setDebugState((prev) => ({
             ...prev,
             query: message,
-            rulebookId: currentEmbedding
+            rulebookId
         }));
 
         const requestStartTime = performance.now();
@@ -389,16 +341,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include', // Include session cookies
+                credentials: 'include',
+                signal: request.signal,
                 body: JSON.stringify({
                     message,
-                    rulebookId: currentEmbedding,
+                    rulebookId,
                     chatHistory: chatHistory
                         .filter((msg) => msg.role !== 'error')
                         .map((msg) => ({ role: msg.role, content: msg.content }))
                 }),
             });
 
+            if (request.signal.aborted) return;
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
                 throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
@@ -411,7 +365,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             let buffer = '';
 
             // Add assistant message placeholder that we'll update
-            setChatHistory(prev => [...prev, { role: 'assistant', content: '' }]);
+            setChatHistory(prev => [...prev, { role: 'assistant', content: '', rulebookId }]);
 
             if (!reader) {
                 throw new Error('No response body reader available');
@@ -423,6 +377,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             while (true) {
                 const { done, value } = await reader.read();
+                if (request.signal.aborted) return;
 
                 if (done) {
                     console.log(`✅ [RulesLawyer] Stream completed: chunks=${chunkCount}, tokens=${tokenCount}, total_length=${assistantMessage.length}`);
@@ -532,6 +487,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 yieldedCount: metadata.yieldedCount ?? prev?.yieldedCount,
                             }));
                         }
+                        if (progress.stage === 'complete' && Array.isArray(progress.metadata?.citations)) {
+                            const citations = progress.metadata.citations;
+                            setChatHistory(prev => request.signal.aborted ? prev : prev.map(
+                                (entry, index) => index === prev.length - 1 && entry.role === 'assistant'
+                                    ? { ...entry, citations } : entry
+                            ));
+                        }
                         if (progress.stage === 'complete' && progress.metadata?.timings?.totalMs) {
                             const timingMetadata: Record<string, string | number> = {
                                 rulebookId: progress.metadata.rulebookId || '',
@@ -579,10 +541,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     // Update the last message in chat history
                     setChatHistory(prev => {
+                        if (request.signal.aborted) return prev;
                         const updated = [...prev];
                         updated[updated.length - 1] = {
                             role: 'assistant',
-                            content: assistantMessage
+                            content: assistantMessage, rulebookId
                         };
                         console.log(`🔄 [RulesLawyer] Updated chat history: message_count=${updated.length}`);
                         return updated;
@@ -591,6 +554,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
         } catch (error) {
+            if (request.signal.aborted) return;
             console.error('Error sending message:', error);
             const errorMessage = error instanceof Error
                 ? error.message
