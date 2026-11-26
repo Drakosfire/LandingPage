@@ -121,14 +121,14 @@ function CitationPassage({ href, label }: { href: string; label: string }) {
     }, [href]);
 
     return (
-        <section className="ruleslawyer-citation-preview__passage">
+        <article className="ruleslawyer-citation-preview__passage">
             <a href={href} target="_blank" rel="noreferrer">{label} ↗</a>
             {passage ? (
                 <div className="ruleslawyer-citation-preview__text">{passageText(passage)}</div>
             ) : (
                 <Text size="xs" role="status">{failed ? 'Preview unavailable. Open the source to read it.' : 'Loading passage…'}</Text>
             )}
-        </section>
+        </article>
     );
 }
 
