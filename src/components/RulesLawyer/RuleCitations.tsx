@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Popover, Stack, Text } from '@mantine/core';
+import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Modal, Stack, Text } from '@mantine/core';
 import { DUNGEONMIND_API_URL } from '../../config';
 import type { RuleEvidenceCitation } from '../../context/ChatContext';
 
@@ -33,6 +35,69 @@ export function formatRuleCitations(content: string, pages: Map<string, RuleEvid
 ${remaining.map(page => `[source](#rules-source-${page})`).join(' ')}` : answer;
 }
 
+function citationTitle(section?: string): string {
+    if (section?.trim().startsWith('[')) {
+        try {
+            const parts: unknown = JSON.parse(section);
+            if (Array.isArray(parts)) {
+                return parts.filter(part => typeof part === 'string' && part.trim()).join(' / ') || 'Source passage';
+            }
+        } catch {
+            return 'Source passage';
+        }
+    }
+    return section?.trim() || 'Source passage';
+}
+
+function sourceHtmlTable(markup: string) {
+    const template = document.createElement('template');
+    template.innerHTML = markup;
+    const table = template.content.querySelector('table');
+    if (!table?.rows.length) return markup;
+    return <div className="ruleslawyer-citation-preview__table" tabIndex={0} aria-label="Scrollable source table">
+        <table>
+            {table.caption && <caption>{table.caption.textContent}</caption>}
+            <tbody>
+                {Array.from(table.rows).map((row, index) => <tr key={index}>
+                    {Array.from(row.cells).map((cell, column) => {
+                        const Cell = cell.tagName === 'TH' ? 'th' : 'td';
+                        return <Cell key={column} colSpan={cell.colSpan} rowSpan={cell.rowSpan}>{cell.textContent}</Cell>;
+                    })}
+                </tr>)}
+            </tbody>
+        </table>
+    </div>;
+}
+
+function passageText(text: string) {
+    const parts = text.split(/(<table\b[^>]*>[\s\S]*?<\/table\s*>)/gi);
+    if (parts.length > 1) {
+        return parts.map((part, index) => <React.Fragment key={index}>
+            {index % 2 ? sourceHtmlTable(part) : part}
+        </React.Fragment>);
+    }
+    const hasTable = /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/m.test(text);
+    if (!hasTable) {
+        const lines = text.trim().split(/\r?\n/).map(line => line.trim());
+        if (lines.length < 2 || !lines.every(line => /^\|.*\|$/.test(line))) return text;
+        const rows = lines.map(line => line.slice(1, -1).split('|').map(cell => cell.trim()));
+        if (rows[0].length < 2 || !rows.every(row => row.length === rows[0].length)) return text;
+        return <div className="ruleslawyer-citation-preview__table" tabIndex={0} aria-label="Scrollable source table"><table aria-label="Source table continuation"><tbody>
+            {rows.map((row, index) => <tr key={index}>
+                {row.map((cell, column) => <td key={column}>{cell}</td>)}
+            </tr>)}
+        </tbody></table></div>;
+    }
+    return (
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+            table: ({ node, ...props }) => <div className="ruleslawyer-citation-preview__table" tabIndex={0}
+                aria-label="Scrollable source table"><table {...props} /></div>,
+        }} disallowedElements={['a', 'img']} unwrapDisallowed>
+            {text}
+        </ReactMarkdown>
+    );
+}
+
 function CitationPassage({ href, label }: { href: string; label: string }) {
     const [passage, setPassage] = useState<string>();
     const [failed, setFailed] = useState(false);
@@ -45,7 +110,7 @@ function CitationPassage({ href, label }: { href: string; label: string }) {
                 if (!response.ok) throw new Error('Could not load citation evidence');
                 const document = new DOMParser().parseFromString(await response.text(), 'text/html');
                 const text = document.querySelector('main > pre')?.textContent;
-                if (!text?.trim()) throw new Error('Missing citation evidence');
+                if (!text?.trim() || /^\[\s*\]$/.test(text.trim())) throw new Error('Missing citation evidence');
                 if (!controller.signal.aborted) setPassage(text);
             } catch {
                 if (!controller.signal.aborted) setFailed(true);
@@ -56,14 +121,14 @@ function CitationPassage({ href, label }: { href: string; label: string }) {
     }, [href]);
 
     return (
-        <section className="ruleslawyer-citation-preview__passage">
+        <article className="ruleslawyer-citation-preview__passage">
             <a href={href} target="_blank" rel="noreferrer">{label} ↗</a>
             {passage ? (
-                <div className="ruleslawyer-citation-preview__text">{passage}</div>
+                <div className="ruleslawyer-citation-preview__text">{passageText(passage)}</div>
             ) : (
                 <Text size="xs" role="status">{failed ? 'Preview unavailable. Open the source to read it.' : 'Loading passage…'}</Text>
             )}
-        </section>
+        </article>
     );
 }
 
@@ -73,78 +138,35 @@ export function RuleCitation({ number, page, sources }: {
     sources: RuleEvidenceCitation[];
 }) {
     const [opened, setOpened] = useState(false);
-    const [pinned, setPinned] = useState(false);
-    const timer = useRef<ReturnType<typeof setTimeout>>();
-    const trigger = useRef<HTMLButtonElement>(null);
-    const cancelClose = () => clearTimeout(timer.current);
-    useEffect(() => () => clearTimeout(timer.current), []);
-
-    const show = () => {
-        cancelClose();
-        setOpened(true);
-    };
-    const hideSoon = () => {
-        cancelClose();
-        timer.current = setTimeout(() => {
-            if (!pinned) setOpened(false);
-        }, 180);
-    };
-    const close = () => {
-        cancelClose();
-        setPinned(false);
-        setOpened(false);
-    };
-
+    const title = `Printed page ${page}${sources[0]?.pdfPage ? ` · PDF page ${sources[0].pdfPage}` : ''}`;
     return (
-        <Popover opened={opened} onDismiss={close} width="max-content" position="top" offset={8}
-            withArrow withinPortal shadow="lg" middlewares={{ flip: true, shift: { padding: 8, crossAxis: true } }}>
-            <Popover.Target>
-                <button ref={trigger} type="button" className="ruleslawyer-citation"
-                    data-tone={(number - 1) % 4} aria-label={`Source ${number}, printed page ${page}`}
-                    onMouseEnter={show} onMouseLeave={hideSoon} onFocus={show} onBlur={hideSoon}
-                    onClick={() => {
-                        if (pinned) close();
-                        else { show(); setPinned(true); }
-                    }}
-                    onKeyDown={event => {
-                        if (event.key === 'Escape') close();
-                        if (event.key === 'Tab' && !event.shiftKey && opened) {
-                            const panel = document.getElementById(event.currentTarget.getAttribute('aria-controls') ?? '');
-                            const link = panel?.querySelector('a');
-                            if (link) {
-                                event.preventDefault();
-                                link.focus();
-                            }
-                        }
-                    }}>
-                    {number}
-                </button>
-            </Popover.Target>
-            <Popover.Dropdown className="ruleslawyer-citation-preview" aria-label={`Sources for printed page ${page}`}
-                onMouseEnter={show} onMouseLeave={hideSoon} onFocus={show}
-                onBlur={event => {
-                    if (!event.currentTarget.contains(event.relatedTarget)) hideSoon();
-                }}
-                onKeyDown={event => {
-                    if (event.key === 'Escape') {
-                        trigger.current?.focus();
-                        close();
-                    }
+        <>
+            <button type="button" className="ruleslawyer-citation"
+                data-tone={(number - 1) % 4} aria-label={`Source ${number}, printed page ${page}`}
+                aria-haspopup="dialog" aria-expanded={opened} onClick={() => setOpened(true)}>
+                {number}
+            </button>
+            <Modal opened={opened} onClose={() => setOpened(false)} title={title} centered zIndex={1100}
+                size="auto" padding="md" radius="md" closeButtonProps={{ 'aria-label': 'Close source preview' }}
+                classNames={{
+                    inner: 'ruleslawyer-citation-preview__inner',
+                    content: 'ruleslawyer-citation-preview',
+                    title: 'ruleslawyer-citation-preview__page',
+                    body: 'ruleslawyer-citation-preview__body',
                 }}>
-                <Stack gap="sm" className="ruleslawyer-citation-preview__body">
-                    <Text size="xs" fw={700} className="ruleslawyer-citation-preview__page">
-                        Printed page {page}{sources[0]?.pdfPage ? ` · PDF page ${sources[0].pdfPage}` : ''}
-                    </Text>
+                {opened && <Stack gap="sm">
                     {sources.map((source, index) => {
-                        const title = source.section || 'Source passage';
-                        const label = sources.filter(other => other.section === source.section).length > 1
-                            ? `${title} · passage ${index + 1}` : title;
+                        const heading = citationTitle(source.section);
+                        const label = sources.filter(other => citationTitle(other.section) === heading).length > 1
+                            ? `${heading} · passage ${index + 1}` : heading;
                         return source.link && /^\/api\/ruleslawyer\/evidence\/[\w-]+\/[a-f0-9]{64}$/.test(source.link)
                             ? <CitationPassage key={source.link} href={`${DUNGEONMIND_API_URL}${source.link}`} label={label} />
-                            : <Text key={index} size="sm">{label}</Text>;
+                            : <Text key={index} size="sm">{label === 'Source passage'
+                                ? 'No source preview is available for this citation.'
+                                : `${label} · Preview unavailable`}</Text>;
                     })}
-                </Stack>
-            </Popover.Dropdown>
-        </Popover>
+                </Stack>}
+            </Modal>
+        </>
     );
 }
