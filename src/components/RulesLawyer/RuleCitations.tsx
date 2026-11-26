@@ -33,6 +33,40 @@ export function formatRuleCitations(content: string, pages: Map<string, RuleEvid
 ${remaining.map(page => `[source](#rules-source-${page})`).join(' ')}` : answer;
 }
 
+function CitationPassage({ href, label }: { href: string; label: string }) {
+    const [passage, setPassage] = useState<string>();
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        async function load() {
+            try {
+                const response = await fetch(href, { signal: controller.signal });
+                if (!response.ok) throw new Error('Could not load citation evidence');
+                const document = new DOMParser().parseFromString(await response.text(), 'text/html');
+                const text = document.querySelector('main > pre')?.textContent;
+                if (!text?.trim()) throw new Error('Missing citation evidence');
+                if (!controller.signal.aborted) setPassage(text);
+            } catch {
+                if (!controller.signal.aborted) setFailed(true);
+            }
+        }
+        void load();
+        return () => controller.abort();
+    }, [href]);
+
+    return (
+        <section className="ruleslawyer-citation-preview__passage">
+            <a href={href} target="_blank" rel="noreferrer">{label} ↗</a>
+            {passage ? (
+                <div className="ruleslawyer-citation-preview__text">{passage}</div>
+            ) : (
+                <Text size="xs" role="status">{failed ? 'Preview unavailable. Open the source to read it.' : 'Loading passage…'}</Text>
+            )}
+        </section>
+    );
+}
+
 export function RuleCitation({ number, page, sources }: {
     number: number;
     page: string;
@@ -62,9 +96,8 @@ export function RuleCitation({ number, page, sources }: {
     };
 
     return (
-        <Popover opened={opened} onDismiss={close} width={304} position="top" offset={8}
-            withArrow withinPortal shadow="lg" middlewares={{ flip: true, shift: { padding: 8 } }}
-            styles={{ dropdown: { width: 'min(19rem, calc(100vw - 1rem))' } }}>
+        <Popover opened={opened} onDismiss={close} width="max-content" position="top" offset={8}
+            withArrow withinPortal shadow="lg" middlewares={{ flip: true, shift: { padding: 8, crossAxis: true } }}>
             <Popover.Target>
                 <button ref={trigger} type="button" className="ruleslawyer-citation"
                     data-tone={(number - 1) % 4} aria-label={`Source ${number}, printed page ${page}`}
@@ -98,7 +131,7 @@ export function RuleCitation({ number, page, sources }: {
                         close();
                     }
                 }}>
-                <Stack gap={6}>
+                <Stack gap="sm" className="ruleslawyer-citation-preview__body">
                     <Text size="xs" fw={700} className="ruleslawyer-citation-preview__page">
                         Printed page {page}{sources[0]?.pdfPage ? ` · PDF page ${sources[0].pdfPage}` : ''}
                     </Text>
@@ -107,8 +140,7 @@ export function RuleCitation({ number, page, sources }: {
                         const label = sources.filter(other => other.section === source.section).length > 1
                             ? `${title} · passage ${index + 1}` : title;
                         return source.link && /^\/api\/ruleslawyer\/evidence\/[\w-]+\/[a-f0-9]{64}$/.test(source.link)
-                            ? <a key={source.link} href={`${DUNGEONMIND_API_URL}${source.link}`}
-                                target="_blank" rel="noreferrer">{label} ↗</a>
+                            ? <CitationPassage key={source.link} href={`${DUNGEONMIND_API_URL}${source.link}`} label={label} />
                             : <Text key={index} size="sm">{label}</Text>;
                     })}
                 </Stack>

@@ -27,8 +27,15 @@ it('keeps sources reachable when the Writer omits an inline marker', () => {
     expect(formatRuleCitations('Healers.', sources)).toBe('Healers.\n\n[source](#rules-source-80)');
 });
 
-it('opens the preview on focus and lets Escape dismiss it', async () => {
+it('opens on focus, loads every distinct full passage as text, and closes on Escape', async () => {
     const link = '/api/ruleslawyer/evidence/WWN_Free_Edition/' + 'a'.repeat(64);
+    const secondLink = '/api/ruleslawyer/evidence/WWN_Free_Edition/' + 'b'.repeat(64);
+    const fetchPassage = jest.spyOn(global, 'fetch').mockImplementation(async input => ({
+        ok: true,
+        text: async () => String(input).endsWith(link)
+            ? '<main><pre>First line.\nThe complete first treatment passage. &lt;b&gt;Literal text.&lt;/b&gt;</pre></main>'
+            : '<main><pre>A distinct passage on healer benefits.</pre></main>',
+    } as Response));
     const savedObserver = global.ResizeObserver;
     global.ResizeObserver = class {
         observe() {}
@@ -37,15 +44,23 @@ it('opens the preview on focus and lets Escape dismiss it', async () => {
     };
     try {
         render(<MantineProvider env="test">
-            <RuleCitation number={2} page="80" sources={[{ page: 80, pdfPage: 83, section: 'Healers', link }]} />
+            <RuleCitation number={2} page="80" sources={[
+                { page: 80, pdfPage: 83, section: 'Healers', link },
+                { page: 80, pdfPage: 83, section: 'Healer Benefits', link: secondLink },
+            ]} />
         </MantineProvider>);
         const marker = screen.getByRole('button', { name: 'Source 2, printed page 80' });
+        expect(fetchPassage).not.toHaveBeenCalled();
         fireEvent.focus(marker);
         expect(await screen.findByText('Printed page 80 · PDF page 83')).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Healers ↗' })).toHaveAttribute('href', expect.stringContaining(link));
+        expect(await screen.findByText(/The complete first treatment passage/)).toHaveTextContent('<b>Literal text.</b>');
+        expect(await screen.findByText('A distinct passage on healer benefits.')).toBeInTheDocument();
+        expect(fetchPassage).toHaveBeenCalledTimes(2);
         fireEvent.keyDown(marker, { key: 'Escape' });
         expect(marker).toHaveAttribute('aria-expanded', 'false');
     } finally {
         global.ResizeObserver = savedObserver;
+        fetchPassage.mockRestore();
     }
 });
