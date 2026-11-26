@@ -5,6 +5,9 @@ import { AuthProvider } from '../../../context/AuthContext';
 import { ChatProvider } from '../../../context/ChatContext';
 import RulesLawyerView from '../RulesLawyerView';
 
+jest.mock('react-markdown', () => ({ __esModule: true, default: () => null }));
+jest.mock('remark-gfm', () => ({ __esModule: true, default: () => null }));
+
 const renderWithProviders = (ui: React.ReactElement) => {
     return render(
         <MantineProvider>
@@ -19,23 +22,18 @@ const renderWithProviders = (ui: React.ReactElement) => {
 
 describe('RulesLawyerView', () => {
     beforeEach(() => {
-        jest.spyOn(global, 'fetch').mockImplementation((input: RequestInfo) => {
-            const url = typeof input === 'string' ? input : input.url;
+        Object.defineProperty(global, 'ResizeObserver', {
+            value: class { observe() {} unobserve() {} disconnect() {} },
+            configurable: true,
+        });
+        Object.defineProperty(HTMLElement.prototype, 'scrollTo', { value: jest.fn(), configurable: true });
+        jest.spyOn(global, 'fetch').mockImplementation((input) => {
+            const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
 
             if (url.includes('/api/auth/current-user')) {
                 return Promise.resolve({
                     ok: false,
                     status: 401
-                } as Response);
-            }
-
-            if (url.includes('/api/ruleslawyer/status')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: async () => ({
-                        embeddingsLoaded: true,
-                        activeRulebookId: 'DnD_PHB_55'
-                    })
                 } as Response);
             }
 
@@ -87,6 +85,7 @@ describe('RulesLawyerView', () => {
 
         await waitFor(() => {
             expect(screen.getByPlaceholderText('Ask a rules question...')).toBeInTheDocument();
+            expect((global.fetch as jest.Mock).mock.calls.some(([url]) => String(url).includes('/loadembeddings'))).toBe(false);
         });
     });
 });

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button, Group, Paper, Stack, Text, Textarea } from '@mantine/core';
-import { RULESLAWYER_ASSET_BASE_URL } from '../../config';
+import { DUNGEONMIND_API_URL, RULESLAWYER_ASSET_BASE_URL } from '../../config';
 import { useChatContext } from '../../context/ChatContext';
 import { useAuth } from '../../context/AuthContext';
 import { getRulebookPrompts } from './promptSets';
@@ -141,13 +141,25 @@ const RulesLawyerChat: React.FC<RulesLawyerChatProps> = ({ rulebookTitle }) => {
                                         >
                                             {msg.content}
                                         </ReactMarkdown>
+                                        {Boolean(msg.citations?.length) && (
+                                            <Group gap="xs" mt="xs" aria-label="Source citations">
+                                                {msg.citations?.map((citation, citationIndex) => {
+                                                    const label = `p. ${citation.page}${citation.section ? ` · ${citation.section}` : ''}`;
+                                                    const link = citation.link?.startsWith('/api/ruleslawyer/evidence/')
+                                                        ? `${DUNGEONMIND_API_URL}${citation.link}` : undefined;
+                                                    return link ? (
+                                                        <a key={citationIndex} href={link} target="_blank" rel="noreferrer">{label}</a>
+                                                    ) : <Text key={citationIndex} size="xs">{label}</Text>;
+                                                })}
+                                            </Group>
+                                        )}
                                         {canSave && (
                                             <Group justify="flex-end" mt="xs">
                                                 <Button
                                                     size="xs"
                                                     variant="light"
                                                     onClick={() => handleSaveRule({
-                                                        rulebookId: currentEmbedding,
+                                                        rulebookId: msg.rulebookId || currentEmbedding,
                                                         queryText: previousUser?.content || '',
                                                         responseText: msg.content,
                                                         citations: extractCitations(msg.content)
