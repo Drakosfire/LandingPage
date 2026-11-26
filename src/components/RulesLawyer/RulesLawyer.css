@@ -204,6 +204,27 @@
 .ruleslawyer-citation[data-tone="2"] { color: #873e11; background: #ffe8d5; }
 .ruleslawyer-citation[data-tone="3"] { color: #184c88; background: #deedff; }
 .ruleslawyer-citation:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-.ruleslawyer-citation-preview { border-radius: .8rem; padding: .8rem 1rem; overflow-wrap: anywhere; }
+.ruleslawyer-citation-preview {
+    max-inline-size: min(46rem, calc(100vw - 1.5rem));
+    padding: 0;
+    border-radius: .8rem;
+    overflow-wrap: anywhere;
+}
+.ruleslawyer-citation-preview__body {
+    max-block-size: min(36rem, 65dvh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: .85rem 1rem;
+}
+.ruleslawyer-citation-preview__passage + .ruleslawyer-citation-preview__passage {
+    border-top: 1px solid var(--mantine-color-default-border);
+    padding-top: .65rem;
+}
+.ruleslawyer-citation-preview__text {
+    margin-top: .3rem;
+    white-space: pre-wrap;
+    font-size: .9rem;
+    line-height: 1.5;
+}
 .ruleslawyer-citation-preview__page { color: var(--mantine-color-violet-light-color); }
 .ruleslawyer-citation-preview a { color: var(--mantine-color-text); font-size: .86rem; text-underline-offset: .2em; }
